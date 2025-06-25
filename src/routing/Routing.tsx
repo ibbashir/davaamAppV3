@@ -1,13 +1,24 @@
-import React from 'react'
-import { Routes, Route, Navigate } from 'react-router-dom'
-import Signup from '@/screens/signup/Signup'
+import { Routes, Route } from 'react-router-dom'
 import Login from '@/screens/login/Login'
+import Dashboard from '@/screens/dashboard/Dashboard'
+import Profile from '@/screens/profile/Profile'
+import Layout from '@/layouts/layout'
 
 const Routing = () => {
     return (
         <Routes>
+            {/* Public routes */}
             <Route path='/' element={<Login />} />
-            <Route path='/signup' element={<Signup />} />
+
+            {/* Protected routes using layout */}
+            <Route
+                path='/dashboard'
+                element={<Dashboard />}
+            />
+            <Route path='/profile' element={
+                <Profile />
+            }
+            />
         </Routes>
     )
 }

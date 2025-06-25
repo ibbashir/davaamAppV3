@@ -1,0 +1,86 @@
+import { cn } from "@/lib/utils"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { useForm } from "react-hook-form"
+import type { SubmitHandler } from "react-hook-form"
+import loader from "../assets/gear-spinner.svg"
+import { useEffect } from "react"
+
+type Inputs = {
+  email: string,
+  password: string,
+};
+
+export function LoginForm({
+  className,
+  ...props
+}: React.ComponentProps<"form">) {
+  const {
+    register,
+    handleSubmit,
+    watch,
+    reset,
+    formState: { errors, isSubmitting, isSubmitSuccessful },
+  } = useForm<Inputs>()
+
+  useEffect(() => {
+    reset();
+  }, [isSubmitSuccessful])
+
+  const delay = (d: number): Promise<void> => {
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        resolve();
+      }, d * 1000);
+    })
+  }
+
+  const onSubmit: SubmitHandler<Inputs> = async (data) => {
+    await delay(2)
+    console.log(data)
+  }
+
+  return (
+    <form className={cn("flex flex-col gap-6", className)} onSubmit={handleSubmit(onSubmit)}>
+      <div className="flex flex-col items-center gap-2 text-center">
+        <h1 className="text-2xl font-bold">Login to your account</h1>
+        <p className="text-muted-foreground text-sm text-balance">
+          Enter your email below to login to your account
+        </p>
+      </div>
+      <div className="grid gap-6">
+        <div className="grid gap-3">
+          <Label htmlFor="email">Email</Label>
+          <Input type="email" placeholder="example@domain.com" {...register("email", { required: true })} />
+          {errors.email && <span className="text-red-500 text-xs font-semibold">Email is Required</span>}
+        </div>
+        <div className="grid gap-3">
+          <div className="flex items-center">
+            <Label htmlFor="password">Password</Label>
+            <a
+              href="#"
+              className="ml-auto text-sm underline-offset-4 hover:underline"
+            >
+              Forgot your password?
+            </a>
+          </div>
+          <Input id="password" placeholder="Password" {...register("password", { required: true })} />
+          {errors.password && <span className="text-red-500 text-xs font-semibold">Password is Required</span>}
+        </div>
+        <Button type="submit" className="w-full cursor-pointer">
+          {isSubmitting ? <img src={loader} alt="" className="w-7" /> : "Log In"}
+        </Button>
+        <div className="text-right">
+          <span onClick={() => { window.open("https://davaam.app/auth/privacy-policy") }} className="bg-background underline text-black cursor-pointer text-[10px] relative z-10 px-2">
+            Privacy Policy
+          </span>
+        </div>
+      </div>
+      <div className=" text-sm">
+        ©2023 Davaam Life. All Rights Reserved. {" "}
+        <span onClick={() => { window.open("https://davaam.app/auth/company-info") }} className="underline text-[10px] text-black cursor-pointer">Company Info</span>
+      </div>
+    </form>
+  )
+}
