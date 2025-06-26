@@ -11,7 +11,6 @@ const Login = () => {
         <div className="flex justify-center gap-2 md:justify-start">
           <a href="#" className="flex items-center gap-2 font-medium">
             <div className="flex items-center justify-center rounded-md">
-              {/* <GalleryVerticalEnd className="size-4" /> */}
               <img src={DLLogo} alt="DL Logo" />
             </div>
           </a>

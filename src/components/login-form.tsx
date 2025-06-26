@@ -6,6 +6,7 @@ import { useForm } from "react-hook-form"
 import type { SubmitHandler } from "react-hook-form"
 import loader from "../assets/gear-spinner.svg"
 import { useEffect } from "react"
+import { useNavigate } from "react-router-dom"
 
 type Inputs = {
   email: string,
@@ -41,6 +42,8 @@ export function LoginForm({
     console.log(data)
   }
 
+  const navigate = useNavigate();
+
   return (
     <form className={cn("flex flex-col gap-6", className)} onSubmit={handleSubmit(onSubmit)}>
       <div className="flex flex-col items-center gap-2 text-center">
@@ -58,9 +61,8 @@ export function LoginForm({
         <div className="grid gap-3">
           <div className="flex items-center">
             <Label htmlFor="password">Password</Label>
-            <a
-              href="#"
-              className="ml-auto text-sm underline-offset-4 hover:underline"
+            <a onClick={() => { navigate("/forgetPassword") }}
+              className="ml-auto text-sm underline-offset-4 hover:underline cursor-pointer"
             >
               Forgot your password?
             </a>
