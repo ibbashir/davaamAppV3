@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useForm } from "react-hook-form"
 import type { SubmitHandler } from "react-hook-form"
-import loader from "../assets/gear-spinner.svg"
+import loader from "../assets/infinite-spinner.svg"
 import { useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 
@@ -70,7 +70,7 @@ export function LoginForm({
           <Input id="password" placeholder="Password" {...register("password", { required: true })} />
           {errors.password && <span className="text-red-500 text-xs font-semibold">Password is Required</span>}
         </div>
-        <Button type="submit" className="w-full cursor-pointer">
+        <Button disabled={isSubmitting} type="submit" className="w-full cursor-pointer">
           {isSubmitting ? <img src={loader} alt="" className="w-7" /> : "Log In"}
         </Button>
         <div className="text-right">
