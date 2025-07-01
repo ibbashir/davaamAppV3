@@ -6,7 +6,9 @@ import Layout from '@/layouts/layout'
 import ForgetPassword from '@/screens/forgetPassword/ForgetPassword'
 import Roles from '@/screens/roles/Roles'
 import Machines from '@/screens/machines/Machines'
-import Locations from '@/screens/locations/locations'
+import Locations from '@/screens/locations/Locations'
+import { Topup } from '@/screens/topup/Topup'
+import { UsersManagement } from '@/screens/users/User-management'
 
 const Routing = () => {
     return (
@@ -22,6 +24,8 @@ const Routing = () => {
                 <Route path='/roles' element={<Roles />} />
                 <Route path='/pointshare' element={<PointShare />} />
                 <Route path='/locations' element={<Locations />} />
+                <Route path='/topup' element={<Topup />} />
+                <Route path='/users' element={<UsersManagement />} />
             </Route>
         </Routes>
     )

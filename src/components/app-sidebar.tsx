@@ -60,12 +60,12 @@ const data = {
     },
     {
       title: "Topup",
-      url: "#",
+      url: "/topup",
       icon: IconCircleArrowUpRight,
     },
     {
       title: "Users",
-      url: "#",
+      url: "/users",
       icon: IconUsers,
     },
     {
