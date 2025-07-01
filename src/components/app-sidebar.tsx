@@ -1,8 +1,5 @@
 import * as React from "react"
 import {
-  IconChartBar,
-  IconFolder,
-  IconListDetails,
   IconLocation,
   IconCircleArrowUpRight,
   IconUsers,
@@ -10,7 +7,9 @@ import {
   IconBell,
   IconMessage2Exclamation,
   IconHome,
-  IconUserPlus
+  IconUserPlus,
+  IconShare3,
+  IconChartBar
 } from "@tabler/icons-react"
 import DL from "../assets/DL.png"
 
@@ -46,17 +45,17 @@ const data = {
     },
     {
       title: "Machines",
-      url: "#",
+      url: "/machines",
       icon: IconChartBar,
     },
     {
       title: "Points Share",
-      url: "#",
-      icon: IconFolder,
+      url: "/pointshare",
+      icon: IconShare3,
     },
     {
       title: "Locations",
-      url: "#",
+      url: "/locations",
       icon: IconLocation,
     },
     {

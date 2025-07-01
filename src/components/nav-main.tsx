@@ -33,7 +33,7 @@ export function NavMain({
                   tooltip={item.title}
                   onClick={() => navigate(item.url)}
                   className={clsx(
-                    "flex items-center gap-2 px-4 py-2 rounded-lg transition-colors",
+                    "flex items-center gap-2 px-4 py-2 rounded-lg transition-colors cursor-pointer",
                     isActive
                       ? "bg-teal-600 text-white"
                       : "hover:bg-muted hover:text-foreground"
