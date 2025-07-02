@@ -5,7 +5,8 @@ import { Label } from "@/components/ui/label"
 import { useForm } from "react-hook-form"
 import type { SubmitHandler } from "react-hook-form"
 import loader from "../assets/infinite-spinner.svg"
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
+import { useAuth } from "@/contexts/AuthContext"
 import { useNavigate } from "react-router-dom"
 
 type Inputs = {
@@ -14,13 +15,18 @@ type Inputs = {
 };
 
 export function LoginForm({
+
   className,
-  ...props
 }: React.ComponentProps<"form">) {
+
+  const { login, state } = useAuth();
+  const navigate = useNavigate();
+  const [loginError, setLoginError] = useState<string>("")
+
+
   const {
     register,
     handleSubmit,
-    watch,
     reset,
     formState: { errors, isSubmitting, isSubmitSuccessful },
   } = useForm<Inputs>()
@@ -29,20 +35,15 @@ export function LoginForm({
     reset();
   }, [isSubmitSuccessful])
 
-  const delay = (d: number): Promise<void> => {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        resolve();
-      }, d * 1000);
-    })
-  }
-
   const onSubmit: SubmitHandler<Inputs> = async (data) => {
-    await delay(2)
-    console.log(data)
+    try {
+      const role = await login(data.email, data.password);
+      console.log(role);
+      navigate(`/${role}/dashboard`)
+    } catch (err: any) {
+      setLoginError("Invalid email or password")
+    }
   }
-
-  const navigate = useNavigate();
 
   return (
     <form className={cn("flex flex-col gap-6", className)} onSubmit={handleSubmit(onSubmit)}>
@@ -70,18 +71,23 @@ export function LoginForm({
           <Input id="password" placeholder="Password" {...register("password", { required: true })} />
           {errors.password && <span className="text-red-500 text-xs font-semibold">Password is Required</span>}
         </div>
+        {loginError && (
+          <p className="text-center text-red-500 text-sm font-semibold">
+            {loginError}
+          </p>
+        )}
         <Button disabled={isSubmitting} type="submit" className="w-full cursor-pointer">
           {isSubmitting ? <img src={loader} alt="" className="w-7" /> : "Log In"}
         </Button>
         <div className="text-right">
-          <span onClick={() => { window.open("https://davaam.app/auth/privacy-policy") }} className="bg-background underline text-black cursor-pointer text-[10px] relative z-10 px-2">
+          <span onClick={() => { navigate("/privacypolicy") }} className="bg-background underline text-black cursor-pointer text-[10px] relative z-10 px-2">
             Privacy Policy
           </span>
         </div>
       </div>
       <div className=" text-sm">
         ©2023 Davaam Life. All Rights Reserved. {" "}
-        <span onClick={() => { window.open("https://davaam.app/auth/company-info") }} className="underline text-[10px] text-black cursor-pointer">Company Info</span>
+        <span onClick={() => { navigate("/company-info") }} className="underline text-[10px] text-black cursor-pointer">Company Info</span>
       </div>
     </form>
   )

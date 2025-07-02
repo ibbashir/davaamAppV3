@@ -25,69 +25,42 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
 import { useNavigate } from "react-router-dom"
+import { useAuth } from "@/contexts/AuthContext"
 
-const data = {
-  user: {
-    name: "Hackerman",
-    email: "hacker@parrot.com",
-    avatar: "/avatars/shadcn.jpg",
-  },
-  navMain: [
-    {
-      title: "Dashboard",
-      url: "/Dashboard",
-      icon: IconHome,
-    },
-    {
-      title: "Create Roles",
-      url: "/roles",
-      icon: IconUserPlus,
-    },
-    {
-      title: "Machines",
-      url: "/machines",
-      icon: IconChartBar,
-    },
-    {
-      title: "Points Share",
-      url: "/pointshare",
-      icon: IconShare3,
-    },
-    {
-      title: "Locations",
-      url: "/locations",
-      icon: IconLocation,
-    },
-    {
-      title: "Topup",
-      url: "/topup",
-      icon: IconCircleArrowUpRight,
-    },
-    {
-      title: "Users",
-      url: "/users",
-      icon: IconUsers,
-    },
-    {
-      title: "Corporate Clients",
-      url: "/corporate",
-      icon: IconUserStar,
-    },
-    {
-      title: "Send Notifications",
-      url: "/notifications",
-      icon: IconBell,
-    },
-    {
-      title: "App Feedback",
-      url: "/feedback",
-      icon: IconMessage2Exclamation,
-    },
-  ],
-}
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const Navigate = useNavigate();
+  const { state } = useAuth()
+  const navigate = useNavigate()
+
+  const role = state.user?.user_role?.toLowerCase().replace(/\s/g, "") || ""
+
+  const navMain = [
+    { title: "Dashboard", url: `/${role}/dashboard`, icon: IconHome },
+    ...(role === "superadmin"
+      ? [
+        { title: "Create Roles", url: `/${role}/roles`, icon: IconUserPlus },
+        { title: "Corporate Clients", url: `/${role}/corporate`, icon: IconUserStar },
+      ]
+      : []),
+    ...(role === "superadmin" || role === "admin"
+      ? [
+        { title: "Users", url: `/${role}/users`, icon: IconUsers },
+        { title: "Send Notifications", url: `/${role}/notifications`, icon: IconBell },
+      ]
+      : []),
+    { title: "Machines", url: `/${role}/machines`, icon: IconChartBar },
+    { title: "Points Share", url: `/${role}/pointshare`, icon: IconShare3 },
+    { title: "Locations", url: `/${role}/locations`, icon: IconLocation },
+    { title: "Topup", url: `/${role}/topup`, icon: IconCircleArrowUpRight },
+    { title: "App Feedback", url: `/${role}/feedback`, icon: IconMessage2Exclamation },
+  ]
+
+  const userData = {
+    name: `${state.user?.first_name || "User"}`,
+    email: state.user?.email || "user@davaam.pk",
+    avatar: "/avatars/shadcn.jpg",
+  }
+
   return (
     <Sidebar collapsible="offcanvas" {...props}>
       <SidebarHeader>
@@ -97,7 +70,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               asChild
               className="data-[slot=sidebar-menu-button]:!p-1.5"
             >
-              <a onClick={() => { Navigate("/dashboard") }} href="#">
+              <a onClick={() => navigate(`/${role}/dashboard`)}>
                 <img src={DL} alt="DL Logo" />
               </a>
             </SidebarMenuButton>
@@ -105,10 +78,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={data.navMain} />
+        <NavMain items={navMain} />
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={data.user} />
+        <NavUser user={userData} />
       </SidebarFooter>
     </Sidebar>
   )
