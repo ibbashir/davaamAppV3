@@ -28,8 +28,8 @@ import { useNavigate } from "react-router-dom"
 
 const data = {
   user: {
-    name: "shadcn",
-    email: "m@example.com",
+    name: "Hackerman",
+    email: "hacker@parrot.com",
     avatar: "/avatars/shadcn.jpg",
   },
   navMain: [
@@ -70,17 +70,17 @@ const data = {
     },
     {
       title: "Corporate Clients",
-      url: "#",
+      url: "/corporate",
       icon: IconUserStar,
     },
     {
       title: "Send Notifications",
-      url: "#",
+      url: "/notifications",
       icon: IconBell,
     },
     {
       title: "App Feedback",
-      url: "#",
+      url: "/feedback",
       icon: IconMessage2Exclamation,
     },
   ],
