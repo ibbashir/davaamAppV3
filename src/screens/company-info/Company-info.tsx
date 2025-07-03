@@ -50,17 +50,16 @@ export default function CompanyInfo() {
                             <CardContent className="relative p-8 lg:p-10 text-white min-h-[400px] flex flex-col justify-center">
                                 <div className="space-y-8">
                                     <blockquote className="text-xl lg:text-2xl leading-relaxed font-medium text-white/95">
-                                        "Amet amet eget scelerisque tellus sit neque faucibus non eleifend. Integer eu praesent at a. Ornare
-                                        arcu gravida natoque erat et cursus tortor."
+                                        "At Davaam we build sustainable tech solutions keeping people, planet, and profit at the heart of everything we do."
                                     </blockquote>
 
                                     <div className="flex items-center gap-4">
                                         <div className="w-14 h-14 bg-gradient-to-br from-teal-400 to-teal-600 rounded-full flex items-center justify-center shadow-lg">
-                                            <span className="text-white font-bold text-xl">JR</span>
+                                            <span className="text-white font-bold text-xl">ST</span>
                                         </div>
                                         <div>
-                                            <div className="font-semibold text-lg text-white">Judith Rogers</div>
-                                            <div className="text-white/70">CEO at Workcation</div>
+                                            <div className="font-semibold text-lg text-white">Salman Tariq</div>
+                                            <div className="text-white/70">CEO at DavaamLife</div>
                                         </div>
                                     </div>
                                 </div>
@@ -152,7 +151,7 @@ export default function CompanyInfo() {
                         </div>
 
                         {/* CTA Section */}
-                        <Card className="bg-gradient-to-r from-teal-50 via-blue-50 to-slate-50 border-teal-200 shadow-sm">
+                        {/* <Card className="bg-gradient-to-r from-teal-50 via-blue-50 to-slate-50 border-teal-200 shadow-sm">
                             <CardContent className="p-6">
                                 <div className="flex items-start gap-4">
                                     <div className="w-12 h-12 bg-teal-100 rounded-full flex items-center justify-center flex-shrink-0">
@@ -170,7 +169,7 @@ export default function CompanyInfo() {
                                     </div>
                                 </div>
                             </CardContent>
-                        </Card>
+                        </Card> */}
                     </div>
                 </div>
             </div>

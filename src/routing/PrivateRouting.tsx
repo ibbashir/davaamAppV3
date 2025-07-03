@@ -11,7 +11,6 @@ const PrivateRouting = ({ allowedRoles }: Props) => {
     const { state } = useAuth();
 
     const userRole = state.user?.user_role.toLowerCase().replace(/\s/g, "") || ""
-    console.log(userRole);
 
     if (state.loading) {
         return <img className='flex h-screen m-auto w-20' src={loading} alt="" /> // or show a spinner component

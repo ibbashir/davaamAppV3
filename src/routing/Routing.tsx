@@ -15,7 +15,7 @@ import Corporate from '@/screens/corporate/Corporate'
 import PrivateRouting from './PrivateRouting'
 import CompanyInfo from '@/screens/company-info/Company-info'
 import PrivacyPolicy from '@/screens/privacypolicy/PrivacyPolicy'
-import { ADMIN_CORPORATE, ADMIN_DASHBOARD, ADMIN_FEEDBACK, ADMIN_LOCATIONS, ADMIN_MACHINES, ADMIN_NOTIFICATIONS, ADMIN_POINTS, ADMIN_TOPUP, ADMIN_USERS, SUPERADMIN_CORPORATE, SUPERADMIN_DASHBOARD, SUPERADMIN_FEEDBACK, SUPERADMIN_LOCATIONS, SUPERADMIN_MACHINES, SUPERADMIN_NOTIFICATIONS, SUPERADMIN_POINTS, SUPERADMIN_ROLES, SUPERADMIN_TOPUP, SUPERADMIN_USERS } from '@/constants/Constant'
+import { ADMIN_CORPORATE, ADMIN_DASHBOARD, ADMIN_FEEDBACK, ADMIN_LOCATIONS, ADMIN_MACHINES, ADMIN_NOTIFICATIONS, ADMIN_POINTS, ADMIN_TOPUP, ADMIN_USERS, OPS_CORPORATE, OPS_DASHBOARD, OPS_FEEDBACK, OPS_LOCATIONS, OPS_MACHINES, OPS_POINTS, OPS_TOPUP, OPS_USERS, SUPERADMIN_CORPORATE, SUPERADMIN_DASHBOARD, SUPERADMIN_FEEDBACK, SUPERADMIN_LOCATIONS, SUPERADMIN_MACHINES, SUPERADMIN_NOTIFICATIONS, SUPERADMIN_POINTS, SUPERADMIN_ROLES, SUPERADMIN_TOPUP, SUPERADMIN_USERS } from '@/constants/Constant'
 
 const NotFound = () => {
     return (
@@ -66,6 +66,19 @@ const Routing = () => {
                     <Route path={ADMIN_NOTIFICATIONS} element={<Notifications />} />
                     <Route path={ADMIN_FEEDBACK} element={<Feedback />} />
                     <Route path={ADMIN_CORPORATE} element={<Corporate />} />
+                </Route>
+            </Route>
+
+            <Route element={<PrivateRouting allowedRoles={["ops"]} />}>
+                <Route element={<Layout />}>
+                    <Route path={OPS_DASHBOARD} element={<Dashboard />} />
+                    <Route path={OPS_MACHINES} element={<Machines />} />
+                    <Route path={OPS_POINTS} element={<PointShare />} />
+                    <Route path={OPS_LOCATIONS} element={<Locations />} />
+                    <Route path={OPS_TOPUP} element={<Topup />} />
+                    <Route path={OPS_USERS} element={<UsersManagement />} />
+                    <Route path={OPS_FEEDBACK} element={<Feedback />} />
+                    <Route path={OPS_CORPORATE} element={<Corporate />} />
                 </Route>
             </Route>
 

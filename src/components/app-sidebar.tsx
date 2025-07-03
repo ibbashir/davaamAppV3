@@ -1,16 +1,4 @@
 import * as React from "react"
-import {
-  IconLocation,
-  IconCircleArrowUpRight,
-  IconUsers,
-  IconUserStar,
-  IconBell,
-  IconMessage2Exclamation,
-  IconHome,
-  IconUserPlus,
-  IconShare3,
-  IconChartBar
-} from "@tabler/icons-react"
 import DL from "../assets/DL.png"
 
 import { NavMain } from "@/components/nav-main"
@@ -26,33 +14,19 @@ import {
 } from "@/components/ui/sidebar"
 import { useNavigate } from "react-router-dom"
 import { useAuth } from "@/contexts/AuthContext"
+import { ADMIN_SIDEBAR_ROUTES, OPS_SIDEBAR_ROUTES, SUPER_ADMIN_SIDEBAR_ROUTES } from "@/constants/Constant"
 
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const { state } = useAuth()
-  const navigate = useNavigate()
+  const { state } = useAuth();
+  const navigate = useNavigate();
 
   const role = state.user?.user_role?.toLowerCase().replace(/\s/g, "") || ""
 
   const navMain = [
-    { title: "Dashboard", url: `/${role}/dashboard`, icon: IconHome },
-    ...(role === "superadmin"
-      ? [
-        { title: "Create Roles", url: `/${role}/roles`, icon: IconUserPlus },
-        { title: "Corporate Clients", url: `/${role}/corporate`, icon: IconUserStar },
-      ]
-      : []),
-    ...(role === "superadmin" || role === "admin"
-      ? [
-        { title: "Users", url: `/${role}/users`, icon: IconUsers },
-        { title: "Send Notifications", url: `/${role}/notifications`, icon: IconBell },
-      ]
-      : []),
-    { title: "Machines", url: `/${role}/machines`, icon: IconChartBar },
-    { title: "Points Share", url: `/${role}/pointshare`, icon: IconShare3 },
-    { title: "Locations", url: `/${role}/locations`, icon: IconLocation },
-    { title: "Topup", url: `/${role}/topup`, icon: IconCircleArrowUpRight },
-    { title: "App Feedback", url: `/${role}/feedback`, icon: IconMessage2Exclamation },
+    ...(role === "superadmin" ? SUPER_ADMIN_SIDEBAR_ROUTES() : []),
+    ...(role === "admin" ? ADMIN_SIDEBAR_ROUTES() : []),
+    ...(role === "ops" ? OPS_SIDEBAR_ROUTES() : []),
   ]
 
   const userData = {
