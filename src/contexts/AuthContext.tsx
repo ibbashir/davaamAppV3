@@ -56,7 +56,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
     useEffect(() => {
         const storedUser = localStorage.getItem("user")
-        const storedToken = localStorage.getItem("token")
+        const storedToken = localStorage.getItem("accesstoken")
         if (storedUser && storedToken) {
             dispatch({
                 type: "LOGIN",
@@ -71,7 +71,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }, [])
 
     const login = async (email: string, password: string) => {
-        const res = await fetch(`${BASE_URL_TWO}adminLogin`, {
+        const res = await fetch(`${BASE_URL_TWO}api/dashboard/auth/login`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -86,12 +86,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         }
 
         const user = data.user
-        const fakeToken = btoa(user.email + ":" + Date.now()) // since no token in response
+        const accessToken = data.accessToken
+        const refreshToken = data.refreshToken
 
         localStorage.setItem("user", JSON.stringify(user))
-        localStorage.setItem("token", fakeToken)
+        localStorage.setItem("accesstoken", accessToken)
+        localStorage.setItem("refreshtoken", refreshToken)
 
-        dispatch({ type: "LOGIN", payload: { user, token: fakeToken } })
+        dispatch({ type: "LOGIN", payload: { user, token: accessToken } })
 
         return data.user.user_role.toLowerCase().replace(/\s/g, "")
 
@@ -99,7 +101,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
     const logout = () => {
         localStorage.removeItem("user")
-        localStorage.removeItem("token")
+        localStorage.removeItem("accesstoken")
         dispatch({ type: "LOGOUT" })
     }
 

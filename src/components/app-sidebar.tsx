@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/sidebar"
 import { useNavigate } from "react-router-dom"
 import { useAuth } from "@/contexts/AuthContext"
-import { ADMIN_SIDEBAR_ROUTES, OPS_SIDEBAR_ROUTES, SUPER_ADMIN_SIDEBAR_ROUTES } from "@/constants/Constant"
+import { ADMIN_SIDEBAR_ROUTES, MACHINES_SIDEBAR_ROUTES, OPS_SIDEBAR_ROUTES, SUPER_ADMIN_SIDEBAR_ROUTES } from "@/constants/Constant"
 
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
@@ -27,6 +27,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     ...(role === "superadmin" ? SUPER_ADMIN_SIDEBAR_ROUTES() : []),
     ...(role === "admin" ? ADMIN_SIDEBAR_ROUTES() : []),
     ...(role === "ops" ? OPS_SIDEBAR_ROUTES() : []),
+    ...(role === "company" ? MACHINES_SIDEBAR_ROUTES() : []),
   ]
 
   const userData = {

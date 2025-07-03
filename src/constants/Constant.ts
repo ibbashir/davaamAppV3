@@ -13,6 +13,8 @@ import {
 } from "@tabler/icons-react"
 
 export const BASE_URL_TWO = "https://davaam-backend-nodejs-4199d6d4d449.herokuapp.com/";
+export const BASE_URL = "https://davaam-backend-nodejs-4199d6d4d449.herokuapp.com/api/dashboard";
+
 
 // SUPERADMIN PATHS
 export const SUPERADMIN_DASHBOARD = "/superadmin/dashboard"
@@ -47,6 +49,9 @@ export const OPS_USERS = "/ops/users"
 export const OPS_FEEDBACK = "/ops/feedback"
 export const OPS_CORPORATE = "/ops/corporate"
 
+//MACHINE PATH
+export const MACHINE_DASHBOARD = "/company/dashboard"
+export const MACHINE_MACHINES = "/company/machines"
 
 // navigation const
 export const SUPER_ADMIN_SIDEBAR_ROUTES = () => {
@@ -88,5 +93,12 @@ export const OPS_SIDEBAR_ROUTES = () => {
         { title: "Locations", url: OPS_LOCATIONS, icon: IconLocation },
         { title: "Topup", url: OPS_TOPUP, icon: IconCircleArrowUpRight },
         { title: "App Feedback", url: OPS_FEEDBACK, icon: IconMessage2Exclamation },
+    ]
+}
+
+export const MACHINES_SIDEBAR_ROUTES = () => {
+    return [
+        { title: "Dashboard", url: MACHINE_DASHBOARD, icon: IconHome },
+        { title: "Machines", url: MACHINE_MACHINES, icon: IconChartBar },
     ]
 }

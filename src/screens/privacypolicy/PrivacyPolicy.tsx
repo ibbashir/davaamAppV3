@@ -80,8 +80,8 @@ export default function PrivacyPolicy() {
                                             variant="ghost"
                                             onClick={() => scrollToSection(section.id)}
                                             className={`w-full justify-start text-left h-auto py-3 px-3 ${activeSection === section.id
-                                                    ? "bg-teal-50 text-teal-700 border-l-2 border-l-teal-500"
-                                                    : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
+                                                ? "bg-teal-50 text-teal-700 border-l-2 border-l-teal-500"
+                                                : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
                                                 }`}
                                         >
                                             <IconComponent className="w-4 h-4 mr-3 flex-shrink-0" />
