@@ -1,4 +1,4 @@
-import { createContext, useContext, useReducer } from "react"
+import { createContext, useContext, useReducer, useEffect } from "react"
 import axios from "axios"
 import { BASE_URL_TWO } from "@/constants/Constant"
 
@@ -18,6 +18,7 @@ type AuthState = {
 type AuthAction =
   | { type: "LOGIN"; payload: { user: User; token: string } }
   | { type: "LOGOUT" }
+  | { type: "LOADED" }
 
 const initialState: AuthState = {
   user: null,
@@ -48,12 +49,32 @@ function authReducer(state: AuthState, action: AuthAction): AuthState {
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [state, dispatch] = useReducer(authReducer, initialState)
 
+  // Load user on refresh using cookies
+  useEffect(() => {
+    const checkSession = async () => {
+      try {
+        const res = await axios.get(`${BASE_URL_TWO}api/dashboard/auth/user`, {
+          withCredentials: true,
+        })
+
+        const { user, accessToken } = res.data
+
+        dispatch({ type: "LOGIN", payload: { user, token: accessToken } })
+      } catch {
+        console.warn("User session not found or expired.")
+        dispatch({ type: "LOADED" })
+      }
+    }
+
+    checkSession()
+  }, [])
+
   const login = async (email: string, password: string) => {
     try {
       const res = await axios.post(
         `${BASE_URL_TWO}api/dashboard/auth/login`,
         { email, password },
-        { withCredentials: true } // ⬅️ important for cookies
+        { withCredentials: true }
       )
 
       const data = res.data
@@ -68,9 +89,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       dispatch({ type: "LOGIN", payload: { user, token: accessToken } })
 
       return user.user_role.toLowerCase().replace(/\s/g, "")
-    } catch (error: any) {
+    } catch (error) {
       console.error("Login error:", error)
-      throw new Error(error.response?.data?.message || "Login failed")
+      if (axios.isAxiosError(error)) {
+        throw new Error(error.response?.data?.message || "Login failed")
+      }
+      throw new Error("Login failed")
     }
   }
 
