@@ -1,4 +1,4 @@
-import { createContext, useContext, useReducer, useEffect } from "react"
+import { createContext, useContext, useReducer } from "react"
 import axios from "axios"
 import { BASE_URL_TWO } from "@/constants/Constant"
 
@@ -13,18 +13,15 @@ type User = {
 type AuthState = {
   user: User | null
   token: string | null
-  loading: boolean
 }
 
 type AuthAction =
   | { type: "LOGIN"; payload: { user: User; token: string } }
   | { type: "LOGOUT" }
-  | { type: "LOADED" }
 
 const initialState: AuthState = {
   user: null,
   token: null,
-  loading: true,
 }
 
 const AuthContext = createContext<{
@@ -34,17 +31,15 @@ const AuthContext = createContext<{
 }>({
   state: initialState,
   login: async () => "",
-  logout: async () => {},
+  logout: async () => { },
 })
 
 function authReducer(state: AuthState, action: AuthAction): AuthState {
   switch (action.type) {
     case "LOGIN":
-      return { user: action.payload.user, token: action.payload.token, loading: false }
+      return { user: action.payload.user, token: action.payload.token, }
     case "LOGOUT":
-      return { user: null, token: null, loading: false }
-    case "LOADED":
-      return { ...state, loading: false }
+      return { user: null, token: null }
     default:
       return state
   }
@@ -52,10 +47,6 @@ function authReducer(state: AuthState, action: AuthAction): AuthState {
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [state, dispatch] = useReducer(authReducer, initialState)
-
-  useEffect(() => {
-    dispatch({ type: "LOADED" })
-  }, [])
 
   const login = async (email: string, password: string) => {
     try {
