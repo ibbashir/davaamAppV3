@@ -36,6 +36,7 @@ const AuthContext = createContext<{
 })
 
 function authReducer(state: AuthState, action: AuthAction): AuthState {
+  console.log("AuthReducer action:", action.type)
   switch (action.type) {
     case "LOGIN":
       return { user: action.payload.user, token: action.payload.token, }
