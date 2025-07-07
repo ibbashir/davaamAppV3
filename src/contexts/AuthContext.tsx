@@ -13,6 +13,7 @@ type User = {
 type AuthState = {
   user: User | null
   token: string | null
+  loading: boolean
 }
 
 type AuthAction =
@@ -23,6 +24,7 @@ type AuthAction =
 const initialState: AuthState = {
   user: null,
   token: null,
+  loading: true,
 }
 
 const AuthContext = createContext<{
@@ -39,9 +41,11 @@ function authReducer(state: AuthState, action: AuthAction): AuthState {
   console.log("AuthReducer action:", action.type)
   switch (action.type) {
     case "LOGIN":
-      return { user: action.payload.user, token: action.payload.token, }
+      return { user: action.payload.user, token: action.payload.token, loading: false }
     case "LOGOUT":
-      return { user: null, token: null }
+      return { user: null, token: null, loading: false }
+    case "LOADED":
+      return { ...state, loading: false }
     default:
       return state
   }
