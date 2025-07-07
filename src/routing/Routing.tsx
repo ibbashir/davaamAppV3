@@ -1,20 +1,35 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
-import Login from '@/screens/login/Login'
-import Dashboard from '@/screens/dashboard/Dashboard'
-import { PointShare } from '@/screens/pointsshare/PointShare'
 import Layout from '@/layouts/layout'
-import ForgetPassword from '@/screens/forgetPassword/ForgetPassword'
-import Roles from '@/screens/roles/Roles'
-import Machines from '@/screens/machines/Machines'
-import Locations from '@/screens/locations/Locations'
-import { Topup } from '@/screens/topup/Topup'
-import { UsersManagement } from '@/screens/users/User-management'
-import Notifications from '@/screens/notification/Notifications'
-import Feedback from '@/screens/feedback/Feedback'
-import Corporate from '@/screens/corporate/Corporate'
 import PrivateRouting from './PrivateRouting'
+
+import Login from '@/screens/login/Login'
+import ForgetPassword from '@/screens/forgetPassword/ForgetPassword'
 import CompanyInfo from '@/screens/company-info/Company-info'
 import PrivacyPolicy from '@/screens/privacypolicy/PrivacyPolicy'
+
+//superAdmin Screens
+import Dashboard from '@/screens/superAdmin/dashboard/Dashboard'
+import { PointShare } from '@/screens/superAdmin/pointsshare/PointShare'
+import Roles from '@/screens/superAdmin/roles/Roles'
+import Machines from '@/screens/superAdmin/machines/Machines'
+import Locations from '@/screens/superAdmin/locations/Locations'
+import { Topup } from '@/screens/superAdmin/topup/Topup'
+import { UsersManagement } from '@/screens/superAdmin/users/User-management'
+import Notifications from '@/screens/superAdmin/notification/Notifications'
+import Feedback from '@/screens/superAdmin/feedback/Feedback'
+import Corporate from '@/screens/superAdmin/corporate/Corporate'
+
+//admin screens
+import AdminDashboard from '@/screens/admin/dashboard/Dashboard'
+import { AdminPointShare } from '@/screens/admin/pointsshare/PointShare'
+import AdminMachines from '@/screens/admin/machines/Machines'
+import AdminLocations from '@/screens/admin/locations/Locations'
+import { AdminTopup } from '@/screens/admin/topup/Topup'
+import { AdminUsersManagement } from '@/screens/admin/users/User-management'
+import AdminNotifications from '@/screens/admin/notification/Notifications'
+import AdminFeedback from '@/screens/admin/feedback/Feedback'
+import AdminCorporate from '@/screens/admin/corporate/Corporate'
+
 import { ADMIN_CORPORATE, ADMIN_DASHBOARD, ADMIN_FEEDBACK, ADMIN_LOCATIONS, ADMIN_MACHINES, ADMIN_NOTIFICATIONS, ADMIN_POINTS, ADMIN_TOPUP, ADMIN_USERS, MACHINE_DASHBOARD, MACHINE_MACHINES, OPS_CORPORATE, OPS_DASHBOARD, OPS_FEEDBACK, OPS_LOCATIONS, OPS_MACHINES, OPS_POINTS, OPS_TOPUP, OPS_USERS, SUPERADMIN_CORPORATE, SUPERADMIN_DASHBOARD, SUPERADMIN_FEEDBACK, SUPERADMIN_LOCATIONS, SUPERADMIN_MACHINES, SUPERADMIN_NOTIFICATIONS, SUPERADMIN_POINTS, SUPERADMIN_ROLES, SUPERADMIN_TOPUP, SUPERADMIN_USERS } from '@/constants/Constant'
 
 const NotFound = () => {
@@ -57,15 +72,15 @@ const Routing = () => {
 
             <Route element={<PrivateRouting allowedRoles={["admin"]} />}>
                 <Route element={<Layout />}>
-                    <Route path={ADMIN_DASHBOARD} element={<Dashboard />} />
-                    <Route path={ADMIN_MACHINES} element={<Machines />} />
-                    <Route path={ADMIN_POINTS} element={<PointShare />} />
-                    <Route path={ADMIN_LOCATIONS} element={<Locations />} />
-                    <Route path={ADMIN_TOPUP} element={<Topup />} />
-                    <Route path={ADMIN_USERS} element={<UsersManagement />} />
-                    <Route path={ADMIN_NOTIFICATIONS} element={<Notifications />} />
-                    <Route path={ADMIN_FEEDBACK} element={<Feedback />} />
-                    <Route path={ADMIN_CORPORATE} element={<Corporate />} />
+                    <Route path={ADMIN_DASHBOARD} element={<AdminDashboard />} />
+                    <Route path={ADMIN_MACHINES} element={<AdminMachines />} />
+                    <Route path={ADMIN_POINTS} element={<AdminPointShare />} />
+                    <Route path={ADMIN_LOCATIONS} element={<AdminLocations />} />
+                    <Route path={ADMIN_TOPUP} element={<AdminTopup />} />
+                    <Route path={ADMIN_USERS} element={<AdminUsersManagement />} />
+                    <Route path={ADMIN_NOTIFICATIONS} element={<AdminNotifications />} />
+                    <Route path={ADMIN_FEEDBACK} element={<AdminFeedback />} />
+                    <Route path={ADMIN_CORPORATE} element={<AdminCorporate />} />
                 </Route>
             </Route>
 

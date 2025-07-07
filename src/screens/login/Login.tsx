@@ -1,6 +1,6 @@
 import React from 'react'
 import { GalleryVerticalEnd } from "lucide-react"
-import { LoginForm } from "@/components/login-form"
+import { LoginForm } from '@/components/login-form'
 import DLLogo from "../../assets/DL.png"
 import sec2 from "../../assets/secimg.jpeg"
 
