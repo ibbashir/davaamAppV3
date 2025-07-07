@@ -24,21 +24,21 @@ interface DashboardStatistics {
 export function SectionCards() {
   const [cardsData, setCardsData] = useState<DashboardStatistics | null>(null);
 
-  // useEffect(() => {
-  //   const fetchData = async () => {
-  //     try {
-  //       const res = await getRequest("/superadmin/dashboardStatistics");
-  //       setCardsData(res.data as DashboardStatistics);
-  //       console.log(res.data);
-  //     } catch (error) {
-  //       console.error("Error fetching dashboard statistics:", error);
-  //       setCardsData(null);
-  //     }
-  //   };
-  //   fetchData();
-  // }, []);
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const res = await getRequest("/superadmin/dashboardStatistics");
+        setCardsData(res.data as DashboardStatistics);
+        console.log(res.data);
+      } catch (error) {
+        console.error("Error fetching dashboard statistics:", error);
+        setCardsData(null);
+      }
+    };
+    fetchData();
+  }, []);
 
-  // console.log(cardsData);
+  console.log(cardsData);
 
   return (
     <div className="*:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card grid grid-cols-1 gap-4 px-4 *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:shadow-xs lg:px-6 @xl/main:grid-cols-2 @5xl/main:grid-cols-4">

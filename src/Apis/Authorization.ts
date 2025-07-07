@@ -1,6 +1,6 @@
 // Authorization.ts
 import axios from "axios";
-import { BASE_URL } from "@/constants/Constant";
+import { BASE_URL,  } from "@/constants/Constant";
 import { showSessionExpiredModal } from "@/utils/session"; // modal dispatcher
 
 let accessToken: string | null = null;
