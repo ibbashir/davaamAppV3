@@ -1,115 +1,107 @@
-"use client"
-
-import { BASE_URL_TWO } from "@/constants/Constant"
 import { createContext, useContext, useReducer, useEffect } from "react"
+import axios from "axios"
+import { BASE_URL_TWO } from "@/constants/Constant"
 
 type User = {
-    id: number
-    email: string
-    user_role: string
-    first_name: string
-    last_name: string
+  id: number
+  email: string
+  user_role: string
+  first_name: string
+  last_name: string
 }
 
 type AuthState = {
-    user: User | null
-    token: string | null
-    loading: boolean
+  user: User | null
+  token: string | null
+  loading: boolean
 }
 
 type AuthAction =
-    | { type: "LOGIN"; payload: { user: User; token: string } }
-    | { type: "LOGOUT" }
-    | { type: "LOADED" }
+  | { type: "LOGIN"; payload: { user: User; token: string } }
+  | { type: "LOGOUT" }
+  | { type: "LOADED" }
 
 const initialState: AuthState = {
-    user: null,
-    token: null,
-    loading: true,
+  user: null,
+  token: null,
+  loading: true,
 }
 
 const AuthContext = createContext<{
-    state: AuthState
-    login: (email: string, password: string) => Promise<void>
-    logout: () => void
+  state: AuthState
+  login: (email: string, password: string) => Promise<string>
+  logout: () => Promise<void>
 }>({
-    state: initialState,
-    login: async () => { },
-    logout: () => { },
+  state: initialState,
+  login: async () => "",
+  logout: async () => {},
 })
 
 function authReducer(state: AuthState, action: AuthAction): AuthState {
-    switch (action.type) {
-        case "LOGIN":
-            return { user: action.payload.user, token: action.payload.token, loading: false }
-        case "LOGOUT":
-            return { user: null, token: null, loading: false }
-        case "LOADED":
-            return { ...state, loading: false }
-        default:
-            return state
-    }
+  switch (action.type) {
+    case "LOGIN":
+      return { user: action.payload.user, token: action.payload.token, loading: false }
+    case "LOGOUT":
+      return { user: null, token: null, loading: false }
+    case "LOADED":
+      return { ...state, loading: false }
+    default:
+      return state
+  }
 }
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-    const [state, dispatch] = useReducer(authReducer, initialState)
+  const [state, dispatch] = useReducer(authReducer, initialState)
 
-    useEffect(() => {
-        const storedUser = localStorage.getItem("user")
-        const storedToken = localStorage.getItem("accesstoken")
-        if (storedUser && storedToken) {
-            dispatch({
-                type: "LOGIN",
-                payload: {
-                    user: JSON.parse(storedUser),
-                    token: storedToken,
-                },
-            })
-        } else {
-            dispatch({ type: "LOADED" })
-        }
-    }, [])
+  useEffect(() => {
+    dispatch({ type: "LOADED" })
+  }, [])
 
-    const login = async (email: string, password: string) => {
-        const res = await fetch(`${BASE_URL_TWO}api/dashboard/auth/login`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ email, password }),
-        })
+  const login = async (email: string, password: string) => {
+    try {
+      const res = await axios.post(
+        `${BASE_URL_TWO}api/dashboard/auth/login`,
+        { email, password },
+        { withCredentials: true } // ⬅️ important for cookies
+      )
 
-        const data = await res.json()
+      const data = res.data
 
-        if (!res.ok || data.statusCode !== "200") {
-            throw new Error(data.message || "Login failed")
-        }
+      if (data.statusCode !== "200") {
+        throw new Error(data.message || "Login failed")
+      }
 
-        const user = data.user
-        const accessToken = data.accessToken
-        const refreshToken = data.refreshToken
+      const user = data.user
+      const accessToken = data.accessToken
 
-        localStorage.setItem("user", JSON.stringify(user))
-        localStorage.setItem("accesstoken", accessToken)
-        localStorage.setItem("refreshtoken", refreshToken)
+      dispatch({ type: "LOGIN", payload: { user, token: accessToken } })
 
-        dispatch({ type: "LOGIN", payload: { user, token: accessToken } })
+      return user.user_role.toLowerCase().replace(/\s/g, "")
+    } catch (error: any) {
+      console.error("Login error:", error)
+      throw new Error(error.response?.data?.message || "Login failed")
+    }
+  }
 
-        return data.user.user_role.toLowerCase().replace(/\s/g, "")
-
+  const logout = async () => {
+    try {
+      await axios.post(
+        `${BASE_URL_TWO}api/dashboard/auth/logout`,
+        {},
+        { withCredentials: true }
+      )
+    } catch (err) {
+      console.error("Logout failed:", err)
     }
 
-    const logout = () => {
-        localStorage.removeItem("user")
-        localStorage.removeItem("accesstoken")
-        dispatch({ type: "LOGOUT" })
-    }
+    dispatch({ type: "LOGOUT" })
+  }
 
-    return (
-        <AuthContext.Provider value={{ state, login, logout }}>
-            {children}
-        </AuthContext.Provider>
-    )
+  return (
+    <AuthContext.Provider value={{ state, login, logout }}>
+      {children}
+    </AuthContext.Provider>
+  )
 }
 
 export const useAuth = () => useContext(AuthContext)

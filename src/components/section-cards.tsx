@@ -1,4 +1,4 @@
-import { IconTrendingDown, IconTrendingUp } from "@tabler/icons-react"
+import { IconTrendingUp } from "@tabler/icons-react"
 import { useEffect, useState } from "react"
 import { Badge } from "@/components/ui/badge"
 import {
@@ -11,17 +11,35 @@ import {
 } from "@/components/ui/card"
 import { getRequest } from "@/Apis/Api"
 
-export function SectionCards() {
-  const [cardsData, setCardsData] = useState<any>()
+interface DashboardStatistics {
+  activeLocations: number;
+  activeMachines: number;
+  bottleDispensed: number;
+  handwashWithDishwash: number;
+  napkins: number;
+  oil: number;
+  plasticSaved: number;
+}
 
-  useEffect(() => {
-    const fetchData = async () => {
-      const res = await getRequest("/superadmin/dashboardStatistics")
-      setCardsData(res.data)
-      console.log(res.data);
-    }
-    fetchData();
-  }, [])
+export function SectionCards() {
+  const [cardsData, setCardsData] = useState<DashboardStatistics | null>(null);
+
+  // useEffect(() => {
+  //   const fetchData = async () => {
+  //     try {
+  //       const res = await getRequest("/superadmin/dashboardStatistics");
+  //       setCardsData(res.data as DashboardStatistics);
+  //       console.log(res.data);
+  //     } catch (error) {
+  //       console.error("Error fetching dashboard statistics:", error);
+  //       setCardsData(null);
+  //     }
+  //   };
+  //   fetchData();
+  // }, []);
+
+  // console.log(cardsData);
+
   return (
     <div className="*:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card grid grid-cols-1 gap-4 px-4 *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:shadow-xs lg:px-6 @xl/main:grid-cols-2 @5xl/main:grid-cols-4">
       <Card className="@container/card">
@@ -50,7 +68,7 @@ export function SectionCards() {
         <CardHeader>
           <CardDescription>Active Locations</CardDescription>
           <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
-            {cardsData?.activeLocations}
+            {/* {cardsData?.activeLocations} */}
           </CardTitle>
           <CardAction>
             <Badge variant="outline">
@@ -72,7 +90,7 @@ export function SectionCards() {
         <CardHeader>
           <CardDescription>Plastic Saved</CardDescription>
           <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
-            {Math.round(cardsData?.plasticSaved).toLocaleString()} kg
+            {/* {Math.round(cardsData?.plasticSaved).toLocaleString()} kg */}
           </CardTitle>
           <CardAction>
             <Badge variant="outline">
@@ -92,7 +110,7 @@ export function SectionCards() {
         <CardHeader>
           <CardDescription>Napkins Dispenseds</CardDescription>
           <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
-            {cardsData.napkins}
+            {/* {cardsData.napkins} */}
           </CardTitle>
           <CardAction>
             <Badge variant="outline">
