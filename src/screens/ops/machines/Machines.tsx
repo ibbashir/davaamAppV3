@@ -17,7 +17,7 @@ import {
     IconDownload,
 } from "@tabler/icons-react"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { SiteHeader } from "@/components/superAdmin/site-header"
+import { SiteHeader } from "@/components/ops/site-header"
 
 const machines = [
     {

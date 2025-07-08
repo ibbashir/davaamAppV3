@@ -216,7 +216,7 @@ function DraggableRow({ row }: { row: Row<z.infer<typeof mobileUserSchema>> }) {
   )
 }
 
-export function SuperAdminMobileUsersDataTable() {
+export function OpsMobileUsersDataTable() {
   const [data, setData] = React.useState<z.infer<typeof mobileUserSchema>[]>([])
   const [loading, setLoading] = React.useState(true)
   const [apiPagination, setApiPagination] = React.useState({
@@ -243,7 +243,7 @@ export function SuperAdminMobileUsersDataTable() {
   const fetchMobileUsers = async (page = 1, limit = 10) => {
     try {
       setLoading(true)
-      const res = await getRequest<MobileUserApiResponse>(`/superadmin/mobileAppUsers?page=${page}&limit=${limit}`)
+      const res = await getRequest<MobileUserApiResponse>(`/Ops/mobileAppUsers?page=${page}&limit=${limit}`)
 
       setData(res.users)
       setApiPagination({
@@ -604,4 +604,4 @@ function TableCellViewer({ item }: { item: z.infer<typeof mobileUserSchema> }) {
   )
 }
 
-export default SuperAdminMobileUsersDataTable
+export default OpsMobileUsersDataTable

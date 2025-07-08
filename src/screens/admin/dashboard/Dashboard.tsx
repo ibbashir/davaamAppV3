@@ -1,7 +1,7 @@
-import { ChartAreaInteractive } from "@/components/admin/chart-area-interactive"
-import { DataTable } from "@/components/admin/data-table"
-import { SectionCards } from "@/components/admin/section-cards"
-import { SiteHeader } from "@/components/admin/site-header"
+import { ChartAreaInteractive } from "@/components/ops/chart-area-interactive"
+import { AdminMobileUsersDataTable } from "@/components/admin/data-table"
+import { SectionCards } from "@/components/ops/section-cards"
+import { SiteHeader } from "@/components/ops/site-header"
 import data from "./data.json"
 
 const Dashboard = () => {
@@ -15,7 +15,7 @@ const Dashboard = () => {
                         <div className="px-4 lg:px-6">
                             <ChartAreaInteractive />
                         </div>
-                        <DataTable data={data} />
+                        <AdminMobileUsersDataTable />
                     </div>
                 </div>
             </div>

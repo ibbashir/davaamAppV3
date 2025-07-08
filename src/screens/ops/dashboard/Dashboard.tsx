@@ -1,7 +1,7 @@
-import { ChartAreaInteractive } from "@/components/superAdmin/chart-area-interactive"
-import { SuperAdminMobileUsersDataTable } from "@/components/superAdmin/data-table"
-import { SectionCards } from "@/components/superAdmin/section-cards"
-import { SiteHeader } from "@/components/superAdmin/site-header"
+import { ChartAreaInteractive } from "@/components/ops/chart-area-interactive"
+import { OpsMobileUsersDataTable } from "@/components/ops/data-table"
+import { SectionCards } from "@/components/ops/section-cards"
+import { SiteHeader } from "@/components/ops/site-header"
 
 const Dashboard = () => {
     return (
@@ -14,7 +14,7 @@ const Dashboard = () => {
                         <div className="px-4 lg:px-6">
                             <ChartAreaInteractive />
                         </div>
-                        <SuperAdminMobileUsersDataTable />
+                        <OpsMobileUsersDataTable />
                     </div>
                 </div>
             </div>

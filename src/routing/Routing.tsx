@@ -30,6 +30,16 @@ import AdminNotifications from '@/screens/admin/notification/Notifications'
 import AdminFeedback from '@/screens/admin/feedback/Feedback'
 import AdminCorporate from '@/screens/admin/corporate/Corporate'
 
+//ops screens
+import OpsDashboard from '@/screens/ops/dashboard/Dashboard'
+import { OpsPointShare } from '@/screens/ops/pointsshare/PointShare'
+import OpsMachines from '@/screens/ops/machines/Machines'
+import OpsLocations from '@/screens/ops/locations/Locations'
+import { OpsTopup } from '@/screens/ops/topup/Topup'
+import { OpsUsersManagement } from '@/screens/ops/users/User-management'
+import OpsFeedback from '@/screens/ops/feedback/Feedback'
+import OpsCorporate from '@/screens/ops/corporate/Corporate'
+
 import { ADMIN_CORPORATE, ADMIN_DASHBOARD, ADMIN_FEEDBACK, ADMIN_LOCATIONS, ADMIN_MACHINES, ADMIN_NOTIFICATIONS, ADMIN_POINTS, ADMIN_TOPUP, ADMIN_USERS, MACHINE_DASHBOARD, MACHINE_MACHINES, OPS_CORPORATE, OPS_DASHBOARD, OPS_FEEDBACK, OPS_LOCATIONS, OPS_MACHINES, OPS_POINTS, OPS_TOPUP, OPS_USERS, SUPERADMIN_CORPORATE, SUPERADMIN_DASHBOARD, SUPERADMIN_FEEDBACK, SUPERADMIN_LOCATIONS, SUPERADMIN_MACHINES, SUPERADMIN_NOTIFICATIONS, SUPERADMIN_POINTS, SUPERADMIN_ROLES, SUPERADMIN_TOPUP, SUPERADMIN_USERS } from '@/constants/Constant'
 
 const NotFound = () => {
@@ -86,14 +96,14 @@ const Routing = () => {
 
             <Route element={<PrivateRouting allowedRoles={["ops"]} />}>
                 <Route element={<Layout />}>
-                    <Route path={OPS_DASHBOARD} element={<Dashboard />} />
-                    <Route path={OPS_MACHINES} element={<Machines />} />
-                    <Route path={OPS_POINTS} element={<PointShare />} />
-                    <Route path={OPS_LOCATIONS} element={<Locations />} />
-                    <Route path={OPS_TOPUP} element={<Topup />} />
-                    <Route path={OPS_USERS} element={<UsersManagement />} />
-                    <Route path={OPS_FEEDBACK} element={<Feedback />} />
-                    <Route path={OPS_CORPORATE} element={<Corporate />} />
+                    <Route path={OPS_DASHBOARD} element={<OpsDashboard />} />
+                    <Route path={OPS_MACHINES} element={<OpsMachines />} />
+                    <Route path={OPS_POINTS} element={<OpsPointShare />} />
+                    <Route path={OPS_LOCATIONS} element={<OpsLocations />} />
+                    <Route path={OPS_TOPUP} element={<OpsTopup />} />
+                    <Route path={OPS_USERS} element={<OpsUsersManagement />} />
+                    <Route path={OPS_FEEDBACK} element={<OpsFeedback />} />
+                    <Route path={OPS_CORPORATE} element={<OpsCorporate />} />
                 </Route>
             </Route>
 
