@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
@@ -12,17 +12,23 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import {
-    IconPhone,
-    IconCreditCard,
-    IconHistory,
-    IconWallet,
-    IconSearch,
-    IconDownload,
-    IconLoader2,
-} from "@tabler/icons-react"
+    Phone,
+    CreditCard,
+    History,
+    Wallet,
+    Search,
+    Download,
+    Loader2,
+    ChevronLeft,
+    ChevronRight,
+    ChevronsLeft,
+    ChevronsRight,
+} from "lucide-react"
 import moment from "moment"
 import { SiteHeader } from "@/components/superAdmin/site-header"
+import { getRequest } from "@/Apis/Api"
 
 // Validation schemas
 const phoneTopupSchema = z.object({
@@ -72,56 +78,53 @@ const cardTopupSchema = z.object({
 type PhoneTopupFormData = z.infer<typeof phoneTopupSchema>
 type CardTopupFormData = z.infer<typeof cardTopupSchema>
 
-// Mock data for topup history
-const topupHistory = [
-    {
-        id: 1,
-        name: "Hazik",
-        phoneRfid: "03213525496",
-        totalBalance: 100000,
-        previousBalance: 96667,
-        balanceAdded: 3333,
-        createdAt: "2025-07-01T15:16:00Z",
-        accountHolder: "salman@davaam.pk",
-        paymentPurpose: "test",
-    },
-    {
-        id: 2,
-        name: "Hazik",
-        phoneRfid: "03213525496",
-        totalBalance: 96667,
-        previousBalance: 66667,
-        balanceAdded: 30000,
-        createdAt: "2025-07-01T15:16:00Z",
-        accountHolder: "salman@davaam.pk",
-        paymentPurpose: "test",
-    },
-    {
-        id: 3,
-        name: "Shoaib_test",
-        phoneRfid: "2597",
-        totalBalance: 30000,
-        previousBalance: 0,
-        balanceAdded: 30000,
-        createdAt: "2025-07-01T11:11:00Z",
-        accountHolder: "salman@davaam.pk",
-        paymentPurpose: "testing topup - shoaib",
-    },
-    {
-        id: 4,
-        name: "Hassab",
-        phoneRfid: "03212990048",
-        totalBalance: 3000,
-        previousBalance: 0,
-        balanceAdded: 3000,
-        createdAt: "2025-06-30T15:04:00Z",
-        accountHolder: "salman@davaam.pk",
-        paymentPurpose: "test",
-    },
-]
+interface Topup {
+    id: number
+    user_id: number
+    msisdn: string
+    balance_added: string
+    previous_balance: string
+    total_balance: string
+    created_at: string
+    description: string | null
+    user_email: string | null
+    name: string
+}
+
+interface ApiResponse {
+    topupBalance: Topup[]
+}
 
 export function Topup() {
     const [searchTerm, setSearchTerm] = useState("")
+    const [topupHistory, setTopupHistory] = useState<Topup[]>([])
+    const [loading, setLoading] = useState(true)
+
+    // Pagination state
+    const [currentPage, setCurrentPage] = useState(1)
+    const [itemsPerPage, setItemsPerPage] = useState(10)
+
+    const fetchTopupHistory = async () => {
+        try {
+            setLoading(true)
+            const res = await getRequest<ApiResponse>("/superadmin/getTopUpHistory")
+            setTopupHistory(res.topupBalance || [])
+        } catch (err) {
+            console.log(err)
+            setTopupHistory([])
+        } finally {
+            setLoading(false)
+        }
+    }
+
+    useEffect(() => {
+        fetchTopupHistory()
+    }, [])
+
+    // Reset to first page when search term changes
+    useEffect(() => {
+        setCurrentPage(1)
+    }, [searchTerm])
 
     // Phone topup form
     const phoneForm = useForm<PhoneTopupFormData>({
@@ -147,12 +150,27 @@ export function Topup() {
         },
     })
 
-    const filteredHistory = topupHistory.filter(
-        (item) =>
-            item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            item.phoneRfid.includes(searchTerm) ||
-            item.accountHolder.toLowerCase().includes(searchTerm.toLowerCase()),
-    )
+    // Memoized filtered and paginated data
+    const { filteredHistory, paginatedHistory, totalPages, totalItems } = useMemo(() => {
+        const filtered = topupHistory.filter(
+            (item) =>
+                item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                item.msisdn.includes(searchTerm) ||
+                (item.user_email && item.user_email.toLowerCase().includes(searchTerm.toLowerCase())),
+        )
+
+        const total = Math.ceil(filtered.length / itemsPerPage)
+        const startIndex = (currentPage - 1) * itemsPerPage
+        const endIndex = startIndex + itemsPerPage
+        const paginated = filtered.slice(startIndex, endIndex)
+
+        return {
+            filteredHistory: filtered,
+            paginatedHistory: paginated,
+            totalPages: total,
+            totalItems: filtered.length,
+        }
+    }, [topupHistory, searchTerm, currentPage, itemsPerPage])
 
     const onPhoneTopupSubmit = async (data: PhoneTopupFormData) => {
         try {
@@ -184,14 +202,17 @@ export function Topup() {
         cardForm.reset()
     }
 
-    const formatCurrency = (amount: number) => {
-        return new Intl.NumberFormat("en-US").format(amount)
+    const formatCurrency = (amount: number | string) => {
+        const numAmount = typeof amount === "string" ? Number.parseFloat(amount) : amount
+        return new Intl.NumberFormat("en-US").format(numAmount)
     }
 
-    const getBalanceBadge = (balance: number) => {
-        if (balance >= 50000) return <Badge className="bg-green-100 text-green-800">{formatCurrency(balance)}</Badge>
-        if (balance >= 10000) return <Badge className="bg-yellow-100 text-yellow-800">{formatCurrency(balance)}</Badge>
-        return <Badge className="bg-red-100 text-red-800">{formatCurrency(balance)}</Badge>
+    const getBalanceBadge = (balance: number | string) => {
+        const numBalance = typeof balance === "string" ? Number.parseFloat(balance) : balance
+        if (numBalance >= 50000) return <Badge className="bg-green-100 text-green-800">{formatCurrency(numBalance)}</Badge>
+        if (numBalance >= 10000)
+            return <Badge className="bg-yellow-100 text-yellow-800">{formatCurrency(numBalance)}</Badge>
+        return <Badge className="bg-red-100 text-red-800">{formatCurrency(numBalance)}</Badge>
     }
 
     const formatCardNumber = (value: string) => {
@@ -217,89 +238,131 @@ export function Topup() {
         return v
     }
 
+    const formatTimestamp = (timestamp: string) => {
+        // Check if timestamp is in seconds (10 digits) or milliseconds (13 digits)
+        const numTimestamp = Number.parseInt(timestamp)
+        const date = numTimestamp.toString().length === 10 ? new Date(numTimestamp * 1000) : new Date(numTimestamp)
+
+        return moment(date).format("ddd, MMM D, YYYY h:mm A")
+    }
+
+    // Pagination handlers
+    const goToFirstPage = () => setCurrentPage(1)
+    const goToLastPage = () => setCurrentPage(totalPages)
+    const goToPreviousPage = () => setCurrentPage(Math.max(1, currentPage - 1))
+    const goToNextPage = () => setCurrentPage(Math.min(totalPages, currentPage + 1))
+    const goToPage = (page: number) => setCurrentPage(page)
+
+    // Generate page numbers for pagination
+    const getPageNumbers = () => {
+        const delta = 2
+        const range = []
+        const rangeWithDots = []
+
+        for (let i = Math.max(2, currentPage - delta); i <= Math.min(totalPages - 1, currentPage + delta); i++) {
+            range.push(i)
+        }
+
+        if (currentPage - delta > 2) {
+            rangeWithDots.push(1, "...")
+        } else {
+            rangeWithDots.push(1)
+        }
+
+        rangeWithDots.push(...range)
+
+        if (currentPage + delta < totalPages - 1) {
+            rangeWithDots.push("...", totalPages)
+        } else {
+            rangeWithDots.push(totalPages)
+        }
+
+        return rangeWithDots
+    }
+
+    const totalAmount = topupHistory.reduce((sum, item) => sum + Number.parseFloat(item.balance_added), 0)
+    const uniqueUsers = new Set(topupHistory.map((item) => item.msisdn)).size
+    const avgTopup = topupHistory.length > 0 ? totalAmount / topupHistory.length : 0
+
+    if (loading) {
+        return (
+            <div className="flex items-center justify-center min-h-screen">
+                <Loader2 className="h-8 w-8 animate-spin" />
+            </div>
+        )
+    }
+
     return (
         <div>
             <SiteHeader title="Topup" />
             <div className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
                 <div className="flex items-center justify-between">
                     <div>
-                        {/* <h1 className="text-2xl font-bold tracking-tight">Topup</h1> */}
                         <p className="text-muted-foreground">Add balance to user accounts via phone or card payment</p>
                     </div>
                 </div>
-
                 <div className="grid gap-4 md:grid-cols-4">
                     <Card>
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                             <CardTitle className="text-sm font-medium">Total Topups</CardTitle>
-                            <IconWallet className="h-4 w-4 text-muted-foreground" />
+                            <Wallet className="h-4 w-4 text-muted-foreground" />
                         </CardHeader>
                         <CardContent>
                             <div className="text-2xl font-bold">{topupHistory.length}</div>
-                            <p className="text-xs text-muted-foreground">This month</p>
+                            <p className="text-xs text-muted-foreground">All time</p>
                         </CardContent>
                     </Card>
                     <Card>
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                             <CardTitle className="text-sm font-medium">Total Amount</CardTitle>
-                            <IconWallet className="h-4 w-4 text-green-500" />
+                            <Wallet className="h-4 w-4 text-green-500" />
                         </CardHeader>
                         <CardContent>
-                            <div className="text-2xl font-bold text-green-600">
-                                {formatCurrency(topupHistory.reduce((sum, item) => sum + item.balanceAdded, 0))}
-                            </div>
+                            <div className="text-2xl font-bold text-green-600">{formatCurrency(totalAmount)}</div>
                             <p className="text-xs text-muted-foreground">Total added</p>
                         </CardContent>
                     </Card>
                     <Card>
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                             <CardTitle className="text-sm font-medium">Active Users</CardTitle>
-                            <IconPhone className="h-4 w-4 text-blue-500" />
+                            <Phone className="h-4 w-4 text-blue-500" />
                         </CardHeader>
                         <CardContent>
-                            <div className="text-2xl font-bold text-blue-600">
-                                {new Set(topupHistory.map((item) => item.phoneRfid)).size}
-                            </div>
+                            <div className="text-2xl font-bold text-blue-600">{uniqueUsers}</div>
                             <p className="text-xs text-muted-foreground">Unique accounts</p>
                         </CardContent>
                     </Card>
                     <Card>
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                             <CardTitle className="text-sm font-medium">Avg Topup</CardTitle>
-                            <IconWallet className="h-4 w-4 text-purple-500" />
+                            <Wallet className="h-4 w-4 text-purple-500" />
                         </CardHeader>
                         <CardContent>
-                            <div className="text-2xl font-bold text-purple-600">
-                                {formatCurrency(
-                                    Math.round(topupHistory.reduce((sum, item) => sum + item.balanceAdded, 0) / topupHistory.length),
-                                )}
-                            </div>
+                            <div className="text-2xl font-bold text-purple-600">{formatCurrency(Math.round(avgTopup))}</div>
                             <p className="text-xs text-muted-foreground">Per transaction</p>
                         </CardContent>
                     </Card>
                 </div>
-
                 <Tabs defaultValue="phone" className="space-y-4">
                     <TabsList className="grid w-full grid-cols-3">
                         <TabsTrigger value="phone" className="flex items-center gap-2">
-                            <IconPhone className="h-4 w-4" />
+                            <Phone className="h-4 w-4" />
                             Pay with Phone
                         </TabsTrigger>
                         <TabsTrigger value="card" className="flex items-center gap-2">
-                            <IconCreditCard className="h-4 w-4" />
+                            <CreditCard className="h-4 w-4" />
                             Pay with Card
                         </TabsTrigger>
                         <TabsTrigger value="history" className="flex items-center gap-2">
-                            <IconHistory className="h-4 w-4" />
+                            <History className="h-4 w-4" />
                             Topup History
                         </TabsTrigger>
                     </TabsList>
-
                     <TabsContent value="phone" className="space-y-4">
                         <Card>
                             <CardHeader>
                                 <CardTitle className="flex items-center gap-2">
-                                    <IconPhone className="h-5 w-5 text-teal-600" />
+                                    <Phone className="h-5 w-5 text-teal-600" />
                                     Phone Topup
                                 </CardTitle>
                                 <CardDescription>Add balance using phone number payment</CardDescription>
@@ -370,12 +433,12 @@ export function Topup() {
                                             >
                                                 {phoneForm.formState.isSubmitting ? (
                                                     <>
-                                                        <IconLoader2 className="mr-2 h-4 w-4 animate-spin" />
+                                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                                                         Processing...
                                                     </>
                                                 ) : (
                                                     <>
-                                                        <IconPhone className="mr-2 h-4 w-4" />
+                                                        <Phone className="mr-2 h-4 w-4" />
                                                         Topup with Phone
                                                     </>
                                                 )}
@@ -394,12 +457,11 @@ export function Topup() {
                             </CardContent>
                         </Card>
                     </TabsContent>
-
                     <TabsContent value="card" className="space-y-4">
                         <Card>
                             <CardHeader>
                                 <CardTitle className="flex items-center gap-2">
-                                    <IconCreditCard className="h-5 w-5 text-teal-600" />
+                                    <CreditCard className="h-5 w-5 text-teal-600" />
                                     Card Payment
                                 </CardTitle>
                                 <CardDescription>Add balance using credit/debit card</CardDescription>
@@ -553,12 +615,12 @@ export function Topup() {
                                             >
                                                 {cardForm.formState.isSubmitting ? (
                                                     <>
-                                                        <IconLoader2 className="mr-2 h-4 w-4 animate-spin" />
+                                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                                                         Processing...
                                                     </>
                                                 ) : (
                                                     <>
-                                                        <IconCreditCard className="mr-2 h-4 w-4" />
+                                                        <CreditCard className="mr-2 h-4 w-4" />
                                                         Topup with Card
                                                     </>
                                                 )}
@@ -577,32 +639,54 @@ export function Topup() {
                             </CardContent>
                         </Card>
                     </TabsContent>
-
                     <TabsContent value="history" className="space-y-4">
                         <Card>
                             <CardHeader>
                                 <div className="flex items-center justify-between">
                                     <div>
                                         <CardTitle className="flex items-center gap-2">
-                                            <IconHistory className="h-5 w-5 text-teal-600" />
+                                            <History className="h-5 w-5 text-teal-600" />
                                             Topup History
                                         </CardTitle>
                                         <CardDescription>View all previous topup transactions</CardDescription>
                                     </div>
                                     <Button variant="outline">
-                                        <IconDownload className="mr-2 h-4 w-4" />
+                                        <Download className="mr-2 h-4 w-4" />
                                         Export
                                     </Button>
                                 </div>
                                 <div className="pt-4">
-                                    <div className="relative">
-                                        <IconSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                        <Input
-                                            placeholder="Search by name, phone, or account holder..."
-                                            value={searchTerm}
-                                            onChange={(e) => setSearchTerm(e.target.value)}
-                                            className="pl-10"
-                                        />
+                                    <div className="flex items-center gap-4">
+                                        <div className="relative flex-1">
+                                            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                            <Input
+                                                placeholder="Search by name, phone, or account holder..."
+                                                value={searchTerm}
+                                                onChange={(e) => setSearchTerm(e.target.value)}
+                                                className="pl-10"
+                                            />
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-sm text-muted-foreground">Show:</span>
+                                            <Select
+                                                value={itemsPerPage.toString()}
+                                                onValueChange={(value) => {
+                                                    setItemsPerPage(Number(value))
+                                                    setCurrentPage(1)
+                                                }}
+                                            >
+                                                <SelectTrigger className="w-20">
+                                                    <SelectValue />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="5">5</SelectItem>
+                                                    <SelectItem value="10">10</SelectItem>
+                                                    <SelectItem value="20">20</SelectItem>
+                                                    <SelectItem value="50">50</SelectItem>
+                                                    <SelectItem value="100">100</SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
                                     </div>
                                 </div>
                             </CardHeader>
@@ -618,27 +702,27 @@ export function Topup() {
                                                 <TableHead className="font-semibold">Balance Added</TableHead>
                                                 <TableHead className="font-semibold">Created At</TableHead>
                                                 <TableHead className="font-semibold">Account Holder</TableHead>
-                                                <TableHead className="font-semibold">Payment Purpose</TableHead>
+                                                <TableHead className="font-semibold">Description</TableHead>
                                             </TableRow>
                                         </TableHeader>
                                         <TableBody>
-                                            {filteredHistory.length > 0 ? (
-                                                filteredHistory.map((item) => (
+                                            {paginatedHistory.length > 0 ? (
+                                                paginatedHistory.map((item) => (
                                                     <TableRow key={item.id} className="hover:bg-muted/50">
-                                                        <TableCell className="font-medium">{item.name}</TableCell>
-                                                        <TableCell className="font-mono">{item.phoneRfid}</TableCell>
-                                                        <TableCell>{getBalanceBadge(item.totalBalance)}</TableCell>
+                                                        <TableCell className="font-medium">{item.name || "N/A"}</TableCell>
+                                                        <TableCell className="font-mono">{item.msisdn}</TableCell>
+                                                        <TableCell>{getBalanceBadge(item.total_balance)}</TableCell>
                                                         <TableCell className="text-muted-foreground">
-                                                            {formatCurrency(item.previousBalance)}
+                                                            {formatCurrency(item.previous_balance)}
                                                         </TableCell>
                                                         <TableCell>
-                                                            <Badge className="bg-green-100 text-green-800">+{formatCurrency(item.balanceAdded)}</Badge>
+                                                            <Badge className="bg-green-100 text-green-800">
+                                                                +{formatCurrency(item.balance_added)}
+                                                            </Badge>
                                                         </TableCell>
-                                                        <TableCell className="text-muted-foreground">
-                                                            {moment(item.createdAt).format("ddd, MMM D, YYYY h:mm A")}
-                                                        </TableCell>
-                                                        <TableCell className="text-sm">{item.accountHolder}</TableCell>
-                                                        <TableCell className="text-sm">{item.paymentPurpose}</TableCell>
+                                                        <TableCell className="text-muted-foreground">{formatTimestamp(item.created_at)}</TableCell>
+                                                        <TableCell className="text-sm">{item.user_email || "N/A"}</TableCell>
+                                                        <TableCell className="text-sm">{item.description || "N/A"}</TableCell>
                                                     </TableRow>
                                                 ))
                                             ) : (
@@ -651,10 +735,54 @@ export function Topup() {
                                         </TableBody>
                                     </Table>
                                 </div>
-                                {filteredHistory.length > 0 && (
+
+                                {/* Pagination Controls */}
+                                {totalPages > 1 && (
+                                    <div className="flex items-center justify-between mt-4">
+                                        <div className="text-sm text-muted-foreground">
+                                            Showing {(currentPage - 1) * itemsPerPage + 1} to{" "}
+                                            {Math.min(currentPage * itemsPerPage, totalItems)} of {totalItems} entries
+                                            {searchTerm && ` (filtered from ${topupHistory.length} total entries)`}
+                                        </div>
+
+                                        <div className="flex items-center space-x-2">
+                                            <Button variant="outline" size="sm" onClick={goToFirstPage} disabled={currentPage === 1}>
+                                                <ChevronsLeft className="h-4 w-4" />
+                                            </Button>
+                                            <Button variant="outline" size="sm" onClick={goToPreviousPage} disabled={currentPage === 1}>
+                                                <ChevronLeft className="h-4 w-4" />
+                                            </Button>
+
+                                            <div className="flex items-center space-x-1">
+                                                {getPageNumbers().map((pageNumber, index) => (
+                                                    <Button
+                                                        key={index}
+                                                        variant={pageNumber === currentPage ? "default" : "outline"}
+                                                        size="sm"
+                                                        onClick={() => typeof pageNumber === "number" && goToPage(pageNumber)}
+                                                        disabled={pageNumber === "..."}
+                                                        className="min-w-[40px]"
+                                                    >
+                                                        {pageNumber}
+                                                    </Button>
+                                                ))}
+                                            </div>
+
+                                            <Button variant="outline" size="sm" onClick={goToNextPage} disabled={currentPage === totalPages}>
+                                                <ChevronRight className="h-4 w-4" />
+                                            </Button>
+                                            <Button variant="outline" size="sm" onClick={goToLastPage} disabled={currentPage === totalPages}>
+                                                <ChevronsRight className="h-4 w-4" />
+                                            </Button>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Summary when no pagination needed */}
+                                {totalPages <= 1 && totalItems > 0 && (
                                     <div className="flex items-center justify-between mt-4 text-sm text-muted-foreground">
                                         <span>
-                                            Showing {filteredHistory.length} of {topupHistory.length} transactions
+                                            Showing {totalItems} of {topupHistory.length} transactions
                                             {searchTerm && ` (filtered by "${searchTerm}")`}
                                         </span>
                                     </div>

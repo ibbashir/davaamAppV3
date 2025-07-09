@@ -1,52 +1,50 @@
 "use client"
 
-import { useState } from "react"
-import PointsShareTable from "@/components/admin/Points-Share-Table"
+import { useState, useEffect } from "react"
+import PointsShareTable from "@/components/superAdmin/Points-Share-Table"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { IconArrowUpRight, IconArrowDownRight, IconClock, IconCheck } from "@tabler/icons-react"
 import { SiteHeader } from "@/components/admin/site-header"
+import { getRequest } from "@/Apis/Api"
 
-// Mock data - replace with your actual data source
-const mockData = [
-    {
-        id: "MCH001",
-        alternate_name: "John Doe",
-        user_name: "Jane Smith",
-        msisdn: "+1234567890",
-        alternate_msisdn: "+0987654321",
-        amount: 150.75,
-        created_at: "2024-01-15T10:30:00Z",
-        status: "completed",
-    },
-    {
-        id: "MCH002",
-        alternate_name: "Alice Johnson",
-        user_name: "Bob Wilson",
-        msisdn: "+1122334455",
-        alternate_msisdn: "+5544332211",
-        amount: 89.5,
-        created_at: "2024-01-14T14:20:00Z",
-        status: "pending",
-    },
-    {
-        id: "MCH003",
-        alternate_name: "Mike Davis",
-        user_name: "Sarah Brown",
-        msisdn: "+9988776655",
-        alternate_msisdn: "+5566778899",
-        amount: 275.25,
-        created_at: "2024-01-13T09:15:00Z",
-        status: "completed",
-    },
+interface PointShare {
+    id: number,
+    amount: string,
+    created_at: string,
+    user_id: number,
+    status: string,
+    msisdn: string,
+    transaction_number: string,
+    alternate_msisdn: string,
+    user_name: string,
+    alternate_name: string
+}
 
-]
+interface ApiResponse {
+    pointsShare: PointShare[]
+}
 
 export function AdminPointShare() {
-    const [tableData, setTableData] = useState(mockData)
+    const [tableData, setTableData] = useState<PointShare[]>([])
+
+    const fetchPointShare = async () => {
+        try {
+            const res = await getRequest<ApiResponse>("/admin/pointShareDetail");
+            setTableData(res.pointsShare)
+            console.log(res);
+        } catch (err) {
+            console.log(err);
+        }
+    }
+
+    useEffect(() => {
+        fetchPointShare();
+    }, [])
+
 
     // Calculate summary statistics
     const totalTransfers = tableData.length
-    const totalAmount = tableData.reduce((sum, item) => sum + item.amount, 0)
+    const totalAmount = tableData.reduce((sum, item) => sum + parseFloat(item.amount), 0)
     const completedTransfers = tableData.filter((item) => item.status === "completed").length
     const pendingTransfers = tableData.filter((item) => item.status === "pending").length
 

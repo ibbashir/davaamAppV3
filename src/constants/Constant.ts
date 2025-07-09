@@ -27,6 +27,8 @@ export const SUPERADMIN_USERS = "/superadmin/users"
 export const SUPERADMIN_NOTIFICATIONS = "/superadmin/notifications"
 export const SUPERADMIN_FEEDBACK = "/superadmin/feedback"
 export const SUPERADMIN_CORPORATE = "/superadmin/corporate"
+export const SUPERADMIN_STATUS = "/superadmin/status"
+
 
 // ADMIN PATHS
 export const ADMIN_DASHBOARD = "/admin/dashboard"

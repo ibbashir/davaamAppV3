@@ -109,8 +109,8 @@ const Routing = () => {
 
             <Route element={<PrivateRouting allowedRoles={["company"]} />}>
                 <Route element={<Layout />}>
-                    <Route path={MACHINE_DASHBOARD} element={<Dashboard />} />
-                    <Route path={MACHINE_MACHINES} element={<Machines />} />
+                    {/* <Route path={MACHINE_DASHBOARD} element={<Dashboard />} /> */}
+                    {/* <Route path={MACHINE_MACHINES} element={<Machines />} /> */}
                 </Route>
             </Route>
 
