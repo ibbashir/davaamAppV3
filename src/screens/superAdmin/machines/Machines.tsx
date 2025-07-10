@@ -6,29 +6,10 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Input } from "@/components/ui/input"
-import { IconSearch, IconChevronLeft, IconChevronRight } from "@tabler/icons-react"
-import { SiteHeader } from "@/components/superAdmin/site-header"
+import { Search, ChevronLeft, ChevronRight } from "lucide-react"
+import type { ApiMachine, MachinesResponse } from "./Types"
 import { getRequest } from "@/Apis/Api"
-
-type ApiMachine = {
-  id: number
-  machine_code: string
-  machine_name: string
-  machine_location: string
-  machine_type: string
-  created_at: number
-  is_active: string
-  lat: number | null
-  lng: number | null
-  access: string | null
-}
-
-type MachinesResponse = {
-  status: number
-  data: {
-    [category: string]: ApiMachine[]
-  }
-}
+import { timeConverter } from "@/constants/Constant"
 
 const categories = [
   { id: "Butterfly", label: "Butterfly" },
@@ -42,11 +23,12 @@ const categories = [
   { id: "Unknown", label: "Unknown" },
 ]
 
-const Machines = ({ }) => {
+const Machines = () => {
   const [searchTerm, setSearchTerm] = useState("")
   const [activeCategory, setActiveCategory] = useState("Butterfly")
   const [currentPage, setCurrentPage] = useState(1)
   const [machinesData, setMachinesData] = useState<{ [category: string]: ApiMachine[] } | null>(null)
+  const [machineStockMap, setMachineStockMap] = useState<{ [code: string]: string }>({})
   const [loading, setLoading] = useState(true)
   const itemsPerPage = 5
 
@@ -54,16 +36,52 @@ const Machines = ({ }) => {
     fetchMachines()
   }, [])
 
-  // Transform API data into a flat array for filtering
+  const fetchMachines = async () => {
+    try {
+      setLoading(true)
+      const res = await getRequest<MachinesResponse>(`/superadmin/getAllMachineStockAndStatus`)
+      const { machines, brands } = res.data
+
+      // Build stock status map per machine_code
+      const stockMap: { [code: string]: string } = {}
+
+      const allBrands = [...brands.vending, ...brands.dispensing]
+      const grouped: { [machine_code: string]: number[] } = {}
+
+      allBrands.forEach((brand) => {
+        const code = brand.machine_code
+        if (!grouped[code]) grouped[code] = []
+        grouped[code].push(brand.availableQuantity)
+      })
+
+      for (const [code, quantities] of Object.entries(grouped)) {
+        if (quantities.every((q) => q === 0)) {
+          stockMap[code] = "Out of Stock"
+        } else if (quantities.some((q) => q < 10)) {
+          stockMap[code] = "Low Stock"
+        } else {
+          stockMap[code] = "In Stock"
+        }
+      }
+
+      setMachinesData(machines)
+      setMachineStockMap(stockMap)
+    } catch (error) {
+      console.error("Error fetching machines:", error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
   const allMachines = machinesData
     ? Object.entries(machinesData).flatMap(([category, machines]) =>
       machines.map((machine) => ({
         ...machine,
         category: category,
-        status: machine.is_active === "1" ? "Active" : "Inactive",
-        lastActive: new Date(machine.created_at * 1000).toLocaleString(),
-        stockStatus: "In Stock", // Default value since not in API
-      })),
+        status: machine.statusCode === "r" ? "Inactive" : machine.statusCode === "g" ? "Active" : "Pending",
+        lastActive: timeConverter(machine.created_at),
+        stockStatus: machineStockMap[machine.machine_code] || "Unknown",
+      }))
     )
     : []
 
@@ -93,29 +111,22 @@ const Machines = ({ }) => {
   }
 
   const getStockStatusBadge = (status: string) => {
+    const colorMap: { [key: string]: string } = {
+      "In Stock": "bg-green-100 text-green-800 border-green-300",
+      "Low Stock": "bg-yellow-100 text-yellow-800 border-yellow-300",
+      "Out of Stock": "bg-red-100 text-red-800 border-red-300",
+      "Unknown": "bg-gray-100 text-gray-800 border-gray-300",
+    }
+
     return (
-      <Badge variant="outline" className="bg-green-100 text-green-800 border-green-300">
+      <Badge variant="outline" className={colorMap[status] || colorMap["Unknown"]}>
         {status}
       </Badge>
     )
   }
 
-  const fetchMachines = async () => {
-    try {
-      setLoading(true)
-      const res = await getRequest<MachinesResponse>(`/superadmin/getAllMachinesDashboards`)
-      console.log(res.data)
-      setMachinesData(res.data)
-    } catch (error) {
-      console.error("Error fetching machines:", error)
-    } finally {
-      setLoading(false)
-    }
-  }
-
   return (
-    <div>
-      <SiteHeader title="Machines" />
+    <div className="min-h-screen bg-gray-50">
       <div className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
         <div className="flex items-center justify-between">
           <div>
@@ -133,7 +144,7 @@ const Machines = ({ }) => {
           <CardHeader>
             <div className="space-y-4">
               <div className="relative">
-                <IconSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
                   placeholder="Search by machine number"
                   value={searchTerm}
@@ -141,7 +152,6 @@ const Machines = ({ }) => {
                   className="pl-10"
                 />
               </div>
-
               <div className="flex flex-wrap gap-2">
                 {categories.map((category) => (
                   <Button
@@ -208,7 +218,6 @@ const Machines = ({ }) => {
               </TableBody>
             </Table>
 
-            {/* Pagination */}
             <div className="flex items-center justify-between space-x-2 py-4">
               <div className="text-sm text-muted-foreground">
                 Showing {startIndex + 1} to {Math.min(startIndex + itemsPerPage, filteredMachines.length)} of{" "}
@@ -221,7 +230,7 @@ const Machines = ({ }) => {
                   onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
                   disabled={currentPage === 1}
                 >
-                  <IconChevronLeft className="h-4 w-4" />
+                  <ChevronLeft className="h-4 w-4" />
                   Previous
                 </Button>
                 <div className="flex items-center space-x-1">
@@ -244,7 +253,7 @@ const Machines = ({ }) => {
                   disabled={currentPage === totalPages}
                 >
                   Next
-                  <IconChevronRight className="h-4 w-4" />
+                  <ChevronRight className="h-4 w-4" />
                 </Button>
               </div>
             </div>

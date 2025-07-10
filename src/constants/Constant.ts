@@ -104,3 +104,88 @@ export const MACHINES_SIDEBAR_ROUTES = () => {
         { title: "Machines", url: MACHINE_MACHINES, icon: IconChartBar },
     ]
 }
+
+
+
+// TIME STAMP CONVERTER
+export function unixTimestampToCustomString(
+    unixTimestamp: number,
+    format: string,
+    timeZoneOffset: number
+): string {
+    const date = new Date(unixTimestamp * 1000);
+
+    const months: string[] = [
+        "Jan",
+        "Feb",
+        "Mar",
+        "Apr",
+        "May",
+        "Jun",
+        "Jul",
+        "Aug",
+        "Sep",
+        "Oct",
+        "Nov",
+        "Dec",
+    ];
+
+    const year: number = date.getFullYear();
+    const month: string = months[date.getMonth()];
+    const day: number = date.getDate();
+    const hours: number = date.getHours();
+    const minutes: number = date.getMinutes();
+    const seconds: number = date.getSeconds();
+
+    const offsetHours: number = Math.floor(Math.abs(timeZoneOffset / 60));
+    const offsetMinutes: number = Math.abs(timeZoneOffset % 60);
+    const offsetSign: string = timeZoneOffset >= 0 ? "+" : "-";
+
+    // Define placeholders for various date and time components
+    const placeholders: { [key: string]: string | number } = {
+        YYYY: year,
+        MM: (date.getMonth() + 1).toString().padStart(2, "0"),
+        DD: day.toString().padStart(2, "0"),
+        HH: hours.toString().padStart(2, "0"),
+        mm: minutes.toString().padStart(2, "0"),
+        ss: seconds.toString().padStart(2, "0"),
+        MMM: month,
+        TZHH: offsetSign + offsetHours.toString().padStart(2, "0"),
+        TZmm: offsetMinutes.toString().padStart(2, "0"),
+    };
+
+    // Replace format placeholders with actual values
+    const formattedDate: string = format.replace(
+        /YYYY|MM|DD|HH|mm|ss|MMM|TZHH|TZmm/g,
+        (match) => String(placeholders[match]) || match
+    );
+
+    return formattedDate;
+}
+
+export function timeConverter(UNIX_timestamp: any) {
+    var a = new Date(UNIX_timestamp * 1000);
+    var months = [
+        "Jan",
+        "Feb",
+        "Mar",
+        "Apr",
+        "May",
+        "Jun",
+        "Jul",
+        "Aug",
+        "Sep",
+        "Oct",
+        "Nov",
+        "Dec",
+    ];
+    var year = a.getFullYear();
+    var month = months[a.getMonth()];
+    var date = a.getDate();
+    var hour = a.getHours();
+    var min = a.getMinutes();
+    var sec = a.getSeconds();
+    var time =
+        date + " " + month + " " + year + " " + hour + ":" + min + ":" + sec;
+    return time;
+}
