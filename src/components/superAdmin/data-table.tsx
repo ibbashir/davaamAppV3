@@ -286,7 +286,6 @@ export function SuperAdminMobileUsersDataTable() {
     try {
       setLoading(true)
       const res = await getRequest<MobileUserApiResponse>(`/superadmin/mobileAppUsers?page=${page}&limit=${limit}`)
-      console.log(res)
       setData(res.users)
       setApiPagination({
         currentPage: res.currentPage,

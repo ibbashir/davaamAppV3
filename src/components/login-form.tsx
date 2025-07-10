@@ -68,7 +68,7 @@ export function LoginForm({
               Forgot your password?
             </a>
           </div>
-          <Input id="password" placeholder="Password" {...register("password", { required: true })} />
+          <Input type="password" placeholder="Password" {...register("password", { required: true })} />
           {errors.password && <span className="text-red-500 text-xs font-semibold">Password is Required</span>}
         </div>
         {loginError && (

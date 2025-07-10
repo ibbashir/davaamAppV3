@@ -2,6 +2,7 @@ import { ChartAreaInteractive } from "@/components/superAdmin/chart-area-interac
 import { SuperAdminMobileUsersDataTable } from "@/components/superAdmin/data-table"
 import { SectionCards } from "@/components/superAdmin/section-cards"
 import { SiteHeader } from "@/components/superAdmin/site-header"
+import RecentTransactions from "./RecentTransactions"
 
 const Dashboard = () => {
     return (
@@ -15,6 +16,8 @@ const Dashboard = () => {
                             <ChartAreaInteractive />
                         </div>
                         <SuperAdminMobileUsersDataTable />
+                        <hr />
+                        <RecentTransactions />
                     </div>
                 </div>
             </div>

@@ -2,6 +2,7 @@ import { ChartAreaInteractive } from "@/components/ops/chart-area-interactive"
 import { OpsMobileUsersDataTable } from "@/components/ops/data-table"
 import { SectionCards } from "@/components/ops/section-cards"
 import { SiteHeader } from "@/components/ops/site-header"
+import RecentTransactions from "./RecentTransactions"
 
 const Dashboard = () => {
     return (
@@ -15,6 +16,8 @@ const Dashboard = () => {
                             <ChartAreaInteractive />
                         </div>
                         <OpsMobileUsersDataTable />
+                        <hr />
+                        <RecentTransactions />
                     </div>
                 </div>
             </div>

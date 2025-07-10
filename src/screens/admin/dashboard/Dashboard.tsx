@@ -1,8 +1,8 @@
 import { ChartAreaInteractive } from "@/components/ops/chart-area-interactive"
 import { AdminMobileUsersDataTable } from "@/components/admin/data-table"
-import { SectionCards } from "@/components/ops/section-cards"
-import { SiteHeader } from "@/components/ops/site-header"
-import data from "./data.json"
+import { SectionCards } from "@/components/admin/section-cards"
+import { SiteHeader } from "@/components/admin/site-header"
+import RecentTransactions from "./RecentTransactions"
 
 const Dashboard = () => {
     return (
@@ -16,6 +16,8 @@ const Dashboard = () => {
                             <ChartAreaInteractive />
                         </div>
                         <AdminMobileUsersDataTable />
+                        <hr />
+                        <RecentTransactions />
                     </div>
                 </div>
             </div>
