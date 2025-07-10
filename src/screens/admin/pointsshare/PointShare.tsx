@@ -31,7 +31,6 @@ export function AdminPointShare() {
         try {
             const res = await getRequest<ApiResponse>("/admin/pointShareDetail");
             setTableData(res.pointsShare)
-            console.log(res);
         } catch (err) {
             console.log(err);
         }

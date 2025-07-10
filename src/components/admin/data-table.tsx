@@ -31,6 +31,8 @@ import {
   IconWallet,
   IconCalendar,
   IconDevices,
+  IconSearch,
+  IconX,
 } from "@tabler/icons-react"
 import {
   flexRender,
@@ -45,7 +47,6 @@ import type { ColumnFiltersState, ColumnDef, Row, SortingState, VisibilityState 
 import { Area, AreaChart, CartesianGrid, XAxis } from "recharts"
 import { toast } from "sonner"
 import { z } from "zod"
-
 import { useIsMobile } from "@/hooks/use-mobile"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -68,6 +69,7 @@ import {
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Separator } from "@/components/ui/separator"
@@ -75,7 +77,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Tabs, TabsContent } from "@/components/ui/tabs"
 import { getRequest } from "@/Apis/Api"
 
-// Updated schema for mobile users
+// Updated schema for mobile users with optional tokens
 export const mobileUserSchema = z.object({
   id: z.number(),
   card_number: z.number().nullable(),
@@ -83,12 +85,15 @@ export const mobileUserSchema = z.object({
   mobile_number: z.string(),
   balance: z.number(),
   created_at: z.string(),
-  tokens: z.array(
-    z.object({
-      device_id: z.string(),
-      type: z.string(),
-    }),
-  ),
+  tokens: z
+    .array(
+      z.object({
+        device_id: z.string(),
+        type: z.string(),
+      }),
+    )
+    .optional()
+    .default([]), // Make tokens optional with default empty array
 })
 
 // API response type
@@ -105,7 +110,6 @@ function DragHandle({ id }: { id: number }) {
   const { attributes, listeners } = useSortable({
     id,
   })
-
   return (
     <Button
       {...attributes}
@@ -195,7 +199,7 @@ const columns: ColumnDef<z.infer<typeof mobileUserSchema>>[] = [
     accessorKey: "tokens",
     header: "Devices",
     cell: ({ row }) => {
-      const tokens = row.original.tokens
+      const tokens = row.original.tokens || [] // Fallback to empty array
       const deviceCount = tokens.length
       const deviceTypes = [...new Set(tokens.map((token) => token.type))]
 
@@ -207,7 +211,6 @@ const columns: ColumnDef<z.infer<typeof mobileUserSchema>>[] = [
           </div>
         )
       }
-
       return (
         <div className="flex items-center gap-2">
           <IconDevices className="size-4 text-muted-foreground" />
@@ -240,7 +243,6 @@ function DraggableRow({ row }: { row: Row<z.infer<typeof mobileUserSchema>> }) {
   const { transform, transition, setNodeRef, isDragging } = useSortable({
     id: row.original.id,
   })
-
   return (
     <TableRow
       data-state={row.getIsSelected() && "selected"}
@@ -276,18 +278,27 @@ export function AdminMobileUsersDataTable() {
     pageIndex: 0,
     pageSize: 10,
   })
+  const [searchTerm, setSearchTerm] = React.useState("")
+  const [isSearching, setIsSearching] = React.useState(false)
 
   const sortableId = React.useId()
   const sensors = useSensors(useSensor(MouseSensor, {}), useSensor(TouchSensor, {}), useSensor(KeyboardSensor, {}))
   const dataIds = React.useMemo<UniqueIdentifier[]>(() => data?.map(({ id }) => id) || [], [data])
 
-  // API call function
+  // Helper function to normalize user data
+  const normalizeUserData = (users: any[]): z.infer<typeof mobileUserSchema>[] => {
+    return users.map((user) => ({
+      ...user,
+      tokens: user.tokens || [], // Ensure tokens is always an array
+    }))
+  }
+
+  // API call function for regular fetch
   const fetchMobileUsers = async (page = 1, limit = 10) => {
     try {
       setLoading(true)
       const res = await getRequest<MobileUserApiResponse>(`/admin/mobileAppUsers?page=${page}&limit=${limit}`)
-      console.log(res)
-      setData(res.users)
+      setData(normalizeUserData(res.users))
       setApiPagination({
         currentPage: res.currentPage,
         totalPages: res.totalPages,
@@ -297,13 +308,94 @@ export function AdminMobileUsersDataTable() {
     } catch (err) {
       console.error("Error fetching mobile users:", err)
       toast.error("Failed to fetch mobile users")
+      setData([])
+      setApiPagination({
+        currentPage: 1,
+        totalPages: 1,
+        totalUsers: 0,
+        limit: 10,
+      })
     } finally {
       setLoading(false)
     }
   }
 
+  // API call function for search
+  const searchMobileUsers = async (searchQuery: string, page = 1) => {
+    if (!searchQuery.trim()) {
+      setIsSearching(false)
+      fetchMobileUsers(page, pagination.pageSize)
+      return
+    }
+
+    try {
+      setLoading(true)
+      setIsSearching(true)
+      const res = await getRequest<MobileUserApiResponse>(
+        `/admin/searchAllMobileAppUsers/search/${searchQuery}?page=${page}`,
+      )
+      setData(normalizeUserData(res.users))
+      setApiPagination({
+        currentPage: res.currentPage,
+        totalPages: res.totalPages,
+        totalUsers: res.totalUsers,
+        limit: res.limit,
+      })
+    } catch (err) {
+      console.error("Error searching mobile users:", err)
+      toast.error("Failed to search mobile users")
+      setData([])
+      setApiPagination({
+        currentPage: 1,
+        totalPages: 1,
+        totalUsers: 0,
+        limit: 10,
+      })
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // Handle search form submission
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault()
+    setPagination((prev) => ({ ...prev, pageIndex: 0 })) // Reset to first page
+    if (searchTerm.trim()) {
+      searchMobileUsers(searchTerm, 1)
+    } else {
+      setIsSearching(false)
+      fetchMobileUsers(1, pagination.pageSize)
+    }
+  }
+
+  // Handle search input change
+  const handleSearchInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value
+    setSearchTerm(value)
+
+    // If search is cleared, fetch all users
+    if (!value.trim()) {
+      setIsSearching(false)
+      setPagination((prev) => ({ ...prev, pageIndex: 0 }))
+      fetchMobileUsers(1, pagination.pageSize)
+    }
+  }
+
+  // Clear search
+  const clearSearch = () => {
+    setSearchTerm("")
+    setIsSearching(false)
+    setPagination((prev) => ({ ...prev, pageIndex: 0 }))
+    fetchMobileUsers(1, pagination.pageSize)
+  }
+
+  // Effect for initial load and pagination changes
   React.useEffect(() => {
-    fetchMobileUsers(pagination.pageIndex + 1, pagination.pageSize)
+    if (isSearching && searchTerm.trim()) {
+      searchMobileUsers(searchTerm, pagination.pageIndex + 1)
+    } else {
+      fetchMobileUsers(pagination.pageIndex + 1, pagination.pageSize)
+    }
   }, [pagination.pageIndex, pagination.pageSize])
 
   const table = useReactTable({
@@ -334,7 +426,6 @@ export function AdminMobileUsersDataTable() {
 
   function handleDragEnd(event: DragEndEvent) {
     const { active, over } = event
-
     if (active && over && active.id !== over.id) {
       setData((data) => {
         const oldIndex = dataIds.indexOf(active.id)
@@ -344,7 +435,7 @@ export function AdminMobileUsersDataTable() {
     }
   }
 
-  if (loading) {
+  if (loading && data.length === 0) {
     return (
       <div className="flex items-center justify-center h-64">
         <IconLoader className="size-6 animate-spin" />
@@ -359,14 +450,26 @@ export function AdminMobileUsersDataTable() {
         <div className="flex items-center gap-4">
           <h2 className="text-2xl font-bold">Mobile Users</h2>
           <Badge variant="secondary">{apiPagination.totalUsers} total users</Badge>
+          {isSearching && (
+            <Badge variant="outline" className="text-xs">
+              Search results for "{searchTerm}"
+            </Badge>
+          )}
         </div>
         <div className="flex items-center gap-2">
           <Button
             variant="outline"
             size="sm"
-            onClick={() => fetchMobileUsers(pagination.pageIndex + 1, pagination.pageSize)}
+            onClick={() => {
+              if (isSearching && searchTerm.trim()) {
+                searchMobileUsers(searchTerm, pagination.pageIndex + 1)
+              } else {
+                fetchMobileUsers(pagination.pageIndex + 1, pagination.pageSize)
+              }
+            }}
+            disabled={loading}
           >
-            <IconLoader className="size-4 mr-2" />
+            <IconLoader className={`size-4 mr-2 ${loading ? "animate-spin" : ""}`} />
             Refresh
           </Button>
           <DropdownMenu>
@@ -400,6 +503,29 @@ export function AdminMobileUsersDataTable() {
       </div>
 
       <TabsContent value="users" className="relative flex flex-col gap-4 overflow-auto px-4 lg:px-6">
+        {/* Search Bar */}
+        <form onSubmit={handleSearch} className="relative">
+          <IconSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search by name, mobile number, or card number..."
+            value={searchTerm}
+            onChange={handleSearchInputChange}
+            className="pl-10 pr-10"
+          />
+          {searchTerm && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={clearSearch}
+              className="absolute right-2 top-1/2 transform -translate-y-1/2 h-6 w-6 p-0"
+            >
+              <IconX className="h-4 w-4" />
+              <span className="sr-only">Clear search</span>
+            </Button>
+          )}
+        </form>
+
         <div className="overflow-hidden rounded-lg border">
           <DndContext
             collisionDetection={closestCenter}
@@ -425,7 +551,16 @@ export function AdminMobileUsersDataTable() {
                 ))}
               </TableHeader>
               <TableBody className="**:data-[slot=table-cell]:first:w-8">
-                {table.getRowModel().rows?.length ? (
+                {loading ? (
+                  <TableRow>
+                    <TableCell colSpan={columns.length} className="h-24 text-center">
+                      <div className="flex items-center justify-center gap-2">
+                        <IconLoader className="size-4 animate-spin" />
+                        {isSearching ? "Searching..." : "Loading..."}
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ) : table.getRowModel().rows?.length ? (
                   <SortableContext items={dataIds} strategy={verticalListSortingStrategy}>
                     {table.getRowModel().rows.map((row) => (
                       <DraggableRow key={row.id} row={row} />
@@ -434,7 +569,7 @@ export function AdminMobileUsersDataTable() {
                 ) : (
                   <TableRow>
                     <TableCell colSpan={columns.length} className="h-24 text-center">
-                      No mobile users found.
+                      {isSearching ? `No users found for "${searchTerm}"` : "No mobile users found."}
                     </TableCell>
                   </TableRow>
                 )}
@@ -442,7 +577,6 @@ export function AdminMobileUsersDataTable() {
             </Table>
           </DndContext>
         </div>
-
         <div className="flex items-center justify-between px-4">
           <div className="text-muted-foreground hidden flex-1 text-sm lg:flex">
             {table.getFilteredSelectedRowModel().rows.length} of {apiPagination.totalUsers} user(s) selected.
@@ -478,7 +612,7 @@ export function AdminMobileUsersDataTable() {
                 variant="outline"
                 className="hidden h-8 w-8 p-0 lg:flex bg-transparent"
                 onClick={() => table.setPageIndex(0)}
-                disabled={!table.getCanPreviousPage()}
+                disabled={!table.getCanPreviousPage() || loading}
               >
                 <span className="sr-only">Go to first page</span>
                 <IconChevronsLeft />
@@ -488,7 +622,7 @@ export function AdminMobileUsersDataTable() {
                 className="size-8 bg-transparent"
                 size="icon"
                 onClick={() => table.previousPage()}
-                disabled={!table.getCanPreviousPage()}
+                disabled={!table.getCanPreviousPage() || loading}
               >
                 <span className="sr-only">Go to previous page</span>
                 <IconChevronLeft />
@@ -498,7 +632,7 @@ export function AdminMobileUsersDataTable() {
                 className="size-8 bg-transparent"
                 size="icon"
                 onClick={() => table.nextPage()}
-                disabled={!table.getCanNextPage()}
+                disabled={!table.getCanNextPage() || loading}
               >
                 <span className="sr-only">Go to next page</span>
                 <IconChevronRight />
@@ -508,7 +642,7 @@ export function AdminMobileUsersDataTable() {
                 className="hidden size-8 lg:flex bg-transparent"
                 size="icon"
                 onClick={() => table.setPageIndex(table.getPageCount() - 1)}
-                disabled={!table.getCanNextPage()}
+                disabled={!table.getCanNextPage() || loading}
               >
                 <span className="sr-only">Go to last page</span>
                 <IconChevronsRight />
@@ -543,6 +677,9 @@ const chartConfig = {
 
 function TableCellViewer({ item }: { item: z.infer<typeof mobileUserSchema> }) {
   const isMobile = useIsMobile()
+
+  // Safely access tokens with fallback
+  const tokens = item.tokens || []
 
   return (
     <Drawer direction={isMobile ? "bottom" : "right"}>
@@ -636,17 +773,16 @@ function TableCellViewer({ item }: { item: z.infer<typeof mobileUserSchema> }) {
               <Label className="text-sm font-medium">Created At</Label>
               <div className="text-sm">{new Date(item.created_at).toLocaleString()}</div>
             </div>
-
             {/* Device Information Section */}
             <Separator />
             <div className="flex flex-col gap-2">
               <Label className="text-sm font-medium flex items-center gap-2">
                 <IconDevices className="size-4" />
-                Registered Devices ({item.tokens.length})
+                Registered Devices ({tokens.length})
               </Label>
-              {item.tokens.length > 0 ? (
+              {tokens.length > 0 ? (
                 <div className="space-y-2">
-                  {item.tokens.map((token, index) => {
+                  {tokens.map((token, index) => {
                     return (
                       <div key={index} className="flex items-center gap-3 p-3 rounded-lg border bg-muted/50">
                         <IconDevices className="size-5 text-muted-foreground" />

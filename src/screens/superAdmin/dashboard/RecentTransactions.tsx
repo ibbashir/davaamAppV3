@@ -79,7 +79,6 @@ const RecentTransactions = () => {
                 const res = await getRequest<ButterflyApiResponse>(
                     `/superadmin/getAllButterflyTransactions/${activeCategory}?page=${page}`,
                 )
-                console.log(res)
 
                 // Combine both cash and online transactions with payment type info
                 const cashTransactions = res.data.cashTransactions.map((t) => ({
@@ -103,7 +102,7 @@ const RecentTransactions = () => {
                 const res = await getRequest<OtherApiResponse>(
                     `/superadmin/getAllButterflyTransactions/${activeCategory}?page=${page}`,
                 )
-                console.log(res)
+
 
                 // For other categories, add a default payment type
                 const transactionsWithPaymentType = res.data.map((t) => ({
@@ -140,7 +139,6 @@ const RecentTransactions = () => {
                 const res = await getRequest<ButterflyApiResponse>(
                     `/superadmin/searchRecentTransactions/${activeCategory}/${searchQuery}?page=${page}`,
                 )
-                console.log(res)
 
                 // Combine both cash and online transactions with payment type info
                 const cashTransactions = res.data.cashTransactions.map((t) => ({
@@ -163,7 +161,7 @@ const RecentTransactions = () => {
                 const res = await getRequest<OtherApiResponse>(
                     `/superadmin/searchRecentTransactions/${activeCategory}/${searchQuery}?page=${page}`,
                 )
-                console.log(res)
+
 
                 const transactionsWithPaymentType = res.data.map((t) => ({
                     ...t,

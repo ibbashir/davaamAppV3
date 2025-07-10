@@ -38,7 +38,6 @@ export function LoginForm({
   const onSubmit: SubmitHandler<Inputs> = async (data) => {
     try {
       const role = await login(data.email, data.password);
-      console.log(role);
       navigate(`/${role}/dashboard`)
     } catch (err: any) {
       setLoginError("Invalid email or password")
