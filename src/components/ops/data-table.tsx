@@ -30,6 +30,7 @@ import {
   IconPhone,
   IconWallet,
   IconCalendar,
+  IconDevices,
 } from "@tabler/icons-react"
 import {
   flexRender,
@@ -44,6 +45,7 @@ import type { ColumnFiltersState, ColumnDef, Row, SortingState, VisibilityState 
 import { Area, AreaChart, CartesianGrid, XAxis } from "recharts"
 import { toast } from "sonner"
 import { z } from "zod"
+
 import { useIsMobile } from "@/hooks/use-mobile"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -81,6 +83,12 @@ export const mobileUserSchema = z.object({
   mobile_number: z.string(),
   balance: z.number(),
   created_at: z.string(),
+  tokens: z.array(
+    z.object({
+      device_id: z.string(),
+      type: z.string(),
+    }),
+  ),
 })
 
 // API response type
@@ -97,6 +105,7 @@ function DragHandle({ id }: { id: number }) {
   const { attributes, listeners } = useSortable({
     id,
   })
+
   return (
     <Button
       {...attributes}
@@ -183,6 +192,39 @@ const columns: ColumnDef<z.infer<typeof mobileUserSchema>>[] = [
     ),
   },
   {
+    accessorKey: "tokens",
+    header: "Devices",
+    cell: ({ row }) => {
+      const tokens = row.original.tokens
+      const deviceCount = tokens.length
+      const deviceTypes = [...new Set(tokens.map((token) => token.type))]
+
+      if (deviceCount === 0) {
+        return (
+          <div className="flex items-center gap-2">
+            <IconDevices className="size-4 text-muted-foreground" />
+            <span className="text-muted-foreground italic text-sm">No devices</span>
+          </div>
+        )
+      }
+
+      return (
+        <div className="flex items-center gap-2">
+          <IconDevices className="size-4 text-muted-foreground" />
+          <div className="flex items-center gap-1">
+            <div className="flex gap-1">
+              {deviceTypes.map((type, index) => (
+                <Badge key={index} variant="secondary" className="text-xs capitalize">
+                  {type}
+                </Badge>
+              ))}
+            </div>
+          </div>
+        </div>
+      )
+    },
+  },
+  {
     accessorKey: "created_at",
     header: "Created At",
     cell: ({ row }) => (
@@ -198,6 +240,7 @@ function DraggableRow({ row }: { row: Row<z.infer<typeof mobileUserSchema>> }) {
   const { transform, transition, setNodeRef, isDragging } = useSortable({
     id: row.original.id,
   })
+
   return (
     <TableRow
       data-state={row.getIsSelected() && "selected"}
@@ -236,7 +279,6 @@ export function OpsMobileUsersDataTable() {
 
   const sortableId = React.useId()
   const sensors = useSensors(useSensor(MouseSensor, {}), useSensor(TouchSensor, {}), useSensor(KeyboardSensor, {}))
-
   const dataIds = React.useMemo<UniqueIdentifier[]>(() => data?.map(({ id }) => id) || [], [data])
 
   // API call function
@@ -244,7 +286,7 @@ export function OpsMobileUsersDataTable() {
     try {
       setLoading(true)
       const res = await getRequest<MobileUserApiResponse>(`/Ops/mobileAppUsers?page=${page}&limit=${limit}`)
-
+      console.log(res)
       setData(res.users)
       setApiPagination({
         currentPage: res.currentPage,
@@ -292,6 +334,7 @@ export function OpsMobileUsersDataTable() {
 
   function handleDragEnd(event: DragEndEvent) {
     const { active, over } = event
+
     if (active && over && active.id !== over.id) {
       setData((data) => {
         const oldIndex = dataIds.indexOf(active.id)
@@ -399,6 +442,7 @@ export function OpsMobileUsersDataTable() {
             </Table>
           </DndContext>
         </div>
+
         <div className="flex items-center justify-between px-4">
           <div className="text-muted-foreground hidden flex-1 text-sm lg:flex">
             {table.getFilteredSelectedRowModel().rows.length} of {apiPagination.totalUsers} user(s) selected.
@@ -499,6 +543,7 @@ const chartConfig = {
 
 function TableCellViewer({ item }: { item: z.infer<typeof mobileUserSchema> }) {
   const isMobile = useIsMobile()
+
   return (
     <Drawer direction={isMobile ? "bottom" : "right"}>
       <DrawerTrigger asChild>
@@ -590,6 +635,33 @@ function TableCellViewer({ item }: { item: z.infer<typeof mobileUserSchema> }) {
             <div className="flex flex-col gap-2">
               <Label className="text-sm font-medium">Created At</Label>
               <div className="text-sm">{new Date(item.created_at).toLocaleString()}</div>
+            </div>
+
+            {/* Device Information Section */}
+            <Separator />
+            <div className="flex flex-col gap-2">
+              <Label className="text-sm font-medium flex items-center gap-2">
+                <IconDevices className="size-4" />
+                Registered Devices ({item.tokens.length})
+              </Label>
+              {item.tokens.length > 0 ? (
+                <div className="space-y-2">
+                  {item.tokens.map((token, index) => {
+                    return (
+                      <div key={index} className="flex items-center gap-3 p-3 rounded-lg border bg-muted/50">
+                        <IconDevices className="size-5 text-muted-foreground" />
+                        <div className="flex-1">
+                          <Badge variant="outline" className="capitalize">
+                            {token.type}
+                          </Badge>
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              ) : (
+                <div className="text-sm text-muted-foreground italic">No devices registered</div>
+              )}
             </div>
           </div>
         </div>
