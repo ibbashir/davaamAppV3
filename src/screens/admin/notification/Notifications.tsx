@@ -1,17 +1,19 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { IconBell, IconSend, IconUsers, IconMail, IconDeviceMobile, IconCalendar, IconCheck } from "@tabler/icons-react"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Checkbox } from "@/components/ui/checkbox"
-import { SiteHeader } from "@/components/admin/site-header"
+import { useEffect, useState } from "react";
+import { useForm, Controller } from "react-hook-form";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { IconBell, IconSend, IconUsers, IconMail, IconCalendar, IconCheck } from "@tabler/icons-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { getRequest, postRequest } from "@/Apis/Api";
+import { SiteHeader } from "@/components/admin/site-header";
+import Reactselect from "react-select";
+import loader from "../../../assets/infinite-spinner.svg"
 
 const recentNotifications = [
     {
@@ -41,27 +43,98 @@ const recentNotifications = [
         status: "Scheduled",
         sentAt: "Tomorrow 9AM",
     },
-]
+];
+
+// Types
+
+type UserWithFcmAndToken = {
+    mobile_number: string;
+    name: string;
+};
+
+type OptionType = {
+    value: string;
+    label: string;
+    data: UserWithFcmAndToken;
+};
+
+type ApiRes = {
+    status: number;
+    message: string;
+    data: {
+        usersWithFcmAndToken: UserWithFcmAndToken[];
+    };
+};
+
+type FormValues = {
+    title: string;
+    body: string;
+    multiNumber: OptionType[];
+};
 
 const Notifications = () => {
-    const [notificationTitle, setNotificationTitle] = useState("")
-    const [notificationMessage, setNotificationMessage] = useState("")
-    const [selectedAudience, setSelectedAudience] = useState("")
-    const [notificationType, setNotificationType] = useState("")
-    const [sendViaEmail, setSendViaEmail] = useState(true)
-    const [sendViaPush, setSendViaPush] = useState(true)
+    const [userList, setUserList] = useState<UserWithFcmAndToken[]>([]);
+
+    const {
+        register,
+        handleSubmit,
+        control,
+        reset,
+        setValue,
+        formState: { errors, isSubmitSuccessful, isSubmitting },
+    } = useForm<FormValues>({
+        defaultValues: {
+            title: "",
+            body: "",
+            multiNumber: [],
+        },
+    });
+
+    const loadingUsers = async () => {
+        const res = await getRequest<ApiRes>("/admin/getPhoneNumberWithFcm");
+        setUserList(res.data.usersWithFcmAndToken);
+    };
+
+    useEffect(() => {
+        loadingUsers();
+
+        if (isSubmitSuccessful) {
+            reset()
+        }
+    }, [isSubmitSuccessful, reset]);
+
+    const onSubmit = (data: FormValues) => {
+        // console.log(data);
+        const payload = data.multiNumber.map((e) => e.data.mobile_number)
+
+        const postData = async () => {
+            try {
+                const res = await postRequest("/admin/sentMultiNotification", {
+                    multiNumber: payload,
+                    title: data.title,
+                    body: data.body,
+                })
+            } catch (error) {
+                console.log(error);
+            }
+        }
+
+        postData()
+    };
+
+    const selectAllUsers = () => {
+        const allOptions: OptionType[] = userList.map((user) => ({
+            value: user.mobile_number,
+            label: `${user.name} (${user.mobile_number})`,
+            data: user,
+        }))
+        setValue("multiNumber", allOptions)
+    }
 
     return (
         <div>
             <SiteHeader title="Notifications" />
             <div className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
-                <div className="flex items-center justify-between">
-                    <div>
-                        {/* <h1 className="text-2xl font-bold tracking-tight">Send Notifications</h1> */}
-                        <p className="text-muted-foreground">Create and send notifications to users</p>
-                    </div>
-                </div>
-
                 <div className="grid gap-4 md:grid-cols-4">
                     <Card>
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -112,107 +185,68 @@ const Notifications = () => {
                     </TabsList>
 
                     <TabsContent value="compose" className="space-y-4">
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Create New Notification</CardTitle>
-                                <CardDescription>Compose and send notifications to your users</CardDescription>
-                            </CardHeader>
-                            <CardContent className="space-y-6">
-                                <div className="grid gap-4 md:grid-cols-2">
-                                    <div className="space-y-2">
-                                        <Label htmlFor="notification-title">Notification Title</Label>
-                                        <Input
-                                            id="notification-title"
-                                            value={notificationTitle}
-                                            onChange={(e) => setNotificationTitle(e.target.value)}
-                                            placeholder="Enter notification title"
-                                        />
-                                    </div>
-                                    <div className="space-y-2">
-                                        <Label htmlFor="notification-type">Type</Label>
-                                        <Select value={notificationType} onValueChange={setNotificationType}>
-                                            <SelectTrigger>
-                                                <SelectValue placeholder="Select notification type" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                <SelectItem value="system">System Alert</SelectItem>
-                                                <SelectItem value="marketing">Marketing</SelectItem>
-                                                <SelectItem value="billing">Billing</SelectItem>
-                                                <SelectItem value="maintenance">Maintenance</SelectItem>
-                                                <SelectItem value="promotion">Promotion</SelectItem>
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
-                                </div>
-
-                                <div className="space-y-2">
-                                    <Label htmlFor="notification-message">Message</Label>
-                                    <Textarea
-                                        id="notification-message"
-                                        value={notificationMessage}
-                                        onChange={(e) => setNotificationMessage(e.target.value)}
-                                        placeholder="Enter your notification message..."
-                                        rows={4}
-                                    />
-                                </div>
-
-                                <div className="space-y-2">
-                                    <Label htmlFor="audience">Target Audience</Label>
-                                    <Select value={selectedAudience} onValueChange={setSelectedAudience}>
-                                        <SelectTrigger>
-                                            <SelectValue placeholder="Select target audience" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="all">All Users (1,234)</SelectItem>
-                                            <SelectItem value="active">Active Users (987)</SelectItem>
-                                            <SelectItem value="managers">Managers (45)</SelectItem>
-                                            <SelectItem value="operators">Operators (156)</SelectItem>
-                                            <SelectItem value="corporate">Corporate Clients (67)</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-
-                                <div className="space-y-4">
-                                    <Label>Delivery Method</Label>
-                                    <div className="flex items-center space-x-6">
-                                        <div className="flex items-center space-x-2">
-                                            <Checkbox
-                                                id="email"
-                                                checked={sendViaEmail}
-                                                onCheckedChange={(checked) => setSendViaEmail(checked === true)}
-                                            />
-                                            <Label htmlFor="email" className="flex items-center gap-2">
-                                                <IconMail className="h-4 w-4" />
-                                                Email
-                                            </Label>
+                        <form onSubmit={handleSubmit(onSubmit)}>
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle>Create New Notification</CardTitle>
+                                    <CardDescription>Compose and send notifications to your users</CardDescription>
+                                </CardHeader>
+                                <CardContent className="space-y-6">
+                                    <div className="grid gap-4 md:grid-cols-2">
+                                        <div className="space-y-2">
+                                            <Label htmlFor="notification-title">Notification Title</Label>
+                                            <Input {...register("title", { required: { value: true, message: "Title Required" } })} placeholder="Enter notification title" />
+                                            {errors.title && <span className="text-sm text-red-700">{errors.title.message}</span>}
                                         </div>
-                                        <div className="flex items-center space-x-2">
-                                            <Checkbox
-                                                id="push"
-                                                checked={sendViaPush}
-                                                onCheckedChange={(checked) => setSendViaPush(checked === true)}
+
+                                        <div className="space-y-2">
+                                            <div className="flex items-center justify-between">
+                                                {" "}
+                                                {/* Improved UI for Select All button */}
+                                                <Label htmlFor="notification-type">Select Users</Label>
+                                                <Button
+                                                    type="button"
+                                                    size="sm"
+                                                    className="bg-teal-600 hover:bg-teal-700  text-white"
+                                                    onClick={selectAllUsers}
+                                                >
+                                                    Select All
+                                                </Button>
+                                            </div>
+                                            <Controller
+                                                name="multiNumber"
+                                                control={control}
+                                                render={({ field }) => (
+                                                    <Reactselect
+                                                        isMulti
+                                                        options={userList.map((user) => ({
+                                                            value: user.mobile_number,
+                                                            label: `${user.name} (${user.mobile_number})`,
+                                                            data: user,
+                                                        }))}
+                                                        value={field.value}
+                                                        onChange={field.onChange}
+                                                        placeholder="Search and select users..."
+                                                        className="max-h"
+                                                    />
+                                                )}
                                             />
-                                            <Label htmlFor="push" className="flex items-center gap-2">
-                                                <IconDeviceMobile className="h-4 w-4" />
-                                                Push Notification
-                                            </Label>
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label htmlFor="notification-message">Message</Label>
+                                            <Textarea {...register("body", { required: { value: true, message: "Message Required" } })} placeholder="Enter your notification message..." rows={4} />
+                                            {errors.body && <span className="text-sm text-red-700">{errors.body.message}</span>}
+                                        </div>
+
+                                        <div className="flex gap-4 pt-4">
+                                            <Button type="submit" disabled={isSubmitting} className="bg-teal-600 hover:bg-teal-700">
+                                                <IconSend className="mr-2 h-4 w-4" />   {isSubmitting ? <img src={loader} alt="" className="w-7" /> : "Send Now"}
+                                            </Button>
                                         </div>
                                     </div>
-                                </div>
-
-                                <div className="flex gap-4 pt-4">
-                                    <Button className="bg-teal-600 hover:bg-teal-700">
-                                        <IconSend className="mr-2 h-4 w-4" />
-                                        Send Now
-                                    </Button>
-                                    <Button variant="outline">
-                                        <IconCalendar className="mr-2 h-4 w-4" />
-                                        Schedule
-                                    </Button>
-                                    <Button variant="outline">Preview</Button>
-                                </div>
-                            </CardContent>
-                        </Card>
+                                </CardContent>
+                            </Card>
+                        </form>
                     </TabsContent>
 
                     <TabsContent value="history" className="space-y-4">
@@ -241,8 +275,7 @@ const Notifications = () => {
                                             </div>
                                             <div className="flex items-center gap-2">
                                                 <Badge variant={notification.status === "Sent" ? "default" : "secondary"}>
-                                                    {notification.status === "Sent" && <IconCheck className="mr-1 h-3 w-3" />}
-                                                    {notification.status}
+                                                    {notification.status === "Sent" && <IconCheck className="mr-1 h-3 w-3" />} {notification.status}
                                                 </Badge>
                                             </div>
                                         </div>
@@ -254,7 +287,7 @@ const Notifications = () => {
                 </Tabs>
             </div>
         </div>
-    )
-}
+    );
+};
 
-export default Notifications
+export default Notifications;
