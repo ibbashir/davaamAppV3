@@ -1,6 +1,7 @@
 import React from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { Navigate, Outlet } from 'react-router-dom'
+import loader from "../assets/time-loader.gif"
 
 type Props = {
     allowedRoles: string[]
@@ -11,7 +12,11 @@ const PrivateRouting = ({ allowedRoles }: Props) => {
     const { user, loading } = state;
 
     if (loading) {
-        return <div className="text-center mt-10 text-gray-500">Checking session...</div>;
+        return (
+            <div className="flex justify-center items-center h-screen">
+                <img src={loader} className="w-16" alt="" />
+            </div>
+        );
     }
 
     if (!user) {
