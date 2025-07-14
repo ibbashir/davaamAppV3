@@ -62,7 +62,7 @@ export function LoginForm({
           <div className="flex items-center">
             <Label htmlFor="password">Password</Label>
             <a onClick={() => { navigate("/forgetPassword") }}
-              className="ml-auto text-sm underline-offset-4 hover:underline cursor-pointer"
+              className="ml-auto text-xs underline-offset-4 cursor-default text-teal-600 hover:text-teal-700"
             >
               Forgot your password?
             </a>
@@ -78,15 +78,30 @@ export function LoginForm({
         <Button disabled={isSubmitting} type="submit" className="w-full cursor-pointer">
           {isSubmitting ? <img src={loader} alt="" className="w-7" /> : "Log In"}
         </Button>
-        <div className="text-right">
-          <span onClick={() => { navigate("/privacypolicy") }} className="bg-background underline text-black cursor-pointer text-[10px] relative z-10 px-2">
+        <div className="flex items-center justify-center pt-4">
+          <div className="h-px bg-gray-200 flex-1"></div>
+          <button
+            type="button"
+            onClick={() => navigate("/privacypolicy")}
+            className="px-4 text-xs text-teal-600 hover:text-teal-700 font-medium transition-colors"
+          >
             Privacy Policy
-          </span>
+          </button>
+          <div className="h-px bg-gray-200 flex-1"></div>
         </div>
       </div>
-      <div className=" text-sm">
-        ©2023 Davaam Life. All Rights Reserved. {" "}
-        <span onClick={() => { navigate("/company-info") }} className="underline text-[10px] text-black cursor-pointer">Company Info</span>
+
+      <div className="text-center pt-2 border-gray-100">
+        <p className="text-sm text-gray-500">
+          ©2023 Davaam Life. All Rights Reserved.{" "}
+          <button
+            type="button"
+            onClick={() => navigate("/company-info")}
+            className="text-teal-600 hover:text-teal-700 font-medium transition-colors"
+          >
+            Company Info
+          </button>
+        </p>
       </div>
     </form>
   )

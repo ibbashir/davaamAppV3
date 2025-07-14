@@ -1,6 +1,6 @@
 import { createContext, useContext, useReducer, useEffect } from "react"
 import axios from "axios"
-import { BASE_URL_TWO } from "@/constants/Constant"
+import { BASE_URL } from "@/constants/Constant"
 
 type User = {
   id: number
@@ -58,7 +58,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     const checkSession = async () => {
       try {
-        const res = await axios.get(`${BASE_URL_TWO}api/dashboard/auth/user`, {
+        const res = await axios.get(`${BASE_URL}/auth/user`, {
           withCredentials: true,
         })
 
@@ -77,7 +77,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const login = async (email: string, password: string) => {
     try {
       const res = await axios.post(
-        `${BASE_URL_TWO}api/dashboard/auth/login`,
+        `${BASE_URL}/auth/login`,
         { email, password },
         { withCredentials: true }
       )
@@ -106,7 +106,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const logout = async () => {
     try {
       await axios.post(
-        `${BASE_URL_TWO}api/dashboard/auth/logout`,
+        `${BASE_URL}/auth/logout`,
         {},
         { withCredentials: true }
       )
