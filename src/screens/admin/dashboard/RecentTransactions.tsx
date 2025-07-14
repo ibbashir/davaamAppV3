@@ -13,6 +13,7 @@ import { getRequest } from "@/Apis/Api"
 
 // API Transaction type matching the actual response
 type ApiTransaction = {
+    user_name: string
     id: number
     msisdn: string
     quantity: number
@@ -338,7 +339,7 @@ const RecentTransactions = () => {
                             ) : (
                                 filteredTransactions.map((transaction) => (
                                     <TableRow key={transaction.id}>
-                                        <TableCell className="font-medium">{transaction.merchant || "N/A"}</TableCell>
+                                        <TableCell className="font-medium">{transaction.user_name || transaction.merchant || "N/A"}</TableCell>
                                         <TableCell>{new Date(transaction.created_at).toLocaleDateString()}</TableCell>
                                         <TableCell className="font-mono text-sm">{transaction.msisdn}</TableCell>
                                         <TableCell className="font-medium text-blue-600">{transaction.machine_code}</TableCell>
