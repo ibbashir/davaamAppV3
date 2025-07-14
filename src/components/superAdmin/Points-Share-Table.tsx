@@ -1,8 +1,6 @@
-"use client"
-
 import { useState, useMemo } from "react"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardDescription, CardHeader } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
@@ -22,7 +20,6 @@ interface PointsShareData {
     id: number
     amount: string
     created_at: string
-    user_i: number
     status: string
     msisdn: string
     transaction_number: string

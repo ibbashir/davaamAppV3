@@ -1,5 +1,3 @@
-"use client"
-
 import { useState, useEffect } from "react"
 import PointsShareTable from "@/components/superAdmin/Points-Share-Table"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
