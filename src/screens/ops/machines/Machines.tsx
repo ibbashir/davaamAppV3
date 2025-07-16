@@ -8,7 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Input } from "@/components/ui/input"
 import { Search, ChevronLeft, ChevronRight } from "lucide-react"
 import type { ApiMachine, MachinesResponse } from "./Types"
-import { getRequest } from "@/Apis/Api"
+import { getRequest, postRequest } from "@/Apis/Api"
 import { timeConverter } from "@/constants/Constant"
 
 const categories = [
@@ -30,6 +30,18 @@ const Machines = () => {
   const [machinesData, setMachinesData] = useState<{ [category: string]: ApiMachine[] } | null>(null)
   const [machineStockMap, setMachineStockMap] = useState<{ [code: string]: string }>({})
   const [loading, setLoading] = useState(true)
+  const [showAddModal, setShowAddModal] = useState(false)
+  const [newMachine, setNewMachine] = useState({
+    machine_code: "",
+    machine_name: "",
+    machine_location: "",
+    machine_type: "",
+    created_at: new Date().toISOString(),
+    is_active: true,
+    lat: "",
+    lng: ""
+  })
+
   const itemsPerPage = 5
 
   useEffect(() => {
@@ -136,9 +148,46 @@ const Machines = () => {
             </p>
           </div>
           <div className="flex gap-2">
-            <Button className="bg-teal-600 hover:bg-teal-700">Add Machine</Button>
+            <Button onClick={() => {
+              setShowAddModal(true);
+            }} className="bg-teal-600 hover:bg-teal-700">Add Machine</Button>
+
           </div>
         </div>
+
+        {showAddModal && (
+          <div className="fixed inset-0 z-50 flex shadow-2xl items-center justify-center pointer-events-none">
+            <div className="bg-white p-6 rounded-xl w-full max-w-lg space-y-4 shadow-xl pointer-events-auto">
+              <div className="bg-white p-6 rounded-xl w-full max-w-lg space-y-4">
+                <h2 className="text-xl font-semibold">Add New Machine</h2>
+                <div className="space-y-2">
+                  <Input placeholder="Machine Code" required value={newMachine.machine_code} onChange={e => setNewMachine({ ...newMachine, machine_code: e.target.value })} />
+                  <Input placeholder="Machine Name" required value={newMachine.machine_name} onChange={e => setNewMachine({ ...newMachine, machine_name: e.target.value })} />
+                  <Input placeholder="Machine Location" required value={newMachine.machine_location} onChange={e => setNewMachine({ ...newMachine, machine_location: e.target.value })} />
+                  <Input placeholder="Machine Type" required value={newMachine.machine_type} onChange={e => setNewMachine({ ...newMachine, machine_type: e.target.value })} />
+                  <Input placeholder="Latitude" required value={newMachine.lat} onChange={e => setNewMachine({ ...newMachine, lat: e.target.value })} />
+                  <Input placeholder="Longitude" required value={newMachine.lng} onChange={e => setNewMachine({ ...newMachine, lng: e.target.value })} />
+                </div>
+                <div className="flex justify-end space-x-2 pt-4">
+                  <Button variant="outline" onClick={() => setShowAddModal(false)}>Cancel</Button>
+                  <Button onClick={async () => {
+                    try {
+                      const res = await postRequest("/Ops/addNewMachine", newMachine)
+                      console.log("Added:", res)
+                      fetchMachines()
+                      setShowAddModal(false)
+                    } catch (err) {
+                      console.error("Error adding machine:", err)
+                    }
+                  }} className="bg-teal-600 hover:bg-teal-700">
+                    Add Machine
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
 
         <Card>
           <CardHeader>
