@@ -6,7 +6,7 @@ import RecentTransactions from "./RecentTransactions"
 import OpsDashboardDispensing from "@/components/ops/PieMainDashboardDispensing"
 import OpsDashboardSanitary from "@/components/ops/PieMainDashboardSanitary"
 
-const Dashboard = () => {
+const CorporateDashboard = () => {
     return (
         <>
             <SiteHeader title='Dashboard' />
@@ -30,4 +30,4 @@ const Dashboard = () => {
     )
 }
 
-export default Dashboard
+export default CorporateDashboard

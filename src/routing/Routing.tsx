@@ -40,6 +40,10 @@ import { OpsUsersManagement } from '@/screens/ops/users/User-management'
 import OpsFeedback from '@/screens/ops/feedback/Feedback'
 import OpsCorporate from '@/screens/ops/corporate/Corporate'
 
+//corporate screens
+import CorporateDashboard from '@/screens/corporate/dashboard/Dashboard'
+import CorporateMachines from '@/screens/corporate/machines/Machines'
+
 import { ADMIN_CORPORATE, ADMIN_DASHBOARD, ADMIN_FEEDBACK, ADMIN_LOCATIONS, ADMIN_MACHINES, ADMIN_NOTIFICATIONS, ADMIN_POINTS, ADMIN_TOPUP, ADMIN_USERS, MACHINE_DASHBOARD, MACHINE_MACHINES, OPS_CORPORATE, OPS_DASHBOARD, OPS_FEEDBACK, OPS_LOCATIONS, OPS_MACHINES, OPS_POINTS, OPS_TOPUP, OPS_USERS, SUPERADMIN_CORPORATE, SUPERADMIN_DASHBOARD, SUPERADMIN_FEEDBACK, SUPERADMIN_LOCATIONS, SUPERADMIN_MACHINES, SUPERADMIN_NOTIFICATIONS, SUPERADMIN_POINTS, SUPERADMIN_ROLES, SUPERADMIN_TOPUP, SUPERADMIN_USERS } from '@/constants/Constant'
 
 const NotFound = () => {
@@ -109,8 +113,8 @@ const Routing = () => {
 
             <Route element={<PrivateRouting allowedRoles={["company"]} />}>
                 <Route element={<Layout />}>
-                    {/* <Route path={MACHINE_DASHBOARD} element={<Dashboard />} /> */}
-                    {/* <Route path={MACHINE_MACHINES} element={<Machines />} /> */}
+                    <Route path={MACHINE_DASHBOARD} element={<CorporateDashboard />} />
+                    <Route path={MACHINE_MACHINES} element={<CorporateMachines />} />
                 </Route>
             </Route>
 

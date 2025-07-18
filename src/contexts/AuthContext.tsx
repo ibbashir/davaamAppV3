@@ -83,9 +83,16 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       )
 
       const data = res.data
+      const role_code = data.user.role_code;
 
       if (data.statusCode !== "200") {
         throw new Error(data.message || "Login failed")
+      }
+
+      if (role_code === "3") {
+        const machines: { machine_code: string }[] = data.user.machines;
+        const allMachineCodes = machines.map(machine => machine.machine_code)
+        localStorage.setItem("machines", JSON.stringify(allMachineCodes))
       }
 
       const user = data.user
@@ -110,6 +117,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         {},
         { withCredentials: true }
       )
+      localStorage.clear()
     } catch (err) {
       console.error("Logout failed:", err)
     }

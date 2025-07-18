@@ -28,7 +28,7 @@ import {
 } from "lucide-react"
 import moment from "moment"
 import { SiteHeader } from "@/components/admin/site-header"
-import { getRequest } from "@/Apis/Api"
+import { getRequest, postRequest } from "@/Apis/Api"
 
 // Validation schemas
 const phoneTopupSchema = z.object({
@@ -174,9 +174,9 @@ export function AdminTopup() {
 
     const onPhoneTopupSubmit = async (data: PhoneTopupFormData) => {
         try {
-            console.log("Phone topup:", data)
-            // Simulate API call
+            // console.log("Phone topup:", data)
             await new Promise((resolve) => setTimeout(resolve, 2000))
+            // await postRequest("/admin/topupUsers/phone", data);
             phoneForm.reset()
         } catch (error) {
             console.error("Phone topup error:", error)
