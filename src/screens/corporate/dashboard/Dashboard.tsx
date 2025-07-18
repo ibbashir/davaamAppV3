@@ -20,8 +20,10 @@ const Dashboard = () => {
                             <CorporateDashboardSanitary /> */}
                         </div>
                         <hr />
-                        <SanitaryTransactionTable />
-                        <AllCorporatesUsers />
+                        <div className="p-4 flex flex-col gap-4">
+                            <SanitaryTransactionTable />
+                            <AllCorporatesUsers />
+                        </div>
                     </div>
                 </div>
             </div>
