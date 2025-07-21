@@ -47,10 +47,10 @@ const phoneTopupSchema = z.object({
 })
 
 const cardTopupSchema = z.object({
-    phoneNumber: z
+    cardNumber: z
         .string()
-        .min(1, "Phone number is required")
-        .regex(/^03\d{9}$/, "Phone number must be in format 03XXXXXXXXX"),
+        .min(1, "Card number is required")
+        .transform((val) => val.replace(/\s/g, "")),
     amount: z
         .string()
         .min(1, "Amount is required")
@@ -59,20 +59,6 @@ const cardTopupSchema = z.object({
             return num >= 1 && num <= 30000
         }, "Amount must be between 1 and 30,000"),
     description: z.string().min(1, "Description is required").max(500, "Description must be less than 500 characters"),
-    cardHolderName: z.string().min(1, "Card holder name is required").min(2, "Name must be at least 2 characters"),
-    cardNumber: z
-        .string()
-        .min(1, "Card number is required")
-        .regex(/^\d{16}$/, "Card number must be 16 digits")
-        .transform((val) => val.replace(/\s/g, "")),
-    expiryDate: z
-        .string()
-        .min(1, "Expiry date is required")
-        .regex(/^(0[1-9]|1[0-2])\/\d{2}$/, "Expiry date must be in MM/YY format"),
-    cvv: z
-        .string()
-        .min(1, "CVV is required")
-        .regex(/^\d{3,4}$/, "CVV must be 3 or 4 digits"),
 })
 
 type PhoneTopupFormData = z.infer<typeof phoneTopupSchema>
@@ -140,13 +126,9 @@ export function AdminTopup() {
     const cardForm = useForm<CardTopupFormData>({
         resolver: zodResolver(cardTopupSchema),
         defaultValues: {
-            phoneNumber: "",
+            cardNumber: "",
             amount: "",
             description: "",
-            cardHolderName: "",
-            cardNumber: "",
-            expiryDate: "",
-            cvv: "",
         },
     })
 
@@ -174,32 +156,52 @@ export function AdminTopup() {
 
     const onPhoneTopupSubmit = async (data: PhoneTopupFormData) => {
         try {
-            // console.log("Phone topup:", data)
-            await new Promise((resolve) => setTimeout(resolve, 2000))
-            // await postRequest("/admin/topupUsers/phone", data);
-            phoneForm.reset()
+            await new Promise((resolve) => setTimeout(resolve, 1000))
+            await postRequest("/admin/topupUsers/phone", data);
         } catch (error) {
             console.error("Phone topup error:", error)
+        } finally {
+            phoneForm.reset()
+        }
+    }
+
+    const handlePhoneReset = async (data: PhoneTopupFormData) => {
+        if (!data.phoneNumber) {
+            alert("Phone Number Missing")
+            return;
+        }
+        try {
+            await postRequest("/admin/topupUsersResetZero/phone", { phoneNumber: data.phoneNumber });
+        } catch (error) {
+            console.error(error);
+        } finally {
+            phoneForm.reset()
         }
     }
 
     const onCardTopupSubmit = async (data: CardTopupFormData) => {
         try {
-            console.log("Card topup:", data)
-            // Simulate API call
-            await new Promise((resolve) => setTimeout(resolve, 2000))
-            cardForm.reset()
+            await new Promise((resolve) => setTimeout(resolve, 1000))
+            await postRequest("/admin/topupUsers/card", data)
         } catch (error) {
             console.error("Card topup error:", error)
+        } finally {
+            cardForm.reset()
         }
     }
 
-    const handlePhoneReset = () => {
-        phoneForm.reset()
-    }
-
-    const handleCardReset = () => {
-        cardForm.reset()
+    const handleCardReset = async (data: CardTopupFormData) => {
+        if (!data.cardNumber) {
+            alert("Card Number Missing")
+            return;
+        }
+        try {
+            await postRequest("/admin/topupUsersResetZero/card", { cardNumber: data.cardNumber })
+        } catch (err) {
+            console.log(err)
+        } finally {
+            cardForm.reset()
+        }
     }
 
     const formatCurrency = (amount: number | string) => {
@@ -213,29 +215,6 @@ export function AdminTopup() {
         if (numBalance >= 10000)
             return <Badge className="bg-yellow-100 text-yellow-800">{formatCurrency(numBalance)}</Badge>
         return <Badge className="bg-red-100 text-red-800">{formatCurrency(numBalance)}</Badge>
-    }
-
-    const formatCardNumber = (value: string) => {
-        const v = value.replace(/\s+/g, "").replace(/[^0-9]/gi, "")
-        const matches = v.match(/\d{4,16}/g)
-        const match = (matches && matches[0]) || ""
-        const parts = []
-        for (let i = 0, len = match.length; i < len; i += 4) {
-            parts.push(match.substring(i, i + 4))
-        }
-        if (parts.length) {
-            return parts.join(" ")
-        } else {
-            return v
-        }
-    }
-
-    const formatExpiryDate = (value: string) => {
-        const v = value.replace(/\s+/g, "").replace(/[^0-9]/gi, "")
-        if (v.length >= 2) {
-            return v.substring(0, 2) + "/" + v.substring(2, 4)
-        }
-        return v
     }
 
     const formatTimestamp = (timestamp: string) => {
@@ -446,10 +425,10 @@ export function AdminTopup() {
                                             <Button
                                                 type="button"
                                                 variant="outline"
-                                                onClick={handlePhoneReset}
+                                                onClick={() => handlePhoneReset(phoneForm.getValues())}
                                                 className="border-teal-600 text-teal-600 hover:bg-teal-50 bg-transparent"
                                             >
-                                                Reset to Zero
+                                                Reset balance to Zero
                                             </Button>
                                         </div>
                                     </form>
@@ -466,20 +445,24 @@ export function AdminTopup() {
                                 </CardTitle>
                                 <CardDescription>Add balance using credit/debit card</CardDescription>
                             </CardHeader>
+
                             <CardContent>
                                 <Form {...cardForm}>
                                     <form onSubmit={cardForm.handleSubmit(onCardTopupSubmit)} className="space-y-6">
-                                        <div className="grid gap-4 md:grid-cols-2">
+                                        {/* Card Number & Amount Side by Side */}
+                                        <div className="flex flex-col md:flex-row gap-4">
+                                            {/* Card Number */}
                                             <FormField
                                                 control={cardForm.control}
-                                                name="phoneNumber"
+                                                name="cardNumber"
                                                 render={({ field }) => (
-                                                    <FormItem>
-                                                        <FormLabel>Phone Number</FormLabel>
+                                                    <FormItem className="w-full">
+                                                        <FormLabel>Card Number</FormLabel>
                                                         <FormControl>
                                                             <Input
-                                                                placeholder="03*********"
+                                                                placeholder="XXXXXX"
                                                                 {...field}
+                                                                maxLength={10}
                                                                 className="focus:border-teal-500 focus:ring-teal-500"
                                                             />
                                                         </FormControl>
@@ -487,11 +470,13 @@ export function AdminTopup() {
                                                     </FormItem>
                                                 )}
                                             />
+
+                                            {/* Amount */}
                                             <FormField
                                                 control={cardForm.control}
                                                 name="amount"
                                                 render={({ field }) => (
-                                                    <FormItem>
+                                                    <FormItem className="w-full">
                                                         <FormLabel>Amount</FormLabel>
                                                         <FormControl>
                                                             <Input
@@ -506,89 +491,8 @@ export function AdminTopup() {
                                                 )}
                                             />
                                         </div>
-                                        <FormField
-                                            control={cardForm.control}
-                                            name="cardHolderName"
-                                            render={({ field }) => (
-                                                <FormItem>
-                                                    <FormLabel>Card Holder Name</FormLabel>
-                                                    <FormControl>
-                                                        <Input
-                                                            placeholder="Enter card holder name"
-                                                            {...field}
-                                                            className="focus:border-teal-500 focus:ring-teal-500"
-                                                        />
-                                                    </FormControl>
-                                                    <FormMessage />
-                                                </FormItem>
-                                            )}
-                                        />
-                                        <div className="grid gap-4 md:grid-cols-3">
-                                            <FormField
-                                                control={cardForm.control}
-                                                name="cardNumber"
-                                                render={({ field }) => (
-                                                    <FormItem className="md:col-span-2">
-                                                        <FormLabel>Card Number</FormLabel>
-                                                        <FormControl>
-                                                            <Input
-                                                                placeholder="1234 5678 9012 3456"
-                                                                {...field}
-                                                                onChange={(e) => {
-                                                                    const formatted = formatCardNumber(e.target.value)
-                                                                    field.onChange(formatted.replace(/\s/g, ""))
-                                                                    e.target.value = formatted
-                                                                }}
-                                                                maxLength={19}
-                                                                className="focus:border-teal-500 focus:ring-teal-500"
-                                                            />
-                                                        </FormControl>
-                                                        <FormMessage />
-                                                    </FormItem>
-                                                )}
-                                            />
-                                            <FormField
-                                                control={cardForm.control}
-                                                name="cvv"
-                                                render={({ field }) => (
-                                                    <FormItem>
-                                                        <FormLabel>CVV</FormLabel>
-                                                        <FormControl>
-                                                            <Input
-                                                                placeholder="123"
-                                                                {...field}
-                                                                maxLength={4}
-                                                                className="focus:border-teal-500 focus:ring-teal-500"
-                                                            />
-                                                        </FormControl>
-                                                        <FormMessage />
-                                                    </FormItem>
-                                                )}
-                                            />
-                                        </div>
-                                        <FormField
-                                            control={cardForm.control}
-                                            name="expiryDate"
-                                            render={({ field }) => (
-                                                <FormItem>
-                                                    <FormLabel>Expiry Date</FormLabel>
-                                                    <FormControl>
-                                                        <Input
-                                                            placeholder="MM/YY"
-                                                            {...field}
-                                                            onChange={(e) => {
-                                                                const formatted = formatExpiryDate(e.target.value)
-                                                                field.onChange(formatted)
-                                                                e.target.value = formatted
-                                                            }}
-                                                            maxLength={5}
-                                                            className="focus:border-teal-500 focus:ring-teal-500"
-                                                        />
-                                                    </FormControl>
-                                                    <FormMessage />
-                                                </FormItem>
-                                            )}
-                                        />
+
+                                        {/* Description Below */}
                                         <FormField
                                             control={cardForm.control}
                                             name="description"
@@ -600,14 +504,16 @@ export function AdminTopup() {
                                                             placeholder="Purpose of payment"
                                                             rows={3}
                                                             {...field}
-                                                            className="focus:border-teal-500 focus:ring-teal-500"
+                                                            className="focus:border-teal-500 focus:ring-teal-500 resize-none"
                                                         />
                                                     </FormControl>
                                                     <FormMessage />
                                                 </FormItem>
                                             )}
                                         />
-                                        <div className="flex gap-4">
+
+                                        {/* Buttons */}
+                                        <div className="flex gap-4 pt-2">
                                             <Button
                                                 type="submit"
                                                 disabled={cardForm.formState.isSubmitting}
@@ -628,7 +534,7 @@ export function AdminTopup() {
                                             <Button
                                                 type="button"
                                                 variant="outline"
-                                                onClick={handleCardReset}
+                                                onClick={() => handleCardReset(cardForm.getValues())}
                                                 className="border-teal-600 text-teal-600 hover:bg-teal-50 bg-transparent"
                                             >
                                                 Reset to Zero
