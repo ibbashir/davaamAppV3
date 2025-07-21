@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { IconPlus, IconEdit, IconTrash, IconUsers, IconShield, IconLoader2 } from "@tabler/icons-react"
+import { IconPlus, IconEdit, IconTrash, IconUsers, IconShield, IconLoader2, IconEyeOff, IconEye } from "@tabler/icons-react"
 import {
     Dialog,
     DialogContent,
@@ -54,6 +54,7 @@ const Roles = () => {
     const [userRole, setUserRole] = useState<string>("")
     const [machineType, setMachineType] = useState<string>("")
     const [currentUserForEdit, setCurrentUserForEdit] = useState<User | null>(null) // State for the user being edited
+    const [visiblePasswords, setVisiblePasswords] = useState<{ [key: number]: boolean }>({})
 
     const {
         register,
@@ -263,7 +264,6 @@ const Roles = () => {
                                                     <SelectItem value="ops">Ops</SelectItem>
                                                     <SelectItem value="admin">Admin</SelectItem>
                                                     <SelectItem value="company">Company</SelectItem>
-                                                    <SelectItem value="super admin">Super Admin</SelectItem>
                                                 </SelectContent>
                                             </Select>
                                         </div>
@@ -358,7 +358,6 @@ const Roles = () => {
                                                     <SelectItem value="ops">Ops</SelectItem>
                                                     <SelectItem value="admin">Admin</SelectItem>
                                                     <SelectItem value="company">Company</SelectItem>
-                                                    <SelectItem value="super admin">Super Admin</SelectItem>
                                                 </SelectContent>
                                             </Select>
                                             <p className="text-sm text-muted-foreground mt-1">Cannot change user role</p> {/* Message */}
@@ -467,6 +466,7 @@ const Roles = () => {
                                     <TableRow>
                                         <TableHead>Name</TableHead>
                                         <TableHead>Email</TableHead>
+                                        <TableHead>Password</TableHead>
                                         <TableHead>Role</TableHead>
                                         <TableHead>Created</TableHead>
                                         <TableHead>Machines</TableHead>
@@ -480,6 +480,23 @@ const Roles = () => {
                                                 {user.first_name} {user.last_name}
                                             </TableCell>
                                             <TableCell>{user.email}</TableCell>
+                                            <TableCell className="flex items-center gap-2">
+                                                <span className="text-sm">
+                                                    {visiblePasswords[user.id] ? user.password : "••••••••"}
+                                                </span>
+                                                <button
+                                                    onClick={() => setVisiblePasswords(prev => ({ ...prev, [user.id]: !prev[user.id] }))}
+                                                    className="focus:outline-none"
+                                                    title={visiblePasswords[user.id] ? "Hide Password" : "Show Password"}
+                                                >
+                                                    {visiblePasswords[user.id] ? (
+                                                        <IconEyeOff className="w-4 h-4 text-muted-foreground" />
+                                                    ) : (
+                                                        <IconEye className="w-4 h-4 text-muted-foreground" />
+                                                    )}
+                                                </button>
+                                            </TableCell>
+
                                             <TableCell>
                                                 <Badge variant={getRoleBadgeVariant(user.user_role)}>{user.user_role}</Badge>
                                             </TableCell>
