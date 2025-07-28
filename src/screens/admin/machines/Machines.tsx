@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input"
 import { Search, ChevronLeft, ChevronRight } from "lucide-react"
 import type { ApiMachine, MachinesResponse } from "./Types"
 import { getRequest, postRequest } from "@/Apis/Api"
-import { timeConverter } from "@/constants/Constant"
+import { ADMIN_MACHINE_VISIT, timeConverter } from "@/constants/Constant"
 
 const categories = [
     { id: "Butterfly", label: "Butterfly" },
@@ -257,7 +257,9 @@ const Machines = () => {
                                             <TableCell className="text-muted-foreground">{machine.lastActive}</TableCell>
                                             <TableCell>
                                                 <Button size="sm" className="bg-teal-600 hover:bg-teal-700">
-                                                    Visit
+                                                    <a href={ADMIN_MACHINE_VISIT}>
+                                                        Visit
+                                                    </a>
                                                 </Button>
                                             </TableCell>
                                             <TableCell>{getStockStatusBadge(machine.stockStatus)}</TableCell>

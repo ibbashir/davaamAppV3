@@ -24,7 +24,6 @@ import {
   IconGripVertical,
   IconLayoutColumns,
   IconLoader,
-  IconTrendingUp,
   IconUser,
   IconCreditCard,
   IconPhone,
@@ -44,14 +43,12 @@ import {
   useReactTable,
 } from "@tanstack/react-table"
 import type { ColumnFiltersState, ColumnDef, Row, SortingState, VisibilityState } from "@tanstack/react-table"
-import { Area, AreaChart, CartesianGrid, XAxis } from "recharts"
 import { toast } from "sonner"
 import { z } from "zod"
+
 import { useIsMobile } from "@/hooks/use-mobile"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
-import type { ChartConfig } from "@/components/ui/chart"
 import { Checkbox } from "@/components/ui/checkbox"
 import {
   Drawer,
@@ -110,6 +107,7 @@ function DragHandle({ id }: { id: number }) {
   const { attributes, listeners } = useSortable({
     id,
   })
+
   return (
     <Button
       {...attributes}
@@ -211,6 +209,7 @@ const columns: ColumnDef<z.infer<typeof mobileUserSchema>>[] = [
           </div>
         )
       }
+
       return (
         <div className="flex items-center gap-2">
           <IconDevices className="size-4 text-muted-foreground" />
@@ -243,6 +242,7 @@ function DraggableRow({ row }: { row: Row<z.infer<typeof mobileUserSchema>> }) {
   const { transform, transition, setNodeRef, isDragging } = useSortable({
     id: row.original.id,
   })
+
   return (
     <TableRow
       data-state={row.getIsSelected() && "selected"}
@@ -372,7 +372,6 @@ export function OpsMobileUsersDataTable() {
   const handleSearchInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value
     setSearchTerm(value)
-
     // If search is cleared, fetch all users
     if (!value.trim()) {
       setIsSearching(false)
@@ -426,6 +425,7 @@ export function OpsMobileUsersDataTable() {
 
   function handleDragEnd(event: DragEndEvent) {
     const { active, over } = event
+
     if (active && over && active.id !== over.id) {
       setData((data) => {
         const oldIndex = dataIds.indexOf(active.id)
@@ -507,7 +507,7 @@ export function OpsMobileUsersDataTable() {
         <form onSubmit={handleSearch} className="relative">
           <IconSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search by name, mobile number, or card number..."
+            placeholder="Search by name, mobile number, or card number"
             value={searchTerm}
             onChange={handleSearchInputChange}
             className="pl-10 pr-10"
@@ -577,6 +577,7 @@ export function OpsMobileUsersDataTable() {
             </Table>
           </DndContext>
         </div>
+
         <div className="flex items-center justify-between px-4">
           <div className="text-muted-foreground hidden flex-1 text-sm lg:flex">
             {table.getFilteredSelectedRowModel().rows.length} of {apiPagination.totalUsers} user(s) selected.
@@ -655,29 +656,8 @@ export function OpsMobileUsersDataTable() {
   )
 }
 
-const chartData = [
-  { month: "January", users: 186, active: 80 },
-  { month: "February", users: 305, active: 200 },
-  { month: "March", users: 237, active: 120 },
-  { month: "April", users: 173, active: 190 },
-  { month: "May", users: 209, active: 130 },
-  { month: "June", users: 214, active: 140 },
-]
-
-const chartConfig = {
-  users: {
-    label: "Total Users",
-    color: "var(--primary)",
-  },
-  active: {
-    label: "Active Users",
-    color: "var(--primary)",
-  },
-} satisfies ChartConfig
-
 function TableCellViewer({ item }: { item: z.infer<typeof mobileUserSchema> }) {
   const isMobile = useIsMobile()
-
   // Safely access tokens with fallback
   const tokens = item.tokens || []
 
@@ -697,57 +677,6 @@ function TableCellViewer({ item }: { item: z.infer<typeof mobileUserSchema> }) {
           <DrawerDescription>Mobile user details and activity overview</DrawerDescription>
         </DrawerHeader>
         <div className="flex flex-col gap-4 overflow-y-auto px-4 text-sm">
-          {!isMobile && (
-            <>
-              <ChartContainer config={chartConfig}>
-                <AreaChart
-                  accessibilityLayer
-                  data={chartData}
-                  margin={{
-                    left: 0,
-                    right: 10,
-                  }}
-                >
-                  <CartesianGrid vertical={false} />
-                  <XAxis
-                    dataKey="month"
-                    tickLine={false}
-                    axisLine={false}
-                    tickMargin={8}
-                    tickFormatter={(value) => value.slice(0, 3)}
-                    hide
-                  />
-                  <ChartTooltip cursor={false} content={<ChartTooltipContent indicator="dot" />} />
-                  <Area
-                    dataKey="active"
-                    type="natural"
-                    fill="var(--color-active)"
-                    fillOpacity={0.6}
-                    stroke="var(--color-active)"
-                    stackId="a"
-                  />
-                  <Area
-                    dataKey="users"
-                    type="natural"
-                    fill="var(--color-users)"
-                    fillOpacity={0.4}
-                    stroke="var(--color-users)"
-                    stackId="a"
-                  />
-                </AreaChart>
-              </ChartContainer>
-              <Separator />
-              <div className="grid gap-2">
-                <div className="flex gap-2 leading-none font-medium">
-                  User activity trending up by 5.2% this month <IconTrendingUp className="size-4" />
-                </div>
-                <div className="text-muted-foreground">
-                  Showing user activity for the last 6 months. Balance: {item.balance.toLocaleString()}
-                </div>
-              </div>
-              <Separator />
-            </>
-          )}
           <div className="grid gap-4">
             <div className="grid grid-cols-2 gap-4">
               <div className="flex flex-col gap-2">

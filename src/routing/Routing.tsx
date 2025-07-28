@@ -18,6 +18,7 @@ import { UsersManagement } from '@/screens/superAdmin/users/User-management'
 import Notifications from '@/screens/superAdmin/notification/Notifications'
 import Feedback from '@/screens/superAdmin/feedback/Feedback'
 import Corporate from '@/screens/superAdmin/corporate/Corporate'
+import SuperAdminMachineVisit from '@/screens/superAdmin/machines/MachineVisit'
 
 //admin screens
 import AdminDashboard from '@/screens/admin/dashboard/Dashboard'
@@ -29,6 +30,7 @@ import { AdminUsersManagement } from '@/screens/admin/users/User-management'
 import AdminNotifications from '@/screens/admin/notification/Notifications'
 import AdminFeedback from '@/screens/admin/feedback/Feedback'
 import AdminCorporate from '@/screens/admin/corporate/Corporate'
+import AdminMachineVisit from '@/screens/admin/machines/MachineVisit'
 
 //ops screens
 import OpsDashboard from '@/screens/ops/dashboard/Dashboard'
@@ -44,7 +46,8 @@ import OpsCorporate from '@/screens/ops/corporate/Corporate'
 import CorporateDashboard from '@/screens/corporate/dashboard/Dashboard'
 import CorporateMachines from '@/screens/corporate/machines/Machines'
 
-import { ADMIN_CORPORATE, ADMIN_DASHBOARD, ADMIN_FEEDBACK, ADMIN_LOCATIONS, ADMIN_MACHINES, ADMIN_NOTIFICATIONS, ADMIN_POINTS, ADMIN_TOPUP, ADMIN_USERS, MACHINE_DASHBOARD, MACHINE_MACHINES, OPS_CORPORATE, OPS_DASHBOARD, OPS_FEEDBACK, OPS_LOCATIONS, OPS_MACHINES, OPS_POINTS, OPS_TOPUP, OPS_USERS, SUPERADMIN_CORPORATE, SUPERADMIN_DASHBOARD, SUPERADMIN_FEEDBACK, SUPERADMIN_LOCATIONS, SUPERADMIN_MACHINES, SUPERADMIN_NOTIFICATIONS, SUPERADMIN_POINTS, SUPERADMIN_ROLES, SUPERADMIN_TOPUP, SUPERADMIN_USERS } from '@/constants/Constant'
+import { ADMIN_CORPORATE, ADMIN_DASHBOARD, ADMIN_FEEDBACK, ADMIN_LOCATIONS, ADMIN_MACHINE_VISIT, ADMIN_MACHINES, ADMIN_NOTIFICATIONS, ADMIN_POINTS, ADMIN_TOPUP, ADMIN_USERS, MACHINE_DASHBOARD, MACHINE_MACHINES, OPS_CORPORATE, OPS_DASHBOARD, OPS_FEEDBACK, OPS_LOCATIONS, OPS_MACHINE_VISIT, OPS_MACHINES, OPS_POINTS, OPS_TOPUP, OPS_USERS, SUPERADMIN_CORPORATE, SUPERADMIN_DASHBOARD, SUPERADMIN_FEEDBACK, SUPERADMIN_LOCATIONS, SUPERADMIN_MACHINE_VISIT, SUPERADMIN_MACHINES, SUPERADMIN_NOTIFICATIONS, SUPERADMIN_POINTS, SUPERADMIN_ROLES, SUPERADMIN_TOPUP, SUPERADMIN_USERS } from '@/constants/Constant'
+import OpsMachineVisit from '@/screens/ops/machines/MachineVisit'
 
 const NotFound = () => {
     return (
@@ -81,6 +84,7 @@ const Routing = () => {
                     <Route path={SUPERADMIN_NOTIFICATIONS} element={<Notifications />} />
                     <Route path={SUPERADMIN_FEEDBACK} element={<Feedback />} />
                     <Route path={SUPERADMIN_CORPORATE} element={<Corporate />} />
+                    <Route path={SUPERADMIN_MACHINE_VISIT} element={<SuperAdminMachineVisit />} />
                 </Route>
             </Route>
 
@@ -95,6 +99,7 @@ const Routing = () => {
                     <Route path={ADMIN_NOTIFICATIONS} element={<AdminNotifications />} />
                     <Route path={ADMIN_FEEDBACK} element={<AdminFeedback />} />
                     <Route path={ADMIN_CORPORATE} element={<AdminCorporate />} />
+                    <Route path={ADMIN_MACHINE_VISIT} element={<AdminMachineVisit />} />
                 </Route>
             </Route>
 
@@ -108,6 +113,7 @@ const Routing = () => {
                     <Route path={OPS_USERS} element={<OpsUsersManagement />} />
                     <Route path={OPS_FEEDBACK} element={<OpsFeedback />} />
                     <Route path={OPS_CORPORATE} element={<OpsCorporate />} />
+                    <Route path={OPS_MACHINE_VISIT} element={<OpsMachineVisit />} />
                 </Route>
             </Route>
 
