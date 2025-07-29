@@ -68,8 +68,8 @@ export default function SuperAdminDashboardSanitary() {
                 <CardTitle>Sanitary Brands Revenue</CardTitle>
                 <CardDescription>Revenue distribution with total stats</CardDescription>
                 <div className="mt-3 text-sm text-muted-foreground space-y-1">
-                    <div className="text-black text-lg">📦 <span className="">Total Revenue:</span> Rs {totalRevenue.toLocaleString()}</div>
-                    <div className="text-black text-lg">🧾 <span className="">Total Transactions:</span> {totalTransactions.toLocaleString()}</div>
+                    <div>📦 <strong className="">Total Revenue:</strong> Rs {totalRevenue.toLocaleString()}</div>
+                    <div>🧾 <strong className="">Total Transactions:</strong> {totalTransactions.toLocaleString()}</div>
                 </div>
             </CardHeader>
             <CardContent className="h-[400px]">
