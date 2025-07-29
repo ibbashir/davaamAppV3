@@ -5,6 +5,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Label } from "@/components/ui/label"
 import {
     IconSearch,
     IconDownload,
@@ -19,70 +21,76 @@ import {
     IconChevronLeft,
     IconChevronRight,
     IconMessage,
+    IconChevronsLeft,
+    IconChevronsRight
 } from "@tabler/icons-react"
+import { toast } from "sonner"
 import moment from "moment"
 import { getRequest } from "@/Apis/Api"
 import { SiteHeader } from "@/components/admin/site-header"
 
 // Types
-type AppFeedback = {
+interface FeedbackItem {
+    id: number
+    name: string | null
     phone_number: string
     error_message: string
     epoch_time: number
-    id: number
-    name: string | null
 }
 
-type AppFeedbackApiResponse = {
+interface AppFeedbackResponse {
     page: number
     limit: number
     totalCount: number
     totalPages: number
-    appFeedback: AppFeedback[]
+    appFeedback: FeedbackItem[]
 }
 
-const ITEMS_PER_PAGE = 10
-
 const Feedback = () => {
-    const [feedback, setFeedback] = useState<AppFeedback[]>([])
+    const [feedback, setFeedback] = useState<FeedbackItem[]>([])
     const [totalCount, setTotalCount] = useState(0)
+    const [loading, setLoading] = useState(true)
     const [searchTerm, setSearchTerm] = useState("")
     const [categoryFilter, setCategoryFilter] = useState("all")
-    const [currentPage, setCurrentPage] = useState(1)
-    const [totalPages, setTotalPages] = useState(1)
+
+    // pagination
+    const [pagination, setPagination] = useState({
+        currentPage: 1,
+        totalPages: 1,
+        totalCount: 0,
+        limit: 10,
+    })
+
+    const fetchFeedback = async (page = 1, limit = 10) => {
+        try {
+            setLoading(true)
+            const res = await getRequest<AppFeedbackResponse>(`/admin/getAllAppFeedbacks?page=${page}&limit=${limit}`)
+            setFeedback(res.appFeedback)
+            setTotalCount(res.totalCount)
+            setPagination({
+                currentPage: res.page,
+                totalPages: res.totalPages,
+                totalCount: res.totalCount,
+                limit: res.limit,
+            })
+        } catch (error) {
+            toast.error("Failed to fetch feedback")
+            setFeedback([])
+            setPagination({
+                currentPage: 1,
+                totalPages: 1,
+                totalCount: 0,
+                limit: 10,
+            })
+        } finally {
+            setLoading(false)
+        }
+    }
 
     useEffect(() => {
-        const getFeedback = async () => {
-            // Construct query parameters for pagination and filtering
-            const params = new URLSearchParams()
-            params.append("page", currentPage.toString())
-            params.append("limit", ITEMS_PER_PAGE.toString())
+        fetchFeedback();
+    }, [])
 
-            if (searchTerm) {
-                params.append("search", searchTerm)
-            }
-            if (categoryFilter !== "all") {
-                params.append("category", categoryFilter)
-            }
-
-            const queryString = params.toString()
-            const url = `/admin/getAllAppFeedbacks${queryString ? `?${queryString}` : ""}`
-
-            try {
-                const res = await getRequest<AppFeedbackApiResponse>(url)
-                setFeedback(res.appFeedback)
-                setTotalCount(res.totalCount)
-                setTotalPages(res.totalPages)
-            } catch (error) {
-                console.error("Failed to fetch feedback:", error)
-                // Handle error, e.g., set feedback to empty array, show error message
-                setFeedback([])
-                setTotalCount(0)
-                setTotalPages(1)
-            }
-        }
-        getFeedback()
-    }, [currentPage, searchTerm, categoryFilter]) // Re-fetch when these dependencies change
 
     const getCategory = (message: string): string => {
         const msg = message.toLowerCase()
@@ -128,8 +136,18 @@ const Feedback = () => {
         )
     }
 
-    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE
-    const endIndex = startIndex + feedback.length
+    const handlePageChange = (newPage: number) => {
+        if (newPage >= 1 && newPage <= pagination.totalPages && !loading) {
+            fetchFeedback(newPage, pagination.limit)
+        }
+    }
+
+    // Handle page size changes
+    const handlePageSizeChange = (newLimit: string) => {
+        const limit = Number.parseInt(newLimit)
+        setPagination((prev) => ({ ...prev, limit }))
+        fetchFeedback(1, limit)
+    }
 
     const totalFeedback = totalCount
     const technicalIssues = feedback.filter((f) => getCategory(f.error_message) === "technical").length
@@ -201,7 +219,6 @@ const Feedback = () => {
                                     value={searchTerm}
                                     onChange={(e) => {
                                         setSearchTerm(e.target.value)
-                                        setCurrentPage(1)
                                     }}
                                     className="pl-10"
                                 />
@@ -214,7 +231,6 @@ const Feedback = () => {
                                         size="sm"
                                         onClick={() => {
                                             setCategoryFilter(cat)
-                                            setCurrentPage(1)
                                         }}
                                         className={categoryFilter === cat ? "bg-teal-600 hover:bg-teal-700" : ""}
                                     >
@@ -277,42 +293,76 @@ const Feedback = () => {
                                     )}
                                 </TableBody>
                             </Table>
-                        </div>
-                        {totalCount > 0 && ( // Only show pagination if there are entries
-                            <div className="flex justify-between items-center mt-4">
-                                <div className="text-sm text-muted-foreground">
-                                    Showing {startIndex + 1} to {Math.min(endIndex, totalCount)} of {totalCount} entries
+                            <div className="flex items-center justify-between px-4 py-4">
+                                <div className="text-muted-foreground hidden flex-1 text-sm lg:flex">
+                                    Showing {(pagination.currentPage - 1) * pagination.limit + 1} to{" "}
+                                    {Math.min(pagination.currentPage * pagination.limit, pagination.totalCount)} of {pagination.totalCount} users
                                 </div>
-                                <div className="flex items-center gap-2">
-                                    <Button
-                                        onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-                                        disabled={currentPage === 1}
-                                        className="h-8 w-8 p-0"
-                                        variant="outline"
-                                    >
-                                        <IconChevronLeft className="h-4 w-4" />
-                                    </Button>
-                                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                                <div className="flex w-full items-center gap-8 lg:w-fit">
+                                    <div className="hidden items-center gap-2 lg:flex">
+                                        <Label htmlFor="rows-per-page" className="text-sm font-medium">
+                                            Rows per page
+                                        </Label>
+                                        <Select value={`${pagination.limit}`} onValueChange={handlePageSizeChange}>
+                                            <SelectTrigger className="w-20" id="rows-per-page">
+                                                <SelectValue placeholder={pagination.limit} />
+                                            </SelectTrigger>
+                                            <SelectContent side="top">
+                                                {[10, 20, 30, 40, 50].map((pageSize) => (
+                                                    <SelectItem key={pageSize} value={`${pageSize}`}>
+                                                        {pageSize}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                    <div className="flex w-fit items-center justify-center text-sm font-medium">
+                                        Page {pagination.currentPage} of {pagination.totalPages}
+                                    </div>
+                                    <div className="ml-auto flex items-center gap-2 lg:ml-0">
                                         <Button
-                                            key={page}
-                                            onClick={() => setCurrentPage(page)}
-                                            className={`h-8 w-8 p-0 ${currentPage === page ? "bg-teal-600 hover:bg-teal-700" : ""}`}
-                                            variant={currentPage === page ? "default" : "outline"}
+                                            variant="outline"
+                                            className="hidden h-8 w-8 p-0 lg:flex bg-transparent"
+                                            onClick={() => handlePageChange(1)}
+                                            disabled={pagination.currentPage === 1 || loading}
                                         >
-                                            {page}
+                                            <span className="sr-only">Go to first page</span>
+                                            <IconChevronsLeft className="h-4 w-4" />
                                         </Button>
-                                    ))}
-                                    <Button
-                                        onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
-                                        disabled={currentPage === totalPages}
-                                        className="h-8 w-8 p-0"
-                                        variant="outline"
-                                    >
-                                        <IconChevronRight className="h-4 w-4" />
-                                    </Button>
+                                        <Button
+                                            variant="outline"
+                                            className="size-8 bg-transparent"
+                                            size="icon"
+                                            onClick={() => handlePageChange(pagination.currentPage - 1)}
+                                            disabled={pagination.currentPage === 1 || loading}
+                                        >
+                                            <span className="sr-only">Go to previous page</span>
+                                            <IconChevronLeft className="h-4 w-4" />
+                                        </Button>
+                                        <Button
+                                            variant="outline"
+                                            className="size-8 bg-transparent"
+                                            size="icon"
+                                            onClick={() => handlePageChange(pagination.currentPage + 1)}
+                                            disabled={pagination.currentPage === pagination.totalPages}
+                                        >
+                                            <span className="sr-only">Go to next page</span>
+                                            <IconChevronRight className="h-4 w-4" />
+                                        </Button>
+                                        <Button
+                                            variant="outline"
+                                            className="hidden size-8 lg:flex bg-transparent"
+                                            size="icon"
+                                            onClick={() => handlePageChange(pagination.totalPages)}
+                                            disabled={pagination.currentPage === pagination.totalPages || loading}
+                                        >
+                                            <span className="sr-only">Go to last page</span>
+                                            <IconChevronsRight className="h-4 w-4" />
+                                        </Button>
+                                    </div>
                                 </div>
                             </div>
-                        )}
+                        </div>
                     </CardContent>
                 </Card>
             </div>
