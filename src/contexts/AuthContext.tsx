@@ -52,25 +52,25 @@ function authReducer(state: AuthState, action: AuthAction): AuthState {
 }
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  const [state, dispatch] = useReducer(authReducer, initialState)
+  const [state, dispatch] = useReducer(authReducer, initialState);
+
+  const checkSession = async () => {
+    try {
+      const res = await axios.get(`${BASE_URL}/auth/user`, {
+        withCredentials: true,
+      })
+
+      const { user, accessToken } = res.data
+
+      dispatch({ type: "LOGIN", payload: { user, token: accessToken } })
+    } catch {
+      console.warn("User session not found or expired.")
+      dispatch({ type: "LOADED" })
+    }
+  }
 
   // Load user on refresh using cookies
   useEffect(() => {
-    const checkSession = async () => {
-      try {
-        const res = await axios.get(`${BASE_URL}/auth/user`, {
-          withCredentials: true,
-        })
-
-        const { user, accessToken } = res.data
-
-        dispatch({ type: "LOGIN", payload: { user, token: accessToken } })
-      } catch {
-        console.warn("User session not found or expired.")
-        dispatch({ type: "LOADED" })
-      }
-    }
-
     checkSession()
   }, [])
 

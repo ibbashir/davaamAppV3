@@ -19,7 +19,7 @@ export function LoginForm({
   className,
 }: React.ComponentProps<"form">) {
 
-  const { login, state } = useAuth();
+  const { login } = useAuth();
   const navigate = useNavigate();
   const [loginError, setLoginError] = useState<string>("")
 

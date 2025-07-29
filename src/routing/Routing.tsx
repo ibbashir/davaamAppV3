@@ -46,30 +46,23 @@ import OpsCorporate from '@/screens/ops/corporate/Corporate'
 import CorporateDashboard from '@/screens/corporate/dashboard/Dashboard'
 import CorporateMachines from '@/screens/corporate/machines/Machines'
 
-import { ADMIN_CORPORATE, ADMIN_DASHBOARD, ADMIN_FEEDBACK, ADMIN_LOCATIONS, ADMIN_MACHINE_VISIT, ADMIN_MACHINES, ADMIN_NOTIFICATIONS, ADMIN_POINTS, ADMIN_TOPUP, ADMIN_USERS, MACHINE_DASHBOARD, MACHINE_MACHINES, OPS_CORPORATE, OPS_DASHBOARD, OPS_FEEDBACK, OPS_LOCATIONS, OPS_MACHINE_VISIT, OPS_MACHINES, OPS_POINTS, OPS_TOPUP, OPS_USERS, SUPERADMIN_CORPORATE, SUPERADMIN_DASHBOARD, SUPERADMIN_FEEDBACK, SUPERADMIN_LOCATIONS, SUPERADMIN_MACHINE_VISIT, SUPERADMIN_MACHINES, SUPERADMIN_NOTIFICATIONS, SUPERADMIN_POINTS, SUPERADMIN_ROLES, SUPERADMIN_TOPUP, SUPERADMIN_USERS } from '@/constants/Constant'
+//404 not found
+import NotFound from '@/screens/NotFound/NotFound'
+
+import { ADMIN_CORPORATE, ADMIN_DASHBOARD, ADMIN_FEEDBACK, ADMIN_LOCATIONS, ADMIN_MACHINE_VISIT, ADMIN_MACHINES, ADMIN_NOTIFICATIONS, ADMIN_POINTS, ADMIN_TOPUP, ADMIN_USERS, COMPANY_INFO, FORGET_PASSWORD, LOGIN, MACHINE_DASHBOARD, MACHINE_MACHINES, OPS_CORPORATE, OPS_DASHBOARD, OPS_FEEDBACK, OPS_LOCATIONS, OPS_MACHINE_VISIT, OPS_MACHINES, OPS_POINTS, OPS_TOPUP, OPS_USERS, PRIVACY_POLICY, SUPERADMIN_CORPORATE, SUPERADMIN_DASHBOARD, SUPERADMIN_FEEDBACK, SUPERADMIN_LOCATIONS, SUPERADMIN_MACHINE_VISIT, SUPERADMIN_MACHINES, SUPERADMIN_NOTIFICATIONS, SUPERADMIN_POINTS, SUPERADMIN_ROLES, SUPERADMIN_TOPUP, SUPERADMIN_USERS } from '@/constants/Constant'
 import OpsMachineVisit from '@/screens/ops/machines/MachineVisit'
 
-const NotFound = () => {
-    return (
-        <div className="flex flex-col items-center justify-center min-h-screen text-center p-4">
-            <h1 className="text-4xl font-bold text-red-600">404</h1>
-            <p className="text-xl mt-2">Page Not Found</p>
-            <p className="text-sm text-gray-500 mt-1">
-                The page you are looking for does not exist.
-            </p>
-        </div>
-    )
-}
+
 
 const Routing = () => {
     return (
         <Routes>
             {/* Public routes */}
-            <Route path='/' element={<Navigate to="/login" replace />} />
-            <Route path='/login' element={<Login />} />
-            <Route path='/forgetPassword' element={<ForgetPassword />} />
-            <Route path='/company-info' element={<CompanyInfo />} />
-            <Route path='/privacypolicy' element={<PrivacyPolicy />} />
+            <Route path='/' element={<Navigate to={LOGIN} replace />} />
+            <Route path={LOGIN} element={<Login />} />
+            <Route path={FORGET_PASSWORD} element={<ForgetPassword />} />
+            <Route path={COMPANY_INFO} element={<CompanyInfo />} />
+            <Route path={PRIVACY_POLICY} element={<PrivacyPolicy />} />
 
             {/* Protected routes wrapped with Layout */}
             <Route element={<PrivateRouting allowedRoles={["superadmin"]} />}>
