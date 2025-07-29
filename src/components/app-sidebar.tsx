@@ -15,8 +15,10 @@ import {
 import { useNavigate } from "react-router-dom"
 import { useAuth } from "@/contexts/AuthContext"
 import { ADMIN_SIDEBAR_ROUTES, MACHINES_SIDEBAR_ROUTES, OPS_SIDEBAR_ROUTES, SUPER_ADMIN_SIDEBAR_ROUTES } from "@/constants/Constant"
+import { useIsMobile } from "@/hooks/use-mobile"
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const isMobile = useIsMobile()
   const { state } = useAuth();
   const navigate = useNavigate();
 
@@ -36,7 +38,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   }
 
   return (
-    <Sidebar collapsible="offcanvas" {...props}>
+    <Sidebar collapsible={isMobile ? "offcanvas" : "icon"} {...props}>
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
