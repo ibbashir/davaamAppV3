@@ -127,14 +127,10 @@ const Feedback = () => {
         )
     }
 
-    // Calculate startIndex and endIndex for display purposes based on current page and actual feedback length
     const startIndex = (currentPage - 1) * ITEMS_PER_PAGE
-    const endIndex = startIndex + feedback.length // feedback.length is the number of items on the current page
+    const endIndex = startIndex + feedback.length 
 
-    // Summary statistics: These will now reflect only the data on the current page,
-    // unless the API provides global counts separately. If global counts are needed,
-    // the API should be updated to provide them, or a separate API call is required.
-    const totalFeedback = totalCount // This is the total count from the API for the current filters
+    const totalFeedback = totalCount 
     const technicalIssues = feedback.filter((f) => getCategory(f.error_message) === "technical").length
     const registrationIssues = feedback.filter((f) => getCategory(f.error_message) === "registration").length
     const uniqueUsers = new Set(feedback.map((f) => f.phone_number)).size

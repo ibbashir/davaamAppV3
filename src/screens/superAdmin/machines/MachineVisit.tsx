@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Download, Plus } from "lucide-react"
+import { SiteHeader } from "@/components/superAdmin/site-header"
 
 // Sample data
 const stockData = [
@@ -219,172 +220,175 @@ export default function SuperAdminMachineVisit() {
     const [activeTab, setActiveTab] = useState("stock-levels")
 
     return (
-        <div className="min-h-screen bg-gray-50 p-4">
-            <div className="mx-auto max-w-7xl">
-                <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                    <TabsList className="grid w-full grid-cols-4 mb-6">
-                        <TabsTrigger value="stock-levels">Stock Levels</TabsTrigger>
-                        <TabsTrigger value="sales-usage">Sales & usage</TabsTrigger>
-                        <TabsTrigger value="update-price">Update price</TabsTrigger>
-                        <TabsTrigger value="user-transactions">User transactions</TabsTrigger>
-                    </TabsList>
+        <div>
+            <SiteHeader title="Machine Details"/>
+                <div className="min-h-screen bg-gray-50 p-4">
+                <div className="mx-auto max-w-7xl">
+                    <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+                        <TabsList className="grid w-full grid-cols-4 mb-6">
+                            <TabsTrigger value="stock-levels">Stock Levels</TabsTrigger>
+                            <TabsTrigger value="sales-usage">Sales & usage</TabsTrigger>
+                            <TabsTrigger value="update-price">Update price</TabsTrigger>
+                            <TabsTrigger value="user-transactions">User transactions</TabsTrigger>
+                        </TabsList>
 
-                    <TabsContent value="stock-levels" className="space-y-6">
-                        <div className="flex items-center justify-between">
-                            <div className="flex gap-2">
-                                <Button
-                                    variant={stockView === "batch" ? "default" : "outline"}
-                                    onClick={() => setStockView("batch")}
-                                    className="bg-teal-600 hover:bg-teal-700 text-white"
-                                >
-                                    Stocks Refill By Batch Number
-                                </Button>
-                                <Button
-                                    variant={stockView === "realtime" ? "default" : "outline"}
-                                    onClick={() => setStockView("realtime")}
-                                    className={stockView === "realtime" ? "bg-teal-600 hover:bg-teal-700 text-white" : ""}
-                                >
-                                    Stocks Real Time
+                        <TabsContent value="stock-levels" className="space-y-6">
+                            <div className="flex items-center justify-between">
+                                <div className="flex gap-2">
+                                    <Button
+                                        variant={stockView === "batch" ? "default" : "outline"}
+                                        onClick={() => setStockView("batch")}
+                                        className="bg-teal-600 hover:bg-teal-700 text-white"
+                                    >
+                                        Stocks Refill By Batch Number
+                                    </Button>
+                                    <Button
+                                        variant={stockView === "realtime" ? "default" : "outline"}
+                                        onClick={() => setStockView("realtime")}
+                                        className={stockView === "realtime" ? "bg-teal-600 hover:bg-teal-700 text-white" : ""}
+                                    >
+                                        Stocks Real Time
+                                    </Button>
+                                </div>
+                                <Button className="bg-teal-600 hover:bg-teal-700 text-white">
+                                    <Plus className="w-4 h-4 mr-2" />
+                                    Add Stock
                                 </Button>
                             </div>
-                            <Button className="bg-teal-600 hover:bg-teal-700 text-white">
-                                <Plus className="w-4 h-4 mr-2" />
-                                Add Stock
-                            </Button>
-                        </div>
 
-                        <div className="space-y-6">
-                            {stockData.map((item) => (
-                                <div key={item.id} className="space-y-4">
-                                    <h2 className="text-xl font-semibold text-center text-slate-700">{item.name}</h2>
+                            <div className="space-y-6">
+                                {stockData.map((item) => (
+                                    <div key={item.id} className="space-y-4">
+                                        <h2 className="text-xl font-semibold text-center text-slate-700">{item.name}</h2>
 
-                                    {stockView === "batch" ? (
-                                        <Card>
-                                            <CardContent className="p-6">
-                                                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                                    <div>
-                                                        <Label className="text-sm font-medium text-slate-600">Quantity</Label>
-                                                        <div className="mt-1 text-lg font-medium">{item.quantity}</div>
+                                        {stockView === "batch" ? (
+                                            <Card>
+                                                <CardContent className="p-6">
+                                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                                        <div>
+                                                            <Label className="text-sm font-medium text-slate-600">Quantity</Label>
+                                                            <div className="mt-1 text-lg font-medium">{item.quantity}</div>
+                                                        </div>
+                                                        <div>
+                                                            <Label className="text-sm font-medium text-slate-600">Created at</Label>
+                                                            <div className="mt-1 text-sm text-slate-500">{item.createdAt}</div>
+                                                        </div>
+                                                        <div>
+                                                            <Label className="text-sm font-medium text-slate-600">Batch Number</Label>
+                                                            <div className="mt-1 text-lg font-medium">{item.batchNumber}</div>
+                                                        </div>
                                                     </div>
-                                                    <div>
-                                                        <Label className="text-sm font-medium text-slate-600">Created at</Label>
-                                                        <div className="mt-1 text-sm text-slate-500">{item.createdAt}</div>
+                                                </CardContent>
+                                            </Card>
+                                        ) : (
+                                            <Card>
+                                                <CardContent className="p-6">
+                                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                                        <div>
+                                                            <Label className="text-sm font-medium text-slate-600">Last Batch Refill</Label>
+                                                            <div className="mt-1 text-lg font-medium">{item.lastBatchRefill}</div>
+                                                        </div>
+                                                        <div>
+                                                            <Label className="text-sm font-medium text-slate-600">Stocks Out</Label>
+                                                            <div className="mt-1 text-lg font-medium text-red-600">{item.stocksOut}</div>
+                                                        </div>
+                                                        <div>
+                                                            <Label className="text-sm font-medium text-slate-600">Current stock</Label>
+                                                            <div className="mt-1 text-lg font-medium text-green-600">{item.currentStock}</div>
+                                                        </div>
                                                     </div>
-                                                    <div>
-                                                        <Label className="text-sm font-medium text-slate-600">Batch Number</Label>
-                                                        <div className="mt-1 text-lg font-medium">{item.batchNumber}</div>
-                                                    </div>
-                                                </div>
-                                            </CardContent>
-                                        </Card>
-                                    ) : (
-                                        <Card>
-                                            <CardContent className="p-6">
-                                                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                                    <div>
-                                                        <Label className="text-sm font-medium text-slate-600">Last Batch Refill</Label>
-                                                        <div className="mt-1 text-lg font-medium">{item.lastBatchRefill}</div>
-                                                    </div>
-                                                    <div>
-                                                        <Label className="text-sm font-medium text-slate-600">Stocks Out</Label>
-                                                        <div className="mt-1 text-lg font-medium text-red-600">{item.stocksOut}</div>
-                                                    </div>
-                                                    <div>
-                                                        <Label className="text-sm font-medium text-slate-600">Current stock</Label>
-                                                        <div className="mt-1 text-lg font-medium text-green-600">{item.currentStock}</div>
-                                                    </div>
-                                                </div>
-                                            </CardContent>
-                                        </Card>
-                                    )}
-                                </div>
-                            ))}
-                        </div>
-                    </TabsContent>
+                                                </CardContent>
+                                            </Card>
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
+                        </TabsContent>
 
-                    <TabsContent value="sales-usage" className="space-y-6">
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Sales & Usage Analytics</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="text-center py-12 text-slate-500">Sales and usage analytics will be displayed here</div>
-                            </CardContent>
-                        </Card>
-                    </TabsContent>
+                        <TabsContent value="sales-usage" className="space-y-6">
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle>Sales & Usage Analytics</CardTitle>
+                                </CardHeader>
+                                <CardContent>
+                                    <div className="text-center py-12 text-slate-500">Sales and usage analytics will be displayed here</div>
+                                </CardContent>
+                            </Card>
+                        </TabsContent>
 
-                    <TabsContent value="update-price" className="space-y-6">
-                        <Card>
-                            <CardHeader>
-                                <CardTitle className="text-2xl font-bold text-slate-800">Update price</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <Table>
-                                    <TableHeader>
-                                        <TableRow>
-                                            <TableHead className="w-12">#</TableHead>
-                                            <TableHead>Brand name</TableHead>
-                                            <TableHead>Price</TableHead>
-                                            <TableHead>Brand id</TableHead>
-                                        </TableRow>
-                                    </TableHeader>
-                                    <TableBody>
-                                        {priceData.map((item) => (
-                                            <TableRow key={item.id}>
-                                                <TableCell className="font-medium">{item.id}</TableCell>
-                                                <TableCell>{item.brandName}</TableCell>
-                                                <TableCell>{item.price}</TableCell>
-                                                <TableCell>{item.brandId}</TableCell>
+                        <TabsContent value="update-price" className="space-y-6">
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle className="text-2xl font-bold text-slate-800">Update price</CardTitle>
+                                </CardHeader>
+                                <CardContent>
+                                    <Table>
+                                        <TableHeader>
+                                            <TableRow>
+                                                <TableHead className="w-12">#</TableHead>
+                                                <TableHead>Brand name</TableHead>
+                                                <TableHead>Price</TableHead>
+                                                <TableHead>Brand id</TableHead>
                                             </TableRow>
-                                        ))}
-                                    </TableBody>
-                                </Table>
-                            </CardContent>
-                        </Card>
-                    </TabsContent>
+                                        </TableHeader>
+                                        <TableBody>
+                                            {priceData.map((item) => (
+                                                <TableRow key={item.id}>
+                                                    <TableCell className="font-medium">{item.id}</TableCell>
+                                                    <TableCell>{item.brandName}</TableCell>
+                                                    <TableCell>{item.price}</TableCell>
+                                                    <TableCell>{item.brandId}</TableCell>
+                                                </TableRow>
+                                            ))}
+                                        </TableBody>
+                                    </Table>
+                                </CardContent>
+                            </Card>
+                        </TabsContent>
 
-                    <TabsContent value="user-transactions" className="space-y-6">
-                        <div className="flex items-center justify-between">
-                            <h1 className="text-2xl font-bold text-slate-800">User transactions</h1>
-                            <Button className="bg-teal-600 hover:bg-teal-700 text-white">
-                                <Download className="w-4 h-4 mr-2" />
-                                Export as csv
-                            </Button>
-                        </div>
+                        <TabsContent value="user-transactions" className="space-y-6">
+                            <div className="flex items-center justify-between">
+                                <h1 className="text-2xl font-bold text-slate-800">User transactions</h1>
+                                <Button className="bg-teal-600 hover:bg-teal-700 text-white">
+                                    <Download className="w-4 h-4 mr-2" />
+                                    Export as csv
+                                </Button>
+                            </div>
 
-                        <Card>
-                            <CardContent className="p-0">
-                                <Table>
-                                    <TableHeader>
-                                        <TableRow>
-                                            <TableHead>SNO</TableHead>
-                                            <TableHead>Phone</TableHead>
-                                            <TableHead>Product</TableHead>
-                                            <TableHead>Amount</TableHead>
-                                            <TableHead>Price</TableHead>
-                                            <TableHead>Quantity</TableHead>
-                                            <TableHead>Created at</TableHead>
-                                        </TableRow>
-                                    </TableHeader>
-                                    <TableBody>
-                                        {transactionData.map((transaction) => (
-                                            <TableRow key={transaction.sno}>
-                                                <TableCell className="font-medium">{transaction.sno}</TableCell>
-                                                <TableCell className="text-blue-600">{transaction.phone}</TableCell>
-                                                <TableCell className="text-blue-600">{transaction.product}</TableCell>
-                                                <TableCell className="text-blue-600">{transaction.amount}</TableCell>
-                                                <TableCell>{transaction.price}</TableCell>
-                                                <TableCell>{transaction.quantity}</TableCell>
-                                                <TableCell className="text-sm text-slate-500">{transaction.createdAt}</TableCell>
+                            <Card>
+                                <CardContent className="p-0">
+                                    <Table>
+                                        <TableHeader>
+                                            <TableRow>
+                                                <TableHead>SNO</TableHead>
+                                                <TableHead>Phone</TableHead>
+                                                <TableHead>Product</TableHead>
+                                                <TableHead>Amount</TableHead>
+                                                <TableHead>Price</TableHead>
+                                                <TableHead>Quantity</TableHead>
+                                                <TableHead>Created at</TableHead>
                                             </TableRow>
-                                        ))}
-                                    </TableBody>
-                                </Table>
-                            </CardContent>
-                        </Card>
-                    </TabsContent>
-                </Tabs>
-            </div>
+                                        </TableHeader>
+                                        <TableBody>
+                                            {transactionData.map((transaction) => (
+                                                <TableRow key={transaction.sno}>
+                                                    <TableCell className="font-medium">{transaction.sno}</TableCell>
+                                                    <TableCell className="text-blue-600">{transaction.phone}</TableCell>
+                                                    <TableCell className="text-blue-600">{transaction.product}</TableCell>
+                                                    <TableCell className="text-blue-600">{transaction.amount}</TableCell>
+                                                    <TableCell>{transaction.price}</TableCell>
+                                                    <TableCell>{transaction.quantity}</TableCell>
+                                                    <TableCell className="text-sm text-slate-500">{transaction.createdAt}</TableCell>
+                                                </TableRow>
+                                            ))}
+                                        </TableBody>
+                                    </Table>
+                                </CardContent>
+                            </Card>
+                        </TabsContent>
+                    </Tabs>
+                </div>
         </div>
+        </div >
     )
 }
