@@ -1,7 +1,4 @@
-"use client"
-
 import type React from "react"
-
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
@@ -9,57 +6,10 @@ import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Input } from "@/components/ui/input"
 import { Search, ChevronLeft, ChevronRight } from "lucide-react"
+
 import { getRequest } from "@/Apis/Api"
-
-// API Transaction type matching the actual response
-type ApiTransaction = {
-    user_name: string
-    id: number
-    msisdn: string
-    quantity: number
-    amount: string
-    created_at: string
-    merchant: string
-    machine_code: string
-    brand_id: number
-    user_id?: string
-    brand_name: string
-    merchantCheck?: string
-}
-
-// Butterfly API response structure
-type ButterflyApiResponse = {
-    data: {
-        cashTransactions: ApiTransaction[]
-        onlineTransactions: ApiTransaction[]
-    }
-    page: number
-    pageLimit: number
-    totalCashPages: number
-    totalOnlinePages: number
-    totalCount: number
-}
-
-// Other categories API response structure
-type OtherApiResponse = {
-    data: ApiTransaction[]
-    page: number
-    pagelimit: number
-    totalPages: number
-    totalCount: number
-}
-
-const categories = [
-    { id: "butterfly", label: "Butterfly" },
-    { id: "oil", label: "Refill Stations" },
-    { id: "topup", label: "User Topup" },
-    { id: "testing", label: "Testing" },
-]
-
-const paymentTypes = [
-    { id: "online", label: "Online payments" },
-    { id: "cash", label: "Cash payments" },
-]
+import type { ApiTransaction, ButterflyApiResponse, OtherApiResponse, Transactions } from "@/Types/SuperAdmin/RecentTransactions"
+import { categories, paymentTypes } from "@/constants/Constant"
 
 const RecentTransactions = () => {
     const [activeCategory, setActiveCategory] = useState("butterfly")
@@ -185,7 +135,7 @@ const RecentTransactions = () => {
     // Filter transactions based on selected filters
     const filteredTransactions = recentTransactions.filter((transaction) => {
         if (activeCategory === "butterfly") {
-            return (transaction as any).paymentType === activePaymentType
+            return (transaction as Transactions).paymentType === activePaymentType
         }
         return true // For other categories, show all transactions
     })
@@ -193,25 +143,20 @@ const RecentTransactions = () => {
     // Get counts for payment types (only for butterfly)
     const getPaymentTypeCount = (paymentType: string) => {
         if (activeCategory !== "butterfly") return 0
-        return recentTransactions.filter((t: any) => t.paymentType === paymentType).length
+        return recentTransactions.filter((t: Transactions) => t.paymentType === paymentType).length
     }
 
     useEffect(() => {
-        setCurrentPage(1)
-        if (searchTerm.trim()) {
-            searchTransactions(searchTerm, 1)
-        } else {
-            fetchLatestTransactions(1)
+        const loadData = () => {
+            if (searchTerm.trim()) {
+                searchTransactions(searchTerm, currentPage)
+            } else {
+                fetchLatestTransactions(currentPage)
+            }
         }
-    }, [activeCategory]) // Refetch when category changes
 
-    useEffect(() => {
-        if (searchTerm.trim()) {
-            searchTransactions(searchTerm, currentPage)
-        } else {
-            fetchLatestTransactions(currentPage)
-        }
-    }, [currentPage, activePaymentType]) // Refetch when page or payment type changes
+        loadData()
+    }, [activeCategory, currentPage, activePaymentType])
 
     const handleCategoryChange = (categoryId: string) => {
         setActiveCategory(categoryId)
