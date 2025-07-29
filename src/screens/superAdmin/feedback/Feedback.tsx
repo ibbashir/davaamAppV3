@@ -22,6 +22,7 @@ import {
 } from "@tabler/icons-react"
 import moment from "moment"
 import { getRequest } from "@/Apis/Api"
+import { SiteHeader } from "@/components/superAdmin/site-header"
 
 // Types
 type AppFeedback = {
@@ -137,8 +138,7 @@ const Feedback = () => {
 
     return (
         <div>
-            {/* Assuming SiteHeader is defined elsewhere and imported */}
-            {/* <SiteHeader title='Feedback' /> */}
+            <SiteHeader title='Feedback' />
             <div className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
                 <div className="flex items-center justify-between">
                     <p className="text-muted-foreground">User feedback and issues reported through the mobile application</p>

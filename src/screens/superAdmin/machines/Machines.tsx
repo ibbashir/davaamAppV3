@@ -10,6 +10,7 @@ import { Search, ChevronLeft, ChevronRight } from "lucide-react"
 import type { ApiMachine, MachinesResponse } from "./Types"
 import { getRequest, postRequest } from "@/Apis/Api"
 import { SUPERADMIN_MACHINE_VISIT, timeConverter } from "@/constants/Constant"
+import { SiteHeader } from "@/components/superAdmin/site-header"
 
 const categories = [
   { id: "Butterfly", label: "Butterfly" },
@@ -138,178 +139,180 @@ const Machines = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">Deployed Machines</h1>
-            <p className="text-muted-foreground">
-              A list of all the machines in your account including their machine id, locations, type and brands.
-            </p>
-          </div>
-          <div className="flex gap-2">
-            <Button onClick={() => {
-              setShowAddModal(true);
-            }} className="bg-teal-600 hover:bg-teal-700">Add Machine</Button>
+    <div>
+      <SiteHeader title="Deployed Machines" />
+      <div className="min-h-screen bg-gray-50">
+        <div className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-muted-foreground">
+                A list of all the machines in your account including their machine id, locations, type and brands.
+              </p>
+            </div>
+            <div className="flex gap-2">
+              <Button onClick={() => {
+                setShowAddModal(true);
+              }} className="bg-teal-600 hover:bg-teal-700">Add Machine</Button>
 
+            </div>
           </div>
-        </div>
 
-        {showAddModal && (
-          <div className="fixed inset-0 z-50 flex shadow-2xl items-center justify-center pointer-events-none">
-            <div className="bg-white p-6 rounded-xl w-full max-w-lg space-y-4 shadow-xl pointer-events-auto">
-              <div className="bg-white p-6 rounded-xl w-full max-w-lg space-y-4">
-                <h2 className="text-xl font-semibold">Add New Machine</h2>
-                <div className="space-y-2">
-                  <Input placeholder="Machine Code" required value={newMachine.machine_code} onChange={e => setNewMachine({ ...newMachine, machine_code: e.target.value })} />
-                  <Input placeholder="Machine Name" required value={newMachine.machine_name} onChange={e => setNewMachine({ ...newMachine, machine_name: e.target.value })} />
-                  <Input placeholder="Machine Location" required value={newMachine.machine_location} onChange={e => setNewMachine({ ...newMachine, machine_location: e.target.value })} />
-                  <Input placeholder="Machine Type" required value={newMachine.machine_type} onChange={e => setNewMachine({ ...newMachine, machine_type: e.target.value })} />
-                  <Input placeholder="Latitude" required value={newMachine.lat} onChange={e => setNewMachine({ ...newMachine, lat: e.target.value })} />
-                  <Input placeholder="Longitude" required value={newMachine.lng} onChange={e => setNewMachine({ ...newMachine, lng: e.target.value })} />
-                </div>
-                <div className="flex justify-end space-x-2 pt-4">
-                  <Button variant="outline" onClick={() => setShowAddModal(false)}>Cancel</Button>
-                  <Button onClick={async () => {
-                    try {
-                      const res = await postRequest("/superadmin/addNewMachine", newMachine)
-                      console.log("Added:", res)
-                      fetchMachines()
-                      setShowAddModal(false)
-                    } catch (err) {
-                      console.error("Error adding machine:", err)
-                    }
-                  }} className="bg-teal-600 hover:bg-teal-700">
-                    Add Machine
-                  </Button>
+          {showAddModal && (
+            <div className="fixed inset-0 z-50 flex shadow-2xl items-center justify-center pointer-events-none">
+              <div className="bg-white p-6 rounded-xl w-full max-w-lg space-y-4 shadow-xl pointer-events-auto">
+                <div className="bg-white p-6 rounded-xl w-full max-w-lg space-y-4">
+                  <h2 className="text-xl font-semibold">Add New Machine</h2>
+                  <div className="space-y-2">
+                    <Input placeholder="Machine Code" required value={newMachine.machine_code} onChange={e => setNewMachine({ ...newMachine, machine_code: e.target.value })} />
+                    <Input placeholder="Machine Name" required value={newMachine.machine_name} onChange={e => setNewMachine({ ...newMachine, machine_name: e.target.value })} />
+                    <Input placeholder="Machine Location" required value={newMachine.machine_location} onChange={e => setNewMachine({ ...newMachine, machine_location: e.target.value })} />
+                    <Input placeholder="Machine Type" required value={newMachine.machine_type} onChange={e => setNewMachine({ ...newMachine, machine_type: e.target.value })} />
+                    <Input placeholder="Latitude" required value={newMachine.lat} onChange={e => setNewMachine({ ...newMachine, lat: e.target.value })} />
+                    <Input placeholder="Longitude" required value={newMachine.lng} onChange={e => setNewMachine({ ...newMachine, lng: e.target.value })} />
+                  </div>
+                  <div className="flex justify-end space-x-2 pt-4">
+                    <Button variant="outline" onClick={() => setShowAddModal(false)}>Cancel</Button>
+                    <Button onClick={async () => {
+                      try {
+                        const res = await postRequest("/superadmin/addNewMachine", newMachine)
+                        console.log("Added:", res)
+                        fetchMachines()
+                        setShowAddModal(false)
+                      } catch (err) {
+                        console.error("Error adding machine:", err)
+                      }
+                    }} className="bg-teal-600 hover:bg-teal-700">
+                      Add Machine
+                    </Button>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        )}
+          )}
 
 
-        <Card>
-          <CardHeader>
-            <div className="space-y-4">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search by machine number"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {categories.map((category) => (
-                  <Button
-                    key={category.id}
-                    variant={activeCategory === category.id ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => {
-                      setActiveCategory(category.id)
-                      setCurrentPage(1)
-                    }}
-                    className={activeCategory === category.id ? "bg-teal-600 hover:bg-teal-700" : ""}
-                  >
-                    {category.label}
-                  </Button>
-                ))}
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>SNO</TableHead>
-                  <TableHead>Machine Id</TableHead>
-                  <TableHead>Locations</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Last active</TableHead>
-                  <TableHead>Action</TableHead>
-                  <TableHead>Stock Status</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {loading ? (
-                  <TableRow>
-                    <TableCell colSpan={8} className="text-center py-8">
-                      Loading machines...
-                    </TableCell>
-                  </TableRow>
-                ) : paginatedMachines.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={8} className="text-center py-8">
-                      No machines found for the selected category.
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  paginatedMachines.map((machine, index) => (
-                    <TableRow key={machine.id}>
-                      <TableCell className="font-medium">{startIndex + index + 1}</TableCell>
-                      <TableCell className="font-medium text-blue-600">{machine.machine_code}</TableCell>
-                      <TableCell className="max-w-xs">{machine.machine_name}</TableCell>
-                      <TableCell className="text-blue-600">{machine.machine_type}</TableCell>
-                      <TableCell>{getStatusBadge(machine.status)}</TableCell>
-                      <TableCell className="text-muted-foreground">{machine.lastActive}</TableCell>
-                      <TableCell>
-                        <Button size="sm" className="bg-teal-600 hover:bg-teal-700">
-                          <a href={SUPERADMIN_MACHINE_VISIT}>
-                            Visit
-                          </a>
-                        </Button>
-                      </TableCell>
-                      <TableCell>{getStockStatusBadge(machine.stockStatus)}</TableCell>
-                    </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-
-            <div className="flex items-center justify-between space-x-2 py-4">
-              <div className="text-sm text-muted-foreground">
-                Showing {startIndex + 1} to {Math.min(startIndex + itemsPerPage, filteredMachines.length)} of{" "}
-                {filteredMachines.length} results
-              </div>
-              <div className="flex items-center space-x-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-                  disabled={currentPage === 1}
-                >
-                  <ChevronLeft className="h-4 w-4" />
-                  Previous
-                </Button>
-                <div className="flex items-center space-x-1">
-                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+          <Card>
+            <CardHeader>
+              <div className="space-y-4">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Search by machine number"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {categories.map((category) => (
                     <Button
-                      key={page}
-                      variant={currentPage === page ? "default" : "outline"}
+                      key={category.id}
+                      variant={activeCategory === category.id ? "default" : "outline"}
                       size="sm"
-                      onClick={() => setCurrentPage(page)}
-                      className={currentPage === page ? "bg-teal-600 hover:bg-teal-700" : ""}
+                      onClick={() => {
+                        setActiveCategory(category.id)
+                        setCurrentPage(1)
+                      }}
+                      className={activeCategory === category.id ? "bg-teal-600 hover:bg-teal-700" : ""}
                     >
-                      {page}
+                      {category.label}
                     </Button>
                   ))}
                 </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
-                  disabled={currentPage === totalPages}
-                >
-                  Next
-                  <ChevronRight className="h-4 w-4" />
-                </Button>
               </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>SNO</TableHead>
+                    <TableHead>Machine Id</TableHead>
+                    <TableHead>Locations</TableHead>
+                    <TableHead>Type</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Last active</TableHead>
+                    <TableHead>Action</TableHead>
+                    <TableHead>Stock Status</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {loading ? (
+                    <TableRow>
+                      <TableCell colSpan={8} className="text-center py-8">
+                        Loading machines...
+                      </TableCell>
+                    </TableRow>
+                  ) : paginatedMachines.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={8} className="text-center py-8">
+                        No machines found for the selected category.
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    paginatedMachines.map((machine, index) => (
+                      <TableRow key={machine.id}>
+                        <TableCell className="font-medium">{startIndex + index + 1}</TableCell>
+                        <TableCell className="font-medium text-blue-600">{machine.machine_code}</TableCell>
+                        <TableCell className="max-w-xs">{machine.machine_name}</TableCell>
+                        <TableCell className="text-blue-600">{machine.machine_type}</TableCell>
+                        <TableCell>{getStatusBadge(machine.status)}</TableCell>
+                        <TableCell className="text-muted-foreground">{machine.lastActive}</TableCell>
+                        <TableCell>
+                          <Button size="sm" className="bg-teal-600 hover:bg-teal-700">
+                            <a href={SUPERADMIN_MACHINE_VISIT}>
+                              Visit
+                            </a>
+                          </Button>
+                        </TableCell>
+                        <TableCell>{getStockStatusBadge(machine.stockStatus)}</TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+
+              <div className="flex items-center justify-between space-x-2 py-4">
+                <div className="text-sm text-muted-foreground">
+                  Showing {startIndex + 1} to {Math.min(startIndex + itemsPerPage, filteredMachines.length)} of{" "}
+                  {filteredMachines.length} results
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                    disabled={currentPage === 1}
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                    Previous
+                  </Button>
+                  <div className="flex items-center space-x-1">
+                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                      <Button
+                        key={page}
+                        variant={currentPage === page ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => setCurrentPage(page)}
+                        className={currentPage === page ? "bg-teal-600 hover:bg-teal-700" : ""}
+                      >
+                        {page}
+                      </Button>
+                    ))}
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                    disabled={currentPage === totalPages}
+                  >
+                    Next
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </div>
   )
