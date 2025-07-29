@@ -16,7 +16,6 @@ import { useNavigate } from "react-router-dom"
 import { useAuth } from "@/contexts/AuthContext"
 import { ADMIN_SIDEBAR_ROUTES, MACHINES_SIDEBAR_ROUTES, OPS_SIDEBAR_ROUTES, SUPER_ADMIN_SIDEBAR_ROUTES } from "@/constants/Constant"
 
-
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { state } = useAuth();
   const navigate = useNavigate();

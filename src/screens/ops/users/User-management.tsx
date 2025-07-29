@@ -220,10 +220,6 @@ export function OpsUsersManagement() {
         }
     }
 
-    const handleDeleteUser = (userId: number) => {
-        setUsers((prev) => prev.filter((user) => user.id !== userId))
-    }
-
     const formatCurrency = (amount: number) => new Intl.NumberFormat("en-US").format(amount)
 
     // Navigation functions
@@ -392,7 +388,6 @@ export function OpsUsersManagement() {
                                         <TableHead>Balance</TableHead>
                                         <TableHead>Card Number</TableHead>
                                         <TableHead>Created At</TableHead>
-                                        <TableHead>Actions</TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
@@ -414,36 +409,9 @@ export function OpsUsersManagement() {
                                                     <IconWallet className="size-4 text-muted-foreground" />
                                                     <Badge variant={user.balance > 0 ? "default" : "secondary"}>{formatCurrency(user.balance)}</Badge>
                                                 </TableCell>
-                                                <TableCell>{user.card_number || "—"}</TableCell>
+                                                <TableCell className="pl-10">{user.card_number || "—"}</TableCell>
                                                 <TableCell className="text-muted-foreground">
                                                     {moment(user.created_at).format("MMM D, YYYY h:mm A")}
-                                                </TableCell>
-                                                <TableCell>
-                                                    <AlertDialog>
-                                                        <AlertDialogTrigger asChild>
-                                                            <Button variant="destructive" size="sm">
-                                                                <IconTrash className="mr-2 h-4 w-4" />
-                                                                Delete
-                                                            </Button>
-                                                        </AlertDialogTrigger>
-                                                        <AlertDialogContent>
-                                                            <AlertDialogHeader>
-                                                                <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                                                                <AlertDialogDescription>
-                                                                    This will permanently delete <strong>{user.name}</strong>.
-                                                                </AlertDialogDescription>
-                                                            </AlertDialogHeader>
-                                                            <AlertDialogFooter>
-                                                                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                                                <AlertDialogAction
-                                                                    onClick={() => handleDeleteUser(user.id)}
-                                                                    className="bg-red-600 hover:bg-red-700"
-                                                                >
-                                                                    Delete
-                                                                </AlertDialogAction>
-                                                            </AlertDialogFooter>
-                                                        </AlertDialogContent>
-                                                    </AlertDialog>
                                                 </TableCell>
                                             </TableRow>
                                         ))
