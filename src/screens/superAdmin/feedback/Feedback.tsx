@@ -263,7 +263,7 @@ const Feedback = () => {
                                     {feedback.length > 0 ? (
                                         feedback.map((entry) => (
                                             <TableRow key={entry.id} className="hover:bg-muted/50">
-                                                <TableCell>
+                                                <TableCell className="font-medium">
                                                     {entry.name || <span className="italic text-muted-foreground">Anonymous</span>}
                                                 </TableCell>
                                                 <TableCell className="max-w-md truncate" title={entry.error_message}>

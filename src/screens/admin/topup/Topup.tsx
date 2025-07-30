@@ -537,7 +537,7 @@ export function AdminTopup() {
                                                 onClick={() => handleCardReset(cardForm.getValues())}
                                                 className="border-teal-600 text-teal-600 hover:bg-teal-50 bg-transparent"
                                             >
-                                                Reset to Zero
+                                                Reset balance to Zero
                                             </Button>
                                         </div>
                                     </form>

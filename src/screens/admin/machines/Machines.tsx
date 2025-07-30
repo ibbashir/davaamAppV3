@@ -8,8 +8,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Input } from "@/components/ui/input"
 import { Search, ChevronLeft, ChevronRight } from "lucide-react"
 import type { ApiMachine, MachinesResponse } from "./Types"
+import { useNavigate } from "react-router-dom"
 import { getRequest, postRequest } from "@/Apis/Api"
-import { ADMIN_MACHINE_VISIT, timeConverter } from "@/constants/Constant"
+import { timeConverter } from "@/constants/Constant"
 import { SiteHeader } from "@/components/admin/site-header"
 
 const categories = [
@@ -32,6 +33,8 @@ const Machines = () => {
     const [machineStockMap, setMachineStockMap] = useState<{ [code: string]: string }>({})
     const [loading, setLoading] = useState(true)
     const [showAddModal, setShowAddModal] = useState(false)
+    const navigate = useNavigate();
+
     const [newMachine, setNewMachine] = useState({
         machine_code: "",
         machine_name: "",
@@ -138,6 +141,10 @@ const Machines = () => {
         )
     }
 
+    const visitMachineDetails = (machine_type: string, machineCode: string) => {
+        navigate(`/admin/machine-details/${machine_type}/${machineCode}`);
+    };
+
     return (
         <div>
             <SiteHeader title="Deployed Machines" />
@@ -189,7 +196,6 @@ const Machines = () => {
                             </div>
                         </div>
                     )}
-
 
                     <Card>
                         <CardHeader>
@@ -258,10 +264,8 @@ const Machines = () => {
                                                 <TableCell>{getStatusBadge(machine.status)}</TableCell>
                                                 <TableCell className="text-muted-foreground">{machine.lastActive}</TableCell>
                                                 <TableCell>
-                                                    <Button size="sm" className="bg-teal-600 hover:bg-teal-700">
-                                                        <a href={ADMIN_MACHINE_VISIT}>
-                                                            Visit
-                                                        </a>
+                                                    <Button onClick={() => visitMachineDetails(machine.machine_type, machine.machine_code)} size="sm" className="bg-teal-600 hover:bg-teal-700">
+                                                        Visit
                                                     </Button>
                                                 </TableCell>
                                                 <TableCell>{getStockStatusBadge(machine.stockStatus)}</TableCell>

@@ -403,7 +403,7 @@ export function OpsUsersManagement() {
                                     ) : users.length > 0 ? (
                                         users.map((user) => (
                                             <TableRow key={user.id}>
-                                                <TableCell>{user.name}</TableCell>
+                                                <TableCell className="font-medium">{user.name}</TableCell>
                                                 <TableCell className="font-mono">{user.mobile_number}</TableCell>
                                                 <TableCell className="flex items-center gap-2">
                                                     <IconWallet className="size-4 text-muted-foreground" />
