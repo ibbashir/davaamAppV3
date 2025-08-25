@@ -65,25 +65,31 @@ type PhoneTopupFormData = z.infer<typeof phoneTopupSchema>
 type CardTopupFormData = z.infer<typeof cardTopupSchema>
 
 interface Topup {
-    id: number
-    user_id: number
-    msisdn: string
-    balance_added: string
-    previous_balance: string
-    total_balance: string
-    created_at: string
-    description: string | null
-    user_email: string | null
-    name: string
+  id: number
+  user_id: number
+  msisdn: string
+  balance_added: string
+  previous_balance: string
+  total_balance: string
+  created_at: string
+  description: string | null
+  user_email: string | null
+  name: string
 }
 
 interface ApiResponse {
-    topupBalance: Topup[]
+  status: number
+  activeUsers: number
+  totalCount: number
+  totalBalance: number
+  topupBalance: Topup[]
 }
+
 
 export function Topup() {
     const [searchTerm, setSearchTerm] = useState("")
-    const [topupHistory, setTopupHistory] = useState<Topup[]>([])
+  const [topupHistory, setTopupHistory] = useState<Topup[]>([])
+  const [stats, setStats] = useState<ApiResponse | null>(null)
     const [loading, setLoading] = useState(true)
 
     // Pagination state
@@ -94,7 +100,9 @@ export function Topup() {
         try {
             setLoading(true)
             const res = await getRequest<ApiResponse>("/superadmin/getTopUpHistory")
+            setStats(res)
             setTopupHistory(res.topupBalance || [])
+
         } catch (err) {
             console.log(err)
             setTopupHistory([])
@@ -133,7 +141,7 @@ export function Topup() {
     })
 
     // Memoized filtered and paginated data
-    const { filteredHistory, paginatedHistory, totalPages, totalItems } = useMemo(() => {
+    const { paginatedHistory, totalPages, totalItems } = useMemo(() => {
         const filtered = topupHistory.filter(
             (item) =>
                 item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -259,10 +267,6 @@ export function Topup() {
         return rangeWithDots
     }
 
-    const totalAmount = topupHistory.reduce((sum, item) => sum + Number.parseFloat(item.balance_added), 0)
-    const uniqueUsers = new Set(topupHistory.map((item) => item.msisdn)).size
-    const avgTopup = topupHistory.length > 0 ? totalAmount / topupHistory.length : 0
-
     if (loading) {
         return (
             <div className="flex items-center justify-center min-h-screen">
@@ -287,7 +291,7 @@ export function Topup() {
                             <Wallet className="h-4 w-4 text-muted-foreground" />
                         </CardHeader>
                         <CardContent>
-                            <div className="text-2xl font-bold">{topupHistory.length}</div>
+                            <div className="text-2xl font-bold">{stats?.totalCount || 0}</div>
                             <p className="text-xs text-muted-foreground">All time</p>
                         </CardContent>
                     </Card>
@@ -297,7 +301,7 @@ export function Topup() {
                             <Wallet className="h-4 w-4 text-green-500" />
                         </CardHeader>
                         <CardContent>
-                            <div className="text-2xl font-bold text-green-600">{formatCurrency(totalAmount)}</div>
+                            <div className="text-2xl font-bold text-green-600">{formatCurrency(stats?.totalBalance || 0)}</div>
                             <p className="text-xs text-muted-foreground">Total added</p>
                         </CardContent>
                     </Card>
@@ -307,18 +311,8 @@ export function Topup() {
                             <Phone className="h-4 w-4 text-blue-500" />
                         </CardHeader>
                         <CardContent>
-                            <div className="text-2xl font-bold text-blue-600">{uniqueUsers}</div>
+                            <div className="text-2xl font-bold text-blue-600">{stats?.activeUsers || 0}</div>
                             <p className="text-xs text-muted-foreground">Unique accounts</p>
-                        </CardContent>
-                    </Card>
-                    <Card>
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">Avg Topup</CardTitle>
-                            <Wallet className="h-4 w-4 text-purple-500" />
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-2xl font-bold text-purple-600">{formatCurrency(Math.round(avgTopup))}</div>
-                            <p className="text-xs text-muted-foreground">Per transaction</p>
                         </CardContent>
                     </Card>
                 </div>
