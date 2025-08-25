@@ -172,7 +172,7 @@ const Machines = () => {
                   </div>
                   <div className="flex justify-end space-x-2 pt-4">
                     <Button variant="outline" onClick={() => setShowAddModal(false)}>Cancel</Button>
-                    <Button onClick={async () => {
+                    <Button onClick={async () => { 
                       try {
                         const res = await postRequest("/superadmin/addNewMachine", newMachine)
                         console.log("Added:", res)

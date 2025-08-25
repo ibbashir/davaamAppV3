@@ -125,7 +125,7 @@ function PointsShareTable({ tableData }: PointsShareTableProps) {
     }
 
     const formatCurrency = (amount: string) => {
-        return `$${Number.parseFloat(amount).toFixed(2)}`
+        return `Rs: ${Number.parseFloat(amount).toFixed(2)}`
     }
 
     return (

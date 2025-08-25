@@ -99,16 +99,15 @@ const Notifications = () => {
             const res = await getRequest<RecentApiResponse>(`/superadmin/getAllNotifications?page=${page}&limit=${limit}`)
             setRecentNotifs(res.data)
             setCurrentPage(res.page)
-            // Calculate total pages based on your API response structure
-            // You might need to add total count to your API response
             setTotalPages(Math.ceil(res.data.length / limit) || 1)
         } catch (error) {
             console.error("Error fetching notification history:", error)
         } finally {
             setIsLoadingHistory(false)
         }
+        
+     console.log(recentNotifs)
     }
-
     useEffect(() => {
         loadingUsers()
         getNotificationHistory()

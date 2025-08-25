@@ -99,8 +99,6 @@ const Notifications = () => {
             const res = await getRequest<RecentApiResponse>(`/admin/getAllNotifications?page=${page}&limit=${limit}`)
             setRecentNotifs(res.data)
             setCurrentPage(res.page)
-            // Calculate total pages based on your API response structure
-            // You might need to add total count to your API response
             setTotalPages(Math.ceil(res.data.length / limit) || 1)
         } catch (error) {
             console.error("Error fetching notification history:", error)
@@ -108,7 +106,6 @@ const Notifications = () => {
             setIsLoadingHistory(false)
         }
     }
-
     useEffect(() => {
         loadingUsers()
         getNotificationHistory()
@@ -121,7 +118,7 @@ const Notifications = () => {
         const payload = data.multiNumber.map((e) => e.data.mobile_number)
         const postData = async () => {
             try {
-                const res = await postRequest("/admin/sentMultiNotification", {
+                await postRequest("/admin/sentMultiNotification", {
                     multiNumber: payload,
                     title: data.title,
                     body: data.body,
