@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react"
 import PointsShareTable from "@/components/superAdmin/Points-Share-Table"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { IconArrowUpRight, IconArrowDownRight, IconClock, IconCheck } from "@tabler/icons-react"
+import { IconArrowUpRight, IconArrowDownRight} from "@tabler/icons-react"
 import { SiteHeader } from "@/components/superAdmin/site-header"
 import { getRequest } from "@/Apis/Api"
 
@@ -42,8 +42,8 @@ export function PointShare() {
     // Calculate summary statistics
     const totalTransfers = tableData.length
     const totalAmount = tableData.reduce((sum, item) => sum + parseFloat(item.amount), 0)
-    const completedTransfers = tableData.filter((item) => item.status === "completed").length
-    const pendingTransfers = tableData.filter((item) => item.status === "pending").length
+    // const completedTransfers = tableData.filter((item) => item.status === "completed").length
+    // const pendingTransfers = tableData.filter((item) => item.status === "pending").length
 
     return (
         <div>
@@ -77,7 +77,7 @@ export function PointShare() {
                             <p className="text-xs text-muted-foreground">Total transferred</p>
                         </CardContent>
                     </Card>
-                    <Card>
+                    {/* <Card>
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                             <CardTitle className="text-sm font-medium">Completed</CardTitle>
                             <IconCheck className="h-4 w-4 text-green-500" />
@@ -96,7 +96,7 @@ export function PointShare() {
                             <div className="text-2xl font-bold text-yellow-600">{pendingTransfers}</div>
                             <p className="text-xs text-muted-foreground">Awaiting completion</p>
                         </CardContent>
-                    </Card>
+                    </Card> */}
                 </div>
 
                 <PointsShareTable tableData={tableData} />

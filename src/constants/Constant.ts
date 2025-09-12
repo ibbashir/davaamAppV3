@@ -127,7 +127,7 @@ export const OPS_SIDEBAR_ROUTES = () => {
 export const MACHINES_SIDEBAR_ROUTES = () => {
     return [
         { title: "Dashboard", url: MACHINE_DASHBOARD, icon: IconHome },
-        // { title: "Machines", url: MACHINE_MACHINES, icon: IconChartBar },
+        { title: "Machines", url: MACHINE_MACHINES, icon: IconChartBar },
     ]
 }
 

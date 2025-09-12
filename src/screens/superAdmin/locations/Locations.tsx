@@ -16,6 +16,8 @@ import {
   IconTrash,
   IconMap,
   IconUsers,
+  IconChevronLeft,
+  IconChevronRight,
 } from "@tabler/icons-react"
 import { getRequest } from "@/Apis/Api"
 
@@ -23,6 +25,8 @@ interface LocationApiResponse {
   totalLocations: number
   totalMachines: number
   overallRevenue: number
+  totalPages: number
+  totalCount: number
   data: LocationsDetail[]
 }
 
@@ -43,10 +47,14 @@ interface LocationsDetail {
   status?: string
 }
 
+const ITEMS_PER_PAGE = 10
+
 const Locations = () => {
   const [searchTerm, setSearchTerm] = useState("")
   const [machineLocation, setMachineLocation] = useState<LocationApiResponse | null>(null)
-
+  const [currentPage, setCurrentPage] = useState<number>(1)
+  const [totalPages, setTotalPages] = useState<number>(1)
+  const [totalCount, setTotalCount] = useState<number>(0)
 
   const getTypeBadge = (type: string) => {
     const colors = {
@@ -62,17 +70,41 @@ const Locations = () => {
     )
   }
 
+  const formatCurrency = (amount: number | string) => {
+    const numAmount = typeof amount === "string" ? Number.parseFloat(amount) : amount
+    return new Intl.NumberFormat("en-US").format(numAmount)
+  }
+
   useEffect(() => {
     const locationApi = async () => {
+      const params = new URLSearchParams()
+      params.append("page", currentPage.toString())
+      params.append("limit", ITEMS_PER_PAGE.toString())
+
+      if (searchTerm) {
+        params.append("search", searchTerm)
+      }
+
+      const queryString = params.toString()
+      const url = `/superadmin/MachineLocations${queryString ? `?${queryString}` : ""}`
+
       try {
-        const api = await getRequest<LocationApiResponse>(`/superadmin/MachineLocations`)
-        setMachineLocation(api)
-      } catch (err) {
-        console.error("Error fetching machine locations", err)
+        const res = await getRequest<LocationApiResponse>(url)
+        setMachineLocation(res)
+        setTotalPages(res.totalPages)
+        setTotalCount(res.totalPages)
+      } catch (error) {
+        console.error("Failed to fetch machine locations:", error)
+        setMachineLocation(null)
+        setTotalPages(1)
+        setTotalCount(0)
       }
     }
     locationApi()
-  }, [])
+  }, [currentPage, searchTerm])
+
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE
+  const endIndex = startIndex + ITEMS_PER_PAGE
 
   return (
     <div>
@@ -116,7 +148,9 @@ const Locations = () => {
               <IconUsers className="h-4 w-4 text-green-500" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-green-600">{machineLocation?.overallRevenue || 0}</div>
+              <div className="text-2xl font-bold text-green-600">
+                {formatCurrency(machineLocation?.overallRevenue || 0)}
+              </div>
               <p className="text-xs text-muted-foreground">Combined revenue</p>
             </CardContent>
           </Card>
@@ -146,7 +180,7 @@ const Locations = () => {
                   <TableHead>Location Name</TableHead>
                   <TableHead>Address</TableHead>
                   <TableHead>Type</TableHead>
-                  <TableHead style={{textAlign:"center"}}>Gross Sales</TableHead>
+                  <TableHead style={{ textAlign: "center" }}>Gross Sales</TableHead>
                   <TableHead>On-boarding</TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
@@ -167,7 +201,9 @@ const Locations = () => {
                       <div className="truncate">{data.machine_location}</div>
                     </TableCell>
                     <TableCell>{getTypeBadge(data.machine_type)}</TableCell>
-                    <TableCell className="font-medium text-green-600 text-center">{data.totalRevenue || 0}</TableCell>
+                    <TableCell className="font-medium text-green-600 text-center">
+                      {formatCurrency(data.totalRevenue || 0)}
+                    </TableCell>
                     <TableCell className="text-muted-foreground">
                       {moment.unix(data.created_at).format("YYYY-MM-DD HH:mm:ss")}
                     </TableCell>
@@ -186,6 +222,43 @@ const Locations = () => {
               </TableBody>
             </Table>
           </CardContent>
+
+          {/* ✅ Pagination */}
+          {totalCount > 0 && (
+            <div className="flex justify-between items-center mt-4 px-4 pb-4">
+              <div className="text-sm text-muted-foreground">
+                Showing {startIndex + 1} to {Math.min(endIndex, totalCount)} of {totalCount} entries
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                  disabled={currentPage === 1}
+                  className="h-8 w-8 p-0"
+                  variant="outline"
+                >
+                  <IconChevronLeft className="h-4 w-4" />
+                </Button>
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                  <Button
+                    key={page}
+                    onClick={() => setCurrentPage(page)}
+                    className={`h-8 w-8 p-0 ${currentPage === page ? "bg-teal-600 hover:bg-teal-700" : ""}`}
+                    variant={currentPage === page ? "default" : "outline"}
+                  >
+                    {page}
+                  </Button>
+                ))}
+                <Button
+                  onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                  disabled={currentPage === totalPages}
+                  className="h-8 w-8 p-0"
+                  variant="outline"
+                >
+                  <IconChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          )}
         </Card>
       </div>
     </div>

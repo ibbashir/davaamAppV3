@@ -11,8 +11,6 @@ import {
     IconBell,
     IconSend,
     IconUsers,
-    IconMail,
-    IconCalendar,
     IconCheck,
     IconChevronLeft,
     IconChevronRight,
@@ -21,7 +19,7 @@ import {
 } from "@tabler/icons-react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { getRequest, postRequest } from "@/Apis/Api"
-import { SiteHeader } from "@/components/admin/site-header"
+import { SiteHeader } from "@/components/superAdmin/site-header"
 import Reactselect from "react-select"
 import loader from "../../../assets/infinite-spinner.svg"
 
@@ -37,6 +35,7 @@ type RecentApiResponse = {
     message: string
     page: number
     limit: number
+    totalNotification: number
     data: RecentNotificationData[]
 }
 
@@ -54,6 +53,7 @@ type OptionType = {
 type ApiRes = {
     status: number
     message: string
+    totalUsers:number
     data: {
         usersWithFcmAndToken: UserWithFcmAndToken[]
     }
@@ -68,6 +68,8 @@ type FormValues = {
 const Notifications = () => {
     const [userList, setUserList] = useState<UserWithFcmAndToken[]>([])
     const [recentNotifs, setRecentNotifs] = useState<RecentNotificationData[]>([])
+    const [totalNotificationCount, setTotalNotificationCount] = useState<number>()
+    const [totalUserCount,setTotalUserCount]=useState<number>()
     const [currentPage, setCurrentPage] = useState(1)
     const [totalPages, setTotalPages] = useState(1)
     const [isLoadingHistory, setIsLoadingHistory] = useState(false)
@@ -91,6 +93,7 @@ const Notifications = () => {
     const loadingUsers = async () => {
         const res = await getRequest<ApiRes>("/admin/getPhoneNumberWithFcm")
         setUserList(res.data.usersWithFcmAndToken)
+        setTotalUserCount(res.totalUsers)
     }
 
     const getNotificationHistory = async (page = 1) => {
@@ -98,6 +101,7 @@ const Notifications = () => {
         try {
             const res = await getRequest<RecentApiResponse>(`/admin/getAllNotifications?page=${page}&limit=${limit}`)
             setRecentNotifs(res.data)
+            setTotalNotificationCount(res.totalNotification)
             setCurrentPage(res.page)
             setTotalPages(Math.ceil(res.data.length / limit) || 1)
         } catch (error) {
@@ -205,7 +209,7 @@ const Notifications = () => {
                             <IconBell className="h-4 w-4 text-muted-foreground" />
                         </CardHeader>
                         <CardContent>
-                            <div className="text-2xl font-bold">1,479</div>
+                            <div className="text-2xl font-bold">{totalNotificationCount}</div>
                             <p className="text-xs text-muted-foreground">This month</p>
                         </CardContent>
                     </Card>
@@ -215,28 +219,8 @@ const Notifications = () => {
                             <IconUsers className="h-4 w-4 text-green-500" />
                         </CardHeader>
                         <CardContent>
-                            <div className="text-2xl font-bold text-green-600">1,234</div>
+                            <div className="text-2xl font-bold text-green-600">{totalUserCount}</div>
                             <p className="text-xs text-muted-foreground">Available recipients</p>
-                        </CardContent>
-                    </Card>
-                    <Card>
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">Open Rate</CardTitle>
-                            <IconMail className="h-4 w-4 text-blue-500" />
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-2xl font-bold text-blue-600">68.5%</div>
-                            <p className="text-xs text-muted-foreground">Email open rate</p>
-                        </CardContent>
-                    </Card>
-                    <Card>
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">Scheduled</CardTitle>
-                            <IconCalendar className="h-4 w-4 text-yellow-500" />
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-2xl font-bold text-yellow-600">3</div>
-                            <p className="text-xs text-muted-foreground">Pending notifications</p>
                         </CardContent>
                     </Card>
                 </div>

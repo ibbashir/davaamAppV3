@@ -133,7 +133,7 @@ export function OpsTopup() {
     })
 
     // Memoized filtered and paginated data
-    const { filteredHistory, paginatedHistory, totalPages, totalItems } = useMemo(() => {
+    const { paginatedHistory, totalPages, totalItems } = useMemo(() => {
         const filtered = topupHistory.filter(
             (item) =>
                 item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -261,7 +261,6 @@ export function OpsTopup() {
 
     const totalAmount = topupHistory.reduce((sum, item) => sum + Number.parseFloat(item.balance_added), 0)
     const uniqueUsers = new Set(topupHistory.map((item) => item.msisdn)).size
-    const avgTopup = topupHistory.length > 0 ? totalAmount / topupHistory.length : 0
 
     if (loading) {
         return (
@@ -309,16 +308,6 @@ export function OpsTopup() {
                         <CardContent>
                             <div className="text-2xl font-bold text-blue-600">{uniqueUsers}</div>
                             <p className="text-xs text-muted-foreground">Unique accounts</p>
-                        </CardContent>
-                    </Card>
-                    <Card>
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">Avg Topup</CardTitle>
-                            <Wallet className="h-4 w-4 text-purple-500" />
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-2xl font-bold text-purple-600">{formatCurrency(Math.round(avgTopup))}</div>
-                            <p className="text-xs text-muted-foreground">Per transaction</p>
                         </CardContent>
                     </Card>
                 </div>

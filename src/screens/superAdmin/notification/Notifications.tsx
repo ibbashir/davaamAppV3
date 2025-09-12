@@ -11,8 +11,6 @@ import {
     IconBell,
     IconSend,
     IconUsers,
-    IconMail,
-    IconCalendar,
     IconCheck,
     IconChevronLeft,
     IconChevronRight,
@@ -37,6 +35,7 @@ type RecentApiResponse = {
     message: string
     page: number
     limit: number
+    totalNotification: number
     data: RecentNotificationData[]
 }
 
@@ -54,6 +53,7 @@ type OptionType = {
 type ApiRes = {
     status: number
     message: string
+    totalUsers:number
     data: {
         usersWithFcmAndToken: UserWithFcmAndToken[]
     }
@@ -68,6 +68,8 @@ type FormValues = {
 const Notifications = () => {
     const [userList, setUserList] = useState<UserWithFcmAndToken[]>([])
     const [recentNotifs, setRecentNotifs] = useState<RecentNotificationData[]>([])
+    const [totalNotificationCount, setTotalNotificationCount] = useState<number>()
+    const [totalUserCount,setTotalUserCount]=useState<number>()
     const [currentPage, setCurrentPage] = useState(1)
     const [totalPages, setTotalPages] = useState(1)
     const [isLoadingHistory, setIsLoadingHistory] = useState(false)
@@ -91,6 +93,7 @@ const Notifications = () => {
     const loadingUsers = async () => {
         const res = await getRequest<ApiRes>("/superadmin/getPhoneNumberWithFcm")
         setUserList(res.data.usersWithFcmAndToken)
+        setTotalUserCount(res.totalUsers)
     }
 
     const getNotificationHistory = async (page = 1) => {
@@ -98,6 +101,7 @@ const Notifications = () => {
         try {
             const res = await getRequest<RecentApiResponse>(`/superadmin/getAllNotifications?page=${page}&limit=${limit}`)
             setRecentNotifs(res.data)
+            setTotalNotificationCount(res.totalNotification)
             setCurrentPage(res.page)
             setTotalPages(Math.ceil(res.data.length / limit) || 1)
         } catch (error) {
@@ -105,8 +109,6 @@ const Notifications = () => {
         } finally {
             setIsLoadingHistory(false)
         }
-        
-     console.log(recentNotifs)
     }
     useEffect(() => {
         loadingUsers()
@@ -120,7 +122,7 @@ const Notifications = () => {
         const payload = data.multiNumber.map((e) => e.data.mobile_number)
         const postData = async () => {
             try {
-                const res = await postRequest("/superadmin/sentMultiNotification", {
+                await postRequest("/superadmin/sentMultiNotification", {
                     multiNumber: payload,
                     title: data.title,
                     body: data.body,
@@ -207,7 +209,7 @@ const Notifications = () => {
                             <IconBell className="h-4 w-4 text-muted-foreground" />
                         </CardHeader>
                         <CardContent>
-                            <div className="text-2xl font-bold">1,479</div>
+                            <div className="text-2xl font-bold">{totalNotificationCount}</div>
                             <p className="text-xs text-muted-foreground">This month</p>
                         </CardContent>
                     </Card>
@@ -217,28 +219,8 @@ const Notifications = () => {
                             <IconUsers className="h-4 w-4 text-green-500" />
                         </CardHeader>
                         <CardContent>
-                            <div className="text-2xl font-bold text-green-600">1,234</div>
+                            <div className="text-2xl font-bold text-green-600">{totalUserCount}</div>
                             <p className="text-xs text-muted-foreground">Available recipients</p>
-                        </CardContent>
-                    </Card>
-                    <Card>
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">Open Rate</CardTitle>
-                            <IconMail className="h-4 w-4 text-blue-500" />
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-2xl font-bold text-blue-600">68.5%</div>
-                            <p className="text-xs text-muted-foreground">Email open rate</p>
-                        </CardContent>
-                    </Card>
-                    <Card>
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">Scheduled</CardTitle>
-                            <IconCalendar className="h-4 w-4 text-yellow-500" />
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-2xl font-bold text-yellow-600">3</div>
-                            <p className="text-xs text-muted-foreground">Pending notifications</p>
                         </CardContent>
                     </Card>
                 </div>

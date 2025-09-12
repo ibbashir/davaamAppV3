@@ -1,9 +1,7 @@
 import { IconTrendingUp } from "@tabler/icons-react"
 import { useEffect, useState } from "react"
-import { Badge } from "@/components/ui/badge"
 import {
   Card,
-  CardAction,
   CardDescription,
   CardFooter,
   CardHeader,
@@ -19,39 +17,36 @@ interface DashboardStatistics {
   napkins: number;
   oil: number;
   plasticSaved: number;
+  grossSales:number;
 }
 
 export function SectionCards() {
   const [cardsData, setCardsData] = useState<DashboardStatistics | null>(null);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const res = await getRequest("/admin/dashboardStatistics") as { data: DashboardStatistics };
-        setCardsData(res.data);
-      } catch (error) {
-        console.error("Error fetching dashboard statistics:", error);
-        setCardsData(null);
-      }
-    };
-    fetchData();
-  }, []);
+    useEffect(() => {
+      const fetchData = async () => {
+        try {
+          const res = await getRequest("/admin/dashboardStatistics") as { data: DashboardStatistics };
+          setCardsData(res.data);
+        } catch (error) {
+          console.error("Error fetching dashboard statistics:", error);
+          setCardsData(null);
+        }
+      };
+      fetchData();
+    }, []);
 
-
+    const formatCurrency = (amount: number) => {
+            return new Intl.NumberFormat("en-US").format(amount)
+        }
   return (
     <div className="*:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card grid grid-cols-1 gap-4 px-4 *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:shadow-xs lg:px-6 @xl/main:grid-cols-2 @5xl/main:grid-cols-4">
       <Card className="@container/card">
         <CardHeader>
           <CardDescription>Total Revenue</CardDescription>
           <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
-            $1,250.00
+            {formatCurrency(cardsData?.grossSales || 0)}
           </CardTitle>
-          <CardAction>
-            <Badge variant="outline">
-              <IconTrendingUp />
-              +12.5%
-            </Badge>
-          </CardAction>
         </CardHeader>
         <CardFooter className="flex-col items-start gap-1.5 text-sm">
           <div className="line-clamp-1 flex gap-2 font-medium">
@@ -68,12 +63,6 @@ export function SectionCards() {
           <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
             {cardsData?.activeLocations}
           </CardTitle>
-          <CardAction>
-            <Badge variant="outline">
-              <IconTrendingUp />
-              +5.6%
-            </Badge>
-          </CardAction>
         </CardHeader>
         <CardFooter className="flex-col items-start gap-1.5 text-sm">
           <div className="line-clamp-1 flex gap-2 font-medium">
@@ -90,12 +79,6 @@ export function SectionCards() {
           <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
             {Math.round(cardsData?.plasticSaved ?? 0).toLocaleString()}
           </CardTitle>
-          <CardAction>
-            <Badge variant="outline">
-              <IconTrendingUp />
-              +8.2%
-            </Badge>
-          </CardAction>
         </CardHeader>
         <CardFooter className="flex-col items-start gap-1.5 text-sm">
           <div className="line-clamp-1 flex gap-2 font-medium">
@@ -110,12 +93,6 @@ export function SectionCards() {
           <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
             {cardsData?.napkins}
           </CardTitle>
-          <CardAction>
-            <Badge variant="outline">
-              <IconTrendingUp />
-              +4.5%
-            </Badge>
-          </CardAction>
         </CardHeader>
         <CardFooter className="flex-col items-start gap-1.5 text-sm">
           <div className="line-clamp-1 flex gap-2 font-medium">

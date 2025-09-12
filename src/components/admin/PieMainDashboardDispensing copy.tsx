@@ -20,7 +20,7 @@ type NivoPieData = {
     transactions: number
 }
 
-export default function CorporateDashboardDispensing() {
+export default function AdminDashboardDispensing() {
     const [data, setData] = React.useState<NivoPieData[]>([])
     const [totalRevenue, setTotalRevenue] = React.useState(0)
     const [totalTransactions, setTotalTransactions] = React.useState(0)
@@ -31,7 +31,7 @@ export default function CorporateDashboardDispensing() {
         const fetchData = async () => {
             setLoading(true)
             try {
-                const res = await postRequest<DispensingPieResponse>("", {})
+                const res = await postRequest<DispensingPieResponse>("/admin/PieMainDashboardDispensing", {})
 
                 const transformed: NivoPieData[] = res.butterflyBrandsId.map((brand, i) => ({
                     id: brand,

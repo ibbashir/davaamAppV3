@@ -20,7 +20,11 @@ type NivoPieData = {
     transactions: number
 }
 
-export default function CorporateDashboardSanitary() {
+interface PieCorporateDashboardSanitary{
+    machineCodes:number[]
+}
+
+export default function PieCorporateDashboardSanitary({machineCodes}:PieCorporateDashboardSanitary) {
     const [data, setData] = React.useState<NivoPieData[]>([])
     const [totalRevenue, setTotalRevenue] = React.useState(0)
     const [totalTransactions, setTotalTransactions] = React.useState(0)
@@ -31,8 +35,9 @@ export default function CorporateDashboardSanitary() {
         const fetchData = async () => {
             setLoading(true)
             try {
-                const res: PieMainDashboardSanitaryResponse = await postRequest("", {})
+                const res: PieMainDashboardSanitaryResponse = await postRequest("corporates/PieChartCorporateClientSanitary", {"machine_code": machineCodes})
 
+                console.log(res)
                 const transformed: NivoPieData[] = res.butterflyBrandsId.map((brand, i) => ({
                     id: brand,
                     label: brand,

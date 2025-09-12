@@ -14,20 +14,19 @@ import {
     IconPhone,
     IconAlertTriangle,
     IconBug,
-    IconShield,
-    IconSettings,
     IconChevronLeft,
     IconChevronRight,
     IconMessage,
 } from "@tabler/icons-react"
 import moment from "moment"
 import { getRequest } from "@/Apis/Api"
-import { SiteHeader } from "@/components/admin/site-header"
+import { SiteHeader } from "@/components/superAdmin/site-header"
 
 // Types
 type AppFeedback = {
     phone_number: string
     error_message: string
+    issue_type: string
     epoch_time: number
     id: number
     name: string | null
@@ -38,6 +37,8 @@ type AppFeedbackApiResponse = {
     limit: number
     totalCount: number
     totalPages: number
+    technical_issue: string
+    general_issue: string
     appFeedback: AppFeedback[]
 }
 
@@ -45,6 +46,8 @@ const ITEMS_PER_PAGE = 10
 
 const Feedback = () => {
     const [feedback, setFeedback] = useState<AppFeedback[]>([])
+    const [generalIssue,setGeneralIssue] = useState<string>("")
+    const [technicalIssue,setTechnicalIssue]=useState<string>("")
     const [totalCount, setTotalCount] = useState(0)
     const [searchTerm, setSearchTerm] = useState("")
     const [categoryFilter, setCategoryFilter] = useState("all")
@@ -73,6 +76,8 @@ const Feedback = () => {
                 setFeedback(res.appFeedback)
                 setTotalCount(res.totalCount)
                 setTotalPages(res.totalPages)
+                setGeneralIssue(res.general_issue)
+                setTechnicalIssue(res.technical_issue)
             } catch (error) {
                 console.error("Failed to fetch feedback:", error)
                 // Handle error, e.g., set feedback to empty array, show error message
@@ -84,27 +89,12 @@ const Feedback = () => {
         getFeedback()
     }, [currentPage, searchTerm, categoryFilter]) // Re-fetch when these dependencies change
 
-    const getCategory = (message: string): string => {
-        const msg = message.toLowerCase()
-        if (msg.includes("technical") || msg.includes("error")) return "technical"
-        if (msg.includes("register") || msg.includes("number")) return "registration"
-        if (msg.includes("privacy")) return "privacy"
-        if (msg.includes("notification")) return "notifications"
-        if (msg.includes("account")) return "account"
-        return "other"
-    }
 
     const getCategoryIcon = (category: string) => {
         switch (category) {
-            case "technical":
+            case "Technical":
                 return <IconBug className="h-3 w-3" />
-            case "registration":
-                return <IconUsers className="h-3 w-3" />
-            case "privacy":
-                return <IconShield className="h-3 w-3" />
-            case "notifications":
-                return <IconSettings className="h-3 w-3" />
-            case "account":
+            case "General":
                 return <IconUsers className="h-3 w-3" />
             default:
                 return <IconMessage className="h-3 w-3" />
@@ -113,12 +103,8 @@ const Feedback = () => {
 
     const getCategoryBadge = (category: string) => {
         const colors = {
-            technical: "bg-red-100 text-red-800",
-            registration: "bg-blue-100 text-blue-800",
-            privacy: "bg-purple-100 text-purple-800",
-            notifications: "bg-yellow-100 text-yellow-800",
-            account: "bg-green-100 text-green-800",
-            other: "bg-gray-100 text-gray-800",
+            Technical: "bg-red-100 text-red-800",
+            General: "bg-blue-100 text-blue-800",
         }
         return (
             <Badge variant="outline" className={`${colors[category as keyof typeof colors]} flex items-center gap-1`}>
@@ -129,13 +115,9 @@ const Feedback = () => {
     }
 
     const startIndex = (currentPage - 1) * ITEMS_PER_PAGE
-    const endIndex = startIndex + feedback.length
+    const endIndex = startIndex + feedback.length 
 
-    const totalFeedback = totalCount
-    const technicalIssues = feedback.filter((f) => getCategory(f.error_message) === "technical").length
-    const registrationIssues = feedback.filter((f) => getCategory(f.error_message) === "registration").length
-    const uniqueUsers = new Set(feedback.map((f) => f.phone_number)).size
-
+    const totalFeedback = totalCount 
     return (
         <div>
             <SiteHeader title='Feedback' />
@@ -163,25 +145,16 @@ const Feedback = () => {
                             <IconBug className="h-4 w-4 text-red-500" />
                         </CardHeader>
                         <CardContent>
-                            <div className="text-2xl font-bold text-red-600">{technicalIssues}</div>
+                            <div className="text-2xl font-bold text-red-600">{technicalIssue}</div>
                         </CardContent>
                     </Card>
                     <Card>
                         <CardHeader className="flex justify-between">
-                            <CardTitle className="text-sm">Registration Issues</CardTitle>
+                            <CardTitle className="text-sm">General Issues</CardTitle>
                             <IconAlertTriangle className="h-4 w-4 text-yellow-500" />
                         </CardHeader>
                         <CardContent>
-                            <div className="text-2xl font-bold text-yellow-600">{registrationIssues}</div>
-                        </CardContent>
-                    </Card>
-                    <Card>
-                        <CardHeader className="flex justify-between">
-                            <CardTitle className="text-sm">Unique Users</CardTitle>
-                            <IconUsers className="h-4 w-4 text-blue-500" />
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-2xl font-bold text-blue-600">{uniqueUsers}</div>
+                            <div className="text-2xl font-bold text-yellow-600">{generalIssue}</div>
                         </CardContent>
                     </Card>
                 </div>
@@ -207,7 +180,7 @@ const Feedback = () => {
                                 />
                             </div>
                             <div className="flex gap-2">
-                                {["all", "technical", "registration"].map((cat) => (
+                                {["all", "Technical", "General"].map((cat) => (
                                     <Button
                                         key={cat}
                                         variant={categoryFilter === cat ? "default" : "outline"}
@@ -218,9 +191,9 @@ const Feedback = () => {
                                         }}
                                         className={categoryFilter === cat ? "bg-teal-600 hover:bg-teal-700" : ""}
                                     >
-                                        {cat === "technical" ? (
+                                        {cat === "Technical" ? (
                                             <IconBug className="mr-1 h-3 w-3" />
-                                        ) : cat === "registration" ? (
+                                        ) : cat === "General" ? (
                                             <IconUsers className="mr-1 h-3 w-3" />
                                         ) : (
                                             "All"
@@ -265,7 +238,7 @@ const Feedback = () => {
                                                         <span className="font-mono">{entry.phone_number}</span>
                                                     </div>
                                                 </TableCell>
-                                                <TableCell>{getCategoryBadge(getCategory(entry.error_message))}</TableCell>
+                                                <TableCell>{getCategoryBadge(entry.issue_type)}</TableCell>
                                             </TableRow>
                                         ))
                                     ) : (
@@ -278,7 +251,7 @@ const Feedback = () => {
                                 </TableBody>
                             </Table>
                         </div>
-                        {totalCount > 0 && ( // Only show pagination if there are entries
+                        {totalCount > 0 && ( 
                             <div className="flex justify-between items-center mt-4">
                                 <div className="text-sm text-muted-foreground">
                                     Showing {startIndex + 1} to {Math.min(endIndex, totalCount)} of {totalCount} entries

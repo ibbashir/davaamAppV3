@@ -80,7 +80,7 @@ interface Topup {
 interface ApiResponse {
   status: number
   activeUsers: number
-  totalCount: number
+  totalTopup: number
   totalBalance: number
   topupBalance: Topup[]
 }
@@ -291,7 +291,7 @@ export function Topup() {
                             <Wallet className="h-4 w-4 text-muted-foreground" />
                         </CardHeader>
                         <CardContent>
-                            <div className="text-2xl font-bold">{stats?.totalCount || 0}</div>
+                            <div className="text-2xl font-bold">{stats?.totalTopup || 0}</div>
                             <p className="text-xs text-muted-foreground">All time</p>
                         </CardContent>
                     </Card>

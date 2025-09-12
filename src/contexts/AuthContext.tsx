@@ -8,6 +8,7 @@ type User = {
   user_role: string
   first_name: string
   last_name: string
+  machines: Array<machine_code>
 }
 
 type AuthState = {

@@ -28,7 +28,7 @@ const PrivateRouting = ({ allowedRoles }: Props) => {
         return <Navigate to="/unauthorized" replace />;
     }
 
-    return <Outlet />;
+    return <Outlet context={{user}}/>;
 }
 
 export default PrivateRouting;
