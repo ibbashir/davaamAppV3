@@ -42,84 +42,120 @@ import { OpsUsersManagement } from '@/screens/ops/users/User-management'
 import OpsFeedback from '@/screens/ops/feedback/Feedback'
 import OpsCorporate from '@/screens/ops/corporate/Corporate'
 
-//corporate screens
+//corporate (company) screens
 import CorporateDashboard from '@/screens/corporate/dashboard/Dashboard'
 import CorporateMachines from '@/screens/corporate/machines/Machines'
+import CorporateMachineVisit from '@/screens/corporate/machines/MachineVisit'
 
 //404 not found
 import NotFound from '@/screens/NotFound/NotFound'
 
-import { ADMIN_CORPORATE, ADMIN_DASHBOARD, ADMIN_FEEDBACK, ADMIN_LOCATIONS, ADMIN_MACHINE_VISIT, ADMIN_MACHINES, ADMIN_NOTIFICATIONS, ADMIN_POINTS, ADMIN_TOPUP, ADMIN_USERS, COMPANY_INFO, FORGET_PASSWORD, LOGIN, MACHINE_DASHBOARD, MACHINE_MACHINES, OPS_CORPORATE, OPS_DASHBOARD, OPS_FEEDBACK, OPS_LOCATIONS, OPS_MACHINE_VISIT, OPS_MACHINES, OPS_POINTS, OPS_TOPUP, OPS_USERS, PRIVACY_POLICY, SUPERADMIN_CORPORATE, SUPERADMIN_DASHBOARD, SUPERADMIN_FEEDBACK, SUPERADMIN_LOCATIONS, SUPERADMIN_MACHINE_VISIT, SUPERADMIN_MACHINES, SUPERADMIN_NOTIFICATIONS, SUPERADMIN_POINTS, SUPERADMIN_ROLES, SUPERADMIN_TOPUP, SUPERADMIN_USERS } from '@/constants/Constant'
+import {
+  ADMIN_CORPORATE,
+  ADMIN_DASHBOARD,
+  ADMIN_FEEDBACK,
+  ADMIN_LOCATIONS,
+  ADMIN_MACHINE_VISIT,
+  ADMIN_MACHINES,
+  ADMIN_NOTIFICATIONS,
+  ADMIN_POINTS,
+  ADMIN_TOPUP,
+  ADMIN_USERS,
+  COMPANY_INFO,
+  FORGET_PASSWORD,
+  LOGIN,
+  OPS_CORPORATE,
+  OPS_DASHBOARD,
+  OPS_FEEDBACK,
+  OPS_LOCATIONS,
+  OPS_MACHINE_VISIT,
+  OPS_MACHINES,
+  OPS_POINTS,
+  OPS_TOPUP,
+  OPS_USERS,
+  PRIVACY_POLICY,
+  SUPERADMIN_CORPORATE,
+  SUPERADMIN_DASHBOARD,
+  SUPERADMIN_FEEDBACK,
+  SUPERADMIN_LOCATIONS,
+  SUPERADMIN_MACHINE_VISIT,
+  SUPERADMIN_MACHINES,
+  SUPERADMIN_NOTIFICATIONS,
+  SUPERADMIN_POINTS,
+  SUPERADMIN_ROLES,
+  SUPERADMIN_TOPUP,
+  SUPERADMIN_USERS
+} from '@/constants/Constant'
 import OpsMachineVisit from '@/screens/ops/machines/MachineVisit'
 
-
-
 const Routing = () => {
-    return (
-        <Routes>
-            {/* Public routes */}
-            <Route path='/' element={<Navigate to={LOGIN} replace />} />
-            <Route path={LOGIN} element={<Login />} />
-            <Route path={FORGET_PASSWORD} element={<ForgetPassword />} />
-            <Route path={COMPANY_INFO} element={<CompanyInfo />} />
-            <Route path={PRIVACY_POLICY} element={<PrivacyPolicy />} />
+  return (
+    <Routes>
+      {/* Public routes */}
+      <Route path='/' element={<Navigate to={LOGIN} replace />} />
+      <Route path={LOGIN} element={<Login />} />
+      <Route path={FORGET_PASSWORD} element={<ForgetPassword />} />
+      <Route path={COMPANY_INFO} element={<CompanyInfo />} />
+      <Route path={PRIVACY_POLICY} element={<PrivacyPolicy />} />
 
-            {/* Protected routes wrapped with Layout */}
-            <Route element={<PrivateRouting allowedRoles={["superadmin"]} />}>
-                <Route element={<Layout />}>
-                    <Route path={SUPERADMIN_DASHBOARD} element={<Dashboard />} />
-                    <Route path={SUPERADMIN_MACHINES} element={<Machines />} />
-                    <Route path={SUPERADMIN_ROLES} element={<Roles />} />
-                    <Route path={SUPERADMIN_POINTS} element={<PointShare />} />
-                    <Route path={SUPERADMIN_LOCATIONS} element={<Locations />} />
-                    <Route path={SUPERADMIN_TOPUP} element={<Topup />} />
-                    <Route path={SUPERADMIN_USERS} element={<UsersManagement />} />
-                    <Route path={SUPERADMIN_NOTIFICATIONS} element={<Notifications />} />
-                    <Route path={SUPERADMIN_FEEDBACK} element={<Feedback />} />
-                    <Route path={SUPERADMIN_CORPORATE} element={<Corporate />} />
-                    <Route path={SUPERADMIN_MACHINE_VISIT} element={<SuperAdminMachineVisit />} />
-                </Route>
-            </Route>
+      {/* Protected routes wrapped with Layout */}
+      <Route element={<PrivateRouting allowedRoles={["superadmin"]} />}>
+        <Route element={<Layout />}>
+          <Route path={SUPERADMIN_DASHBOARD} element={<Dashboard />} />
+          <Route path={SUPERADMIN_MACHINES} element={<Machines />} />
+          <Route path={SUPERADMIN_ROLES} element={<Roles />} />
+          <Route path={SUPERADMIN_POINTS} element={<PointShare />} />
+          <Route path={SUPERADMIN_LOCATIONS} element={<Locations />} />
+          <Route path={SUPERADMIN_TOPUP} element={<Topup />} />
+          <Route path={SUPERADMIN_USERS} element={<UsersManagement />} />
+          <Route path={SUPERADMIN_NOTIFICATIONS} element={<Notifications />} />
+          <Route path={SUPERADMIN_FEEDBACK} element={<Feedback />} />
+          <Route path={SUPERADMIN_CORPORATE} element={<Corporate />} />
+          <Route path={`${SUPERADMIN_MACHINE_VISIT}/:id`} element={<SuperAdminMachineVisit />} />
+        </Route>
+      </Route>
 
-            <Route element={<PrivateRouting allowedRoles={["admin"]} />}>
-                <Route element={<Layout />}>
-                    <Route path={ADMIN_DASHBOARD} element={<AdminDashboard />} />
-                    <Route path={ADMIN_MACHINES} element={<AdminMachines />} />
-                    <Route path={ADMIN_POINTS} element={<AdminPointShare />} />
-                    <Route path={ADMIN_LOCATIONS} element={<AdminLocations />} />
-                    <Route path={ADMIN_TOPUP} element={<AdminTopup />} />
-                    <Route path={ADMIN_USERS} element={<AdminUsersManagement />} />
-                    <Route path={ADMIN_NOTIFICATIONS} element={<AdminNotifications />} />
-                    <Route path={ADMIN_FEEDBACK} element={<AdminFeedback />} />
-                    <Route path={ADMIN_CORPORATE} element={<AdminCorporate />} />
-                    <Route path={ADMIN_MACHINE_VISIT} element={<AdminMachineVisit />} />
-                </Route>
-            </Route>
+      <Route element={<PrivateRouting allowedRoles={["admin"]} />}>
+        <Route element={<Layout />}>
+          <Route path={ADMIN_DASHBOARD} element={<AdminDashboard />} />
+          <Route path={ADMIN_MACHINES} element={<AdminMachines />} />
+          <Route path={ADMIN_POINTS} element={<AdminPointShare />} />
+          <Route path={ADMIN_LOCATIONS} element={<AdminLocations />} />
+          <Route path={ADMIN_TOPUP} element={<AdminTopup />} />
+          <Route path={ADMIN_USERS} element={<AdminUsersManagement />} />
+          <Route path={ADMIN_NOTIFICATIONS} element={<AdminNotifications />} />
+          <Route path={ADMIN_FEEDBACK} element={<AdminFeedback />} />
+          <Route path={ADMIN_CORPORATE} element={<AdminCorporate />} />
+          <Route path={`${ADMIN_MACHINE_VISIT}/:id`} element={<AdminMachineVisit />} />
+        </Route>
+      </Route>
 
-            <Route element={<PrivateRouting allowedRoles={["ops"]} />}>
-                <Route element={<Layout />}>
-                    <Route path={OPS_DASHBOARD} element={<OpsDashboard />} />
-                    <Route path={OPS_MACHINES} element={<OpsMachines />} />
-                    <Route path={OPS_POINTS} element={<OpsPointShare />} />
-                    <Route path={OPS_LOCATIONS} element={<OpsLocations />} />
-                    <Route path={OPS_TOPUP} element={<OpsTopup />} />
-                    <Route path={OPS_USERS} element={<OpsUsersManagement />} />
-                    <Route path={OPS_FEEDBACK} element={<OpsFeedback />} />
-                    <Route path={OPS_CORPORATE} element={<OpsCorporate />} />
-                    <Route path={OPS_MACHINE_VISIT} element={<OpsMachineVisit />} />
-                </Route>
-            </Route>
+      <Route element={<PrivateRouting allowedRoles={["ops"]} />}>
+        <Route element={<Layout />}>
+          <Route path={OPS_DASHBOARD} element={<OpsDashboard />} />
+          <Route path={OPS_MACHINES} element={<OpsMachines />} />
+          <Route path={OPS_POINTS} element={<OpsPointShare />} />
+          <Route path={OPS_LOCATIONS} element={<OpsLocations />} />
+          <Route path={OPS_TOPUP} element={<OpsTopup />} />
+          <Route path={OPS_USERS} element={<OpsUsersManagement />} />
+          <Route path={OPS_FEEDBACK} element={<OpsFeedback />} />
+          <Route path={OPS_CORPORATE} element={<OpsCorporate />} />
+          <Route path={`${OPS_MACHINE_VISIT}/:id`} element={<OpsMachineVisit />} />
+        </Route>
+      </Route>
 
-            <Route element={<PrivateRouting allowedRoles={["company"]} />}>
-                <Route element={<Layout />}>
-                    <Route path={MACHINE_DASHBOARD} element={<CorporateDashboard />} />
-                    {/* <Route path={MACHINE_MACHINES} element={<CorporateMachines />} /> */}
-                </Route>
-            </Route>
+      {/* ✅ Updated company (corporate) routes to /company/... */}
+      <Route element={<PrivateRouting allowedRoles={["company"]} />}>
+        <Route element={<Layout />}>
+          <Route path="/company/dashboard" element={<CorporateDashboard />} />
+          <Route path="/company/machines" element={<CorporateMachines />} />
+          <Route path="/company/machine-visit/:id" element={<CorporateMachineVisit />} />
+        </Route>
+      </Route>
 
-            <Route path='*' element={<NotFound />} />
-        </Routes>
-    )
+      <Route path='*' element={<NotFound />} />
+    </Routes>
+  )
 }
 
 export default Routing
