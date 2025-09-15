@@ -25,6 +25,7 @@ const categories = [
   { id: "Unknown", label: "Unknown" },
 ]
 
+
 // ✅ Dummy fallback data
 const dummyMachines: ApiMachine[] = [
   {
