@@ -111,7 +111,7 @@ const Routing = () => {
           <Route path={SUPERADMIN_NOTIFICATIONS} element={<Notifications />} />
           <Route path={SUPERADMIN_FEEDBACK} element={<Feedback />} />
           <Route path={SUPERADMIN_CORPORATE} element={<Corporate />} />
-          <Route path={`${SUPERADMIN_MACHINE_VISIT}/:id`} element={<SuperAdminMachineVisit />} />
+          <Route path={`${SUPERADMIN_MACHINE_VISIT}`} element={<SuperAdminMachineVisit />} />
         </Route>
       </Route>
 

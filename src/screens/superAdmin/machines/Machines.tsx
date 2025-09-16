@@ -9,8 +9,9 @@ import { Input } from "@/components/ui/input"
 import { Search, ChevronLeft, ChevronRight } from "lucide-react"
 import type { ApiMachine, MachinesResponse } from "./Types"
 import { getRequest, postRequest } from "@/Apis/Api"
-import { SUPERADMIN_MACHINE_VISIT, timeConverter } from "@/constants/Constant"
+import { timeConverter } from "@/constants/Constant"
 import { SiteHeader } from "@/components/superAdmin/site-header"
+import { useNavigate } from "react-router-dom"
 
 const categories = [
   { id: "Butterfly", label: "Butterfly" },
@@ -25,6 +26,8 @@ const categories = [
 ]
 
 const Machines = () => {
+  
+  const navigate = useNavigate()
   const [searchTerm, setSearchTerm] = useState("")
   const [activeCategory, setActiveCategory] = useState("Butterfly")
   const [currentPage, setCurrentPage] = useState(1)
@@ -61,6 +64,7 @@ const Machines = () => {
       const allBrands = [...brands.vending, ...brands.dispensing]
       const grouped: { [machine_code: string]: number[] } = {}
 
+      console.log("All brands",allBrands);
       allBrands.forEach((brand) => {
         const code = brand.machine_code
         if (!grouped[code]) grouped[code] = []
@@ -110,10 +114,11 @@ const Machines = () => {
   const startIndex = (currentPage - 1) * itemsPerPage
   const paginatedMachines = filteredMachines.slice(startIndex, startIndex + itemsPerPage)
 
+  console.log(paginatedMachines)
   const getStatusBadge = (status: string) => {
     const variant = status === "Active" ? "default" : "destructive"
     const className =
-      status === "Active"
+      status === "Active" 
         ? "bg-green-100 text-green-800 hover:bg-green-100"
         : "bg-red-100 text-red-800 hover:bg-red-100"
     return (
@@ -190,7 +195,6 @@ const Machines = () => {
             </div>
           )}
 
-
           <Card>
             <CardHeader>
               <div className="space-y-4">
@@ -198,7 +202,7 @@ const Machines = () => {
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
                     placeholder="Search by Machine Id or Location"
-                    value={searchTerm}
+                    value={searchTerm}  
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="pl-10"
                   />
@@ -258,10 +262,11 @@ const Machines = () => {
                         <TableCell>{getStatusBadge(machine.status)}</TableCell>
                         <TableCell className="text-muted-foreground">{machine.lastActive}</TableCell>
                         <TableCell>
-                          <Button size="sm" className="bg-teal-600 hover:bg-teal-700">
-                            <a href={SUPERADMIN_MACHINE_VISIT}>
-                              Visit
-                            </a>
+                          <Button 
+                            size="sm" 
+                            className="bg-teal-600 hover:bg-teal-700" 
+                            onClick={() => navigate(`/superadmin/machine-details/${machine.machine_code}`)}>
+                            Visit
                           </Button>
                         </TableCell>
                         <TableCell>{getStockStatusBadge(machine.stockStatus)}</TableCell>

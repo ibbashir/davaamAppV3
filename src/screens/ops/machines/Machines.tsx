@@ -9,7 +9,8 @@ import { Input } from "@/components/ui/input"
 import { Search, ChevronLeft, ChevronRight } from "lucide-react"
 import type { ApiMachine, MachinesResponse } from "./Types"
 import { getRequest, postRequest } from "@/Apis/Api"
-import { OPS_MACHINE_VISIT, timeConverter } from "@/constants/Constant"
+import { timeConverter } from "@/constants/Constant"
+import { useNavigate } from "react-router-dom"
 import { SiteHeader } from "@/components/ops/site-header"
 
 const categories = [
@@ -25,6 +26,7 @@ const categories = [
 ]
 
 const Machines = () => {
+  const navigate = useNavigate()
   const [searchTerm, setSearchTerm] = useState("")
   const [activeCategory, setActiveCategory] = useState("Butterfly")
   const [currentPage, setCurrentPage] = useState(1)
@@ -258,10 +260,8 @@ const Machines = () => {
                         <TableCell>{getStatusBadge(machine.status)}</TableCell>
                         <TableCell className="text-muted-foreground">{machine.lastActive}</TableCell>
                         <TableCell>
-                          <Button size="sm" className="bg-teal-600 hover:bg-teal-700">
-                            <a href={OPS_MACHINE_VISIT}>
-                              Visit
-                            </a>
+                          <Button size="sm" className="bg-teal-600 hover:bg-teal-700" onClick={() => navigate(`/superadmin/machine-details/${machine.machine_code}`)}>
+                            Visit
                           </Button>
                         </TableCell>
                         <TableCell>{getStockStatusBadge(machine.stockStatus)}</TableCell>

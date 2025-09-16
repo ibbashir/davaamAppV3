@@ -36,7 +36,7 @@ export const SUPERADMIN_FEEDBACK = "/superadmin/feedback";
 export const SUPERADMIN_CORPORATE = "/superadmin/corporate";
 export const SUPERADMIN_STATUS = "/superadmin/status";
 export const SUPERADMIN_MACHINE_VISIT =
-  "/superadmin/machine-details/:machineCode";
+  "/superadmin/machine-details/:id";
 
 // ADMIN PATHS
 export const ADMIN_DASHBOARD = "/admin/dashboard";
