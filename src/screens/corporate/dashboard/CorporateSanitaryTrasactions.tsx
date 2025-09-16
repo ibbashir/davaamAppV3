@@ -1,7 +1,6 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { postRequest } from "@/Apis/Api"
@@ -14,6 +13,7 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination"
+import { motion } from "framer-motion"
 
 type Transaction = {
   id: number
@@ -63,7 +63,7 @@ const SanitaryTransactionTable = () => {
 
   const itemsPerPage = 10
 
-  // ⏳ Debounce search input
+  // ⏳ Debounce search input (logic unchanged)
   useEffect(() => {
     const handler = setTimeout(() => {
       setDebouncedSearch(search)
@@ -112,6 +112,9 @@ const SanitaryTransactionTable = () => {
     }
   }
 
+  // view details overlay state
+  const [activeTx, setActiveTx] = useState<Transaction | null>(null)
+
   return (
     <Card>
       <CardHeader>
@@ -130,43 +133,55 @@ const SanitaryTransactionTable = () => {
             />
           </div>
 
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>#</TableHead>
-                <TableHead>Phone Number</TableHead>
-                <TableHead>Merchant</TableHead>
-                <TableHead>Amount (Rs)</TableHead>
-                <TableHead>Quantity</TableHead>
-                <TableHead>Transaction Time</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {loading ? (
-                <TableRow>
-                  <TableCell colSpan={6} className="text-center">Loading...</TableCell>
-                </TableRow>
-              ) : transactions.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={6} className="text-center">No data found</TableCell>
-                </TableRow>
-              ) : (
-                transactions.map((t, index) => (
-                  <TableRow key={t.id}>
-                    <TableCell>{(currentPage - 1) * itemsPerPage + index + 1}</TableCell>
-                    <TableCell>{t.msisdn || "N/A"}</TableCell>
-                    <TableCell>{t.merchant}</TableCell>
-                    <TableCell>Rs. {t.amount}</TableCell>
-                    <TableCell>{t.quantity}</TableCell>
-                    <TableCell>{new Date(t.created_at).toLocaleString()}</TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
+          {/* Cards grid (5 per row) */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+            {loading ? (
+              <div className="col-span-5 text-center p-8">Loading...</div>
+            ) : transactions.length === 0 ? (
+              <div className="col-span-5 text-center p-8">No data found</div>
+            ) : (
+              transactions.map((t, idx) => (
+                <motion.div
+                  key={t.id}
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.45, delay: idx * 0.04 }}
+                  whileHover={{ scale: 1.02, boxShadow: "0 12px 30px rgba(16,185,129,0.08)" }}
+                >
+                  <div className="bg-white rounded-2xl p-4 shadow-md border border-green-50">
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <div className="text-sm text-muted-foreground">#{(currentPage - 1) * itemsPerPage + idx + 1}</div>
+                        <div className="text-lg font-semibold">Rs. {t.amount}</div>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-sm">Qty</div>
+                        <div className="font-medium">{t.quantity}</div>
+                      </div>
+                    </div>
+
+                    <div className="mt-3 text-sm text-muted-foreground">
+                      <div>Number: {t.msisdn || "N/A"}</div>
+                      <div>Time: {new Date(t.created_at).toLocaleString()}</div>
+                      {t.machine_code && <div>Machine: {t.machine_code}</div>}
+                    </div>
+
+                    <div className="mt-4 flex gap-2 justify-end">
+                      <button
+                        onClick={() => setActiveTx(t)}
+                        className="px-3 py-1 rounded-lg bg-emerald-600 text-white text-sm hover:bg-emerald-700"
+                      >
+                        🔍 View Details
+                      </button>
+                    </div>
+                  </div>
+                </motion.div>
+              ))
+            )}
+          </div>
         </div>
 
-        {/* 📑 Pagination */}
+        {/* Pagination (logic unchanged) */}
         {totalPages > 1 && (
           <div className="flex justify-center mt-4">
             <Pagination>
@@ -192,7 +207,7 @@ const SanitaryTransactionTable = () => {
                         isActive={page === currentPage}
                         onClick={(e) => {
                           e.preventDefault()
-                          paginate(page)
+                          paginate(page as number)
                         }}
                       >
                         {page}
@@ -211,6 +226,81 @@ const SanitaryTransactionTable = () => {
                 </PaginationItem>
               </PaginationContent>
             </Pagination>
+          </div>
+        )}
+
+        {/* View Details Overlay (animated) */}
+        {activeTx && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center">
+            <div
+              className="absolute inset-0 bg-black/50"
+              onClick={() => setActiveTx(null)}
+            />
+            <motion.div
+              initial={{ opacity: 0, y: 40 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 40 }}
+              transition={{ duration: 0.3 }}
+              className="relative z-10 w-[92%] md:w-3/4 lg:w-2/4"
+            >
+              <div className="bg-white rounded-2xl p-6 shadow-2xl">
+                <div className="flex justify-between items-start">
+                  <h3 className="text-xl font-semibold">Transaction Details 💳</h3>
+
+                </div>
+
+                <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <div className="text-xs text-muted-foreground">Phone</div>
+                    <div className="font-medium">{activeTx.msisdn || "N/A"}</div>
+                  </div>
+
+                  <div>
+                    <div className="text-xs text-muted-foreground">Amount</div>
+                    <div className="font-medium">Rs. {activeTx.amount}</div>
+                  </div>
+
+                  <div>
+                    <div className="text-xs text-muted-foreground">Quantity</div>
+                    <div className="font-medium">{activeTx.quantity}</div>
+                  </div>
+
+                  <div>
+                    <div className="text-xs text-muted-foreground">Merchant</div>
+                    <div className="font-medium">{activeTx.merchant || "N/A"}</div>
+                  </div>
+
+                  <div>
+                    <div className="text-xs text-muted-foreground">Transaction Time</div>
+                    <div className="font-medium">{new Date(activeTx.created_at).toLocaleString()}</div>
+                  </div>
+
+                  <div>
+                    <div className="text-xs text-muted-foreground">Machine Code</div>
+                    <div className="font-medium">{activeTx.machine_code || "N/A"}</div>
+                  </div>
+
+                  <div>
+                    <div className="text-xs text-muted-foreground">Transaction Number</div>
+                    <div className="font-small">{activeTx.transaction_number || "N/A"}</div>
+                  </div>
+
+                  <div>
+                    <div className="text-xs text-muted-foreground">Status</div>
+                    <div className="font-medium">{activeTx.status}</div>
+                  </div>
+
+                  <div>
+                    <div className="text-xs text-muted-foreground">Epoch Time</div>
+                    <div className="font-medium">{activeTx.epoch_time}</div>
+                  </div>
+                </div>
+
+                <div className="mt-6 text-right">
+                  <button onClick={() => setActiveTx(null)} className="px-4 py-2 rounded-lg bg-gray-100">Close</button>
+                </div>
+              </div>
+            </motion.div>
           </div>
         )}
       </CardContent>

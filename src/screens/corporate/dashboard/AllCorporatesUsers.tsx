@@ -1,11 +1,10 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
 import { postRequest } from "@/Apis/Api"
 import { Search } from "lucide-react"
-import { Input } from "@/components/ui/input"
 import {
   Pagination,
   PaginationContent,
@@ -14,6 +13,7 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination"
+import { motion } from "framer-motion"
 
 type CorporateUser = {
   id: number
@@ -77,7 +77,9 @@ const AllCorporatesUsers = () => {
       const machineCodes: string[] = storedCodes ? JSON.parse(storedCodes) : []
 
       const res = await postRequest<ApiResponse>(
-        `/corporates/getAllCorporatesUsers?page=${page}&limit=${usersPerPage}&search=${encodeURIComponent(searchQuery)}`,
+        `/corporates/getAllCorporatesUsers?page=${page}&limit=${usersPerPage}&search=${encodeURIComponent(
+          searchQuery
+        )}`,
         { machine_code: machineCodes }
       )
 
@@ -102,18 +104,21 @@ const AllCorporatesUsers = () => {
     }
   }
 
+  // view action overlay state
+  const [activeUser, setActiveUser] = useState<CorporateUser | null>(null)
+
   return (
     <Card>
       <CardHeader>
-        <h2 className="text-xl font-semibold">All Corporate Users</h2>
+        <h2 className="text-xl font-semibold">All Corporate Users </h2>
       </CardHeader>
       <CardContent>
         <div className="overflow-x-auto">
-          {/* 🔎 Search Input */}
+          {/* 🔎 Search Input (logic unchanged) */}
           <div className="relative mb-4">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Search by Name, Phone, or Machine Code"
+              placeholder="🔎 by Name, Phone, or Machine Code"
               value={search}
               onChange={(e) => {
                 setSearch(e.target.value)
@@ -123,54 +128,63 @@ const AllCorporatesUsers = () => {
             />
           </div>
 
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>#</TableHead>
-                <TableHead>Name</TableHead>
-                <TableHead>Phone</TableHead>
-                <TableHead>Balance</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Machine Code</TableHead>
-                <TableHead>Created At</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {loading ? (
-                <TableRow>
-                  <TableCell colSpan={7} className="text-center">
-                    Loading...
-                  </TableCell>
-                </TableRow>
-              ) : users.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={7} className="text-center">
-                    No users found
-                  </TableCell>
-                </TableRow>
-              ) : (
-                users.map((user, index) => (
-                  <TableRow key={user.id}>
-                    <TableCell>{(currentPage - 1) * usersPerPage + index + 1}</TableCell>
-                    <TableCell>{user.name}</TableCell>
-                    <TableCell>{user.mobile_number}</TableCell>
-                    <TableCell>Rs. {user.balance}</TableCell>
-                    <TableCell>
-                      {user.is_active ? (
-                        <span className="text-green-600 font-medium">Active</span>
-                      ) : (
-                        <span className="text-red-600 font-medium">Inactive</span>
-                      )}
-                    </TableCell>
-                    <TableCell>{user.machine_code}</TableCell>
-                    <TableCell>{new Date(user.created_at).toLocaleString()}</TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
+          {/* Cards Grid: 5 per row responsive */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+            {loading ? (
+              <div className="col-span-5 text-center p-8">Loading...</div>
+            ) : users.length === 0 ? (
+              <div className="col-span-5 text-center p-8">No users found</div>
+            ) : (
+              users.map((user, idx) => (
+                <motion.div
+                  key={user.id}
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.45, delay: idx * 0.05 }}
+                  whileHover={{ scale: 1.02, boxShadow: "0 12px 30px rgba(16,185,129,0.12)" }}
+                >
+                  <div className="bg-white rounded-2xl p-4 shadow-md border border-green-50">
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <div className="text-sm text-muted-foreground">#{(currentPage - 1) * usersPerPage + idx + 1}</div>
+                        <div className="text-lg font-semibold">{user.name}</div>
+                        <div className="text-sm text-muted-foreground mt-1">Phone: {user.mobile_number}</div>
+                      </div>
+
+                      <div className="text-right">
+                        <div className="text-xs text-muted-foreground">Machine</div>
+                        <div className="font-medium">{user.machine_code || "N/A"}</div>
+                      </div>
+                    </div>
+
+                    <div className="mt-3 flex items-center justify-between">
+                      <div>
+                        <div className="text-xs text-muted-foreground">Balance</div>
+                        <div className="font-semibold">Rs. {user.balance}</div>
+                      </div>
+                      <div>
+                        <div className={`px-3 py-1 rounded-full text-xs font-medium ${user.is_active ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}`}>
+                          {user.is_active ? "Active" : "Inactive"}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="mt-4 flex gap-2 justify-end">
+                      <button
+                        onClick={() => setActiveUser(user)}
+                        className="px-3 py-1 rounded-lg bg-emerald-600 text-white text-sm hover:bg-emerald-700"
+                      >
+                        🔎 View Details
+                      </button>
+                    </div>
+                  </div>
+                </motion.div>
+              ))
+            )}
+          </div>
         </div>
 
+        {/* Pagination (logic unchanged) */}
         {totalPages > 1 && (
           <div className="flex justify-center mt-4">
             <Pagination>
@@ -196,7 +210,7 @@ const AllCorporatesUsers = () => {
                         isActive={page === currentPage}
                         onClick={(e) => {
                           e.preventDefault()
-                          paginate(page)
+                          paginate(page as number)
                         }}
                       >
                         {page}
@@ -215,6 +229,66 @@ const AllCorporatesUsers = () => {
                 </PaginationItem>
               </PaginationContent>
             </Pagination>
+          </div>
+        )}
+
+        {/* View Action Overlay (shows all details) */}
+        {activeUser && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center">
+            <div
+              className="absolute inset-0 bg-black/50"
+              onClick={() => setActiveUser(null)}
+            />
+            <motion.div
+              initial={{ opacity: 0, y: 40 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 40 }}
+              transition={{ duration: 0.3 }}
+              className="relative z-10 w-[92%] md:w-3/4 lg:w-2/4"
+            >
+              <div className="bg-white rounded-2xl p-6 shadow-2xl">
+                <div className="flex justify-between items-start">
+                  <h3 className="text-xl font-semibold">{activeUser.name}</h3>
+          
+                </div>
+
+                <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <div className="text-xs text-muted-foreground">Phone</div>
+                    <div className="font-medium">{activeUser.mobile_number}</div>
+                  </div>
+
+                  <div>
+                    <div className="text-xs text-muted-foreground">Machine Code</div>
+                    <div className="font-medium">{activeUser.machine_code || "N/A"}</div>
+                  </div>
+
+                  <div>
+                    <div className="text-xs text-muted-foreground">Balance</div>
+                    <div className="font-medium">Rs. {activeUser.balance}</div>
+                  </div>
+
+                  <div>
+                    <div className="text-xs text-muted-foreground">Status</div>
+                    <div className="font-medium">{activeUser.is_active ? "Active" : "Inactive"}</div>
+                  </div>
+
+                  <div>
+                    <div className="text-xs text-muted-foreground">Card Number</div>
+                    <div className="font-medium">{activeUser.card_number || "N/A"}</div>
+                  </div>
+
+                  <div>
+                    <div className="text-xs text-muted-foreground">Created At</div>
+                    <div className="font-medium">{new Date(activeUser.created_at).toLocaleString()}</div>
+                  </div>
+                </div>
+
+                <div className="mt-6 text-right">
+                  <button onClick={() => setActiveUser(null)} className="px-4 py-2 rounded-lg bg-gray-100">Close</button>
+                </div>
+              </div>
+            </motion.div>
           </div>
         )}
       </CardContent>
