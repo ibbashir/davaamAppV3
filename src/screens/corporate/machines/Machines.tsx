@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { useNavigate } from "react-router-dom"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -9,9 +9,10 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Input } from "@/components/ui/input"
 import { Search, ChevronLeft, ChevronRight } from "lucide-react"
 import type { ApiMachine, MachinesResponse } from "./Types"
-import { getRequest } from "@/Apis/Api"
 import { timeConverter } from "@/constants/Constant"
 import { SiteHeader } from "@/components/corporate/site-header"
+import { postRequest } from "@/Apis/Api"
+import { useAuth } from "@/contexts/AuthContext" // ✅ AuthContext
 
 const categories = [
   { id: "Butterfly", label: "Butterfly" },
@@ -25,58 +26,20 @@ const categories = [
   { id: "Unknown", label: "Unknown" },
 ]
 
-
-// ✅ Dummy fallback data
-const dummyMachines: ApiMachine[] = [
-  {
-    id: 1,
-    machine_code: "MCH-1001",
-    machine_name: "Demo Machine 1 - Lahore",
-    machine_location: "IBA Girls Hostel",
-    machine_type: "Vending",
-    created_at: Date.now(),
-    is_active: "true",
-    lat: null,
-    lng: null,
-    access: null,
-    status: "Active",
-    statusCode: "g",
-    lastUpdated: Date.now(),
-  },
-  {
-    id: 2,
-    machine_code: "MCH-1002",
-    machine_name: "Demo Machine 2 - Karachi",
-    machine_location: "Tapal Pvt",
-    machine_type: "Dispensing",
-    created_at: Date.now(),
-    is_active: "false",
-    lat: null,
-    lng: null,
-    access: null,
-    status: "Inactive",
-    statusCode: "r",
-    lastUpdated: Date.now(),
-  },
-  {
-    id: 3,
-    machine_code: "MCH-1003",
-    machine_name: "Demo Machine 3 - Karachi",
-    machine_location: "IBA Aman CED",
-    machine_type: "Vending",
-    created_at: Date.now(),
-    is_active: "true",
-    lat: null,
-    lng: null,
-    access: null,
-    status: "Active",
-    statusCode: "g",
-    lastUpdated: Date.now(),
-  },
-]
-
 const CorporateMachines = () => {
   const navigate = useNavigate()
+  const { state } = useAuth()
+  const { user } = state
+
+  // ✅ Memoize machine codes so useEffect doesn’t run infinitely
+  const machineCodes = useMemo(
+    () =>
+      Array.isArray(user?.machines)
+        ? user.machines.map((m: { machine_code: number }) => m.machine_code)
+        : [],
+    [user?.machines]
+  )
+
   const [searchTerm, setSearchTerm] = useState("")
   const [activeCategory, setActiveCategory] = useState("Butterfly")
   const [currentPage, setCurrentPage] = useState(1)
@@ -87,20 +50,25 @@ const CorporateMachines = () => {
   const itemsPerPage = 5
 
   useEffect(() => {
-    fetchMachines()
-  }, [])
+    if (machineCodes.length > 0) {
+      fetchMachines()
+    }
+  }, [machineCodes])
 
   const fetchMachines = async () => {
+    
     try {
       setLoading(true)
 
-      // ⚡️ Force dummy data for now
-      setMachinesData({ Butterfly: dummyMachines })
+      // ✅ Pass dynamic machine codes in POST payload
+      const res = await postRequest<MachinesResponse>(
+        "/corporates/getAllMachineStockAndStatusByMachineCode",
+        { machine_code: machineCodes }
+      )
 
-      // When ready to use API again, uncomment this block:
-      /*
-      const res = await getRequest<MachinesResponse>(``)
       const { machines, brands } = res.data
+
+      // Build stock status map per machine_code
       const stockMap: { [code: string]: string } = {}
       const allBrands = [...brands.vending, ...brands.dispensing]
       const grouped: { [machine_code: string]: number[] } = {}
@@ -123,10 +91,8 @@ const CorporateMachines = () => {
 
       setMachinesData(machines)
       setMachineStockMap(stockMap)
-      */
     } catch (error) {
       console.error("Error fetching machines:", error)
-      setMachinesData({ Butterfly: dummyMachines })
     } finally {
       setLoading(false)
     }
@@ -137,9 +103,14 @@ const CorporateMachines = () => {
         machines.map((machine) => ({
           ...machine,
           category,
-          status: machine.statusCode === "r" ? "Inactive" : machine.statusCode === "g" ? "Active" : "Pending",
+          status:
+            machine.statusCode === "r"
+              ? "Inactive"
+              : machine.statusCode === "g"
+              ? "Active"
+              : "Pending",
           lastActive: timeConverter(machine.created_at),
-          stockStatus: machineStockMap[machine.machine_code] || "In Stock", // default In Stock for dummy
+          stockStatus: machineStockMap[machine.machine_code] || "Unknown",
         }))
       )
     : []
@@ -147,7 +118,7 @@ const CorporateMachines = () => {
   const filteredMachines = allMachines.filter((machine) => {
     const matchesSearch =
       machine.machine_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      machine.machine_code.toLowerCase().includes(searchTerm.toLowerCase())
+      machine.machine_code.toString().toLowerCase().includes(searchTerm.toLowerCase())
     const matchesCategory = machine.category === activeCategory
     return matchesSearch && matchesCategory
   })
@@ -174,7 +145,7 @@ const CorporateMachines = () => {
       "In Stock": "bg-green-100 text-green-800 border-green-300",
       "Low Stock": "bg-yellow-100 text-yellow-800 border-yellow-300",
       "Out of Stock": "bg-red-100 text-red-800 border-red-300",
-      "Unknown": "bg-gray-100 text-gray-800 border-gray-300",
+      Unknown: "bg-gray-100 text-gray-800 border-gray-300",
     }
 
     return (
