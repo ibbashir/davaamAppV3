@@ -265,7 +265,7 @@ const Machines = () => {
                           <Button 
                             size="sm" 
                             className="bg-teal-600 hover:bg-teal-700" 
-                            onClick={() => navigate(`/superadmin/machine-details/${machine.machine_code}`)}>
+                            onClick={() => navigate(`/superadmin/machine-details`,{state:{machine}})}>
                             Visit
                           </Button>
                         </TableCell>

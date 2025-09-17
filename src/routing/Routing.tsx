@@ -126,7 +126,7 @@ const Routing = () => {
           <Route path={ADMIN_NOTIFICATIONS} element={<AdminNotifications />} />
           <Route path={ADMIN_FEEDBACK} element={<AdminFeedback />} />
           <Route path={ADMIN_CORPORATE} element={<AdminCorporate />} />
-          <Route path={`${ADMIN_MACHINE_VISIT}/:id`} element={<AdminMachineVisit />} />
+          <Route path={ADMIN_MACHINE_VISIT} element={<AdminMachineVisit />} />
         </Route>
       </Route>
 
@@ -140,7 +140,7 @@ const Routing = () => {
           <Route path={OPS_USERS} element={<OpsUsersManagement />} />
           <Route path={OPS_FEEDBACK} element={<OpsFeedback />} />
           <Route path={OPS_CORPORATE} element={<OpsCorporate />} />
-          <Route path={`${OPS_MACHINE_VISIT}/:id`} element={<OpsMachineVisit />} />
+          <Route path={OPS_MACHINE_VISIT} element={<OpsMachineVisit />} />
         </Route>
       </Route>
 

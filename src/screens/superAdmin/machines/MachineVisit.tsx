@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Download, Plus } from "lucide-react"
 import { SiteHeader } from "@/components/superAdmin/site-header"
+import { useLocation } from "react-router-dom"
 
 // Sample data
 const stockData = [
@@ -216,6 +217,10 @@ const transactionData = [
 ]
 
 export default function SuperAdminMachineVisit() {
+    const { state } = useLocation()
+    const machine = state?.machine
+
+    console.log(machine)
     const [stockView, setStockView] = useState("batch")
     const [activeTab, setActiveTab] = useState("stock-levels")
 
