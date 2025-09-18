@@ -1,160 +1,183 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { useParams } from "react-router-dom"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Label } from "@/components/ui/label"
+import { useEffect, useState } from "react"
+import { useParams, useNavigate } from "react-router-dom"
+import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Download, Plus } from "lucide-react"
-import { SiteHeader } from "@/components/corporate/site-header"
+import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
+import { postRequest } from "@/Apis/Api"
+import { timeConverter } from "@/constants/Constant"
+import type { MachineDetails } from "./Types"
 
-// Dummy data (keep until API is ready)
-const stockData = [
-  { item: "Sanitary Pad A", batch: "B001", expiry: "2024-12", quantity: 50 },
-  { item: "Sanitary Pad B", batch: "B002", expiry: "2025-01", quantity: 30 },
-]
+const CorporateMachineVisit = () => {
+  const { id } = useParams<{ id: string }>()
+  const navigate = useNavigate()
 
-const priceData = [
-  { item: "Sanitary Pad A", price: "50 PKR" },
-  { item: "Sanitary Pad B", price: "60 PKR" },
-]
-
-const transactionData = [
-  { date: "2025-09-01", item: "Sanitary Pad A", quantity: 2, amount: "100 PKR" },
-  { date: "2025-09-02", item: "Sanitary Pad B", quantity: 1, amount: "60 PKR" },
-]
-
-export default function CorporateMachineVisit() {
-  const { id } = useParams<{ id: string }>()   // ✅ get machine id from URL
-  const [stockView, setStockView] = useState("batch")
-  const [activeTab, setActiveTab] = useState("stock-levels")
+  const [machine, setMachine] = useState<MachineDetails | null>(null)
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    console.log("Corporate visiting machine:", id)
-    // Later replace console.log with API call using `id`
+    if (id) fetchMachineDetails(Number(id))
   }, [id])
 
-  return (
-    <div className="min-h-screen bg-gray-50 p-4">
-      <div className="mx-auto max-w-7xl">
-        {/* ✅ Use Corporate Header instead of Admin */}
-        <SiteHeader title={`Corporate Machine Visit – ${id}`} /> 
+  const fetchMachineDetails = async (machineCode: number) => {
+    try {
+      setLoading(true)
+      const res = await postRequest<any>(
+        "/corporates/machineDetailsWithMachineCode",
+        { machine_code: machineCode }
+      )
+      console.log("API response:", res)
 
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          {/* Stock Levels */}
-          <TabsList className="grid w-full grid-cols-3 mb-6">
-            <TabsTrigger value="stock-levels">Stock Levels</TabsTrigger>
-            <TabsTrigger value="pricing">Pricing</TabsTrigger>
-            <TabsTrigger value="transactions">Transactions</TabsTrigger>
-          </TabsList>
+      if (!res || !res.success) {
+        setMachine(null)
+        return
+      }
 
-          {/* Stock Levels Tab */}
-          <TabsContent value="stock-levels">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle>Stock Levels</CardTitle>
-                <div className="flex gap-2">
-                  <Button onClick={() => setStockView("batch")} variant={stockView === "batch" ? "default" : "outline"}>
-                    By Batch
-                  </Button>
-                  <Button onClick={() => setStockView("expiry")} variant={stockView === "expiry" ? "default" : "outline"}>
-                    By Expiry
-                  </Button>
-                  <Button>
-                    <Plus className="h-4 w-4 mr-2" /> Add Stock
-                  </Button>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Item</TableHead>
-                      <TableHead>{stockView === "batch" ? "Batch" : "Expiry"}</TableHead>
-                      <TableHead>Quantity</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {stockData.map((s, i) => (
-                      <TableRow key={i}>
-                        <TableCell>{s.item}</TableCell>
-                        <TableCell>{stockView === "batch" ? s.batch : s.expiry}</TableCell>
-                        <TableCell>{s.quantity}</TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </CardContent>
-            </Card>
-          </TabsContent>
+      const mappedMachine: MachineDetails = {
+        machine_code: res.machine_code,
+        machine_name: res.machine_name || "-",
+        machine_type: res.machine_type || "-",
+        statusCode: res.statusCode || res.status || "p",
+        created_at: res.created_at || new Date().toISOString(),
+        brands: (res.brands || []).map((b: any) => ({
+          id: b.id,
+          name: b.name,
+          availableQuantity: b.availableQuantity || 0,
+          price: Number(b.price || b.litre_price || 0)
+        })),
+        fillings: (res.fillings || []).map((f: any) => ({
+          id: f.id,
+          batch_number: f.batch_number,
+          quantity: f.quantity,
+          litres: f.litres
+        })),
+        transactions: (res.transactions || []).map((t: any) => ({
+          id: t.id,
+          user: t.user || t.user_id || "-",
+          amount: Number(t.amount || 0),
+          date: t.date || t.created_at || "-"
+        }))
+      }
 
-          {/* Pricing Tab */}
-          <TabsContent value="pricing">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle>Pricing</CardTitle>
-                <Button>
-                  <Plus className="h-4 w-4 mr-2" /> Add Price
-                </Button>
-              </CardHeader>
-              <CardContent>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Item</TableHead>
-                      <TableHead>Price</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {priceData.map((p, i) => (
-                      <TableRow key={i}>
-                        <TableCell>{p.item}</TableCell>
-                        <TableCell>{p.price}</TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </CardContent>
-            </Card>
-          </TabsContent>
+      setMachine(mappedMachine)
+    } catch (err) {
+      console.error("Error fetching machine details:", err)
+      setMachine(null)
+    } finally {
+      setLoading(false)
+    }
+  }
 
-          {/* Transactions Tab */}
-          <TabsContent value="transactions">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle>Transactions</CardTitle>
-                <Button>
-                  <Download className="h-4 w-4 mr-2" /> Export
-                </Button>
-              </CardHeader>
-              <CardContent>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Date</TableHead>
-                      <TableHead>Item</TableHead>
-                      <TableHead>Quantity</TableHead>
-                      <TableHead>Amount</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {transactionData.map((t, i) => (
-                      <TableRow key={i}>
-                        <TableCell>{t.date}</TableCell>
-                        <TableCell>{t.item}</TableCell>
-                        <TableCell>{t.quantity}</TableCell>
-                        <TableCell>{t.amount}</TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
+  const getStatusBadge = (status?: string) => {
+    if (status === "g" || status === "1") return <Badge className="bg-green-100 text-green-800">✅ Active</Badge>
+    if (status === "r" || status === "0") return <Badge className="bg-red-100 text-red-800">❌ Inactive</Badge>
+    return <Badge className="bg-yellow-100 text-yellow-800">⏳ Pending</Badge>
+  }
+
+  if (loading) return <p className="text-center p-10">⏳ Loading machine details...</p>
+
+  if (!machine)
+    return (
+      <div className="text-center p-10">
+        <p>❌ No details found for this machine.</p>
+        <Button onClick={() => navigate(-1)} className="mt-4">
+          Go Back
+        </Button>
       </div>
+    )
+
+  return (
+    <div className="p-6">
+      {/* Header */}
+      <Card className="mb-6 shadow-lg">
+        <CardHeader>
+          <h2 className="text-xl font-bold text-teal-700">
+            Machine #{machine.machine_code} — {machine.machine_name}
+          </h2>
+          <div className="flex gap-3 mt-2 flex-wrap">
+            {getStatusBadge(machine.statusCode)}
+            <Badge variant="outline">{machine.machine_type}</Badge>
+            {machine.created_at && (
+              <Badge variant="outline">
+                Last Active: {timeConverter(new Date(machine.created_at).getTime())}
+              </Badge>
+            )}
+          </div>
+        </CardHeader>
+      </Card>
+
+      {/* Tabs */}
+      <Tabs defaultValue="stock">
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="stock">📦 Stock Levels</TabsTrigger>
+          <TabsTrigger value="fillings">🧴 Fillings</TabsTrigger>
+          <TabsTrigger value="transactions">🧾 Transactions</TabsTrigger>
+        </TabsList>
+
+        {/* Stock */}
+        <TabsContent value="stock">
+          <Card>
+            <CardContent className="p-4">
+              {(!machine.brands || machine.brands.length === 0) ? (
+                <p>No stock data available.</p>
+              ) : (
+                <ul className="space-y-2">
+                  {machine.brands.map((b) => (
+                    <li key={b.id} className="flex justify-between border-b py-2 text-sm">
+                      <span>{b.name}</span>
+                      <span>Qty: {b.availableQuantity} | Price: {b.price} PKR</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Fillings */}
+        <TabsContent value="fillings">
+          <Card>
+            <CardContent className="p-4">
+              {(!machine.fillings || machine.fillings.length === 0) ? (
+                <p>No fillings data available.</p>
+              ) : (
+                <ul className="space-y-2">
+                  {machine.fillings.map((f) => (
+                    <li key={f.id} className="flex justify-between border-b py-2 text-sm">
+                      <span>Batch #{f.batch_number}</span>
+                      <span>Qty: {f.quantity || "-"} | Litres: {f.litres || "-"}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Transactions */}
+        <TabsContent value="transactions">
+          <Card>
+            <CardContent className="p-4">
+              {(!machine.transactions || machine.transactions.length === 0) ? (
+                <p>No transactions yet.</p>
+              ) : (
+                <ul className="space-y-2">
+                  {machine.transactions.map((t) => (
+                    <li key={t.id} className="flex justify-between border-b py-2 text-sm">
+                      <span>{t.user} — {t.date}</span>
+                      <span className="font-semibold">{t.amount} PKR</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   )
 }
+
+export default CorporateMachineVisit
