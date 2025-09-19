@@ -51,7 +51,6 @@ const Feedback = () => {
     const [technicalIssue,setTechnicalIssue]=useState<string>("")
     const [totalCount, setTotalCount] = useState(0)
     const [searchTerm, setSearchTerm] = useState("")
-    const [categoryFilter, setCategoryFilter] = useState("all")
     const [currentPage, setCurrentPage] = useState(1)
     const [totalPages, setTotalPages] = useState(1)
     const [debouncedSearchTerm] = useDebounce(searchTerm, 500)
@@ -65,9 +64,6 @@ const Feedback = () => {
 
             if (debouncedSearchTerm) {
                 params.append("search", debouncedSearchTerm)
-            }
-            if (categoryFilter !== "all") {
-                params.append("category", categoryFilter)
             }
 
             const queryString = params.toString()
@@ -90,7 +86,7 @@ const Feedback = () => {
             }
         }
         getFeedback()
-    }, [currentPage, debouncedSearchTerm, categoryFilter]) // Re-fetch when these dependencies change
+    }, [currentPage, debouncedSearchTerm]) // Re-fetch when these dependencies change
 
 
     const getCategoryIcon = (category: string) => {
@@ -181,29 +177,6 @@ const Feedback = () => {
                                     }}
                                     className="pl-10"
                                 />
-                            </div>
-                            <div className="flex gap-2">
-                                {["all", "Technical", "General"].map((cat) => (
-                                    <Button
-                                        key={cat}
-                                        variant={categoryFilter === cat ? "default" : "outline"}
-                                        size="sm"
-                                        onClick={() => {
-                                            setCategoryFilter(cat)
-                                            setCurrentPage(1)
-                                        }}
-                                        className={categoryFilter === cat ? "bg-teal-600 hover:bg-teal-700" : ""}
-                                    >
-                                        {cat === "Technical" ? (
-                                            <IconBug className="mr-1 h-3 w-3" />
-                                        ) : cat === "General" ? (
-                                            <IconUsers className="mr-1 h-3 w-3" />
-                                        ) : (
-                                            "All"
-                                        )}
-                                        {cat !== "all" && cat.charAt(0).toUpperCase() + cat.slice(1)}
-                                    </Button>
-                                ))}
                             </div>
                         </div>
                     </CardHeader>
