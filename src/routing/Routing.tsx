@@ -62,8 +62,11 @@ import {
   ADMIN_TOPUP,
   ADMIN_USERS,
   COMPANY_INFO,
+  COMPANY_MACHINE_VISIT,
   FORGET_PASSWORD,
   LOGIN,
+  MACHINE_DASHBOARD,
+  MACHINE_MACHINES,
   OPS_CORPORATE,
   OPS_DASHBOARD,
   OPS_FEEDBACK,
@@ -111,7 +114,7 @@ const Routing = () => {
           <Route path={SUPERADMIN_NOTIFICATIONS} element={<Notifications />} />
           <Route path={SUPERADMIN_FEEDBACK} element={<Feedback />} />
           <Route path={SUPERADMIN_CORPORATE} element={<Corporate />} />
-          <Route path={`${SUPERADMIN_MACHINE_VISIT}`} element={<SuperAdminMachineVisit />} />
+          <Route path={SUPERADMIN_MACHINE_VISIT} element={<SuperAdminMachineVisit />} />
         </Route>
       </Route>
 
@@ -147,9 +150,9 @@ const Routing = () => {
       {/* ✅ Updated company (corporate) routes to /company/... */}
       <Route element={<PrivateRouting allowedRoles={["company"]} />}>
         <Route element={<Layout />}>
-          <Route path="/company/dashboard" element={<CorporateDashboard />} />
-          <Route path="/company/machines" element={<CorporateMachines />} />
-          <Route path="/company/machine-visit/:id" element={<CorporateMachineVisit />} />
+          <Route path={MACHINE_DASHBOARD} element={<CorporateDashboard />} />
+          <Route path={MACHINE_MACHINES} element={<CorporateMachines />} />
+          <Route path={COMPANY_MACHINE_VISIT} element={<CorporateMachineVisit />} />
         </Route>
       </Route>
 

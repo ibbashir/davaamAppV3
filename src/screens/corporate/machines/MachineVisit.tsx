@@ -4,11 +4,11 @@ import { useState, useEffect } from "react"
 import { useParams } from "react-router-dom"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Label } from "@/components/ui/label"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Download, Plus } from "lucide-react"
 import { SiteHeader } from "@/components/corporate/site-header"
+import { postRequest } from "@/Apis/Api"
 
 // Dummy data (keep until API is ready)
 const stockData = [
@@ -32,10 +32,13 @@ export default function CorporateMachineVisit() {
   const [activeTab, setActiveTab] = useState("stock-levels")
 
   useEffect(() => {
-    console.log("Corporate visiting machine:", id)
-    // Later replace console.log with API call using `id`
-  }, [id])
+    fetchData()
+  }, [])
 
+  const fetchData=async()=>{
+    const res=await postRequest(`/api/dashboard/superadmin/machineDetailsWithMachineCode`,{machine_code:3110})
+    console.log(res)
+  }
   return (
     <div className="min-h-screen bg-gray-50 p-4">
       <div className="mx-auto max-w-7xl">

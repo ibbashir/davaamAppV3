@@ -36,7 +36,7 @@ export const SUPERADMIN_FEEDBACK = "/superadmin/feedback";
 export const SUPERADMIN_CORPORATE = "/superadmin/corporate";
 export const SUPERADMIN_STATUS = "/superadmin/status";
 export const SUPERADMIN_MACHINE_VISIT =
-  "/superadmin/machine-details";
+  "/superadmin/machine-details/:id";
 
 // ADMIN PATHS
 export const ADMIN_DASHBOARD = "/admin/dashboard";
@@ -64,6 +64,7 @@ export const OPS_MACHINE_VISIT = "/ops/machine-details";
 //MACHINE PATH
 export const MACHINE_DASHBOARD = "/company/dashboard";
 export const MACHINE_MACHINES = "/company/machines";
+export const COMPANY_MACHINE_VISIT="/company/machine-details/:id"
 
 // navigation const
 export const SUPER_ADMIN_SIDEBAR_ROUTES = () => {

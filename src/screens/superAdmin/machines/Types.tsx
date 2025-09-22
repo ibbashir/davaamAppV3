@@ -26,6 +26,8 @@ type LatestFilling = {
     batch_number: string
     expiry_date: string
     stockedby: string | null
+    lastBatchRefill: number | null
+    currentStock: number | null
 }
 
 type DispensingBrand = {

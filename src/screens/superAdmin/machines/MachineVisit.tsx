@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
@@ -9,221 +9,30 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Download, Plus } from "lucide-react"
 import { SiteHeader } from "@/components/superAdmin/site-header"
 import { useLocation } from "react-router-dom"
+import { postRequest } from "@/Apis/Api"
 
-// Sample data
-const stockData = [
-    {
-        id: 1,
-        name: "Maxi Cottony Soft XL - Row 1",
-        quantity: 30,
-        createdAt: "Mon, Sep 25, 2023 7:00 AM",
-        batchNumber: 1,
-        lastBatchRefill: 30,
-        stocksOut: 4,
-        currentStock: 26,
-    },
-    {
-        id: 2,
-        name: "Maxi Cottony Soft XL - Row 2",
-        quantity: 34,
-        createdAt: "Mon, Sep 25, 2023 7:00 AM",
-        batchNumber: 1,
-        lastBatchRefill: 34,
-        stocksOut: 1,
-        currentStock: 33,
-    },
-    {
-        id: 3,
-        name: "Maxi Fabric Soft XL - Row 3",
-        quantity: 35,
-        createdAt: "Mon, Sep 25, 2023 7:00 AM",
-        batchNumber: 1,
-        lastBatchRefill: 35,
-        stocksOut: 4,
-        currentStock: 31,
-    },
-    {
-        id: 4,
-        name: "Maxi Cottony Soft Long - Row 4",
-        quantity: 37,
-        createdAt: "Mon, Sep 25, 2023 7:00 AM",
-        batchNumber: 1,
-        lastBatchRefill: 37,
-        stocksOut: 0,
-        currentStock: 37,
-    },
-    {
-        id: 5,
-        name: "Ultra Thin Cottony XL - Row 5",
-        quantity: 42,
-        createdAt: "Mon, Sep 25, 2023 7:00 AM",
-        batchNumber: 2,
-        lastBatchRefill: 42,
-        stocksOut: 2,
-        currentStock: 40,
-    },
-    {
-        id: 6,
-        name: "Ultra Thin Cottony XL - Row 6",
-        quantity: 38,
-        createdAt: "Mon, Sep 25, 2023 7:00 AM",
-        batchNumber: 2,
-        lastBatchRefill: 38,
-        stocksOut: 3,
-        currentStock: 35,
-    },
-    {
-        id: 7,
-        name: "Ultra Thin Cottony L - Row 7",
-        quantity: 40,
-        createdAt: "Mon, Sep 25, 2023 7:00 AM",
-        batchNumber: 3,
-        lastBatchRefill: 40,
-        stocksOut: 1,
-        currentStock: 39,
-    },
-    {
-        id: 8,
-        name: "Ultra Thin Cottony L - Row 8",
-        quantity: 36,
-        createdAt: "Mon, Sep 25, 2023 7:00 AM",
-        batchNumber: 3,
-        lastBatchRefill: 36,
-        stocksOut: 2,
-        currentStock: 34,
-    },
-]
-
-const priceData = [
-    { id: 1, brandName: "Maxi Cottony Soft XL", price: 330, brandId: 614 },
-    { id: 2, brandName: "Maxi Cottony Soft XL", price: 330, brandId: 624 },
-    { id: 3, brandName: "Maxi Fabric Soft XL", price: 330, brandId: 634 },
-    { id: 4, brandName: "Maxi Cottony Soft Long", price: 330, brandId: 644 },
-    { id: 5, brandName: "Ultra Thin Cottony XL", price: 440, brandId: 694 },
-    { id: 6, brandName: "Ultra Thin Cottony XL", price: 440, brandId: 704 },
-    { id: 7, brandName: "Ultra Thin Cottony L", price: 330, brandId: 714 },
-    { id: 8, brandName: "Ultra Thin Cottony L", price: 330, brandId: 724 },
-]
-
-const transactionData = [
-    {
-        sno: 1,
-        phone: "21176",
-        product: "Maxi Cottony Soft XL",
-        amount: 330,
-        price: 330,
-        quantity: 1,
-        createdAt: "Fri, Jan 24, 2025 10:47 AM",
-    },
-    {
-        sno: 2,
-        phone: "21176",
-        product: "Maxi Cottony Soft XL",
-        amount: 330,
-        price: 330,
-        quantity: 1,
-        createdAt: "Fri, Jan 24, 2025 9:35 AM",
-    },
-    {
-        sno: 3,
-        phone: "03028229100",
-        product: "Maxi Cottony Soft XL",
-        amount: 330,
-        price: 330,
-        quantity: 1,
-        createdAt: "Fri, Sep 13, 2024 5:28 PM",
-    },
-    {
-        sno: 4,
-        phone: "03028229100",
-        product: "Maxi Cottony Soft XL",
-        amount: 330,
-        price: 330,
-        quantity: 1,
-        createdAt: "Fri, Sep 13, 2024 5:27 PM",
-    },
-    {
-        sno: 5,
-        phone: "03028229100",
-        product: "Maxi Fabric Soft XL",
-        amount: 330,
-        price: 330,
-        quantity: 1,
-        createdAt: "Mon, Sep 9, 2024 12:15 PM",
-    },
-    {
-        sno: 6,
-        phone: "03028229100",
-        product: "Maxi Cottony Soft Long",
-        amount: 330,
-        price: 330,
-        quantity: 1,
-        createdAt: "Wed, Sep 4, 2024 11:52 AM",
-    },
-    {
-        sno: 7,
-        phone: "4376",
-        product: "Ultra Thin Cottony XL",
-        amount: 440,
-        price: 440,
-        quantity: 1,
-        createdAt: "Fri, Aug 16, 2024 9:43 AM",
-    },
-    {
-        sno: 8,
-        phone: "4376",
-        product: "Ultra Thin Cottony XL",
-        amount: 440,
-        price: 440,
-        quantity: 1,
-        createdAt: "Tue, Aug 13, 2024 12:36 PM",
-    },
-    {
-        sno: 9,
-        phone: "4376",
-        product: "Ultra Thin Cottony L",
-        amount: 330,
-        price: 330,
-        quantity: 1,
-        createdAt: "Mon, Aug 12, 2024 3:04 PM",
-    },
-    {
-        sno: 10,
-        phone: "28404",
-        product: "Ultra Thin Cottony L",
-        amount: 330,
-        price: 330,
-        quantity: 1,
-        createdAt: "Fri, Oct 20, 2023 7:08 PM",
-    },
-    {
-        sno: 11,
-        phone: "28404",
-        product: "Ultra Thin Cottony L",
-        amount: 330,
-        price: 330,
-        quantity: 1,
-        createdAt: "Fri, Oct 20, 2023 7:07 PM",
-    },
-    {
-        sno: 12,
-        phone: "28404",
-        product: "Maxi Fabric Soft XL",
-        amount: 330,
-        price: 330,
-        quantity: 1,
-        createdAt: "Fri, Oct 20, 2023 7:06 PM",
-    },
-]
 
 export default function SuperAdminMachineVisit() {
     const { state } = useLocation()
     const machine = state?.machine
 
-    console.log(machine)
+    useEffect(() => {
+        fetchData()
+      }, [])
     const [stockView, setStockView] = useState("batch")
     const [activeTab, setActiveTab] = useState("stock-levels")
+    const [userTransactions,setUserTransactions]=useState([]);
+    const [brands,setBrands]=useState([])
+    const [brandFillings,setBrandFillings]=useState([])
 
+     const fetchData=async()=>{
+        const res=await postRequest(`/superadmin/machineDetailsWithMachineCode`,{machine_code:3110})
+        setUserTransactions(res.transactions)
+        setBrandFillings(res.fillings)
+        setBrands(res.brands)
+    }
+    
+    console.log(brandFillings)
     return (
         <div>
             <SiteHeader title="Machine Details"/>
@@ -262,7 +71,7 @@ export default function SuperAdminMachineVisit() {
                             </div>
 
                             <div className="space-y-6">
-                                {stockData.map((item) => (
+                                {brandFillings.map((item) => (
                                     <div key={item.id} className="space-y-4">
                                         <h2 className="text-xl font-semibold text-center text-slate-700">{item.name}</h2>
 
@@ -330,19 +139,17 @@ export default function SuperAdminMachineVisit() {
                                     <Table>
                                         <TableHeader>
                                             <TableRow>
-                                                <TableHead className="w-12">#</TableHead>
                                                 <TableHead>Brand name</TableHead>
                                                 <TableHead>Price</TableHead>
                                                 <TableHead>Brand id</TableHead>
                                             </TableRow>
                                         </TableHeader>
                                         <TableBody>
-                                            {priceData.map((item) => (
+                                            {brands.map((item) => (
                                                 <TableRow key={item.id}>
-                                                    <TableCell className="font-medium">{item.id}</TableCell>
-                                                    <TableCell>{item.brandName}</TableCell>
+                                                    <TableCell>{item.name}</TableCell>
                                                     <TableCell>{item.price}</TableCell>
-                                                    <TableCell>{item.brandId}</TableCell>
+                                                    <TableCell>{item.id}</TableCell>
                                                 </TableRow>
                                             ))}
                                         </TableBody>
@@ -369,21 +176,21 @@ export default function SuperAdminMachineVisit() {
                                                 <TableHead>Phone</TableHead>
                                                 <TableHead>Product</TableHead>
                                                 <TableHead>Amount</TableHead>
-                                                <TableHead>Price</TableHead>
                                                 <TableHead>Quantity</TableHead>
+                                                <TableHead>Machine Code</TableHead>
                                                 <TableHead>Created at</TableHead>
                                             </TableRow>
                                         </TableHeader>
                                         <TableBody>
-                                            {transactionData.map((transaction) => (
-                                                <TableRow key={transaction.sno}>
-                                                    <TableCell className="font-medium">{transaction.sno}</TableCell>
-                                                    <TableCell className="text-blue-600">{transaction.phone}</TableCell>
-                                                    <TableCell className="text-blue-600">{transaction.product}</TableCell>
+                                            {userTransactions.map((transaction,index) => (
+                                                <TableRow key={transaction.id || index}>
+                                                    <TableCell className="font-medium">{index + 1}</TableCell>
+                                                    <TableCell className="text-blue-600">{transaction.msisdn}</TableCell>
+                                                    <TableCell className="text-blue-600">{transaction.brand_id}</TableCell>
                                                     <TableCell className="text-blue-600">{transaction.amount}</TableCell>
-                                                    <TableCell>{transaction.price}</TableCell>
                                                     <TableCell>{transaction.quantity}</TableCell>
-                                                    <TableCell className="text-sm text-slate-500">{transaction.createdAt}</TableCell>
+                                                    <TableCell>{transaction.machine_code}</TableCell>
+                                                    <TableCell className="text-sm text-slate-500">{transaction.created_at}</TableCell>
                                                 </TableRow>
                                             ))}
                                         </TableBody>
