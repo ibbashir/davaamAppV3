@@ -2,36 +2,23 @@
 
 import { useState, useEffect, useMemo } from "react"
 import { useNavigate } from "react-router-dom"
+import { motion, AnimatePresence } from "framer-motion"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Input } from "@/components/ui/input"
-import { Search, ChevronLeft, ChevronRight } from "lucide-react"
+import { ChevronDown, ChevronUp, ChevronLeft, ChevronRight } from "lucide-react"
 import type { ApiMachine, MachinesResponse } from "./Types"
 import { timeConverter } from "@/constants/Constant"
 import { SiteHeader } from "@/components/corporate/site-header"
 import { postRequest } from "@/Apis/Api"
 import { useAuth } from "@/contexts/AuthContext" 
 
-const categories = [
-  { id: "Butterfly", label: "Butterfly" },
-  { id: "BodyWash", label: "Body Wash" },
-  { id: "Cooking Oil", label: "Cooking Oil" },
-  { id: "Dishwash", label: "Dishwash" },
-  { id: "Handwash", label: "Handwash" },
-  { id: "Laundry", label: "Laundry" },
-  { id: "Shampoo", label: "Shampoo" },
-  { id: "Surface Cleaner", label: "Surface Cleaner" },
-  { id: "Unknown", label: "Unknown" },
-]
-
 const CorporateMachines = () => {
   const navigate = useNavigate()
   const { state } = useAuth()
   const { user } = state
 
-  // ✅ Memoize machine codes so useEffect doesn’t run infinitely
   const machineCodes = useMemo(
     () =>
       Array.isArray(user?.machines)
@@ -46,6 +33,7 @@ const CorporateMachines = () => {
   const [machinesData, setMachinesData] = useState<{ [category: string]: ApiMachine[] } | null>(null)
   const [machineStockMap, setMachineStockMap] = useState<{ [code: string]: string }>({})
   const [loading, setLoading] = useState(true)
+  const [expanded, setExpanded] = useState<number | null>(null)
 
   const itemsPerPage = 5
 
@@ -56,19 +44,14 @@ const CorporateMachines = () => {
   }, [machineCodes])
 
   const fetchMachines = async () => {
-    
     try {
       setLoading(true)
-
-      // ✅ Pass dynamic machine codes in POST payload
       const res = await postRequest<MachinesResponse>(
         "/corporates/getAllMachineStockAndStatusByMachineCode",
         { machine_code: machineCodes }
       )
 
       const { machines, brands } = res.data
-
-      // Build stock status map per machine_code
       const stockMap: { [code: string]: string } = {}
       const allBrands = [...brands.vending, ...brands.dispensing]
       const grouped: { [machine_code: string]: number[] } = {}
@@ -81,11 +64,11 @@ const CorporateMachines = () => {
 
       for (const [code, quantities] of Object.entries(grouped)) {
         if (quantities.every((q) => q === 0)) {
-          stockMap[code] = "Out of Stock"
+          stockMap[code] = "Out of Stock ❌"
         } else if (quantities.some((q) => q < 10)) {
-          stockMap[code] = "Low Stock"
+          stockMap[code] = "Low Stock ⚠️"
         } else {
-          stockMap[code] = "In Stock"
+          stockMap[code] = "In Stock ✅"
         }
       }
 
@@ -142,9 +125,9 @@ const CorporateMachines = () => {
 
   const getStockStatusBadge = (status: string) => {
     const colorMap: { [key: string]: string } = {
-      "In Stock": "bg-green-100 text-green-800 border-green-300",
-      "Low Stock": "bg-yellow-100 text-yellow-800 border-yellow-300",
-      "Out of Stock": "bg-red-100 text-red-800 border-red-300",
+      "In Stock ✅": "bg-green-100 text-green-800 border-green-300",
+      "Low Stock ⚠️": "bg-yellow-100 text-yellow-800 border-yellow-300",
+      "Out of Stock ❌": "bg-red-100 text-red-800 border-red-300",
       Unknown: "bg-gray-100 text-gray-800 border-gray-300",
     }
 
@@ -157,64 +140,109 @@ const CorporateMachines = () => {
 
   return (
     <div>
-      <SiteHeader title="Deployed Machines" />
-      <div className="min-h-screen bg-gray-50">
-        <div className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
-          <Card>
-            <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>SNO</TableHead>
-                    <TableHead>Machine Id</TableHead>
-                    <TableHead>Locations</TableHead>
-                    <TableHead>Type</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Last active</TableHead>
-                    <TableHead>Action</TableHead>
-                    <TableHead>Stock Status</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {loading ? (
-                    <TableRow>
-                      <TableCell colSpan={8} className="text-center py-8">
-                        Loading machines...
-                      </TableCell>
-                    </TableRow>
-                  ) : paginatedMachines.length === 0 ? (
-                    <TableRow>
-                      <TableCell colSpan={8} className="text-center py-8">
-                        No machines found for the selected category.
-                      </TableCell>
-                    </TableRow>
-                  ) : (
-                    paginatedMachines.map((machine, index) => (
-                      <TableRow key={machine.id}>
-                        <TableCell className="font-medium">{startIndex + index + 1}</TableCell>
-                        <TableCell className="font-medium text-blue-600">{machine.machine_code}</TableCell>
-                        <TableCell className="max-w-xs">{machine.machine_name}</TableCell>
-                        <TableCell className="text-blue-600">{machine.machine_type}</TableCell>
-                        <TableCell>{getStatusBadge(machine.status)}</TableCell>
-                        <TableCell className="text-muted-foreground">{machine.lastActive}</TableCell>
-                        <TableCell>
-                          <Button
-                            size="sm"
-                            className="bg-teal-600 hover:bg-teal-700"
-                            onClick={() => navigate(`/company/machine-details/${machine.machine_code}`,{state:{machine}})}
-                          >
-                            Visit
-                          </Button>
-                        </TableCell>
-                        <TableCell>{getStockStatusBadge(machine.stockStatus)}</TableCell>
-                      </TableRow>
-                    ))
-                  )}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
-        </div>
+      <SiteHeader title="🌱 Deployed Machines" />
+      <div className="min-h-screen bg-gray-50 p-6">
+        {loading ? (
+          <p className="text-center text-gray-600">Loading machines...</p>
+        ) : paginatedMachines.length === 0 ? (
+          <p className="text-center text-gray-600">No machines found.</p>
+        ) : (
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {paginatedMachines.map((machine, index) => (
+              <motion.div
+                key={machine.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, delay: index * 0.05 }}
+              >
+                <Card className="border border-teal-300 shadow-md">
+                  <CardHeader>
+                    <CardTitle className="flex justify-between items-center text-teal-700">
+                      🏷️ {machine.machine_code}
+                      {getStatusBadge(machine.status)}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <div className="flex justify-between items-center">
+                      <span>Stock:</span>
+                      {getStockStatusBadge(machine.stockStatus)}
+                    </div>
+                    <div className="flex gap-2">
+                      <Button
+                        size="sm"
+                        className="bg-teal-600 hover:bg-teal-700"
+                        onClick={() =>
+                          navigate(`/company/machine-details/${machine.machine_code}`, {
+                            state: { machine },
+                          })
+                        }
+                      >
+                        Visit
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setExpanded(expanded === machine.id ? null : machine.id)}
+                      >
+                        {expanded === machine.id ? (
+                          <>
+                            Hide <ChevronUp className="w-4 h-4 ml-1" />
+                          </>
+                        ) : (
+                          <>
+                            Details <ChevronDown className="w-4 h-4 ml-1" />
+                          </>
+                        )}
+                      </Button>
+                    </div>
+
+                    <AnimatePresence>
+                      {expanded === machine.id && (
+                        <motion.div
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: "auto" }}
+                          exit={{ opacity: 0, height: 0 }}
+                          transition={{ duration: 0.3 }}
+                          className="mt-2 space-y-2 text-sm text-gray-600"
+                        >
+                          <p>📍 Location: {machine.machine_name}</p>
+                          <p>⚙️ Type: {machine.machine_type}</p>
+                          <p>📅 Last Active: {machine.lastActive}</p>
+                          <p>📦 Category: {machine.category}</p>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            ))}
+          </div>
+        )}
+
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className="flex justify-center items-center gap-4 mt-6">
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={currentPage === 1}
+              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+            >
+              <ChevronLeft className="w-4 h-4 mr-1" /> Prev
+            </Button>
+            <span>
+              Page {currentPage} of {totalPages}
+            </span>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={currentPage === totalPages}
+              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+            >
+              Next <ChevronRight className="w-4 h-4 ml-1" />
+            </Button>
+          </div>
+        )}
       </div>
     </div>
   )

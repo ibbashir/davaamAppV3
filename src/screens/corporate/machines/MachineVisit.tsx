@@ -10,7 +10,7 @@ import { Download, Plus } from "lucide-react"
 import { SiteHeader } from "@/components/corporate/site-header"
 import { useLocation } from "react-router-dom"
 import { postRequest } from "@/Apis/Api"
-import { ResponsiveBar } from "@nivo/bar"   // 👈 you missed this import
+import { ResponsiveBar } from "@nivo/bar"   
 
 type ApiResponse = {
   data: {
