@@ -10,8 +10,8 @@ import { Search, ChevronLeft, ChevronRight } from "lucide-react"
 import type { ApiMachine, MachinesResponse } from "./Types"
 import { getRequest, postRequest } from "@/Apis/Api"
 import { timeConverter } from "@/constants/Constant"
-import { useNavigate } from "react-router-dom"
 import { SiteHeader } from "@/components/ops/site-header"
+import { useNavigate } from "react-router-dom"
 
 const categories = [
   { id: "Butterfly", label: "Butterfly" },
@@ -26,6 +26,7 @@ const categories = [
 ]
 
 const Machines = () => {
+  
   const navigate = useNavigate()
   const [searchTerm, setSearchTerm] = useState("")
   const [activeCategory, setActiveCategory] = useState("Butterfly")
@@ -54,7 +55,7 @@ const Machines = () => {
   const fetchMachines = async () => {
     try {
       setLoading(true)
-      const res = await getRequest<MachinesResponse>(`/Ops/getAllMachineStockAndStatus`)
+      const res = await getRequest<MachinesResponse>(`/ops/getAllMachineStockAndStatus`)
       const { machines, brands } = res.data
 
       // Build stock status map per machine_code
@@ -63,6 +64,7 @@ const Machines = () => {
       const allBrands = [...brands.vending, ...brands.dispensing]
       const grouped: { [machine_code: string]: number[] } = {}
 
+      console.log("All brands",allBrands);
       allBrands.forEach((brand) => {
         const code = brand.machine_code
         if (!grouped[code]) grouped[code] = []
@@ -112,10 +114,11 @@ const Machines = () => {
   const startIndex = (currentPage - 1) * itemsPerPage
   const paginatedMachines = filteredMachines.slice(startIndex, startIndex + itemsPerPage)
 
+  console.log(paginatedMachines)
   const getStatusBadge = (status: string) => {
     const variant = status === "Active" ? "default" : "destructive"
     const className =
-      status === "Active"
+      status === "Active" 
         ? "bg-green-100 text-green-800 hover:bg-green-100"
         : "bg-red-100 text-red-800 hover:bg-red-100"
     return (
@@ -174,9 +177,9 @@ const Machines = () => {
                   </div>
                   <div className="flex justify-end space-x-2 pt-4">
                     <Button variant="outline" onClick={() => setShowAddModal(false)}>Cancel</Button>
-                    <Button onClick={async () => {
+                    <Button onClick={async () => { 
                       try {
-                        const res = await postRequest("/Ops/addNewMachine", newMachine)
+                        const res = await postRequest("/ops/addNewMachine", newMachine)
                         console.log("Added:", res)
                         fetchMachines()
                         setShowAddModal(false)
@@ -192,7 +195,6 @@ const Machines = () => {
             </div>
           )}
 
-
           <Card>
             <CardHeader>
               <div className="space-y-4">
@@ -200,7 +202,7 @@ const Machines = () => {
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
                     placeholder="Search by Machine Id or Location"
-                    value={searchTerm}
+                    value={searchTerm}  
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="pl-10"
                   />
@@ -260,7 +262,10 @@ const Machines = () => {
                         <TableCell>{getStatusBadge(machine.status)}</TableCell>
                         <TableCell className="text-muted-foreground">{machine.lastActive}</TableCell>
                         <TableCell>
-                          <Button size="sm" className="bg-teal-600 hover:bg-teal-700" onClick={() => navigate(`/superadmin/machine-details/${machine.machine_code}`)}>
+                          <Button 
+                            size="sm" 
+                            className="bg-teal-600 hover:bg-teal-700" 
+                            onClick={() => navigate(`/ops/machine-details/${machine.machine_code}`,{state:{machine}})}>
                             Visit
                           </Button>
                         </TableCell>

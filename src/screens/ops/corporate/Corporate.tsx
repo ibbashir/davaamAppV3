@@ -185,7 +185,7 @@ const Corporate = () => {
   useEffect(() => {
     const fetchTopups = async () => {
       try {
-        const data = await getRequest<TopupEntry[]>("/admin/getCorporateTopupHistory")
+        const data = await getRequest<TopupEntry[]>("/ops/getCorporateTopupHistory")
         if (Array.isArray(data)) setTopupHistory(data)
       } catch (e) {
         console.error("Failed to fetch topups:", e)
@@ -200,7 +200,7 @@ const Corporate = () => {
       const codes = machineCodes[tab]
       if (!codes) return
       const res = await postRequest<CorporatesClientResponse>(
-        "/admin/getCorporateClientsByMachines",
+        "/ops/getCorporateClientsByMachines",
         { machineCodes: codes },
       )
       setClientsData((prev) => ({ ...prev, [tab]: res.corporateClients }))

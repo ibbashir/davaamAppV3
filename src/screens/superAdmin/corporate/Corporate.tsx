@@ -257,6 +257,7 @@ const Corporate = () => {
     (sum, item) => sum + item.amount,
     0
   );
+  
   const uniqueClients = new Set(
     topupHistory.map((item) => item.name || item.corporate_name)
   ).size;

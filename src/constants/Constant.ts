@@ -48,7 +48,7 @@ export const ADMIN_USERS = "/admin/users";
 export const ADMIN_NOTIFICATIONS = "/admin/notifications";
 export const ADMIN_FEEDBACK = "/admin/feedback";
 export const ADMIN_CORPORATE = "/admin/corporate";
-export const ADMIN_MACHINE_VISIT = "/admin/machine-details";
+export const ADMIN_MACHINE_VISIT = "/admin/machine-details/:id";
 
 //OPS PATHS
 export const OPS_DASHBOARD = "/ops/dashboard";
@@ -59,7 +59,7 @@ export const OPS_TOPUP = "/ops/topup";
 export const OPS_USERS = "/ops/users";
 export const OPS_FEEDBACK = "/ops/feedback";
 export const OPS_CORPORATE = "/ops/corporate";
-export const OPS_MACHINE_VISIT = "/ops/machine-details";
+export const OPS_MACHINE_VISIT = "/ops/machine-details/:id";
 
 //MACHINE PATH
 export const MACHINE_DASHBOARD = "/company/dashboard";

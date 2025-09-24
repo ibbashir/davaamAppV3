@@ -201,7 +201,7 @@ const CorporateMachines = () => {
                           <Button
                             size="sm"
                             className="bg-teal-600 hover:bg-teal-700"
-                            onClick={() => navigate(`/company/machine-details/${machine.id}`)}
+                            onClick={() => navigate(`/company/machine-details/${machine.machine_code}`,{state:{machine}})}
                           >
                             Visit
                           </Button>
