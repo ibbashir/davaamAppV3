@@ -190,12 +190,16 @@ const Roles = () => {
   }, []);
 
   useEffect(() => {
-    if (machineType?.value) {
-      getAllMachineList(machineType.value);
-      // Reset selected machines when machine type changes
+  if (machineType?.value) {
+    getAllMachineList(machineType.value);
+
+    // ✅ only reset when NOT editing
+    if (!editDialogOpen) {
       setSelectedMachines([]);
     }
-  }, [machineType]);
+  }
+}, [machineType, editDialogOpen]);
+
 
   useEffect(() => {
     if (editDialogOpen && currentUserForEdit) {
@@ -220,15 +224,20 @@ const Roles = () => {
       }
       
       // Set selected machines for company role
-      if (currentUserForEdit.user_role === "company" && currentUserForEdit.machines.length > 0) {
-        const machineOptions = currentUserForEdit.machines.map(machine => ({
-          value: machine.machine_code,
-          label: `${machine.machine_name} | ${machine.machine_code}`
-        }));
-        setSelectedMachines(machineOptions);
-      } else {
-        setSelectedMachines([]);
-      }
+      if (
+  currentUserForEdit.user_role === "company" &&
+  currentUserForEdit.machines.length > 0
+) {
+  const machineOptions = currentUserForEdit.machines.map(machine => ({
+    value: machine.machine_code,
+    label: `${machine.machine_name} | ${machine.machine_code}`,
+  }));
+  setSelectedMachines(machineOptions);   // ✅ preserves existing machines
+} else {
+  setSelectedMachines([]);
+}
+
+
     } else if (!editDialogOpen) {
       // Reset form when dialog closes
       resetForm();
@@ -280,17 +289,19 @@ const Roles = () => {
 
     try {
       setCreating(true);
-      const newUser = {
+      const newUser = { 
         firstName: data.firstName,
         lastName: data.lastName,
         email: data.email,
         password: data.password,
-        userRole: userRole.value,
+        userRole: userRole.value,   // ✅ was userRole → now user_role
         machine_type: userRole.value === "company" ? machineType?.value || null : null,
         roleCode: getRoleCode(userRole.value),
-        companyCode: "0",
-        machines: userRole.value === "company" ? selectedMachines.map(m => m.value) : [],
-      };
+        machine_code: userRole.value === "company"
+          ? selectedMachines.map(m => ({ machine_code: parseInt(m.value) }))  // ✅ fix machines → machine_code array of objects
+          : [],
+};
+
 
       await postRequest("/superadmin/addNewRole", newUser);
       toast.success("User created successfully");
@@ -314,15 +325,16 @@ const Roles = () => {
     try {
       setEditing(true);
       const updatedUser = {
-        email: data.email,
         password: data.password,
         firstName: data.firstName,
         lastName: data.lastName,
         user_role: currentUserForEdit.user_role,
         roleCode: currentUserForEdit.role_code,
         machine_type: currentUserForEdit.user_role === "company" ? machineType?.value || null : null,
-        machines: currentUserForEdit.user_role === "company" ? selectedMachines.map(m => m.value) : [],
-      };
+        machine_code: userRole.value === "company"
+    ? selectedMachines.map(m => ({ machine_code: parseInt(m.value) }))
+    : [],
+};
 
       await putRequest(
         `/superadmin/updateRole/${currentUserForEdit.id}`,
