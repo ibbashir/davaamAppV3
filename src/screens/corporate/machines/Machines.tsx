@@ -12,7 +12,7 @@ import type { ApiMachine, MachinesResponse } from "./Types"
 import { timeConverter } from "@/constants/Constant"
 import { SiteHeader } from "@/components/corporate/site-header"
 import { postRequest } from "@/Apis/Api"
-import { useAuth } from "@/contexts/AuthContext" // ✅ AuthContext
+import { useAuth } from "@/contexts/AuthContext" 
 
 const categories = [
   { id: "Butterfly", label: "Butterfly" },
