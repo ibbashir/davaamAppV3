@@ -10,7 +10,7 @@ import { Search, ChevronLeft, ChevronRight } from "lucide-react"
 import type { ApiMachine, MachinesResponse } from "./Types"
 import { getRequest, postRequest } from "@/Apis/Api"
 import { timeConverter } from "@/constants/Constant"
-import { SiteHeader } from "@/components/admin/site-header"
+import { SiteHeader } from "@/components/superAdmin/site-header"
 import { useNavigate } from "react-router-dom"
 
 const categories = [
@@ -26,7 +26,6 @@ const categories = [
 ]
 
 const Machines = () => {
-  
   const navigate = useNavigate()
   const [searchTerm, setSearchTerm] = useState("")
   const [activeCategory, setActiveCategory] = useState("Butterfly")
@@ -64,17 +63,19 @@ const Machines = () => {
       const allBrands = [...brands.vending, ...brands.dispensing]
       const grouped: { [machine_code: string]: number[] } = {}
 
-      console.log("All brands",allBrands);
       allBrands.forEach((brand) => {
         const code = brand.machine_code
         if (!grouped[code]) grouped[code] = []
         grouped[code].push(brand.availableQuantity)
       })
 
+      // FIXED: low stock = total < 2
       for (const [code, quantities] of Object.entries(grouped)) {
-        if (quantities.every((q) => q === 0)) {
+        const total = quantities.reduce((sum, q) => sum + q, 0)
+
+        if (total === 0) {
           stockMap[code] = "Out of Stock"
-        } else if (quantities.some((q) => q < 10)) {
+        } else if (total < 2) {
           stockMap[code] = "Low Stock"
         } else {
           stockMap[code] = "In Stock"
@@ -92,14 +93,14 @@ const Machines = () => {
 
   const allMachines = machinesData
     ? Object.entries(machinesData).flatMap(([category, machines]) =>
-      machines.map((machine) => ({
-        ...machine,
-        category: category,
-        status: machine.statusCode === "r" ? "Inactive" : machine.statusCode === "g" ? "Active" : "Pending",
-        lastActive: timeConverter(machine.created_at),
-        stockStatus: machineStockMap[machine.machine_code] || "Unknown",
-      }))
-    )
+        machines.map((machine) => ({
+          ...machine,
+          category: category,
+          status: machine.statusCode === "r" ? "Inactive" : machine.statusCode === "g" ? "Active" : "Pending",
+          lastActive: timeConverter(machine.created_at),
+          stockStatus: machineStockMap[machine.machine_code] || "Unknown",
+        }))
+      )
     : []
 
   const filteredMachines = allMachines.filter((machine) => {
@@ -114,11 +115,10 @@ const Machines = () => {
   const startIndex = (currentPage - 1) * itemsPerPage
   const paginatedMachines = filteredMachines.slice(startIndex, startIndex + itemsPerPage)
 
-  console.log(paginatedMachines)
   const getStatusBadge = (status: string) => {
     const variant = status === "Active" ? "default" : "destructive"
     const className =
-      status === "Active" 
+      status === "Active"
         ? "bg-green-100 text-green-800 hover:bg-green-100"
         : "bg-red-100 text-red-800 hover:bg-red-100"
     return (
@@ -155,10 +155,14 @@ const Machines = () => {
               </p>
             </div>
             <div className="flex gap-2">
-              <Button onClick={() => {
-                setShowAddModal(true);
-              }} className="bg-teal-600 hover:bg-teal-700">Add Machine</Button>
-
+              <Button
+                onClick={() => {
+                  setShowAddModal(true)
+                }}
+                className="bg-teal-600 hover:bg-teal-700"
+              >
+                Add Machine
+              </Button>
             </div>
           </div>
 
@@ -168,25 +172,60 @@ const Machines = () => {
                 <div className="bg-white p-6 rounded-xl w-full max-w-lg space-y-4">
                   <h2 className="text-xl font-semibold">Add New Machine</h2>
                   <div className="space-y-2">
-                    <Input placeholder="Machine Code" required value={newMachine.machine_code} onChange={e => setNewMachine({ ...newMachine, machine_code: e.target.value })} />
-                    <Input placeholder="Machine Name" required value={newMachine.machine_name} onChange={e => setNewMachine({ ...newMachine, machine_name: e.target.value })} />
-                    <Input placeholder="Machine Location" required value={newMachine.machine_location} onChange={e => setNewMachine({ ...newMachine, machine_location: e.target.value })} />
-                    <Input placeholder="Machine Type" required value={newMachine.machine_type} onChange={e => setNewMachine({ ...newMachine, machine_type: e.target.value })} />
-                    <Input placeholder="Latitude" required value={newMachine.lat} onChange={e => setNewMachine({ ...newMachine, lat: e.target.value })} />
-                    <Input placeholder="Longitude" required value={newMachine.lng} onChange={e => setNewMachine({ ...newMachine, lng: e.target.value })} />
+                    <Input
+                      placeholder="Machine Code"
+                      required
+                      value={newMachine.machine_code}
+                      onChange={(e) => setNewMachine({ ...newMachine, machine_code: e.target.value })}
+                    />
+                    <Input
+                      placeholder="Machine Name"
+                      required
+                      value={newMachine.machine_name}
+                      onChange={(e) => setNewMachine({ ...newMachine, machine_name: e.target.value })}
+                    />
+                    <Input
+                      placeholder="Machine Location"
+                      required
+                      value={newMachine.machine_location}
+                      onChange={(e) => setNewMachine({ ...newMachine, machine_location: e.target.value })}
+                    />
+                    <Input
+                      placeholder="Machine Type"
+                      required
+                      value={newMachine.machine_type}
+                      onChange={(e) => setNewMachine({ ...newMachine, machine_type: e.target.value })}
+                    />
+                    <Input
+                      placeholder="Latitude"
+                      required
+                      value={newMachine.lat}
+                      onChange={(e) => setNewMachine({ ...newMachine, lat: e.target.value })}
+                    />
+                    <Input
+                      placeholder="Longitude"
+                      required
+                      value={newMachine.lng}
+                      onChange={(e) => setNewMachine({ ...newMachine, lng: e.target.value })}
+                    />
                   </div>
                   <div className="flex justify-end space-x-2 pt-4">
-                    <Button variant="outline" onClick={() => setShowAddModal(false)}>Cancel</Button>
-                    <Button onClick={async () => { 
-                      try {
-                        const res = await postRequest("/admin/addNewMachine", newMachine)
-                        console.log("Added:", res)
-                        fetchMachines()
-                        setShowAddModal(false)
-                      } catch (err) {
-                        console.error("Error adding machine:", err)
-                      }
-                    }} className="bg-teal-600 hover:bg-teal-700">
+                    <Button variant="outline" onClick={() => setShowAddModal(false)}>
+                      Cancel
+                    </Button>
+                    <Button
+                      onClick={async () => {
+                        try {
+                          const res = await postRequest("/admin/addNewMachine", newMachine)
+                          console.log("Added:", res)
+                          fetchMachines()
+                          setShowAddModal(false)
+                        } catch (err) {
+                          console.error("Error adding machine:", err)
+                        }
+                      }}
+                      className="bg-teal-600 hover:bg-teal-700"
+                    >
                       Add Machine
                     </Button>
                   </div>
@@ -202,7 +241,7 @@ const Machines = () => {
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
                     placeholder="Search by Machine Id or Location"
-                    value={searchTerm}  
+                    value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="pl-10"
                   />
@@ -260,12 +299,15 @@ const Machines = () => {
                         <TableCell className="max-w-xs">{machine.machine_name}</TableCell>
                         <TableCell className="text-blue-600">{machine.machine_type}</TableCell>
                         <TableCell>{getStatusBadge(machine.status)}</TableCell>
-                        <TableCell className="text-muted-foreground">{machine.lastActive}</TableCell>
+                        <TableCell className="text-muted-foreground">{new Date(machine.lastUpdated * 1000).toLocaleString()}</TableCell>
                         <TableCell>
-                          <Button 
-                            size="sm" 
-                            className="bg-teal-600 hover:bg-teal-700" 
-                            onClick={() => navigate(`/admin/machine-details/${machine.machine_code}`,{state:{machine}})}>
+                          <Button
+                            size="sm"
+                            className="bg-teal-600 hover:bg-teal-700"
+                            onClick={() =>
+                              navigate(`/admin/machine-details/${machine.machine_code}`, { state: { machine } })
+                            }
+                          >
                             Visit
                           </Button>
                         </TableCell>

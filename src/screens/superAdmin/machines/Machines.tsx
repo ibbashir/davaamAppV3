@@ -63,7 +63,6 @@ const Machines = () => {
       const allBrands = [...brands.vending, ...brands.dispensing]
       const grouped: { [machine_code: string]: number[] } = {}
 
-      console.log("All brands", allBrands)
       allBrands.forEach((brand) => {
         const code = brand.machine_code
         if (!grouped[code]) grouped[code] = []
@@ -115,8 +114,6 @@ const Machines = () => {
   const totalPages = Math.ceil(filteredMachines.length / itemsPerPage)
   const startIndex = (currentPage - 1) * itemsPerPage
   const paginatedMachines = filteredMachines.slice(startIndex, startIndex + itemsPerPage)
-
-  console.log(paginatedMachines)
 
   const getStatusBadge = (status: string) => {
     const variant = status === "Active" ? "default" : "destructive"
@@ -302,7 +299,7 @@ const Machines = () => {
                         <TableCell className="max-w-xs">{machine.machine_name}</TableCell>
                         <TableCell className="text-blue-600">{machine.machine_type}</TableCell>
                         <TableCell>{getStatusBadge(machine.status)}</TableCell>
-                        <TableCell className="text-muted-foreground">{machine.lastActive}</TableCell>
+                        <TableCell className="text-muted-foreground">{new Date(machine.lastUpdated * 1000).toLocaleString()}</TableCell>
                         <TableCell>
                           <Button
                             size="sm"

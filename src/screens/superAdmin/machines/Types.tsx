@@ -12,7 +12,7 @@ type ApiMachine = {
     access: string | null
     status: string
     statusCode: string
-    lastUpdated: number | null
+    lastUpdated: number
 }
 
 // Brand types
