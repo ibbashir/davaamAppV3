@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input"
 import { Search, ChevronLeft, ChevronRight } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import type { ApiMachine, MachinesResponse } from "./Types"
-import { getRequest, postRequest } from "@/Apis/Api"
+import { getRequest } from "@/Apis/Api"
 import { timeConverter } from "@/constants/Constant"
 import { SiteHeader } from "@/components/superAdmin/site-header"
 import { useNavigate } from "react-router-dom"
@@ -123,33 +123,36 @@ const Machines = () => {
       <SiteHeader title="Deployed Machines ⚙️" />
       <div className="min-h-screen bg-gray-50 p-4">
         <div className="max-w-7xl mx-auto space-y-6">
-          {/* Search + Filters */}
-          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-            <div className="relative w-full md:w-1/2">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+
+          {/* Search bar on top */}
+          <div className="mb-4">
+            <div className="relative w-full">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
               <Input
                 placeholder="🔍 Search by Machine Id or Location"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
+                className="pl-10 w-full"
               />
             </div>
-            <div className="flex flex-wrap gap-2">
-              {categories.map((cat) => (
-                <Button
-                  key={cat.id}
-                  variant={activeCategory === cat.id ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => {
-                    setActiveCategory(cat.id)
-                    setCurrentPage(1)
-                  }}
-                  className={activeCategory === cat.id ? "bg-teal-600 hover:bg-teal-700 text-white" : ""}
-                >
-                  {cat.label}
-                </Button>
-              ))}
-            </div>
+          </div>
+
+          {/* Categories below search */}
+          <div className="flex flex-wrap gap-2 mb-6">
+            {categories.map((cat) => (
+              <Button
+                key={cat.id}
+                variant={activeCategory === cat.id ? "default" : "outline"}
+                size="sm"
+                onClick={() => {
+                  setActiveCategory(cat.id)
+                  setCurrentPage(1)
+                }}
+                className={activeCategory === cat.id ? "bg-teal-600 hover:bg-teal-700 text-white" : ""}
+              >
+                {cat.label}
+              </Button>
+            ))}
           </div>
 
           {/* Machine Cards */}

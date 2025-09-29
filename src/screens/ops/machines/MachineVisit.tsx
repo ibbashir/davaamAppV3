@@ -292,70 +292,86 @@ export default function AdminMachineVisit() {
               </motion.div>
             </TabsContent>
 
-            {/* USER TRANSACTIONS */}
-            <TabsContent value="user-transactions" className="space-y-6">
-              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-                <div className="flex items-center justify-between">
-                  <h1 className="text-2xl font-bold text-emerald-700">👥 User Transactions</h1>
-                  <Button className="bg-teal-600 hover:bg-teal-700 text-white rounded-lg">
-                    <Download className="w-4 h-4 mr-2" /> 📂 Export CSV
-                  </Button>
-                </div>
-                <Card className="rounded-2xl shadow-lg">
-                  <CardContent className="p-0">
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>#️⃣ SNO</TableHead>
-                          <TableHead>📱 Phone</TableHead>
-                          <TableHead>🏷 Product</TableHead>
-                          <TableHead>💵 Amount</TableHead>
-                          <TableHead>📦 Quantity</TableHead>
-                          <TableHead>🏭 Machine Code</TableHead>
-                          <TableHead>⏰ Created At</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {userTransactions
-                          .slice((currentPage - 1) * rowsPerPage, currentPage * rowsPerPage)
-                          .map((transaction, index) => (
-                            <TableRow key={transaction.id || index}>
-                              <TableCell className="font-medium">{(currentPage - 1) * rowsPerPage + index + 1}</TableCell>
-                              <TableCell className="text-blue-600">{transaction.msisdn}</TableCell>
-                              <TableCell className="text-emerald-700 font-bold">{transaction.brand_id}</TableCell>
-                              <TableCell className="text-teal-600">{transaction.amount}</TableCell>
-                              <TableCell>{transaction.quantity}</TableCell>
-                              <TableCell>{transaction.machine_code}</TableCell>
-                              <TableCell className="text-sm text-slate-500">{transaction.created_at}</TableCell>
-                            </TableRow>
-                          ))}
-                      </TableBody>
-                    </Table>
-                  </CardContent>
-                </Card>
+          {/* ---- USER TRANSACTIONS ---- */}
+          <TabsContent value="user-transactions" className="space-y-6">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+            >
+              {/* Added padding + gap */}
+              <div className="flex items-center justify-between px-2 py-3 mb-4">
+                <h1 className="text-2xl font-bold text-emerald-700">
+                  👥 User Transactions
+                </h1>
+                <Button className="bg-teal-600 hover:bg-teal-700 text-white rounded-lg ml-4">
+                  <Download className="w-4 h-4 mr-2" /> Export CSV
+                </Button>
+              </div>
 
-                {/* Pagination */}
-                <div className="flex items-center justify-center gap-4 mt-4">
-                  <Button
-                    variant="outline"
-                    disabled={currentPage === 1}
-                    onClick={() => setCurrentPage((prev) => prev - 1)}
-                  >
-                    ◀ Previous
-                  </Button>
-                  <span className="text-slate-600">
-                    Page {currentPage} of {Math.ceil(userTransactions.length / rowsPerPage)}
-                  </span>
-                  <Button
-                    variant="outline"
-                    disabled={currentPage === Math.ceil(userTransactions.length / rowsPerPage)}
-                    onClick={() => setCurrentPage((prev) => prev + 1)}
-                  >
-                    Next ▶
-                  </Button>
-                </div>
-              </motion.div>
-            </TabsContent>
+              <Card className="rounded-2xl shadow-lg">
+                <CardContent className="p-0">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>#️⃣ SNO</TableHead>
+                        <TableHead>📱 Phone</TableHead>
+                        <TableHead>🏷 Product</TableHead>
+                        <TableHead>💵 Amount</TableHead>
+                        <TableHead>📦 Quantity</TableHead>
+                        <TableHead>🏭 Machine Code</TableHead>
+                        <TableHead>⏰ Created At</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {userTransactions
+                        .slice((currentPage - 1) * rowsPerPage, currentPage * rowsPerPage)
+                        .map((transaction, index) => (
+                          <TableRow key={transaction.id || index}>
+                            <TableCell className="font-medium">
+                              {(currentPage - 1) * rowsPerPage + index + 1}
+                            </TableCell>
+                            <TableCell className="text-blue-600">{transaction.msisdn}</TableCell>
+                            <TableCell className="text-emerald-700 font-bold">{transaction.brand_id}</TableCell>
+                            <TableCell className="text-teal-600">{transaction.amount}</TableCell>
+                            <TableCell>{transaction.quantity}</TableCell>
+                            <TableCell>{transaction.machine_code}</TableCell>
+                            <TableCell className="text-sm text-slate-500">
+                              {transaction.created_at}
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                    </TableBody>
+                  </Table>
+                </CardContent>
+              </Card>
+
+              {/* Pagination */}
+              <div className="flex items-center justify-center gap-4 mt-4">
+                <Button
+                  variant="outline"
+                  disabled={currentPage === 1}
+                  onClick={() => setCurrentPage((prev) => prev - 1)}
+                >
+                  ◀ Previous
+                </Button>
+
+                <span className="text-slate-600">
+                  Page {currentPage} of {Math.ceil(userTransactions.length / rowsPerPage)}
+                </span>
+
+                <Button
+                  variant="outline"
+                  disabled={currentPage === Math.ceil(userTransactions.length / rowsPerPage)}
+                  onClick={() => setCurrentPage((prev) => prev + 1)}
+                >
+                  Next ▶
+                </Button>
+              </div>
+            </motion.div>
+          </TabsContent>
+
+
           </Tabs>
         </div>
       </div>
