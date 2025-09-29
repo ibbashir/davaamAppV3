@@ -13,16 +13,17 @@ import { timeConverter } from "@/constants/Constant"
 import { SiteHeader } from "@/components/superAdmin/site-header"
 import { useNavigate } from "react-router-dom"
 
+
 const categories = [
-  { id: "Butterfly", label: "Butterfly" },
-  { id: "BodyWash", label: "Body Wash" },
-  { id: "Cooking Oil", label: "Cooking Oil" },
-  { id: "Dishwash", label: "Dishwash" },
-  { id: "Handwash", label: "Handwash" },
-  { id: "Laundry", label: "Laundry" },
-  { id: "Shampoo", label: "Shampoo" },
-  { id: "Surface Cleaner", label: "Surface Cleaner" },
-  { id: "Unknown", label: "Unknown" },
+  { id: "Butterfly", label: "🦋 Butterfly" },
+  { id: "BodyWash", label: "🛁 Body Wash" },
+  { id: "Cooking Oil", label: "🍳 Cooking Oil" },
+  { id: "Dishwash", label: "🍽️ Dishwash" },
+  { id: "Handwash", label: "🧼 Handwash" },
+  { id: "Laundry", label: "👕 Laundry" },
+  { id: "Shampoo", label: "🧴 Shampoo" },
+  { id: "Surface Cleaner", label: "🧹 Surface Cleaner" },
+  { id: "Unknown", label: "❓ Unknown" },
 ]
 
 const Machines = () => {
