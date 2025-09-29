@@ -177,7 +177,7 @@ const CorporateMachines = () => {
                           })
                         }
                       >
-                        Visit
+                        Visit 
                       </Button>
                       <Button
                         variant="outline"
