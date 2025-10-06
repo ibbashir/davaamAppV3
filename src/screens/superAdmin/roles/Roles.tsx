@@ -23,6 +23,13 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   IconPlus,
   IconEdit,
   IconTrash,
@@ -31,6 +38,10 @@ import {
   IconLoader2,
   IconEyeOff,
   IconEye,
+  IconChevronLeft,
+  IconChevronRight,
+  IconChevronsLeft,
+  IconChevronsRight,
 } from "@tabler/icons-react";
 import {
   Dialog,
@@ -43,7 +54,6 @@ import {
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { deleteRequest, getRequest, postRequest, putRequest } from "@/Apis/Api";
-import Select from "react-select";
 
 // Interfaces
 interface Machine {
@@ -77,6 +87,11 @@ interface ApiResponse {
   pagination?: {
     total: number;
   };
+  total?: number;
+  superAdminRoles?: number;
+  adminRoles?: number;
+  opsRoles?: number;
+  companyRoles?: number;
 }
 
 interface UserFormData {
@@ -96,7 +111,7 @@ interface SelectOption {
 }
 
 // Constants
-const ROWS_PER_PAGE = 10;
+const DEFAULT_PAGE_SIZE = 10;
 
 const ROLE_OPTIONS: SelectOption[] = [
   { value: "ops", label: "Ops" },
@@ -130,7 +145,7 @@ const Roles = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [users, setUsers] = useState<User[]>([]);
-  const [totalRoleList,setTotalRolesList]=useState("");
+  const [totalRoleList, setTotalRolesList] = useState<ApiResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
   const [editing, setEditing] = useState(false);
@@ -142,8 +157,9 @@ const Roles = () => {
   const [visiblePasswords, setVisiblePasswords] = useState<{ [key: number]: boolean }>({});
   const [currentPage, setCurrentPage] = useState(1);
   const [totalRecords, setTotalRecords] = useState(0);
+  const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
 
-  const totalPages = Math.ceil(totalRecords / ROWS_PER_PAGE);
+  const totalPages = Math.ceil(totalRecords / pageSize);
 
   // Form handling
   const {
@@ -155,15 +171,15 @@ const Roles = () => {
   } = useForm<UserFormData>();
 
   // Data fetching
-  const fetchRoles = async (page: number = 1) => {
+  const fetchRoles = async (page: number = 1, limit: number = pageSize) => {
     try {
       setLoading(true);
       const res: ApiResponse = await getRequest(
-        `/superadmin/getAllRoleLists?page=${page}&limit=${ROWS_PER_PAGE}`
+        `/superadmin/getAllRoleLists?page=${page}&limit=${limit}`
       );
 
       if (res) {
-        setTotalRolesList(res)
+        setTotalRolesList(res);
         setUsers(res.data);
         setTotalRecords(res.total || res.data.length);
         setCurrentPage(page);
@@ -192,20 +208,19 @@ const Roles = () => {
 
   // Effects
   useEffect(() => {
-    fetchRoles(1);
+    fetchRoles(1, pageSize);
   }, []);
 
   useEffect(() => {
-  if (machineType?.value) {
-    getAllMachineList(machineType.value);
+    if (machineType?.value) {
+      getAllMachineList(machineType.value);
 
-    // ✅ only reset when NOT editing
-    if (!editDialogOpen) {
-      setSelectedMachines([]);
+      // ✅ only reset when NOT editing
+      if (!editDialogOpen) {
+        setSelectedMachines([]);
+      }
     }
-  }
-}, [machineType, editDialogOpen]);
-
+  }, [machineType, editDialogOpen]);
 
   useEffect(() => {
     if (editDialogOpen && currentUserForEdit) {
@@ -231,19 +246,17 @@ const Roles = () => {
       
       // Set selected machines for company role
       if (
-  currentUserForEdit.user_role === "company" &&
-  currentUserForEdit.machines.length > 0
-) {
-  const machineOptions = currentUserForEdit.machines.map(machine => ({
-    value: machine.machine_code,
-    label: `${machine.machine_name} | ${machine.machine_code}`,
-  }));
-  setSelectedMachines(machineOptions);   // ✅ preserves existing machines
-} else {
-  setSelectedMachines([]);
-}
-
-
+        currentUserForEdit.user_role === "company" &&
+        currentUserForEdit.machines.length > 0
+      ) {
+        const machineOptions = currentUserForEdit.machines.map(machine => ({
+          value: machine.machine_code,
+          label: `${machine.machine_name} | ${machine.machine_code}`,
+        }));
+        setSelectedMachines(machineOptions);   // ✅ preserves existing machines
+      } else {
+        setSelectedMachines([]);
+      }
     } else if (!editDialogOpen) {
       // Reset form when dialog closes
       resetForm();
@@ -300,20 +313,19 @@ const Roles = () => {
         lastName: data.lastName,
         email: data.email,
         password: data.password,
-        userRole: userRole.value,   // ✅ was userRole → now user_role
+        userRole: userRole.value,
         machine_type: userRole.value === "company" ? machineType?.value || null : null,
         roleCode: getRoleCode(userRole.value),
         machine_code: userRole.value === "company"
-          ? selectedMachines.map(m => ({ machine_code: parseInt(m.value) }))  // ✅ fix machines → machine_code array of objects
+          ? selectedMachines.map(m => ({ machine_code: parseInt(m.value) }))
           : [],
-};
-
+      };
 
       await postRequest("/superadmin/addNewRole", newUser);
       toast.success("User created successfully");
       setIsDialogOpen(false);
       resetForm();
-      fetchRoles(currentPage);
+      fetchRoles(currentPage, pageSize);
     } catch (error) {
       console.error("Error creating user:", error);
       toast.error("Failed to create user");
@@ -337,10 +349,10 @@ const Roles = () => {
         user_role: currentUserForEdit.user_role,
         roleCode: currentUserForEdit.role_code,
         machine_type: currentUserForEdit.user_role === "company" ? machineType?.value || null : null,
-        machine_code: userRole.value === "company"
-    ? selectedMachines.map(m => ({ machine_code: parseInt(m.value) }))
-    : [],
-};
+        machine_code: userRole?.value === "company"
+          ? selectedMachines.map(m => ({ machine_code: parseInt(m.value) }))
+          : [],
+      };
 
       await putRequest(
         `/superadmin/updateRole/${currentUserForEdit.id}`,
@@ -349,7 +361,7 @@ const Roles = () => {
 
       toast.success("User updated successfully");
       setEditDialogOpen(false);
-      fetchRoles(currentPage);
+      fetchRoles(currentPage, pageSize);
     } catch (error) {
       console.error("Error updating user:", error);
       toast.error("Failed to update user");
@@ -366,7 +378,7 @@ const Roles = () => {
     try {
       await deleteRequest(`/superadmin/deleteRole/${userId}`);
       toast.success("User deleted successfully");
-      fetchRoles(currentPage);
+      fetchRoles(currentPage, pageSize);
     } catch (error) {
       console.error("Error deleting user:", error);
       toast.error("Failed to delete user");
@@ -380,6 +392,13 @@ const Roles = () => {
     }));
   };
 
+  const handlePageSizeChange = (size: string) => {
+    const newSize = Number(size);
+    setPageSize(newSize);
+    setCurrentPage(1);
+    fetchRoles(1, newSize);
+  };
+
   // Get machine options for react-select
   const getMachineOptions = (): SelectOption[] => {
     return machineData.map(machine => ({
@@ -387,12 +406,6 @@ const Roles = () => {
       label: `${machine.machine_name} | ${machine.machine_code}`
     }));
   };
-
-  // Statistics
-  const roleStats: RoleStats = users.reduce((acc, user) => {
-    acc[user.user_role] = (acc[user.user_role] || 0) + 1;
-    return acc;
-  }, {} as RoleStats);
 
   // Render functions
   const renderMachineSelection = () => {
@@ -725,7 +738,7 @@ const Roles = () => {
               <IconUsers className="h-4 w-4 text-white" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-white">{totalRoleList.total || 0}</div>
+              <div className="text-2xl font-bold text-white">{totalRoleList?.total || 0}</div>
               <p className="text-xs text-black">Registered users</p>
             </CardContent>
           </Card>
@@ -736,7 +749,7 @@ const Roles = () => {
               <IconShield className="h-4 w-4 text-white" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-white">{totalRoleList.superAdminRoles || 0}</div>
+              <div className="text-2xl font-bold text-white">{totalRoleList?.superAdminRoles || 0}</div>
               <p className="text-xs text-black">System administrators</p>
             </CardContent>
           </Card>
@@ -747,7 +760,7 @@ const Roles = () => {
               <IconUsers className="h-4 w-4 text-white" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-white">{totalRoleList.companyRoles || 0}</div>
+              <div className="text-2xl font-bold text-white">{totalRoleList?.companyRoles || 0}</div>
               <p className="text-xs text-black">Company accounts</p>
             </CardContent>
           </Card>
@@ -758,7 +771,7 @@ const Roles = () => {
               <IconUsers className="h-4 w-4 text-white" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-white">{totalRoleList.opsRoles || 0}</div>
+              <div className="text-2xl font-bold text-white">{totalRoleList?.opsRoles || 0}</div>
               <p className="text-xs text-black">Operations staff</p>
             </CardContent>
           </Card>
@@ -867,26 +880,80 @@ const Roles = () => {
                   </TableBody>
                 </Table>
 
-                {/* Pagination */}
-                <div className="flex items-center justify-between mt-4">
-                  <Button
-                    variant="outline"
-                    disabled={currentPage === 1}
-                    onClick={() => fetchRoles(currentPage - 1)}
-                  >
-                    Previous
-                  </Button>
-                  <span className="text-sm text-muted-foreground">
-                    Page {currentPage} of {totalPages}
-                  </span>
-                  <Button
-                    variant="outline"
-                    disabled={currentPage === totalPages || totalPages === 0}
-                    onClick={() => fetchRoles(currentPage + 1)}
-                  >
-                    Next
-                  </Button>
-                </div>
+                {/* Updated Pagination */}
+                {totalPages > 1 && (
+                  <div className="flex items-center justify-between px-4 mt-4">
+                    <div className="text-muted-foreground hidden flex-1 text-sm lg:flex">
+                      Showing {users.length} of {totalRecords} user(s)
+                    </div>
+                    <div className="flex w-full items-center gap-8 lg:w-fit">
+                      <div className="hidden items-center gap-2 lg:flex">
+                        <Label htmlFor="rows-per-page" className="text-sm font-medium">
+                          Rows per page
+                        </Label>
+                        <Select
+                          value={`${pageSize}`}
+                          onValueChange={handlePageSizeChange}
+                        >
+                          <SelectTrigger size="sm" className="w-20" id="rows-per-page">
+                            <SelectValue placeholder={pageSize} />
+                          </SelectTrigger>
+                          <SelectContent side="top">
+                            {[10, 20, 30, 40, 50].map((pageSize) => (
+                              <SelectItem key={pageSize} value={`${pageSize}`}>
+                                {pageSize}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="flex w-fit items-center justify-center text-sm font-medium">
+                        Page {currentPage} of {totalPages}
+                      </div>
+                      <div className="ml-auto flex items-center gap-2 lg:ml-0">
+                        <Button
+                          variant="outline"
+                          className="hidden h-8 w-8 p-0 lg:flex bg-transparent"
+                          onClick={() => fetchRoles(1, pageSize)}
+                          disabled={currentPage === 1 || loading}
+                        >
+                          <span className="sr-only">Go to first page</span>
+                          <IconChevronsLeft className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="outline"
+                          className="size-8 bg-transparent"
+                          size="icon"
+                          onClick={() => fetchRoles(currentPage - 1, pageSize)}
+                          disabled={currentPage === 1 || loading}
+                        >
+                          <span className="sr-only">Go to previous page</span>
+                          <IconChevronLeft className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="outline"
+                          className="size-8 bg-transparent"
+                          size="icon"
+                          onClick={() => fetchRoles(currentPage + 1, pageSize)}
+                          disabled={currentPage === totalPages || loading}
+                        >
+                          <span className="sr-only">Go to next page</span>
+                          <IconChevronRight className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="outline"
+                          className="hidden size-8 lg:flex bg-transparent"
+                          size="icon"
+                          onClick={() => fetchRoles(totalPages, pageSize)}
+                          disabled={currentPage === totalPages || loading}
+                        >
+                          <span className="sr-only">Go to last page</span>
+                          <IconChevronsRight className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </>
             )}
           </CardContent>

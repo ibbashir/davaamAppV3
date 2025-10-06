@@ -42,8 +42,6 @@ export function PointShare() {
     // Calculate summary statistics
     const totalTransfers = tableData.length
     const totalAmount = tableData.reduce((sum, item) => sum + parseFloat(item.amount), 0)
-    // const completedTransfers = tableData.filter((item) => item.status === "completed").length
-    // const pendingTransfers = tableData.filter((item) => item.status === "pending").length
 
     return (
         <div>
@@ -51,7 +49,6 @@ export function PointShare() {
             <div className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
                 <div className="flex items-center justify-between">
                     <div>
-                        {/* <h1 className="text-2xl font-bold tracking-tight">Points Share</h1> */}
                         <p className="text-muted-foreground">Manage and track point transfers between users</p>
                     </div>
                 </div>
@@ -77,26 +74,6 @@ export function PointShare() {
                             <p className="text-xs text-muted-foreground">Total transferred</p>
                         </CardContent>
                     </Card>
-                    {/* <Card>
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">Completed</CardTitle>
-                            <IconCheck className="h-4 w-4 text-green-500" />
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-2xl font-bold text-green-600">{completedTransfers}</div>
-                            <p className="text-xs text-muted-foreground">Successful transfers</p>
-                        </CardContent>
-                    </Card>
-                    <Card>
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">Pending</CardTitle>
-                            <IconClock className="h-4 w-4 text-yellow-500" />
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-2xl font-bold text-yellow-600">{pendingTransfers}</div>
-                            <p className="text-xs text-muted-foreground">Awaiting completion</p>
-                        </CardContent>
-                    </Card> */}
                 </div>
 
                 <PointsShareTable tableData={tableData} />

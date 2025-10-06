@@ -5,7 +5,9 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Input } from "@/components/ui/input"
-import { Search, ChevronLeft, ChevronRight } from "lucide-react"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Label } from "@/components/ui/label"
+import { Search, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react"
 
 import { getRequest } from "@/Apis/Api"
 import type { ApiTransaction, ButterflyApiResponse, OtherApiResponse, Transactions } from "@/Types/SuperAdmin/RecentTransactions"
@@ -21,14 +23,15 @@ const RecentTransactions = () => {
     const [totalPages, setTotalPages] = useState(0)
     const [searchTerm, setSearchTerm] = useState("")
     const [isSearching, setIsSearching] = useState(false)
+    const [pageSize, setPageSize] = useState(10)
 
-    const fetchLatestTransactions = async (page = 1) => {
+    const fetchLatestTransactions = async (page = 1, size = pageSize) => {
         try {
             setLoading(true)
 
             if (activeCategory === "butterfly") {
                 const res = await getRequest<ButterflyApiResponse>(
-                    `/superadmin/getAllButterflyTransactions/${activeCategory}?page=${page}`,
+                    `/superadmin/getAllButterflyTransactions/${activeCategory}?page=${page}&limit=${size}`,
                 )
 
                 // Combine both cash and online transactions with payment type info
@@ -51,9 +54,8 @@ const RecentTransactions = () => {
                 }
             } else {
                 const res = await getRequest<OtherApiResponse>(
-                    `/superadmin/getAllButterflyTransactions/${activeCategory}?page=${page}`,
+                    `/superadmin/getAllButterflyTransactions/${activeCategory}?page=${page}&limit=${size}`,
                 )
-
 
                 // For other categories, add a default payment type
                 const transactionsWithPaymentType = res.data.map((t) => ({
@@ -75,10 +77,10 @@ const RecentTransactions = () => {
         }
     }
 
-    const searchTransactions = async (searchQuery: string, page = 1) => {
+    const searchTransactions = async (searchQuery: string, page = 1, size = pageSize) => {
         if (!searchQuery.trim()) {
             setIsSearching(false)
-            fetchLatestTransactions(page)
+            fetchLatestTransactions(page, size)
             return
         }
 
@@ -88,7 +90,7 @@ const RecentTransactions = () => {
 
             if (activeCategory === "butterfly") {
                 const res = await getRequest<ButterflyApiResponse>(
-                    `/superadmin/searchRecentTransactions/${activeCategory}/${searchQuery}?page=${page}`,
+                    `/superadmin/searchRecentTransactions/${activeCategory}/${searchQuery}?page=${page}&limit=${size}`,
                 )
 
                 // Combine both cash and online transactions with payment type info
@@ -110,7 +112,7 @@ const RecentTransactions = () => {
                 }
             } else {
                 const res = await getRequest<OtherApiResponse>(
-                    `/superadmin/searchRecentTransactions/${activeCategory}/${searchQuery}?page=${page}`,
+                    `/superadmin/searchRecentTransactions/${activeCategory}/${searchQuery}?page=${page}&limit=${size}`,
                 )
 
                 const transactionsWithPaymentType = res.data.map((t) => ({
@@ -149,14 +151,14 @@ const RecentTransactions = () => {
     useEffect(() => {
         const loadData = () => {
             if (searchTerm.trim()) {
-                searchTransactions(searchTerm, currentPage)
+                searchTransactions(searchTerm, currentPage, pageSize)
             } else {
-                fetchLatestTransactions(currentPage)
+                fetchLatestTransactions(currentPage, pageSize)
             }
         }
 
         loadData()
-    }, [activeCategory, currentPage, activePaymentType])
+    }, [activeCategory, currentPage, activePaymentType, pageSize])
 
     const handleCategoryChange = (categoryId: string) => {
         setActiveCategory(categoryId)
@@ -172,10 +174,10 @@ const RecentTransactions = () => {
         e.preventDefault()
         setCurrentPage(1)
         if (searchTerm.trim()) {
-            searchTransactions(searchTerm, 1)
+            searchTransactions(searchTerm, 1, pageSize)
         } else {
             setIsSearching(false)
-            fetchLatestTransactions(1)
+            fetchLatestTransactions(1, pageSize)
         }
     }
 
@@ -187,7 +189,7 @@ const RecentTransactions = () => {
         if (!value.trim()) {
             setIsSearching(false)
             setCurrentPage(1)
-            fetchLatestTransactions(1)
+            fetchLatestTransactions(1, pageSize)
         }
     }
 
@@ -198,6 +200,12 @@ const RecentTransactions = () => {
     const handlePaymentTypeChange = (paymentType: string) => {
         setActivePaymentType(paymentType)
         setCurrentPage(1) // Reset to first page when changing payment type
+    }
+
+    const handlePageSizeChange = (size: string) => {
+        const newSize = Number(size)
+        setPageSize(newSize)
+        setCurrentPage(1) // Reset to first page when changing page size
     }
 
     return (
@@ -304,59 +312,75 @@ const RecentTransactions = () => {
 
                     {/* Pagination */}
                     {totalPages > 1 && (
-                        <div className="flex items-center justify-between space-x-2 py-4">
-                            <div className="text-sm text-muted-foreground">
-                                Page {currentPage} of {totalPages} ({totalCount} total transactions)
+                        <div className="flex items-center justify-between px-4 mt-4">
+                            <div className="text-muted-foreground hidden flex-1 text-sm lg:flex">
+                                Showing {filteredTransactions.length} of {totalCount} transaction(s)
                             </div>
-                            <div className="flex items-center space-x-2">
-                                <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => handlePageChange(currentPage - 1)}
-                                    disabled={currentPage === 1 || loading}
-                                >
-                                    <ChevronLeft className="h-4 w-4" />
-                                    Previous
-                                </Button>
-
-                                {/* Page Numbers */}
-                                <div className="flex items-center space-x-1">
-                                    {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                                        let pageNum
-                                        if (totalPages <= 5) {
-                                            pageNum = i + 1
-                                        } else if (currentPage <= 3) {
-                                            pageNum = i + 1
-                                        } else if (currentPage >= totalPages - 2) {
-                                            pageNum = totalPages - 4 + i
-                                        } else {
-                                            pageNum = currentPage - 2 + i
-                                        }
-
-                                        return (
-                                            <Button
-                                                key={pageNum}
-                                                variant={currentPage === pageNum ? "default" : "outline"}
-                                                size="sm"
-                                                onClick={() => handlePageChange(pageNum)}
-                                                className={currentPage === pageNum ? "bg-teal-600 hover:bg-teal-700" : ""}
-                                                disabled={loading}
-                                            >
-                                                {pageNum}
-                                            </Button>
-                                        )
-                                    })}
+                            <div className="flex w-full items-center gap-8 lg:w-fit">
+                                <div className="hidden items-center gap-2 lg:flex">
+                                    <Label htmlFor="rows-per-page" className="text-sm font-medium">
+                                        Rows per page
+                                    </Label>
+                                    <Select
+                                        value={`${pageSize}`}
+                                        onValueChange={handlePageSizeChange}
+                                    >
+                                        <SelectTrigger size="sm" className="w-20" id="rows-per-page">
+                                            <SelectValue placeholder={pageSize} />
+                                        </SelectTrigger>
+                                        <SelectContent side="top">
+                                            {[10, 20, 30, 40, 50].map((pageSize) => (
+                                                <SelectItem key={pageSize} value={`${pageSize}`}>
+                                                    {pageSize}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
                                 </div>
-
-                                <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => handlePageChange(currentPage + 1)}
-                                    disabled={currentPage === totalPages || loading}
-                                >
-                                    Next
-                                    <ChevronRight className="h-4 w-4" />
-                                </Button>
+                                <div className="flex w-fit items-center justify-center text-sm font-medium">
+                                    Page {currentPage} of {totalPages}
+                                </div>
+                                <div className="ml-auto flex items-center gap-2 lg:ml-0">
+                                    <Button
+                                        variant="outline"
+                                        className="hidden h-8 w-8 p-0 lg:flex bg-transparent"
+                                        onClick={() => handlePageChange(1)}
+                                        disabled={currentPage === 1 || loading}
+                                    >
+                                        <span className="sr-only">Go to first page</span>
+                                        <ChevronsLeft className="h-4 w-4" />
+                                    </Button>
+                                    <Button
+                                        variant="outline"
+                                        className="size-8 bg-transparent"
+                                        size="icon"
+                                        onClick={() => handlePageChange(currentPage - 1)}
+                                        disabled={currentPage === 1 || loading}
+                                    >
+                                        <span className="sr-only">Go to previous page</span>
+                                        <ChevronLeft className="h-4 w-4" />
+                                    </Button>
+                                    <Button
+                                        variant="outline"
+                                        className="size-8 bg-transparent"
+                                        size="icon"
+                                        onClick={() => handlePageChange(currentPage + 1)}
+                                        disabled={currentPage === totalPages || loading}
+                                    >
+                                        <span className="sr-only">Go to next page</span>
+                                        <ChevronRight className="h-4 w-4" />
+                                    </Button>
+                                    <Button
+                                        variant="outline"
+                                        className="hidden size-8 lg:flex bg-transparent"
+                                        size="icon"
+                                        onClick={() => handlePageChange(totalPages)}
+                                        disabled={currentPage === totalPages || loading}
+                                    >
+                                        <span className="sr-only">Go to last page</span>
+                                        <ChevronsRight className="h-4 w-4" />
+                                    </Button>
+                                </div>
                             </div>
                         </div>
                     )}

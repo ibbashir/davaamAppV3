@@ -195,6 +195,39 @@ const columns: ColumnDef<z.infer<typeof mobileUserSchema>>[] = [
   },
   {
     accessorKey: "tokens",
+    header: "Devices Name",
+    cell: ({ row }) => {
+      const tokens = row.original.tokens || [] // Fallback to empty array
+      const deviceCount = tokens.length
+      const deviceTypes = [...new Set(tokens.map((token) => token.device_id))]
+
+      if (deviceCount === 0) {
+        return (
+          <div className="flex items-center gap-2">
+            <IconDevices className="size-4 text-muted-foreground" />
+            <span className="text-muted-foreground italic text-sm">No devices Name</span>
+          </div>
+        )
+      }
+
+      return (
+        <div className="flex items-center gap-2">
+          <IconDevices className="size-4 text-muted-foreground" />
+          <div className="flex items-center gap-1">
+            <div className="flex gap-1">
+              {deviceTypes.map((type, index) => (
+                <Badge key={index} variant="secondary" className="text-xs capitalize">
+                  {type}
+                </Badge>
+              ))}
+            </div>
+          </div>
+        </div>
+      )
+    },
+  },
+  {
+    accessorKey: "tokens",
     header: "Devices",
     cell: ({ row }) => {
       const tokens = row.original.tokens || [] // Fallback to empty array
@@ -297,7 +330,7 @@ export function OpsMobileUsersDataTable() {
   const fetchMobileUsers = async (page = 1, limit = 10) => {
     try {
       setLoading(true)
-      const res = await getRequest<MobileUserApiResponse>(`/Ops/mobileAppUsers?page=${page}&limit=${limit}`)
+      const res = await getRequest<MobileUserApiResponse>(`/ops/mobileAppUsers?page=${page}&limit=${limit}`)
       setData(normalizeUserData(res.users))
       setApiPagination({
         currentPage: res.currentPage,
@@ -332,7 +365,7 @@ export function OpsMobileUsersDataTable() {
       setLoading(true)
       setIsSearching(true)
       const res = await getRequest<MobileUserApiResponse>(
-        `/Ops/searchAllMobileAppUsers/search/${searchQuery}?page=${page}`,
+        `/ops/searchAllMobileAppUsers/search/${searchQuery}?page=${page}`,
       )
       setData(normalizeUserData(res.users))
       setApiPagination({

@@ -195,6 +195,39 @@ const columns: ColumnDef<z.infer<typeof mobileUserSchema>>[] = [
   },
   {
     accessorKey: "tokens",
+    header: "Devices Name",
+    cell: ({ row }) => {
+      const tokens = row.original.tokens || [] // Fallback to empty array
+      const deviceCount = tokens.length
+      const deviceTypes = [...new Set(tokens.map((token) => token.device_id))]
+
+      if (deviceCount === 0) {
+        return (
+          <div className="flex items-center gap-2">
+            <IconDevices className="size-4 text-muted-foreground" />
+            <span className="text-muted-foreground italic text-sm">No devices Name</span>
+          </div>
+        )
+      }
+
+      return (
+        <div className="flex items-center gap-2">
+          <IconDevices className="size-4 text-muted-foreground" />
+          <div className="flex items-center gap-1">
+            <div className="flex gap-1">
+              {deviceTypes.map((type, index) => (
+                <Badge key={index} variant="secondary" className="text-xs capitalize">
+                  {type}
+                </Badge>
+              ))}
+            </div>
+          </div>
+        </div>
+      )
+    },
+  },
+  {
+    accessorKey: "tokens",
     header: "Devices",
     cell: ({ row }) => {
       const tokens = row.original.tokens || [] // Fallback to empty array

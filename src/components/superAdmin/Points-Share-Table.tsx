@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Label } from "@/components/ui/label"
 import {
     IconSearch,
     IconDownload,
@@ -92,34 +93,6 @@ function PointsShareTable({ tableData }: PointsShareTableProps) {
     const goToLastPage = () => setCurrentPage(totalPages)
     const goToPreviousPage = () => setCurrentPage(Math.max(1, currentPage - 1))
     const goToNextPage = () => setCurrentPage(Math.min(totalPages, currentPage + 1))
-    const goToPage = (page: number) => setCurrentPage(page)
-
-    // Generate page numbers for pagination
-    const getPageNumbers = () => {
-        const delta = 2
-        const range = []
-        const rangeWithDots = []
-
-        for (let i = Math.max(2, currentPage - delta); i <= Math.min(totalPages - 1, currentPage + delta); i++) {
-            range.push(i)
-        }
-
-        if (currentPage - delta > 2) {
-            rangeWithDots.push(1, "...")
-        } else {
-            rangeWithDots.push(1)
-        }
-
-        rangeWithDots.push(...range)
-
-        if (currentPage + delta < totalPages - 1) {
-            rangeWithDots.push("...", totalPages)
-        } else {
-            rangeWithDots.push(totalPages)
-        }
-
-        return rangeWithDots
-    }
 
     const formatCurrency = (amount: string) => {
         return `Rs: ${Number.parseFloat(amount).toFixed(2)}`
@@ -152,27 +125,6 @@ function PointsShareTable({ tableData }: PointsShareTableProps) {
                                 onChange={(e) => setSearchTerm(e.target.value)}
                                 className="pl-10"
                             />
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <span className="text-sm text-muted-foreground">Show:</span>
-                            <Select
-                                value={itemsPerPage.toString()}
-                                onValueChange={(value) => {
-                                    setItemsPerPage(Number(value))
-                                    setCurrentPage(1)
-                                }}
-                            >
-                                <SelectTrigger className="w-20">
-                                    <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="5">5</SelectItem>
-                                    <SelectItem value="10">10</SelectItem>
-                                    <SelectItem value="20">20</SelectItem>
-                                    <SelectItem value="50">50</SelectItem>
-                                    <SelectItem value="100">100</SelectItem>
-                                </SelectContent>
-                            </Select>
                         </div>
                     </div>
 
@@ -227,44 +179,81 @@ function PointsShareTable({ tableData }: PointsShareTableProps) {
                         </Table>
                     </div>
 
-                    {/* Pagination Controls */}
+                    {/* Updated Pagination Controls */}
                     {totalPages > 1 && (
-                        <div className="flex items-center justify-between">
-                            <div className="text-sm text-muted-foreground">
-                                Showing {(currentPage - 1) * itemsPerPage + 1} to {Math.min(currentPage * itemsPerPage, totalItems)} of{" "}
-                                {totalItems} entries
+                        <div className="flex items-center justify-between px-4">
+                            <div className="text-muted-foreground hidden flex-1 text-sm lg:flex">
+                                Showing {paginatedData.length} of {totalItems} transaction(s)
                                 {searchTerm && ` (filtered from ${tableData.length} total entries)`}
                             </div>
-
-                            <div className="flex items-center space-x-2">
-                                <Button variant="outline" size="sm" onClick={goToFirstPage} disabled={currentPage === 1}>
-                                    <IconChevronsLeft className="h-4 w-4" />
-                                </Button>
-                                <Button variant="outline" size="sm" onClick={goToPreviousPage} disabled={currentPage === 1}>
-                                    <IconChevronLeft className="h-4 w-4" />
-                                </Button>
-
-                                <div className="flex items-center space-x-1">
-                                    {getPageNumbers().map((pageNumber, index) => (
-                                        <Button
-                                            key={index}
-                                            variant={pageNumber === currentPage ? "default" : "outline"}
-                                            size="sm"
-                                            onClick={() => typeof pageNumber === "number" && goToPage(pageNumber)}
-                                            disabled={pageNumber === "..."}
-                                            className="min-w-[40px]"
-                                        >
-                                            {pageNumber}
-                                        </Button>
-                                    ))}
+                            <div className="flex w-full items-center gap-8 lg:w-fit">
+                                <div className="hidden items-center gap-2 lg:flex">
+                                    <Label htmlFor="rows-per-page" className="text-sm font-medium">
+                                        Rows per page
+                                    </Label>
+                                    <Select
+                                        value={`${itemsPerPage}`}
+                                        onValueChange={(value) => {
+                                            setItemsPerPage(Number(value))
+                                            setCurrentPage(1)
+                                        }}
+                                    >
+                                        <SelectTrigger size="sm" className="w-20" id="rows-per-page">
+                                            <SelectValue placeholder={itemsPerPage} />
+                                        </SelectTrigger>
+                                        <SelectContent side="top">
+                                            {[5, 10, 20, 50, 100].map((pageSize) => (
+                                                <SelectItem key={pageSize} value={`${pageSize}`}>
+                                                    {pageSize}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
                                 </div>
-
-                                <Button variant="outline" size="sm" onClick={goToNextPage} disabled={currentPage === totalPages}>
-                                    <IconChevronRight className="h-4 w-4" />
-                                </Button>
-                                <Button variant="outline" size="sm" onClick={goToLastPage} disabled={currentPage === totalPages}>
-                                    <IconChevronsRight className="h-4 w-4" />
-                                </Button>
+                                <div className="flex w-fit items-center justify-center text-sm font-medium">
+                                    Page {currentPage} of {totalPages}
+                                </div>
+                                <div className="ml-auto flex items-center gap-2 lg:ml-0">
+                                    <Button
+                                        variant="outline"
+                                        className="hidden h-8 w-8 p-0 lg:flex bg-transparent"
+                                        onClick={goToFirstPage}
+                                        disabled={currentPage === 1}
+                                    >
+                                        <span className="sr-only">Go to first page</span>
+                                        <IconChevronsLeft className="h-4 w-4" />
+                                    </Button>
+                                    <Button
+                                        variant="outline"
+                                        className="size-8 bg-transparent"
+                                        size="icon"
+                                        onClick={goToPreviousPage}
+                                        disabled={currentPage === 1}
+                                    >
+                                        <span className="sr-only">Go to previous page</span>
+                                        <IconChevronLeft className="h-4 w-4" />
+                                    </Button>
+                                    <Button
+                                        variant="outline"
+                                        className="size-8 bg-transparent"
+                                        size="icon"
+                                        onClick={goToNextPage}
+                                        disabled={currentPage === totalPages}
+                                    >
+                                        <span className="sr-only">Go to next page</span>
+                                        <IconChevronRight className="h-4 w-4" />
+                                    </Button>
+                                    <Button
+                                        variant="outline"
+                                        className="hidden size-8 lg:flex bg-transparent"
+                                        size="icon"
+                                        onClick={goToLastPage}
+                                        disabled={currentPage === totalPages}
+                                    >
+                                        <span className="sr-only">Go to last page</span>
+                                        <IconChevronsRight className="h-4 w-4" />
+                                    </Button>
+                                </div>
                             </div>
                         </div>
                     )}
