@@ -76,7 +76,6 @@ export const SUPER_ADMIN_SIDEBAR_ROUTES = () => {
       url: SUPERADMIN_CORPORATE,
       icon: IconUserStar,
     },
-    { title: "Users", url: SUPERADMIN_USERS, icon: IconUsers },
     {
       title: "Send Notifications",
       url: SUPERADMIN_NOTIFICATIONS,
@@ -98,7 +97,6 @@ export const ADMIN_SIDEBAR_ROUTES = () => {
   return [
     { title: "Dashboard", url: ADMIN_DASHBOARD, icon: IconHome },
     { title: "Corporate Clients", url: ADMIN_CORPORATE, icon: IconUserStar },
-    { title: "Users", url: ADMIN_USERS, icon: IconUsers },
     { title: "Send Notifications", url: ADMIN_NOTIFICATIONS, icon: IconBell },
     { title: "Machines", url: ADMIN_MACHINES, icon: IconChartBar },
     { title: "Points Share", url: ADMIN_POINTS, icon: IconShare3 },
@@ -116,7 +114,6 @@ export const OPS_SIDEBAR_ROUTES = () => {
   return [
     { title: "Dashboard", url: OPS_DASHBOARD, icon: IconHome },
     { title: "Corporate Clients", url: OPS_CORPORATE, icon: IconUserStar },
-    { title: "Users", url: OPS_USERS, icon: IconUsers },
     { title: "Machines", url: OPS_MACHINES, icon: IconChartBar },
     { title: "Points Share", url: OPS_POINTS, icon: IconShare3 },
     { title: "Locations", url: OPS_LOCATIONS, icon: IconLocation },

@@ -460,14 +460,6 @@ const Corporate = () => {
                       <Table>
                         <TableHeader>
                           <TableRow className="bg-muted/50">
-                            <TableHead className="w-12">
-                              <Checkbox
-                                checked={selectedItems.length === paginatedData.length && paginatedData.length > 0}
-                                onCheckedChange={(checked) =>
-                                  setSelectedItems(checked ? paginatedData.map((d) => d.id.toString()) : [])
-                                }
-                              />
-                            </TableHead>
                             <TableHead>Name</TableHead>
                             <TableHead>Card Number</TableHead>
                             <TableHead>Created At</TableHead>
@@ -478,18 +470,6 @@ const Corporate = () => {
                           {paginatedData.length > 0 ? (
                             paginatedData.map((entry) => (
                               <TableRow key={entry.id} className="hover:bg-muted/50">
-                                <TableCell>
-                                  <Checkbox
-                                    checked={selectedItems.includes(entry.id.toString())}
-                                    onCheckedChange={(checked) =>
-                                      setSelectedItems((prev) =>
-                                        checked
-                                          ? [...prev, entry.id.toString()]
-                                          : prev.filter((id) => id !== entry.id.toString()),
-                                      )
-                                    }
-                                  />
-                                </TableCell>
                                 <TableCell>{entry.name || entry.mobile_number}</TableCell>
                                 <TableCell className="font-mono">{entry.card_number|| entry.mobile_number}</TableCell>
                                 <TableCell>

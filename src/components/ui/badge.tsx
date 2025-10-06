@@ -17,6 +17,14 @@ const badgeVariants = cva(
           "border-transparent bg-destructive text-white [a&]:hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 dark:bg-destructive/60",
         outline:
           "text-foreground [a&]:hover:bg-accent [a&]:hover:text-accent-foreground",
+        admin:
+          "border-transparent bg-green-400 text-primary-foreground [a&]:hover:bg-primary/90",
+        operations:
+          "border-transparent bg-orange-400 text-secondary-foreground [a&]:hover:bg-secondary/90",
+        superAdmin:
+          "border-transparent bg-red-400 text-white [a&]:hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 dark:bg-destructive/60",
+        company:
+          "bg-cyan-400 text-foreground [a&]:hover:bg-accent [a&]:hover:text-accent-foreground",
       },
     },
     defaultVariants: {

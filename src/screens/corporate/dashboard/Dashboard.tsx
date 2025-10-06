@@ -16,7 +16,7 @@ const Dashboard = () => {
     : []
 
   // UI: initially show only buttons & cards (no graphs)
-  const [activeGraph, setActiveGraph] = useState<"none" | "dispensing" | "brands" | "both">("none")
+  const [activeGraph, setActiveGraph] = useState<"none" | "dispensing" | "brands" | "both">("both")
 
   const toggleGraph = (g: "dispensing" | "brands") => {
     // clicking will toggle that graph; if both shown and clicking same, hide -> follow requested behavior

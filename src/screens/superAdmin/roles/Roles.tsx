@@ -63,6 +63,10 @@ interface User {
   role_code: string;
   machine_type: string | null;
   update_at: string;
+  superAdminRoles: number;
+  adminRoles:number;
+  opsRoles:number;
+  companyRoles: number;
   machines: Machine[];
 }
 
@@ -126,6 +130,7 @@ const Roles = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [users, setUsers] = useState<User[]>([]);
+  const [totalRoleList,setTotalRolesList]=useState("");
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
   const [editing, setEditing] = useState(false);
@@ -157,7 +162,8 @@ const Roles = () => {
         `/superadmin/getAllRoleLists?page=${page}&limit=${ROWS_PER_PAGE}`
       );
 
-      if (res.data) {
+      if (res) {
+        setTotalRolesList(res)
         setUsers(res.data);
         setTotalRecords(res.total || res.data.length);
         setCurrentPage(page);
@@ -170,7 +176,7 @@ const Roles = () => {
     }
   };
 
-  const getAllMachineList = async (selectedType: string) => {
+  const getAllMachineList = async (selectedType: string) => { 
     try {
       const res = await getRequest(
         `/superadmin/getAllMachines?machine_type=${selectedType}`
@@ -263,11 +269,11 @@ const Roles = () => {
   };
 
   const getRoleBadgeVariant = (role: string) => {
-    const roleVariants: { [key: string]: "destructive" | "default" | "secondary" | "outline" } = {
-      "super admin": "destructive",
-      "admin": "default",
-      "ops": "secondary",
-      "company": "outline",
+    const roleVariants: { [key: string]: "superAdmin" | "admin" | "operations" | "company" } = {
+      "super admin": "superAdmin",
+      "admin": "admin",
+      "ops": "operations",
+      "company": "company",
     };
     return roleVariants[role.toLowerCase()] || "secondary";
   };
@@ -713,47 +719,47 @@ const Roles = () => {
 
         {/* Statistics Cards */}
         <div className="grid gap-4 md:grid-cols-4">
-          <Card>
+          <Card className="bg-green-400">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Users</CardTitle>
-              <IconUsers className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-sm font-medium text-white">Total Users</CardTitle>
+              <IconUsers className="h-4 w-4 text-white" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{users.length}</div>
-              <p className="text-xs text-muted-foreground">Registered users</p>
+              <div className="text-2xl font-bold text-white">{totalRoleList.total || 0}</div>
+              <p className="text-xs text-black">Registered users</p>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="bg-red-400">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Super Admins</CardTitle>
-              <IconShield className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-sm font-medium text-white">Super Admins</CardTitle>
+              <IconShield className="h-4 w-4 text-white" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{roleStats["super admin"] || 0}</div>
-              <p className="text-xs text-muted-foreground">System administrators</p>
+              <div className="text-2xl font-bold text-white">{totalRoleList.superAdminRoles || 0}</div>
+              <p className="text-xs text-black">System administrators</p>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="bg-cyan-400">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Companies</CardTitle>
-              <IconUsers className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-sm font-medium text-white">Companies</CardTitle>
+              <IconUsers className="h-4 w-4 text-white" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{roleStats["company"] || 0}</div>
-              <p className="text-xs text-muted-foreground">Company accounts</p>
+              <div className="text-2xl font-bold text-white">{totalRoleList.companyRoles || 0}</div>
+              <p className="text-xs text-black">Company accounts</p>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="bg-orange-400">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Operators</CardTitle>
-              <IconUsers className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-sm font-medium text-white">Operators</CardTitle>
+              <IconUsers className="h-4 w-4 text-white" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{roleStats["ops"] || 0}</div>
-              <p className="text-xs text-muted-foreground">Operations staff</p>
+              <div className="text-2xl font-bold text-white">{totalRoleList.opsRoles || 0}</div>
+              <p className="text-xs text-black">Operations staff</p>
             </CardContent>
           </Card>
         </div>

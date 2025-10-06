@@ -134,6 +134,7 @@ const Corporate = () => {
   const [itemsPerPage] = useState(20);
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
+  const [allData,setAllData]=useState("")
 
   // Add Topup form
   const addTopupForm = useForm<AddTopupFormData>({
@@ -230,7 +231,8 @@ const Corporate = () => {
         const data = await getRequest<TopupEntry[]>(
           "/superadmin/getCorporateTopupHistory"
         );
-        if (Array.isArray(data)) setTopupHistory(data);
+        setAllData(data)
+        if (Array.isArray(data.data)) setTopupHistory(data.data);
       } catch (e) {
         console.error("Failed to fetch topups:", e);
       }
@@ -253,14 +255,13 @@ const Corporate = () => {
     }
   };
 
-  const totalTopupAmount = topupHistory.reduce(
-    (sum, item) => sum + item.amount,
-    0
-  );
+  const totalTopupAmount = allData.total_sum || 0;
   
-  const uniqueClients = new Set(
-    topupHistory.map((item) => item.name || item.corporate_name)
-  ).size;
+  const uniqueClients = allData.total_companies || 0;
+
+  const totalTopups=allData.total_topups || 0;
+
+  const monthlyTopups=allData.total_topup_count || 0;
 
   return (
     <div>
@@ -290,7 +291,7 @@ const Corporate = () => {
               <IconWallet className="h-4 w-4 text-green-500" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{topupHistory.length}</div>
+              <div className="text-2xl font-bold">{totalTopups || 0}</div>
               <p className="text-xs text-muted-foreground">All time topups</p>
             </CardContent>
           </Card>
@@ -316,9 +317,7 @@ const Corporate = () => {
             <CardContent>
               <div className="text-2xl font-bold text-purple-600">
                 {
-                  topupHistory.filter((item) =>
-                    moment(item.created_at).isSame(moment(), "month")
-                  ).length
+                  monthlyTopups || 0
                 }
               </div>
               <p className="text-xs text-muted-foreground">Recent topups</p>
@@ -567,24 +566,6 @@ const Corporate = () => {
                       <Table>
                         <TableHeader>
                           <TableRow className="bg-muted/50">
-                            <TableHead className="w-12">
-                              <Checkbox
-                                checked={
-                                  selectedItems.length ===
-                                    paginatedData.length &&
-                                  paginatedData.length > 0
-                                }
-                                onCheckedChange={(checked) =>
-                                  setSelectedItems(
-                                    checked
-                                      ? paginatedData.map((d) =>
-                                          d.id.toString()
-                                        )
-                                      : []
-                                  )
-                                }
-                              />
-                            </TableHead>
                             <TableHead>Name</TableHead>
                             <TableHead>Card Number</TableHead>
                             <TableHead>Created At</TableHead>
@@ -598,22 +579,6 @@ const Corporate = () => {
                                 key={entry.id}
                                 className="hover:bg-muted/50"
                               >
-                                <TableCell>
-                                  <Checkbox
-                                    checked={selectedItems.includes(
-                                      entry.id.toString()
-                                    )}
-                                    onCheckedChange={(checked) =>
-                                      setSelectedItems((prev) =>
-                                        checked
-                                          ? [...prev, entry.id.toString()]
-                                          : prev.filter(
-                                              (id) => id !== entry.id.toString()
-                                            )
-                                      )
-                                    }
-                                  />
-                                </TableCell>
                                 <TableCell>
                                   {entry.name || entry.mobile_number}
                                 </TableCell>

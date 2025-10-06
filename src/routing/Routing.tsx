@@ -110,7 +110,7 @@ const Routing = () => {
           <Route path={SUPERADMIN_POINTS} element={<PointShare />} />
           <Route path={SUPERADMIN_LOCATIONS} element={<Locations />} />
           <Route path={SUPERADMIN_TOPUP} element={<Topup />} />
-          <Route path={SUPERADMIN_USERS} element={<UsersManagement />} />
+          {/* <Route path={SUPERADMIN_USERS} element={<UsersManagement />} /> */}
           <Route path={SUPERADMIN_NOTIFICATIONS} element={<Notifications />} />
           <Route path={SUPERADMIN_FEEDBACK} element={<Feedback />} />
           <Route path={SUPERADMIN_CORPORATE} element={<Corporate />} />
@@ -125,7 +125,7 @@ const Routing = () => {
           <Route path={ADMIN_POINTS} element={<AdminPointShare />} />
           <Route path={ADMIN_LOCATIONS} element={<AdminLocations />} />
           <Route path={ADMIN_TOPUP} element={<AdminTopup />} />
-          <Route path={ADMIN_USERS} element={<AdminUsersManagement />} />
+          {/* <Route path={ADMIN_USERS} element={<AdminUsersManagement />} /> */}
           <Route path={ADMIN_NOTIFICATIONS} element={<AdminNotifications />} />
           <Route path={ADMIN_FEEDBACK} element={<AdminFeedback />} />
           <Route path={ADMIN_CORPORATE} element={<AdminCorporate />} />
@@ -140,7 +140,7 @@ const Routing = () => {
           <Route path={OPS_POINTS} element={<OpsPointShare />} />
           <Route path={OPS_LOCATIONS} element={<OpsLocations />} />
           <Route path={OPS_TOPUP} element={<OpsTopup />} />
-          <Route path={OPS_USERS} element={<OpsUsersManagement />} />
+          {/* <Route path={OPS_USERS} element={<OpsUsersManagement />} /> */}
           <Route path={OPS_FEEDBACK} element={<OpsFeedback />} />
           <Route path={OPS_CORPORATE} element={<OpsCorporate />} />
           <Route path={OPS_MACHINE_VISIT} element={<OpsMachineVisit />} />
