@@ -3,16 +3,10 @@
 import { useEffect, useState } from "react"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Label } from "@/components/ui/label"
 import { postRequest } from "@/Apis/Api"
-import { Search } from "lucide-react"
-import {
-  Pagination,
-  PaginationContent,
-  PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
-} from "@/components/ui/pagination"
+import { Search, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react"
 import { motion } from "framer-motion"
 
 type Transaction = {
@@ -37,31 +31,16 @@ type ApiResponse = {
   totalItems: number
 }
 
-function getPaginationRange(current: number, total: number): (number | "...")[] {
-  const delta = 1
-  const range: (number | "...")[] = []
-  const left = Math.max(2, current - delta)
-  const right = Math.min(total - 1, current + delta)
-
-  range.push(1)
-  if (left > 2) range.push("...")
-  for (let i = left; i <= right; i++) range.push(i)
-  if (right < total - 1) range.push("...")
-  if (total > 1) range.push(total)
-
-  return range
-}
-
 const SanitaryTransactionTable = () => {
   const [transactions, setTransactions] = useState<Transaction[]>([])
   const [loading, setLoading] = useState(false)
   const [currentPage, setCurrentPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
+  const [totalItems, setTotalItems] = useState(0)
+  const [itemsPerPage, setItemsPerPage] = useState(10)
 
   const [search, setSearch] = useState("")
   const [debouncedSearch, setDebouncedSearch] = useState("")
-
-  const itemsPerPage = 10
 
   // ⏳ Debounce search input (logic unchanged)
   useEffect(() => {
@@ -94,9 +73,12 @@ const SanitaryTransactionTable = () => {
       setTransactions(res.data || [])
       setTotalPages(res.totalPages || 1)
       setCurrentPage(res.currentPage || page)
+      setTotalItems(res.totalRecords || 0)
     } catch (err) {
       console.error("Error fetching sanitary transactions:", err)
       setTransactions([])
+      setTotalPages(1)
+      setTotalItems(0)
     } finally {
       setLoading(false)
     }
@@ -104,13 +86,7 @@ const SanitaryTransactionTable = () => {
 
   useEffect(() => {
     fetchTransactions(currentPage, debouncedSearch)
-  }, [currentPage, debouncedSearch])
-
-  const paginate = (pageNumber: number) => {
-    if (pageNumber >= 1 && pageNumber <= totalPages) {
-      setCurrentPage(pageNumber)
-    }
-  }
+  }, [currentPage, debouncedSearch, itemsPerPage])
 
   // view details overlay state
   const [activeTx, setActiveTx] = useState<Transaction | null>(null)
@@ -179,55 +155,78 @@ const SanitaryTransactionTable = () => {
               ))
             )}
           </div>
-        </div>
 
-        {/* Pagination (logic unchanged) */}
-        {totalPages > 1 && (
-          <div className="flex justify-center mt-4">
-            <Pagination>
-              <PaginationContent>
-                <PaginationItem>
-                  <PaginationPrevious
-                    href="#"
-                    onClick={(e) => {
-                      e.preventDefault()
-                      paginate(currentPage - 1)
+          {/* Fixed Pagination */}
+          {transactions.length > 0 && (
+            <div className="flex items-center justify-between px-4 mt-6">
+              <div className="text-muted-foreground hidden flex-1 text-sm lg:flex">
+                Showing {transactions.length} of {totalItems} transactions
+              </div>
+              <div className="flex w-full items-center gap-8 lg:w-fit">
+                <div className="hidden items-center gap-2 lg:flex">
+                  <Label htmlFor="rows-per-page" className="text-sm font-medium">
+                    Rows per page
+                  </Label>
+                  <Select
+                    value={`${itemsPerPage}`}
+                    onValueChange={(value) => {
+                      setItemsPerPage(Number(value))
+                      setCurrentPage(1)
                     }}
-                  />
-                </PaginationItem>
-                {getPaginationRange(currentPage, totalPages).map((page, idx) =>
-                  page === "..." ? (
-                    <PaginationItem key={`ellipsis-${idx}`}>
-                      <span className="px-2 text-muted-foreground">...</span>
-                    </PaginationItem>
-                  ) : (
-                    <PaginationItem key={page}>
-                      <PaginationLink
-                        href="#"
-                        isActive={page === currentPage}
-                        onClick={(e) => {
-                          e.preventDefault()
-                          paginate(page as number)
-                        }}
-                      >
-                        {page}
-                      </PaginationLink>
-                    </PaginationItem>
-                  )
-                )}
-                <PaginationItem>
-                  <PaginationNext
-                    href="#"
-                    onClick={(e) => {
-                      e.preventDefault()
-                      paginate(currentPage + 1)
-                    }}
-                  />
-                </PaginationItem>
-              </PaginationContent>
-            </Pagination>
-          </div>
-        )}
+                  >
+                    <SelectTrigger size="sm" className="w-20" id="rows-per-page">
+                      <SelectValue placeholder={itemsPerPage} />
+                    </SelectTrigger>
+                    <SelectContent side="top">
+                      {[5, 10, 20, 50, 100].map((pageSize) => (
+                        <SelectItem key={pageSize} value={`${pageSize}`}>
+                          {pageSize}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="flex w-fit items-center justify-center text-sm font-medium">
+                  Page {currentPage} of {totalPages}
+                </div>
+                <div className="ml-auto flex items-center gap-2 lg:ml-0">
+                  <button
+                    className="hidden h-8 w-8 p-0 lg:flex items-center justify-center bg-transparent border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                    onClick={() => setCurrentPage(1)}
+                    disabled={currentPage === 1}
+                  >
+                    <span className="sr-only">Go to first page</span>
+                    <ChevronsLeft className="h-4 w-4" />
+                  </button>
+                  <button
+                    className="size-8 bg-transparent border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                    onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                    disabled={currentPage === 1}
+                  >
+                    <span className="sr-only">Go to previous page</span>
+                    <ChevronLeft className="h-4 w-4" />
+                  </button>
+                  <button
+                    className="size-8 bg-transparent border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                    onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                    disabled={currentPage === totalPages}
+                  >
+                    <span className="sr-only">Go to next page</span>
+                    <ChevronRight className="h-4 w-4" />
+                  </button>
+                  <button
+                    className="hidden size-8 lg:flex items-center justify-center bg-transparent border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                    onClick={() => setCurrentPage(totalPages)}
+                    disabled={currentPage === totalPages}
+                  >
+                    <span className="sr-only">Go to last page</span>
+                    <ChevronsRight className="h-4 w-4" />
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
 
         {/* View Details Overlay (animated) */}
         {activeTx && (
@@ -246,7 +245,6 @@ const SanitaryTransactionTable = () => {
               <div className="bg-white rounded-2xl p-6 shadow-2xl">
                 <div className="flex justify-between items-start">
                   <h3 className="text-xl font-semibold">Transaction Details 💳</h3>
-
                 </div>
 
                 <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3">

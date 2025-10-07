@@ -6,9 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Input } from "@/components/ui/input"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Label } from "@/components/ui/label"
-import { SiteHeader } from '@/components/superAdmin/site-header'
+import { SiteHeader } from '@/components/admin/site-header'
 import moment from "moment-timezone"
 import {
   IconMapPin,
@@ -24,6 +22,8 @@ import {
   IconChevronsRight,
 } from "@tabler/icons-react"
 import { getRequest } from "@/Apis/Api"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Label } from "@/components/ui/label"
 
 interface LocationApiResponse {
   totalLocations: number
@@ -82,7 +82,7 @@ const Locations = () => {
     const locationApi = async () => {
       const params = new URLSearchParams()
       params.append("page", currentPage.toString())
-      params.append("limit", itemsPerPage.toString())
+      params.append("limit", itemsPerPage.toString()) // Use itemsPerPage instead of constant
 
       if (searchTerm) {
         params.append("search", searchTerm)
@@ -95,7 +95,7 @@ const Locations = () => {
         const res = await getRequest<LocationApiResponse>(url)
         setMachineLocation(res)
         setTotalPages(res.totalPages)
-        setTotalCount(res.totalCount) // Fixed: should be totalCount, not totalPages
+        setTotalCount(res.totalMachines) // Fixed: should be totalCount, not totalPages
       } catch (error) {
         console.error("Failed to fetch machine locations:", error)
         setMachineLocation(null)
@@ -104,7 +104,7 @@ const Locations = () => {
       }
     }
     locationApi()
-  }, [currentPage, searchTerm, itemsPerPage])
+  }, [currentPage, searchTerm, itemsPerPage]) // Added itemsPerPage to dependencies
 
   return (
     <div>
@@ -169,7 +169,7 @@ const Locations = () => {
                   value={searchTerm}
                   onChange={(e) => {
                     setSearchTerm(e.target.value)
-                    setCurrentPage(1)
+                    setCurrentPage(1) // Reset to first page when searching
                   }}
                   className="pl-10"
                 />

@@ -43,6 +43,8 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
 import {
   IconPlus,
   IconDownload,
@@ -52,6 +54,8 @@ import {
   IconLoader2,
   IconChevronLeft,
   IconChevronRight,
+  IconChevronsLeft,
+  IconChevronsRight,
   IconSearch,
   IconX,
 } from "@tabler/icons-react";
@@ -131,7 +135,7 @@ const Corporate = () => {
   const [minBalance, setMinBalance] = useState("");
   const [maxBalance, setMaxBalance] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage] = useState(20);
+  const [itemsPerPage, setItemsPerPage] = useState(20);
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [allData,setAllData]=useState("")
@@ -229,7 +233,7 @@ const Corporate = () => {
     const fetchTopups = async () => {
       try {
         const data = await getRequest<TopupEntry[]>(
-          "/ops/getCorporateTopupHistory"
+          "/Ops/getCorporateTopupHistory"
         );
         setAllData(data)
         if (Array.isArray(data.data)) setTopupHistory(data.data);
@@ -246,7 +250,7 @@ const Corporate = () => {
       const codes = machineCodes[tab];
       if (!codes) return;
       const res = await postRequest<CorporatesClientResponse>(
-        "/ops/getCorporateClientsByMachines",
+        "/Ops/getCorporateClientsByMachines",
         { machineCodes: codes }
       );
       setClientsData((prev) => ({ ...prev, [tab]: res.corporateClients }));
@@ -610,53 +614,86 @@ const Corporate = () => {
                         </TableBody>
                       </Table>
                     </div>
+
+                    {/* Fixed Pagination */}
+                    {paginatedData.length > 0 && (
+                      <div className="flex items-center justify-between px-4 mt-4">
+                        <div className="text-muted-foreground hidden flex-1 text-sm lg:flex">
+                          Showing {paginatedData.length} of {filteredData.length} clients
+                        </div>
+                        <div className="flex w-full items-center gap-8 lg:w-fit">
+                          <div className="hidden items-center gap-2 lg:flex">
+                            <Label htmlFor="rows-per-page" className="text-sm font-medium">
+                              Rows per page
+                            </Label>
+                            <Select
+                              value={`${itemsPerPage}`}
+                              onValueChange={(value) => {
+                                setItemsPerPage(Number(value))
+                                setCurrentPage(1)
+                              }}
+                            >
+                              <SelectTrigger size="sm" className="w-20" id="rows-per-page">
+                                <SelectValue placeholder={itemsPerPage} />
+                              </SelectTrigger>
+                              <SelectContent side="top">
+                                {[10, 20, 50, 100].map((pageSize) => (
+                                  <SelectItem key={pageSize} value={`${pageSize}`}>
+                                    {pageSize}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div className="flex w-fit items-center justify-center text-sm font-medium">
+                            Page {currentPage} of {totalPages}
+                          </div>
+                          <div className="ml-auto flex items-center gap-2 lg:ml-0">
+                            <Button
+                              variant="outline"
+                              className="hidden h-8 w-8 p-0 lg:flex bg-transparent"
+                              onClick={() => setCurrentPage(1)}
+                              disabled={currentPage === 1}
+                            >
+                              <span className="sr-only">Go to first page</span>
+                              <IconChevronsLeft className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="outline"
+                              className="size-8 bg-transparent"
+                              size="icon"
+                              onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                              disabled={currentPage === 1}
+                            >
+                              <span className="sr-only">Go to previous page</span>
+                              <IconChevronLeft className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="outline"
+                              className="size-8 bg-transparent"
+                              size="icon"
+                              onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                              disabled={currentPage === totalPages}
+                            >
+                              <span className="sr-only">Go to next page</span>
+                              <IconChevronRight className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="outline"
+                              className="hidden size-8 lg:flex bg-transparent"
+                              size="icon"
+                              onClick={() => setCurrentPage(totalPages)}
+                              disabled={currentPage === totalPages}
+                            >
+                              <span className="sr-only">Go to last page</span>
+                              <IconChevronsRight className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
-                <div className="flex justify-between items-center mt-4 px-4 pb-4">
-                  <div className="text-sm text-muted-foreground">
-                    Showing {filteredData.length === 0 ? 0 : startIndex + 1} to{" "}
-                    {Math.min(endIndex, filteredData.length)} of{" "}
-                    {filteredData.length} entries
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Button
-                      onClick={() =>
-                        setCurrentPage((prev) => Math.max(prev - 1, 1))
-                      }
-                      disabled={currentPage === 1}
-                      className="h-8 w-8 p-0"
-                      variant="outline"
-                    >
-                      <IconChevronLeft className="h-4 w-4" />
-                    </Button>
-                    {Array.from({ length: totalPages }, (_, i) => i + 1).map(
-                      (page) => (
-                        <Button
-                          key={page}
-                          onClick={() => setCurrentPage(page)}
-                          className={`h-8 w-8 p-0 ${
-                            currentPage === page
-                              ? "bg-teal-600 hover:bg-teal-700"
-                              : ""
-                          }`}
-                          variant={currentPage === page ? "default" : "outline"}
-                        >
-                          {page}
-                        </Button>
-                      )
-                    )}
-                    <Button
-                      onClick={() =>
-                        setCurrentPage((prev) => Math.min(prev + 1, totalPages))
-                      }
-                      disabled={currentPage === totalPages || totalPages === 0}
-                      className="h-8 w-8 p-0"
-                      variant="outline"
-                    >
-                      <IconChevronRight className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
               </TabsContent>
             );
           })}

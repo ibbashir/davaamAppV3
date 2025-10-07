@@ -7,7 +7,8 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Label } from "@/components/ui/label"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Download, Plus } from "lucide-react"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Download, Plus, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react"
 import { SiteHeader } from "@/components/admin/site-header"
 import { useLocation } from "react-router-dom"
 import { postRequest } from "@/Apis/Api"
@@ -43,7 +44,7 @@ export default function AdminMachineVisit() {
   const [brands, setBrands] = useState<any[]>([])
   const [brandFillings, setBrandFillings] = useState<any[]>([])
   const [currentPage, setCurrentPage] = useState(1)
-  const [rowsPerPage] = useState(10)
+  const [itemsPerPage, setItemsPerPage] = useState(10)
 
   const [chartData, setChartData] = useState<NivoBarData[]>([])
   const [totalRevenue, setTotalRevenue] = useState(0)
@@ -101,6 +102,10 @@ export default function AdminMachineVisit() {
   useEffect(() => {
     fetchChartData(view)
   }, [view])
+
+  const totalPages = Math.ceil(userTransactions.length / itemsPerPage)
+  const startIndex = (currentPage - 1) * itemsPerPage
+  const paginatedTransactions = userTransactions.slice(startIndex, startIndex + itemsPerPage)
 
   return (
     <div>
@@ -281,44 +286,41 @@ export default function AdminMachineVisit() {
               </motion.div>
             </TabsContent>
 
-           {/* ---- USER TRANSACTIONS ---- */}
-          <TabsContent value="user-transactions" className="space-y-6">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
-            >
-              {/* Added padding + gap */}
-              <div className="flex items-center justify-between px-2 py-3 mb-4">
-                <h1 className="text-2xl font-bold text-emerald-700">
-                  👥 User Transactions
-                </h1>
-                <Button className="bg-teal-600 hover:bg-teal-700 text-white rounded-lg ml-4">
-                  <Download className="w-4 h-4 mr-2" /> Export CSV
-                </Button>
-              </div>
+            {/* USER TRANSACTIONS */}
+            <TabsContent value="user-transactions" className="space-y-6">
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5 }}
+              >
+                <div className="flex items-center justify-between px-2 py-3 mb-4">
+                  <h1 className="text-2xl font-bold text-emerald-700">
+                    👥 User Transactions
+                  </h1>
+                  <Button className="bg-teal-600 hover:bg-teal-700 text-white rounded-lg ml-4">
+                    <Download className="w-4 h-4 mr-2" /> Export CSV
+                  </Button>
+                </div>
 
-              <Card className="rounded-2xl shadow-lg">
-                <CardContent className="p-0">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>#️⃣ SNO</TableHead>
-                        <TableHead>📱 Phone</TableHead>
-                        <TableHead>🏷 Product</TableHead>
-                        <TableHead>💵 Amount</TableHead>
-                        <TableHead>📦 Quantity</TableHead>
-                        <TableHead>🏭 Machine Code</TableHead>
-                        <TableHead>⏰ Created At</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {userTransactions
-                        .slice((currentPage - 1) * rowsPerPage, currentPage * rowsPerPage)
-                        .map((transaction, index) => (
+                <Card className="rounded-2xl shadow-lg">
+                  <CardContent className="p-0">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>#️⃣ SNO</TableHead>
+                          <TableHead>📱 Phone</TableHead>
+                          <TableHead>🏷 Product</TableHead>
+                          <TableHead>💵 Amount</TableHead>
+                          <TableHead>📦 Quantity</TableHead>
+                          <TableHead>🏭 Machine Code</TableHead>
+                          <TableHead>⏰ Created At</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {paginatedTransactions.map((transaction, index) => (
                           <TableRow key={transaction.id || index}>
                             <TableCell className="font-medium">
-                              {(currentPage - 1) * rowsPerPage + index + 1}
+                              {startIndex + index + 1}
                             </TableCell>
                             <TableCell className="text-blue-600">{transaction.msisdn}</TableCell>
                             <TableCell className="text-emerald-700 font-bold">{transaction.brand_id}</TableCell>
@@ -330,36 +332,90 @@ export default function AdminMachineVisit() {
                             </TableCell>
                           </TableRow>
                         ))}
-                    </TableBody>
-                  </Table>
-                </CardContent>
-              </Card>
+                      </TableBody>
+                    </Table>
+                  </CardContent>
+                </Card>
 
-              {/* Pagination */}
-              <div className="flex items-center justify-center gap-4 mt-4">
-                <Button
-                  variant="outline"
-                  disabled={currentPage === 1}
-                  onClick={() => setCurrentPage((prev) => prev - 1)}
-                >
-                  ◀ Previous
-                </Button>
-
-                <span className="text-slate-600">
-                  Page {currentPage} of {Math.ceil(userTransactions.length / rowsPerPage)}
-                </span>
-
-                <Button
-                  variant="outline"
-                  disabled={currentPage === Math.ceil(userTransactions.length / rowsPerPage)}
-                  onClick={() => setCurrentPage((prev) => prev + 1)}
-                >
-                  Next ▶
-                </Button>
-              </div>
-            </motion.div>
-          </TabsContent>
-
+                {/* Fixed Pagination */}
+                {userTransactions.length > 0 && (
+                  <div className="flex items-center justify-between px-4 mt-4">
+                    <div className="text-muted-foreground hidden flex-1 text-sm lg:flex">
+                      Showing {paginatedTransactions.length} of {userTransactions.length} transactions
+                    </div>
+                    <div className="flex w-full items-center gap-8 lg:w-fit">
+                      <div className="hidden items-center gap-2 lg:flex">
+                        <Label htmlFor="rows-per-page" className="text-sm font-medium">
+                          Rows per page
+                        </Label>
+                        <Select
+                          value={`${itemsPerPage}`}
+                          onValueChange={(value) => {
+                            setItemsPerPage(Number(value))
+                            setCurrentPage(1)
+                          }}
+                        >
+                          <SelectTrigger size="sm" className="w-20" id="rows-per-page">
+                            <SelectValue placeholder={itemsPerPage} />
+                          </SelectTrigger>
+                          <SelectContent side="top">
+                            {[5, 10, 20, 50, 100].map((pageSize) => (
+                              <SelectItem key={pageSize} value={`${pageSize}`}>
+                                {pageSize}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="flex w-fit items-center justify-center text-sm font-medium">
+                        Page {currentPage} of {totalPages}
+                      </div>
+                      <div className="ml-auto flex items-center gap-2 lg:ml-0">
+                        <Button
+                          variant="outline"
+                          className="hidden h-8 w-8 p-0 lg:flex bg-transparent"
+                          onClick={() => setCurrentPage(1)}
+                          disabled={currentPage === 1}
+                        >
+                          <span className="sr-only">Go to first page</span>
+                          <ChevronsLeft className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="outline"
+                          className="size-8 bg-transparent"
+                          size="icon"
+                          onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                          disabled={currentPage === 1}
+                        >
+                          <span className="sr-only">Go to previous page</span>
+                          <ChevronLeft className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="outline"
+                          className="size-8 bg-transparent"
+                          size="icon"
+                          onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                          disabled={currentPage === totalPages}
+                        >
+                          <span className="sr-only">Go to next page</span>
+                          <ChevronRight className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="outline"
+                          className="hidden size-8 lg:flex bg-transparent"
+                          size="icon"
+                          onClick={() => setCurrentPage(totalPages)}
+                          disabled={currentPage === totalPages}
+                        >
+                          <span className="sr-only">Go to last page</span>
+                          <ChevronsRight className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </motion.div>
+            </TabsContent>
           </Tabs>
         </div>
       </div>
