@@ -9,7 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Download, Plus, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react"
-import { SiteHeader } from "@/components/admin/site-header"
+import { SiteHeader } from "@/components/superAdmin/site-header"
 import { useLocation } from "react-router-dom"
 import { postRequest } from "@/Apis/Api"
 import { ResponsiveBar } from "@nivo/bar"
@@ -41,10 +41,12 @@ export default function AdminMachineVisit() {
   const [stockView, setStockView] = useState("batch")
   const [activeTab, setActiveTab] = useState("stock-levels")
   const [userTransactions, setUserTransactions] = useState<any[]>([])
+  const [filteredTransactions, setFilteredTransactions] = useState<any[]>([])
   const [brands, setBrands] = useState<any[]>([])
   const [brandFillings, setBrandFillings] = useState<any[]>([])
   const [currentPage, setCurrentPage] = useState(1)
   const [itemsPerPage, setItemsPerPage] = useState(10)
+  const [selectedMonth, setSelectedMonth] = useState<string>("")
 
   const [chartData, setChartData] = useState<NivoBarData[]>([])
   const [totalRevenue, setTotalRevenue] = useState(0)
@@ -61,6 +63,7 @@ export default function AdminMachineVisit() {
   const fetchMachineDetails = async () => {
     const res = await postRequest(`/admin/machineDetailsWithMachineCode`, { machine_code: machine.machine_code })
     setUserTransactions(res.transactions)
+    setFilteredTransactions(res.transactions) // Initialize filtered transactions with all data
     setBrandFillings(res.fillings)
     setBrands(res.brands)
   }
@@ -103,13 +106,98 @@ export default function AdminMachineVisit() {
     fetchChartData(view)
   }, [view])
 
-  const totalPages = Math.ceil(userTransactions.length / itemsPerPage)
-  const startIndex = (currentPage - 1) * itemsPerPage
-  const paginatedTransactions = userTransactions.slice(startIndex, startIndex + itemsPerPage)
+  // Filter transactions by month
+  const filterTransactionsByMonth = (month: string) => {
+    setSelectedMonth(month)
+    
+    if (!month) {
+      setFilteredTransactions(userTransactions)
+      setCurrentPage(1)
+      return
+    }
 
+    const filtered = userTransactions.filter(transaction => {
+      const transactionDate = new Date(transaction.created_at)
+      const transactionMonth = transactionDate.toISOString().slice(0, 7) // YYYY-MM format
+      return transactionMonth === month
+    })
+
+    setFilteredTransactions(filtered)
+    setCurrentPage(1)
+  }
+
+  // Generate month options (last 12 months)
+  const getMonthOptions = () => {
+    const months = []
+    const today = new Date()
+    
+    for (let i = 0; i < 12; i++) {
+      const date = new Date(today.getFullYear(), today.getMonth() - i, 1)
+      const year = date.getFullYear()
+      const month = String(date.getMonth() + 1).padStart(2, '0')
+      const value = `${year}-${month}`
+      const label = date.toLocaleDateString('en-US', { year: 'numeric', month: 'long' })
+      
+      months.unshift({ value, label })
+    }
+    
+    return months
+  }
+
+  const monthOptions = getMonthOptions()
+
+  const totalPages = Math.ceil(filteredTransactions.length / itemsPerPage)
+  const startIndex = (currentPage - 1) * itemsPerPage
+  const paginatedTransactions = filteredTransactions.slice(startIndex, startIndex + itemsPerPage)
+
+  // Add this function inside your component
+const exportToCSV = () => {
+  if (filteredTransactions.length === 0) {
+    alert("No data to export!")
+    return
+  }
+
+  // Define CSV headers
+  const headers = ["SNO", "Phone", "Product", "Amount", "Quantity", "Machine Code", "Created At"]
+  
+  // Convert data to CSV format
+  const csvData = filteredTransactions.map((transaction, index) => [
+    index + 1,
+    transaction.msisdn,
+    transaction.brand_id,
+    transaction.amount,
+    transaction.quantity,
+    transaction.machine_code,
+    transaction.created_at
+  ])
+
+  // Create CSV content
+  const csvContent = [
+    headers.join(","),
+    ...csvData.map(row => row.map(field => `"${field}"`).join(","))
+  ].join("\n")
+
+  // Create and download file
+  const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" })
+  const url = URL.createObjectURL(blob)
+  const link = document.createElement("a")
+  
+  const fileName = `transactions_${machine?.machine_code || "machine"}_${selectedMonth || "all-time"}_${new Date().toISOString().split('T')[0]}.csv`
+  
+  link.setAttribute("href", url)
+  link.setAttribute("download", fileName)
+  link.style.visibility = "hidden"
+  
+  document.body.appendChild(link)
+  link.click()
+  document.body.removeChild(link)
+  
+  // Clean up URL object
+  URL.revokeObjectURL(url)
+}
   return (
     <div>
-      <SiteHeader title="🌍 Admin Machine Dashboard" />
+      <SiteHeader title="🌍 Super Admin Machine Dashboard" />
       <div className="min-h-screen bg-gradient-to-b from-green-50 to-teal-50 p-6">
         <div className="mx-auto max-w-7xl">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
@@ -297,9 +385,44 @@ export default function AdminMachineVisit() {
                   <h1 className="text-2xl font-bold text-emerald-700">
                     👥 User Transactions
                   </h1>
-                  <Button className="bg-teal-600 hover:bg-teal-700 text-white rounded-lg ml-4">
-                    <Download className="w-4 h-4 mr-2" /> Export CSV
+                  <Button 
+                    className="bg-teal-600 hover:bg-teal-700 text-white rounded-lg ml-4"
+                    onClick={exportToCSV}
+                    disabled={filteredTransactions.length === 0}
+                  >
+                    <Download className="w-4 h-4 mr-2" /> 
+                    Export CSV
                   </Button>
+                </div>
+                
+                {/* Month Filter */}
+                <div className="grid gap-2 mb-4">
+                  <Label htmlFor="month-filter" className="text-sm font-medium">
+                    📅 Filter by Month
+                  </Label>
+                  <div className="flex gap-2 items-center">
+                    <Select value={selectedMonth} onValueChange={filterTransactionsByMonth}>
+                      <SelectTrigger className="w-48" id="month-filter">
+                        <SelectValue placeholder="Select month..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {monthOptions.map((month) => (
+                          <SelectItem key={month.value} value={month.value}>
+                            {month.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {selectedMonth && (
+                      <Button 
+                        variant="outline" 
+                        onClick={() => filterTransactionsByMonth("")}
+                        className="text-red-600 hover:text-red-700"
+                      >
+                        Clear Filter
+                      </Button>
+                    )}
+                  </div>
                 </div>
 
                 <Card className="rounded-2xl shadow-lg">
@@ -317,31 +440,39 @@ export default function AdminMachineVisit() {
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {paginatedTransactions.map((transaction, index) => (
-                          <TableRow key={transaction.id || index}>
-                            <TableCell className="font-medium">
-                              {startIndex + index + 1}
-                            </TableCell>
-                            <TableCell className="text-blue-600">{transaction.msisdn}</TableCell>
-                            <TableCell className="text-emerald-700 font-bold">{transaction.brand_id}</TableCell>
-                            <TableCell className="text-teal-600">{transaction.amount}</TableCell>
-                            <TableCell>{transaction.quantity}</TableCell>
-                            <TableCell>{transaction.machine_code}</TableCell>
-                            <TableCell className="text-sm text-slate-500">
-                              {transaction.created_at}
+                        {paginatedTransactions.length > 0 ? (
+                          paginatedTransactions.map((transaction, index) => (
+                            <TableRow key={transaction.id || index}>
+                              <TableCell className="font-medium">
+                                {startIndex + index + 1}
+                              </TableCell>
+                              <TableCell className="text-blue-600">{transaction.msisdn}</TableCell>
+                              <TableCell className="text-emerald-700 font-bold">{transaction.brand_id}</TableCell>
+                              <TableCell className="text-teal-600">{transaction.amount}</TableCell>
+                              <TableCell>{transaction.quantity}</TableCell>
+                              <TableCell>{transaction.machine_code}</TableCell>
+                              <TableCell className="text-sm text-slate-500">
+                                {transaction.created_at}
+                              </TableCell>
+                            </TableRow>
+                          ))
+                        ) : (
+                          <TableRow>
+                            <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                              {selectedMonth ? "No transactions found for the selected month" : "No transactions available"}
                             </TableCell>
                           </TableRow>
-                        ))}
+                        )}
                       </TableBody>
                     </Table>
                   </CardContent>
                 </Card>
 
                 {/* Fixed Pagination */}
-                {userTransactions.length > 0 && (
+                {filteredTransactions.length > 0 && (
                   <div className="flex items-center justify-between px-4 mt-4">
                     <div className="text-muted-foreground hidden flex-1 text-sm lg:flex">
-                      Showing {paginatedTransactions.length} of {userTransactions.length} transactions
+                      Showing {paginatedTransactions.length} of {filteredTransactions.length} transactions
                     </div>
                     <div className="flex w-full items-center gap-8 lg:w-fit">
                       <div className="hidden items-center gap-2 lg:flex">
