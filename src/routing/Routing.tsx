@@ -77,6 +77,7 @@ import {
   OPS_TOPUP,
   OPS_USERS,
   PRIVACY_POLICY,
+  REPORT,
   SUPERADMIN_CORPORATE,
   SUPERADMIN_DASHBOARD,
   SUPERADMIN_FEEDBACK,
@@ -90,6 +91,7 @@ import {
   SUPERADMIN_USERS
 } from '@/constants/Constant'
 import OpsMachineVisit from '@/screens/ops/machines/MachineVisit'
+import Reports from '@/screens/corporate/reports/reports'
 
 const Routing = () => {
   return (
@@ -153,6 +155,7 @@ const Routing = () => {
           <Route path={MACHINE_DASHBOARD} element={<CorporateDashboard />} />
           <Route path={MACHINE_MACHINES} element={<CorporateMachines />} />
           <Route path={COMPANY_MACHINE_VISIT} element={<CorporateMachineVisit />} />
+          <Route path={REPORT} element={<Reports />} />
         </Route>
       </Route>
 

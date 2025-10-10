@@ -1,100 +1,114 @@
-"use client"
+"use client";
 
-import { useEffect, useState } from "react"
-import { Card, CardContent, CardHeader } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Label } from "@/components/ui/label"
-import { postRequest } from "@/Apis/Api"
-import { Search, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react"
-import { motion } from "framer-motion"
+import { useEffect, useState } from "react";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
+import { postRequest } from "@/Apis/Api";
+import {
+  Search,
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
+} from "lucide-react";
+import { motion } from "framer-motion";
 
 type Transaction = {
-  id: number
-  user_id: string
-  msisdn: string
-  quantity: number
-  amount: string
-  status: number
-  created_at: string
-  epoch_time: number
-  merchant: string
-  transaction_number: string
-  brand_id: number
-  machine_code: string
-}
+  id: number;
+  user_id: string;
+  msisdn: string;
+  quantity: number;
+  amount: string;
+  status: number;
+  created_at: string;
+  epoch_time: number;
+  merchant: string;
+  transaction_number: string;
+  brand_id: number;
+  machine_code: string;
+};
 
 type ApiResponse = {
-  data: Transaction[]
-  totalPages: number
-  currentPage: number
-  totalItems: number
-}
+  data: Transaction[];
+  totalPages: number;
+  currentPage: number;
+  totalItems: number;
+};
 
 const SanitaryTransactionTable = () => {
-  const [transactions, setTransactions] = useState<Transaction[]>([])
-  const [loading, setLoading] = useState(false)
-  const [currentPage, setCurrentPage] = useState(1)
-  const [totalPages, setTotalPages] = useState(1)
-  const [totalItems, setTotalItems] = useState(0)
-  const [itemsPerPage, setItemsPerPage] = useState(10)
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
 
-  const [search, setSearch] = useState("")
-  const [debouncedSearch, setDebouncedSearch] = useState("")
+  const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
 
   // ⏳ Debounce search input (logic unchanged)
   useEffect(() => {
     const handler = setTimeout(() => {
-      setDebouncedSearch(search)
-      setCurrentPage(1) // reset page when searching
-    }, 1000)
+      setDebouncedSearch(search);
+      setCurrentPage(1); // reset page when searching
+    }, 1000);
 
-    return () => clearTimeout(handler)
-  }, [search])
+    return () => clearTimeout(handler);
+  }, [search]);
 
   const fetchTransactions = async (page: number, query: string = "") => {
-    setLoading(true)
+    setLoading(true);
     try {
-      const storedCodes = localStorage.getItem("machines")
-      const machineCodes: string[] = storedCodes ? JSON.parse(storedCodes) : []
+      const storedCodes = localStorage.getItem("machines");
+      const machineCodes: string[] = storedCodes ? JSON.parse(storedCodes) : [];
 
       if (machineCodes.length === 0) {
-        console.warn("No machine codes found in localStorage.")
-        setTransactions([])
-        setLoading(false)
-        return
+        console.warn("No machine codes found in localStorage.");
+        setTransactions([]);
+        setLoading(false);
+        return;
       }
 
       const res = await postRequest<ApiResponse>(
         `/corporates/getAllCorporateSanitaryTrasactions?page=${page}&limit=${itemsPerPage}&search=${query}`,
         { machine_code: machineCodes }
-      )
+      );
 
-      setTransactions(res.data || [])
-      setTotalPages(res.totalPages || 1)
-      setCurrentPage(res.currentPage || page)
-      setTotalItems(res.totalRecords || 0)
+      setTransactions(res.data || []);
+      setTotalPages(res.totalPages || 1);
+      setCurrentPage(res.currentPage || page);
+      setTotalItems(res.totalRecords || 0);
     } catch (err) {
-      console.error("Error fetching sanitary transactions:", err)
-      setTransactions([])
-      setTotalPages(1)
-      setTotalItems(0)
+      console.error("Error fetching sanitary transactions:", err);
+      setTransactions([]);
+      setTotalPages(1);
+      setTotalItems(0);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   useEffect(() => {
-    fetchTransactions(currentPage, debouncedSearch)
-  }, [currentPage, debouncedSearch, itemsPerPage])
+    fetchTransactions(currentPage, debouncedSearch);
+  }, [currentPage, debouncedSearch, itemsPerPage]);
 
   // view details overlay state
-  const [activeTx, setActiveTx] = useState<Transaction | null>(null)
+  const [activeTx, setActiveTx] = useState<Transaction | null>(null);
 
   return (
     <Card>
       <CardHeader>
-        <h2 className="text-xl font-semibold">Corporate Sanitary Transactions</h2>
+        <h2 className="text-xl font-semibold">
+          Corporate Sanitary Transactions
+        </h2>
       </CardHeader>
       <CardContent>
         <div className="overflow-x-auto">
@@ -110,49 +124,94 @@ const SanitaryTransactionTable = () => {
           </div>
 
           {/* Cards grid (5 per row) */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+          <div className="bg-white rounded-2xl shadow-md border border-green-50 overflow-hidden">
             {loading ? (
-              <div className="col-span-5 text-center p-8">Loading...</div>
+              <div className="text-center p-8">Loading...</div>
             ) : transactions.length === 0 ? (
-              <div className="col-span-5 text-center p-8">No data found</div>
+              <div className="text-center p-8">No data found</div>
             ) : (
-              transactions.map((t, idx) => (
-                <motion.div
-                  key={t.id}
-                  initial={{ opacity: 0, y: 12 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.45, delay: idx * 0.04 }}
-                  whileHover={{ scale: 1.02, boxShadow: "0 12px 30px rgba(16,185,129,0.08)" }}
-                >
-                  <div className="bg-white rounded-2xl p-4 shadow-md border border-green-50">
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <div className="text-sm text-muted-foreground">#{(currentPage - 1) * itemsPerPage + idx + 1}</div>
-                        <div className="text-lg font-semibold">Rs. {t.amount}</div>
-                      </div>
-                      <div className="text-right">
-                        <div className="text-sm">Qty</div>
-                        <div className="font-medium">{t.quantity}</div>
-                      </div>
-                    </div>
-
-                    <div className="mt-3 text-sm text-muted-foreground">
-                      <div>Number: {t.msisdn || "N/A"}</div>
-                      <div>Time: {new Date(t.created_at).toLocaleString()}</div>
-                      {t.machine_code && <div>Machine: {t.machine_code}</div>}
-                    </div>
-
-                    <div className="mt-4 flex gap-2 justify-end">
-                      <button
-                        onClick={() => setActiveTx(t)}
-                        className="px-3 py-1 rounded-lg bg-emerald-600 text-white text-sm hover:bg-emerald-700"
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="bg-green-50 border-b border-green-100">
+                      <th className="text-left py-4 px-6 font-semibold text-green-800">
+                        #️⃣ SNO
+                      </th>
+                      <th className="text-left py-4 px-6 font-semibold text-green-800">
+                        💰 Amount
+                      </th>
+                      <th className="text-left py-4 px-6 font-semibold text-green-800">
+                        📦 Quantity
+                      </th>
+                      <th className="text-left py-4 px-6 font-semibold text-green-800">
+                        📱 Phone Number
+                      </th>
+                      <th className="text-left py-4 px-6 font-semibold text-green-800">
+                        ⏰ Time
+                      </th>
+                      <th className="text-left py-4 px-6 font-semibold text-green-800">
+                        🏭 Machine Code
+                      </th>
+                      <th className="text-left py-4 px-6 font-semibold text-green-800">
+                        🔍 Actions
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {transactions.map((t, idx) => (
+                      <motion.tr
+                        key={t.id}
+                        initial={{ opacity: 0, y: 12 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.45, delay: idx * 0.04 }}
+                        whileHover={{
+                          backgroundColor: "rgba(16,185,129,0.02)",
+                          scale: 1.002,
+                        }}
+                        className="border-b border-green-50 hover:bg-green-50/30 transition-colors"
                       >
-                        🔍 View Details
-                      </button>
-                    </div>
-                  </div>
-                </motion.div>
-              ))
+                        <td className="py-4 px-6 text-sm text-muted-foreground">
+                          #{(currentPage - 1) * itemsPerPage + idx + 1}
+                        </td>
+                        <td className="py-4 px-6">
+                          <div className="text-lg font-semibold text-green-700">
+                            Rs. {t.amount}
+                          </div>
+                        </td>
+                        <td className="py-4 px-6">
+                          <div className="font-medium text-center bg-green-100 text-green-800 rounded-full px-3 py-1 text-sm w-fit">
+                            {t.quantity}
+                          </div>
+                        </td>
+                        <td className="py-4 px-6">
+                          <div className="text-sm font-medium text-blue-600">
+                            {t.msisdn || "N/A"}
+                          </div>
+                        </td>
+                        <td className="py-4 px-6">
+                          <div className="text-sm text-muted-foreground">
+                            {new Date(t.created_at).toLocaleString()}
+                          </div>
+                        </td>
+                        <td className="py-4 px-6">
+                          <div className="text-sm font-medium text-purple-600">
+                            {t.machine_code || "N/A"}
+                          </div>
+                        </td>
+                        <td className="py-4 px-6">
+                          <button
+                            onClick={() => setActiveTx(t)}
+                            className="px-4 py-2 rounded-lg bg-emerald-600 text-white text-sm hover:bg-emerald-700 transition-colors flex items-center gap-2"
+                          >
+                            <span>🔍</span>
+                            View Details
+                          </button>
+                        </td>
+                      </motion.tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             )}
           </div>
 
@@ -164,17 +223,24 @@ const SanitaryTransactionTable = () => {
               </div>
               <div className="flex w-full items-center gap-8 lg:w-fit">
                 <div className="hidden items-center gap-2 lg:flex">
-                  <Label htmlFor="rows-per-page" className="text-sm font-medium">
+                  <Label
+                    htmlFor="rows-per-page"
+                    className="text-sm font-medium"
+                  >
                     Rows per page
                   </Label>
                   <Select
                     value={`${itemsPerPage}`}
                     onValueChange={(value) => {
-                      setItemsPerPage(Number(value))
-                      setCurrentPage(1)
+                      setItemsPerPage(Number(value));
+                      setCurrentPage(1);
                     }}
                   >
-                    <SelectTrigger size="sm" className="w-20" id="rows-per-page">
+                    <SelectTrigger
+                      size="sm"
+                      className="w-20"
+                      id="rows-per-page"
+                    >
                       <SelectValue placeholder={itemsPerPage} />
                     </SelectTrigger>
                     <SelectContent side="top">
@@ -208,7 +274,9 @@ const SanitaryTransactionTable = () => {
                   </button>
                   <button
                     className="size-8 bg-transparent border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
-                    onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                    onClick={() =>
+                      setCurrentPage(Math.min(totalPages, currentPage + 1))
+                    }
                     disabled={currentPage === totalPages}
                   >
                     <span className="sr-only">Go to next page</span>
@@ -244,13 +312,17 @@ const SanitaryTransactionTable = () => {
             >
               <div className="bg-white rounded-2xl p-6 shadow-2xl">
                 <div className="flex justify-between items-start">
-                  <h3 className="text-xl font-semibold">Transaction Details 💳</h3>
+                  <h3 className="text-xl font-semibold">
+                    Transaction Details 💳
+                  </h3>
                 </div>
 
                 <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
                     <div className="text-xs text-muted-foreground">Phone</div>
-                    <div className="font-medium">{activeTx.msisdn || "N/A"}</div>
+                    <div className="font-medium">
+                      {activeTx.msisdn || "N/A"}
+                    </div>
                   </div>
 
                   <div>
@@ -259,28 +331,46 @@ const SanitaryTransactionTable = () => {
                   </div>
 
                   <div>
-                    <div className="text-xs text-muted-foreground">Quantity</div>
+                    <div className="text-xs text-muted-foreground">
+                      Quantity
+                    </div>
                     <div className="font-medium">{activeTx.quantity}</div>
                   </div>
 
                   <div>
-                    <div className="text-xs text-muted-foreground">Merchant</div>
-                    <div className="font-medium">{activeTx.merchant || "N/A"}</div>
+                    <div className="text-xs text-muted-foreground">
+                      Merchant
+                    </div>
+                    <div className="font-medium">
+                      {activeTx.merchant || "N/A"}
+                    </div>
                   </div>
 
                   <div>
-                    <div className="text-xs text-muted-foreground">Transaction Time</div>
-                    <div className="font-medium">{new Date(activeTx.created_at).toLocaleString()}</div>
+                    <div className="text-xs text-muted-foreground">
+                      Transaction Time
+                    </div>
+                    <div className="font-medium">
+                      {new Date(activeTx.created_at).toLocaleString()}
+                    </div>
                   </div>
 
                   <div>
-                    <div className="text-xs text-muted-foreground">Machine Code</div>
-                    <div className="font-medium">{activeTx.machine_code || "N/A"}</div>
+                    <div className="text-xs text-muted-foreground">
+                      Machine Code
+                    </div>
+                    <div className="font-medium">
+                      {activeTx.machine_code || "N/A"}
+                    </div>
                   </div>
 
                   <div>
-                    <div className="text-xs text-muted-foreground">Transaction Number</div>
-                    <div className="font-small">{activeTx.transaction_number || "N/A"}</div>
+                    <div className="text-xs text-muted-foreground">
+                      Transaction Number
+                    </div>
+                    <div className="font-small">
+                      {activeTx.transaction_number || "N/A"}
+                    </div>
                   </div>
 
                   <div>
@@ -289,13 +379,20 @@ const SanitaryTransactionTable = () => {
                   </div>
 
                   <div>
-                    <div className="text-xs text-muted-foreground">Epoch Time</div>
+                    <div className="text-xs text-muted-foreground">
+                      Epoch Time
+                    </div>
                     <div className="font-medium">{activeTx.epoch_time}</div>
                   </div>
                 </div>
 
                 <div className="mt-6 text-right">
-                  <button onClick={() => setActiveTx(null)} className="px-4 py-2 rounded-lg bg-gray-100">Close</button>
+                  <button
+                    onClick={() => setActiveTx(null)}
+                    className="px-4 py-2 rounded-lg bg-gray-100"
+                  >
+                    Close
+                  </button>
                 </div>
               </div>
             </motion.div>
@@ -303,7 +400,7 @@ const SanitaryTransactionTable = () => {
         )}
       </CardContent>
     </Card>
-  )
-}
+  );
+};
 
-export default SanitaryTransactionTable
+export default SanitaryTransactionTable;

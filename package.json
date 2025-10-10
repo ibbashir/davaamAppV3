@@ -57,6 +57,7 @@
     "tailwindcss": "^4.1.10",
     "use-debounce": "^10.0.6",
     "vaul": "^1.1.2",
+    "xlsx": "^0.18.5",
     "zod": "^3.25.67"
   },
   "devDependencies": {

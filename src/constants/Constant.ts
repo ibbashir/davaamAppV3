@@ -64,7 +64,8 @@ export const OPS_MACHINE_VISIT = "/ops/machine-details/:id";
 //MACHINE PATH
 export const MACHINE_DASHBOARD = "/company/dashboard";
 export const MACHINE_MACHINES = "/company/machines";
-export const COMPANY_MACHINE_VISIT="/company/machine-details/:id"
+export const COMPANY_MACHINE_VISIT="/company/machine-details/:id";
+export const REPORT = "/company/report";
 
 // navigation const
 export const SUPER_ADMIN_SIDEBAR_ROUTES = () => {
@@ -126,6 +127,7 @@ export const MACHINES_SIDEBAR_ROUTES = () => {
     return [
         { title: "Dashboard", url: MACHINE_DASHBOARD, icon: IconHome },
         { title: "Machines", url: MACHINE_MACHINES, icon: IconChartBar },
+        { title: "Reports", url: REPORT, icon: IconChartBar }
     ]
 }
 

@@ -44,28 +44,6 @@ const Dashboard = () => {
             <div className="px-4 lg:px-6 flex flex-col gap-2">
               {/* Buttons area (initially visible) */}
               <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center mb-3">
-                <button
-                  onClick={() => toggleGraph("dispensing")}
-                  className={`px-4 py-2 rounded-full font-medium transition-shadow flex items-center gap-2 ${
-                    activeGraph === "dispensing" || activeGraph === "both"
-                      ? "bg-green-600 text-white shadow-xl"
-                      : "bg-white text-green-700 border border-green-100"
-                  }`}
-                >
-                  💰 Dispensing Revenue & Transactions Breakdown
-                </button>
-
-                <button
-                  onClick={() => toggleGraph("brands")}
-                  className={`px-4 py-2 rounded-full font-medium transition-shadow flex items-center gap-2 ${
-                    activeGraph === "brands" || activeGraph === "both"
-                      ? "bg-emerald-600 text-white shadow-xl"
-                      : "bg-white text-emerald-700 border border-emerald-100"
-                  }`}
-                >
-                  🏷️ Sanitary Brands Revenue
-                </button>
-
                 <div className="ml-auto text-sm text-muted-foreground">
                   <span className="inline-block mr-2">♻️</span>
                   <span>DavaamLife</span>
