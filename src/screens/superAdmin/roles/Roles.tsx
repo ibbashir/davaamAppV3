@@ -101,44 +101,19 @@ interface UserFormData {
   password: string;
 }
 
-interface RoleStats {
-  [key: string]: number;
-}
-
-interface SelectOption {
-  value: string;
-  label: string;
-}
-
 // Constants
 const DEFAULT_PAGE_SIZE = 10;
 
-const ROLE_OPTIONS: SelectOption[] = [
+const ROLE_OPTIONS = [
   { value: "ops", label: "Ops" },
   { value: "admin", label: "Admin" },
   { value: "company", label: "Company" },
 ];
 
-const MACHINE_TYPE_OPTIONS: SelectOption[] = [
+const MACHINE_TYPE_OPTIONS = [
   { value: "liquid", label: "Liquid" },
   { value: "product", label: "Product" },
 ];
-
-// Custom styles for react-select to match shadcn style
-const selectStyles = {
-  control: (base: any) => ({
-    ...base,
-    minHeight: "40px",
-    borderColor: "hsl(214.3 31.8% 91.4%)",
-    "&:hover": {
-      borderColor: "hsl(214.3 31.8% 91.4%)",
-    },
-  }),
-  menu: (base: any) => ({
-    ...base,
-    zIndex: 50,
-  }),
-};
 
 const Roles = () => {
   // State
@@ -149,11 +124,11 @@ const Roles = () => {
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
   const [editing, setEditing] = useState(false);
-  const [userRole, setUserRole] = useState<SelectOption | null>(null);
-  const [machineType, setMachineType] = useState<SelectOption | null>(null);
+  const [userRole, setUserRole] = useState<string>("");
+  const [machineType, setMachineType] = useState<string>("");
   const [machineData, setMachineData] = useState<Machine[]>([]);
   const [currentUserForEdit, setCurrentUserForEdit] = useState<User | null>(null);
-  const [selectedMachines, setSelectedMachines] = useState<SelectOption[]>([]);
+  const [selectedMachines, setSelectedMachines] = useState<string[]>([]);
   const [visiblePasswords, setVisiblePasswords] = useState<{ [key: number]: boolean }>({});
   const [currentPage, setCurrentPage] = useState(1);
   const [totalRecords, setTotalRecords] = useState(0);
@@ -212,10 +187,8 @@ const Roles = () => {
   }, []);
 
   useEffect(() => {
-    if (machineType?.value) {
-      getAllMachineList(machineType.value);
-
-      // ✅ only reset when NOT editing
+    if (machineType) {
+      getAllMachineList(machineType);
       if (!editDialogOpen) {
         setSelectedMachines([]);
       }
@@ -231,17 +204,13 @@ const Roles = () => {
       setValue("password", currentUserForEdit.password);
       
       // Set user role
-      const userRoleOption = ROLE_OPTIONS.find(role => role.value === currentUserForEdit.user_role);
-      setUserRole(userRoleOption || null);
+      setUserRole(currentUserForEdit.user_role);
       
       // Set machine type if exists
       if (currentUserForEdit.machine_type) {
-        const machineTypeOption = MACHINE_TYPE_OPTIONS.find(
-          type => type.value === currentUserForEdit.machine_type
-        );
-        setMachineType(machineTypeOption || null);
+        setMachineType(currentUserForEdit.machine_type);
       } else {
-        setMachineType(null);
+        setMachineType("");
       }
       
       // Set selected machines for company role
@@ -249,11 +218,8 @@ const Roles = () => {
         currentUserForEdit.user_role === "company" &&
         currentUserForEdit.machines.length > 0
       ) {
-        const machineOptions = currentUserForEdit.machines.map(machine => ({
-          value: machine.machine_code,
-          label: `${machine.machine_name} | ${machine.machine_code}`,
-        }));
-        setSelectedMachines(machineOptions);   // ✅ preserves existing machines
+        const machineCodes = currentUserForEdit.machines.map(machine => machine.machine_code);
+        setSelectedMachines(machineCodes);
       } else {
         setSelectedMachines([]);
       }
@@ -266,8 +232,8 @@ const Roles = () => {
   // Helper functions
   const resetForm = () => {
     reset();
-    setUserRole(null);
-    setMachineType(null);
+    setUserRole("");
+    setMachineType("");
     setSelectedMachines([]);
     setCurrentUserForEdit(null);
   };
@@ -282,13 +248,29 @@ const Roles = () => {
   };
 
   const getRoleBadgeVariant = (role: string) => {
-    const roleVariants: { [key: string]: "superAdmin" | "admin" | "operations" | "company" } = {
-      "super admin": "superAdmin",
-      "admin": "admin",
-      "ops": "operations",
-      "company": "company",
+    const roleVariants: { [key: string]: "default" | "secondary" | "destructive" | "outline" } = {
+      "super admin": "destructive",
+      "admin": "default",
+      "ops": "secondary",
+      "company": "outline",
     };
     return roleVariants[role.toLowerCase()] || "secondary";
+  };
+
+  const formatRoleDisplay = (role: string) => {
+    if (!role) return "Unknown";
+    
+    const roleLower = role.toLowerCase();
+    const roleMap: { [key: string]: string } = {
+      "super admin": "Super Admin",
+      "superadmin": "Super Admin",
+      "admin": "Admin",
+      "ops": "Ops",
+      "operations": "Ops",
+      "company": "Company",
+    };
+    
+    return roleMap[roleLower] || role.charAt(0).toUpperCase() + role.slice(1);
   };
 
   const formatDate = (dateString: string) => {
@@ -313,11 +295,11 @@ const Roles = () => {
         lastName: data.lastName,
         email: data.email,
         password: data.password,
-        userRole: userRole.value,
-        machine_type: userRole.value === "company" ? machineType?.value || null : null,
-        roleCode: getRoleCode(userRole.value),
-        machine_code: userRole.value === "company"
-          ? selectedMachines.map(m => ({ machine_code: parseInt(m.value) }))
+        userRole: userRole,
+        machine_type: userRole === "company" ? machineType || null : null,
+        roleCode: getRoleCode(userRole),
+        machine_code: userRole === "company"
+          ? selectedMachines.map(m => ({ machine_code: m }))
           : [],
       };
 
@@ -346,11 +328,13 @@ const Roles = () => {
         password: data.password,
         firstName: data.firstName,
         lastName: data.lastName,
+        email: data.email,
+        companyCode:0,
         user_role: currentUserForEdit.user_role,
         roleCode: currentUserForEdit.role_code,
-        machine_type: currentUserForEdit.user_role === "company" ? machineType?.value || null : null,
-        machine_code: userRole?.value === "company"
-          ? selectedMachines.map(m => ({ machine_code: parseInt(m.value) }))
+        machine_type: currentUserForEdit.user_role === "company" ? machineType || null : null,
+        machine_code: userRole === "company"
+          ? selectedMachines.map(m => ({ machine_code: m }))
           : [],
       };
 
@@ -399,47 +383,64 @@ const Roles = () => {
     fetchRoles(1, newSize);
   };
 
-  // Get machine options for react-select
-  const getMachineOptions = (): SelectOption[] => {
-    return machineData.map(machine => ({
-      value: machine.machine_code,
-      label: `${machine.machine_name} | ${machine.machine_code}`
-    }));
+  const handleMachineSelection = (machineCode: string) => {
+    setSelectedMachines(prev => {
+      if (prev.includes(machineCode)) {
+        return prev.filter(code => code !== machineCode);
+      } else {
+        return [...prev, machineCode];
+      }
+    });
   };
 
   // Render functions
   const renderMachineSelection = () => {
-    if (userRole?.value !== "company") return null;
+    if (userRole !== "company") return null;
 
     return (
       <div className="flex-1">
         <Label htmlFor="machineType" className="mb-2 block">
           Select Machine Type
         </Label>
-        <Select
-          id="machineType"
-          value={machineType}
-          onChange={setMachineType}
-          options={MACHINE_TYPE_OPTIONS}
-          placeholder="Select Machine Type"
-          styles={selectStyles}
-          isSearchable={false}
-        />
+        <Select value={machineType} onValueChange={setMachineType}>
+          <SelectTrigger>
+            <SelectValue placeholder="Select Machine Type" />
+          </SelectTrigger>
+          <SelectContent>
+            {MACHINE_TYPE_OPTIONS.map((type) => (
+              <SelectItem key={type.value} value={type.value}>
+                {type.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
 
         <Label className="mt-4 mb-2 block">Machines</Label>
-        <Select
-          isMulti
-          value={selectedMachines}
-          onChange={(newValue) => setSelectedMachines(newValue as SelectOption[])}
-          options={getMachineOptions()}
-          placeholder="Select machines..."
-          styles={selectStyles}
-          isDisabled={!machineType}
-          closeMenuOnSelect={false}
-        />
+        <div className="space-y-2 max-h-40 overflow-y-auto">
+          {machineData.map((machine) => (
+            <div key={machine.machine_code} className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                id={`machine-${machine.machine_code}`}
+                checked={selectedMachines.includes(machine.machine_code)}
+                onChange={() => handleMachineSelection(machine.machine_code)}
+                className="rounded border-gray-300"
+                disabled={!machineType}
+              />
+              <Label htmlFor={`machine-${machine.machine_code}`} className="text-sm">
+                {machine.machine_name} | {machine.machine_code}
+              </Label>
+            </div>
+          ))}
+        </div>
         {!machineType && (
           <p className="text-sm text-muted-foreground mt-1">
             Please select a machine type first
+          </p>
+        )}
+        {machineType && machineData.length === 0 && (
+          <p className="text-sm text-muted-foreground mt-1">
+            No machines available for this type
           </p>
         )}
       </div>
@@ -454,27 +455,37 @@ const Roles = () => {
         <Label htmlFor="editMachineType" className="mb-2 block">
           Select Machine Type
         </Label>
-        <Select
-          id="editMachineType"
-          value={machineType}
-          onChange={setMachineType}
-          options={MACHINE_TYPE_OPTIONS}
-          placeholder="Select Machine Type"
-          styles={selectStyles}
-          isSearchable={false}
-        />
+        <Select value={machineType} onValueChange={setMachineType}>
+          <SelectTrigger>
+            <SelectValue placeholder="Select Machine Type" />
+          </SelectTrigger>
+          <SelectContent>
+            {MACHINE_TYPE_OPTIONS.map((type) => (
+              <SelectItem key={type.value} value={type.value}>
+                {type.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
 
         <Label className="mt-4 mb-2 block">Machines</Label>
-        <Select
-          isMulti
-          value={selectedMachines}
-          onChange={(newValue) => setSelectedMachines(newValue as SelectOption[])}
-          options={getMachineOptions()}
-          placeholder="Select machines..."
-          styles={selectStyles}
-          isDisabled={!machineType}
-          closeMenuOnSelect={false}
-        />
+        <div className="space-y-2 max-h-40 overflow-y-auto">
+          {machineData.map((machine) => (
+            <div key={machine.machine_code} className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                id={`edit-machine-${machine.machine_code}`}
+                checked={selectedMachines.includes(machine.machine_code)}
+                onChange={() => handleMachineSelection(machine.machine_code)}
+                className="rounded border-gray-300"
+                disabled={!machineType}
+              />
+              <Label htmlFor={`edit-machine-${machine.machine_code}`} className="text-sm">
+                {machine.machine_name} | {machine.machine_code}
+              </Label>
+            </div>
+          ))}
+        </div>
         {!machineType && (
           <p className="text-sm text-muted-foreground mt-1">
             Please select a machine type first
@@ -577,15 +588,18 @@ const Roles = () => {
                       <Label htmlFor="userRole" className="mb-2 block">
                         User Role
                       </Label>
-                      <Select
-                        id="userRole"
-                        value={userRole}
-                        onChange={setUserRole}
-                        options={ROLE_OPTIONS}
-                        placeholder="Select role"
-                        styles={selectStyles}
-                        isSearchable={false}
-                      />
+                      <Select value={userRole} onValueChange={setUserRole}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select role" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {ROLE_OPTIONS.map((role) => (
+                            <SelectItem key={role.value} value={role.value}>
+                              {role.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </div>
                     {renderMachineSelection()}
                   </div>
@@ -690,16 +704,18 @@ const Roles = () => {
                       <Label htmlFor="editUserRole" className="mb-2 block">
                         User Role
                       </Label>
-                      <Select
-                        id="editUserRole"
-                        value={userRole}
-                        onChange={setUserRole}
-                        options={ROLE_OPTIONS}
-                        placeholder="Select role"
-                        styles={selectStyles}
-                        isSearchable={false}
-                        isDisabled
-                      />
+                      <Select value={userRole} onValueChange={setUserRole} disabled>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select role" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {ROLE_OPTIONS.map((role) => (
+                            <SelectItem key={role.value} value={role.value}>
+                              {role.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                       <p className="text-sm text-muted-foreground mt-1">
                         Cannot change user role
                       </p>
@@ -830,7 +846,7 @@ const Roles = () => {
                         </TableCell>
                         <TableCell>
                           <Badge variant={getRoleBadgeVariant(user.user_role)}>
-                            {user.user_role}
+                            {formatRoleDisplay(user.user_role)}
                           </Badge>
                         </TableCell>
                         <TableCell>{formatDate(user.created_at)}</TableCell>
