@@ -20,6 +20,7 @@ export const LOCAL_BASE_URL="http://localhost:3009/api/dashboard";
 //PUBLIC PATHS
 export const LOGIN = "/login";
 export const FORGET_PASSWORD = "/forgetPassword";
+export const RESET_PASSWORD = "/reset-password";
 export const COMPANY_INFO = "/company-info";
 export const PRIVACY_POLICY = "/privacypolicy";
 

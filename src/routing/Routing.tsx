@@ -78,6 +78,7 @@ import {
   OPS_USERS,
   PRIVACY_POLICY,
   REPORT,
+  RESET_PASSWORD,
   SUPERADMIN_CORPORATE,
   SUPERADMIN_DASHBOARD,
   SUPERADMIN_FEEDBACK,
@@ -92,6 +93,7 @@ import {
 } from '@/constants/Constant'
 import OpsMachineVisit from '@/screens/ops/machines/MachineVisit'
 import Reports from '@/screens/corporate/reports/reports'
+import ResetPassword from '@/screens/forgetPassword/ResetPassword'
 
 const Routing = () => {
   return (
@@ -100,6 +102,7 @@ const Routing = () => {
       <Route path='/' element={<Navigate to={LOGIN} replace />} />
       <Route path={LOGIN} element={<Login />} />
       <Route path={FORGET_PASSWORD} element={<ForgetPassword />} />
+      <Route path={RESET_PASSWORD} element={<ResetPassword />} />
       <Route path={COMPANY_INFO} element={<CompanyInfo />} />
       <Route path={PRIVACY_POLICY} element={<PrivacyPolicy />} />
 
