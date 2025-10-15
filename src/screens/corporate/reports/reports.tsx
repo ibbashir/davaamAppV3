@@ -137,7 +137,7 @@ export default function Report() {
         )}
       </div>
 
-      <form className="mx-auto mt-4 w-full max-w-lg" onSubmit={handleSubmit}>
+      <form className="mt-5 w-full max-w-lg" onSubmit={handleSubmit}>
         <div className="-mx-3 mb-6 flex flex-wrap">
           <div className="mb-6 w-full px-3 md:mb-0 md:w-1/2">
             <label
@@ -159,7 +159,7 @@ export default function Report() {
         </div>
         <button
           type="submit"
-          className="rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 disabled:opacity-50"
+          className="rounded bg-teal-500 px-4 py-2 font-bold text-white hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-opacity-50 disabled:opacity-50"
           disabled={loading || !selectedDate}
         >
           {loading ? "Loading..." : "Generate Report"}
