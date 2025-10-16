@@ -9,7 +9,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { ArrowLeft, Mail, CheckCircle, AlertCircle, Eye, EyeOff, Lock, User } from "lucide-react"
 import loader from "../../assets/infinite-spinner.svg"
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { postRequest } from "@/Apis/Api"
+import { putRequest } from "@/Apis/Api"
 
 // JWT payload interface
 interface JwtPayload {
@@ -162,7 +162,7 @@ const ResetPassword = () => {
 
     const resetPassword = async (newPassword: string) => {
         try {
-            await postRequest('/auth/reset', {
+            await putRequest('/auth/reset', {
                 password: newPassword, 
                 email: decodedToken?.email
             })
