@@ -172,7 +172,6 @@ const ResetPassword = () => {
                 text: "Your password has been reset successfully! Redirecting to login...",
             })
             
-            // Redirect to login after success
             setTimeout(() => {
                 navigate('/')
             }, 2000)
@@ -402,7 +401,6 @@ const ResetPassword = () => {
         )
     }
 
-    // If no token, show invalid link message
     return (
         <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-teal-50 via-white to-cyan-50 p-4">
             <div className="w-full max-w-md">
