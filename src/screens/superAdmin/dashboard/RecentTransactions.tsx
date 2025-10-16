@@ -264,17 +264,18 @@ const RecentTransactions = () => {
 
                 <CardContent>
                     <Table>
-                        <TableHeader>
+                        <TableHeader className="bg-teal-600">
                             <TableRow>
-                                <TableHead>User Name</TableHead>
-                                <TableHead>Date</TableHead>
-                                <TableHead>Phone Number / RFID</TableHead>
-                                <TableHead>Machine Code</TableHead>
-                                <TableHead>Amount</TableHead>
-                                <TableHead>Quantity</TableHead>
-                                <TableHead>Brand Name</TableHead>
+                                {["User Name", "Date", "Phone Number / RFID", "Machine Code", "Amount", "Quantity", "Brand Name"].map(
+                                (head) => (
+                                    <TableHead key={head} className="text-white font-semibold">
+                                    {head}
+                                    </TableHead>
+                                ),
+                                )}
                             </TableRow>
-                        </TableHeader>
+                            </TableHeader>
+
                         <TableBody>
                             {loading ? (
                                 <TableRow>
