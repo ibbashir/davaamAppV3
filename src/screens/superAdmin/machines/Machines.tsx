@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react"
-<<<<<<< HEAD
 import { getRequest } from "@/Apis/Api"
 import { timeConverter } from "@/constants/Constant"
 import { SiteHeader } from "@/components/superAdmin/site-header"
@@ -10,21 +9,6 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardHeader, CardContent } from "@/components/ui/card"
-=======
-import { motion, AnimatePresence } from "framer-motion"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Input } from "@/components/ui/input"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Label } from "@/components/ui/label"
-import { Search, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Info } from "lucide-react"
-import type { ApiMachine, MachinesResponse } from "./Types"
-import { getRequest, postRequest } from "@/Apis/Api"
-import { timeConverter } from "@/constants/Constant"
-import { SiteHeader } from "@/components/superAdmin/site-header"
-import { useNavigate } from "react-router-dom"
->>>>>>> 43fc3ec26c00144be6ddeebd8e0da02618703114
 
 const categories = [
   { id: "Butterfly", label: "🦋 Butterfly" },
@@ -46,13 +30,8 @@ const Machines = () => {
   const [machinesData, setMachinesData] = useState<{ [category: string]: ApiMachine[] } | null>(null)
   const [machineStockMap, setMachineStockMap] = useState<{ [code: string]: string }>({})
   const [loading, setLoading] = useState(true)
-<<<<<<< HEAD
 
   const itemsPerPage = 10
-=======
-  const [showDetails, setShowDetails] = useState<ApiMachine | null>(null)
-  const [itemsPerPage, setItemsPerPage] = useState(10)
->>>>>>> 43fc3ec26c00144be6ddeebd8e0da02618703114
 
   useEffect(() => {
     fetchMachines()
@@ -232,7 +211,6 @@ const Machines = () => {
           </CardContent>
         </Card>
 
-<<<<<<< HEAD
         {/* Pagination */}
         <div className="flex justify-center items-center gap-2 mt-6">
           <Button
@@ -263,117 +241,6 @@ const Machines = () => {
             Next <ChevronRight className="h-4 w-4" />
           </Button>
         </div>
-=======
-        {/* Fixed Pagination */}
-        {paginatedMachines.length > 0 && (
-          <div className="flex items-center justify-between px-4 mt-6">
-            <div className="text-muted-foreground hidden flex-1 text-sm lg:flex">
-              Showing {paginatedMachines.length} of {filteredMachines.length} machines
-            </div>
-            <div className="flex w-full items-center gap-8 lg:w-fit">
-              <div className="hidden items-center gap-2 lg:flex">
-                <Label htmlFor="rows-per-page" className="text-sm font-medium">
-                  Rows per page
-                </Label>
-                <Select
-                  value={`${itemsPerPage}`}
-                  onValueChange={(value) => {
-                    setItemsPerPage(Number(value))
-                    setCurrentPage(1)
-                  }}
-                >
-                  <SelectTrigger size="sm" className="w-20" id="rows-per-page">
-                    <SelectValue placeholder={itemsPerPage} />
-                  </SelectTrigger>
-                  <SelectContent side="top">
-                    {[5, 10, 15, 20, 50].map((pageSize) => (
-                      <SelectItem key={pageSize} value={`${pageSize}`}>
-                        {pageSize}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="flex w-fit items-center justify-center text-sm font-medium">
-                Page {currentPage} of {totalPages}
-              </div>
-              <div className="ml-auto flex items-center gap-2 lg:ml-0">
-                <Button
-                  variant="outline"
-                  className="hidden h-8 w-8 p-0 lg:flex bg-transparent"
-                  onClick={() => setCurrentPage(1)}
-                  disabled={currentPage === 1}
-                >
-                  <span className="sr-only">Go to first page</span>
-                  <ChevronsLeft className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="outline"
-                  className="size-8 bg-transparent"
-                  size="icon"
-                  onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                  disabled={currentPage === 1}
-                >
-                  <span className="sr-only">Go to previous page</span>
-                  <ChevronLeft className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="outline"
-                  className="size-8 bg-transparent"
-                  size="icon"
-                  onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
-                  disabled={currentPage === totalPages}
-                >
-                  <span className="sr-only">Go to next page</span>
-                  <ChevronRight className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="outline"
-                  className="hidden size-8 lg:flex bg-transparent"
-                  size="icon"
-                  onClick={() => setCurrentPage(totalPages)}
-                  disabled={currentPage === totalPages}
-                >
-                  <span className="sr-only">Go to last page</span>
-                  <ChevronsRight className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Details Modal */}
-        <AnimatePresence>
-          {showDetails && (
-            <motion.div
-              className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-            >
-              <motion.div
-                className="bg-white rounded-2xl p-6 max-w-lg w-full shadow-xl"
-                initial={{ scale: 0.9 }}
-                animate={{ scale: 1 }}
-                exit={{ scale: 0.9 }}
-              >
-                <h2 className="text-xl font-semibold mb-4">Machine Details</h2>
-                <p>🆔 {showDetails.machine_code}</p>
-                <p>📍 {showDetails.machine_name}</p>
-                <p>⚡ {showDetails.machine_type}</p>
-                <p>📦 {machineStockMap[showDetails.machine_code] || "Unknown"}</p>
-                <p>⏱ {timeConverter(showDetails.created_at)}</p>
-
-                <div className="flex justify-end mt-4">
-                  <Button variant="outline" onClick={() => setShowDetails(null)}>
-                    Close
-                  </Button>
-                </div>
-              </motion.div>
-            </motion.div>
-          )}
-        </AnimatePresence>
->>>>>>> 43fc3ec26c00144be6ddeebd8e0da02618703114
       </div>
     </div>
   )
