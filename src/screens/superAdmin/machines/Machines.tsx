@@ -1,18 +1,14 @@
-"use client"
-
 import { useState, useEffect } from "react"
-import { motion, AnimatePresence } from "framer-motion"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Input } from "@/components/ui/input"
-import { Search, ChevronLeft, ChevronRight, Info } from "lucide-react"
-import type { ApiMachine, MachinesResponse } from "./Types"
-import { getRequest, postRequest } from "@/Apis/Api"
+import { getRequest } from "@/Apis/Api"
 import { timeConverter } from "@/constants/Constant"
 import { SiteHeader } from "@/components/superAdmin/site-header"
 import { useNavigate } from "react-router-dom"
-
+import { motion, AnimatePresence } from "framer-motion"
+import { Search, ChevronLeft, ChevronRight } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Badge } from "@/components/ui/badge"
+import { Card, CardHeader, CardContent } from "@/components/ui/card"
 
 const categories = [
   { id: "Butterfly", label: "🦋 Butterfly" },
@@ -34,7 +30,6 @@ const Machines = () => {
   const [machinesData, setMachinesData] = useState<{ [category: string]: ApiMachine[] } | null>(null)
   const [machineStockMap, setMachineStockMap] = useState<{ [code: string]: string }>({})
   const [loading, setLoading] = useState(true)
-  const [showDetails, setShowDetails] = useState<ApiMachine | null>(null)
 
   const itemsPerPage = 10
 
@@ -150,57 +145,68 @@ const Machines = () => {
           </div>
         </div>
 
-        {/* Cards */}
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          <AnimatePresence>
+        {/* Table View */}
+        <Card className="overflow-hidden rounded-2xl shadow-md border-teal-200">
+          <CardHeader>
+            <h3 className="font-semibold text-lg text-teal-700">
+              {categories.find((c) => c.id === activeCategory)?.label || "Machines"}
+            </h3>
+          </CardHeader>
+          <CardContent className="overflow-x-auto">
             {loading ? (
-              <p className="col-span-full text-center py-6">Loading machines...</p>
+              <p className="text-center py-6">Loading machines...</p>
             ) : paginatedMachines.length === 0 ? (
-              <p className="col-span-full text-center py-6">No machines found.</p>
+              <p className="text-center py-6">No machines found.</p>
             ) : (
-              paginatedMachines.map((machine) => (
-                <motion.div
-                  key={machine.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -20 }}
-                >
-                  <Card className="rounded-2xl shadow-md border-teal-200">
-                    <CardHeader className="flex justify-between items-center">
-                      <h3 className="font-semibold text-lg">🆔 {machine.machine_code}</h3>
-                      {getStatusBadge(machine.status)}
-                    </CardHeader>
-                    <CardContent className="space-y-2">
-                      <p>📍 {machine.machine_name}</p>
-                      <p>⚡ {machine.machine_type}</p>
-                      <p>⏱ {machine.lastActive}</p>
-                      <p>📦 {getStockStatusBadge(machine.stockStatus)}</p>
-                      <div className="flex justify-between pt-2">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => setShowDetails(machine)}
-                          className="flex items-center gap-1"
-                        >
-                          <Info className="h-4 w-4" /> Details
-                        </Button>
-                        <Button
-                          size="sm"
-                          className="bg-teal-600 hover:bg-teal-700"
-                          onClick={() =>
-                            navigate(`/superadmin/machine-details/${machine.machine_code}`, { state: { machine } })
-                          }
-                        >
-                          Visit
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              ))
+              <table className="min-w-full text-sm border-collapse border border-gray-200">
+                <thead className="bg-teal-600 text-white">
+                  <tr>
+                    <th className="px-4 py-2 text-center">Machine ID</th>
+                    <th className="px-4 py-2 text-center">Name</th>
+                    <th className="px-4 py-2 text-center">Type</th>
+                    <th className="px-4 py-2 text-center">Category</th>
+                    <th className="px-4 py-2 text-center">Last Active</th>
+                    <th className="px-4 py-2 text-center">Stock</th>
+                    <th className="px-4 py-2 text-center">Status</th>
+                    <th className="px-4 py-2 text-center">Visit</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <AnimatePresence>
+                    {paginatedMachines.map((machine) => (
+                      <motion.tr
+                        key={machine.id}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        className="hover:bg-teal-50 border-b border-gray-200 transition-all"
+                      >
+                        <td className="px-4 py-3 font-medium">{machine.machine_code}</td>
+                        <td className="px-4 py-3">{machine.machine_name}</td>
+                        <td className="px-4 py-3">{machine.machine_type}</td>
+                        <td className="px-4 py-3">{machine.category}</td>
+                        <td className="px-4 py-3">{machine.lastActive}</td>
+                        <td className="px-4 py-3">{getStockStatusBadge(machine.stockStatus)}</td>
+                        <td className="px-4 py-3">{getStatusBadge(machine.status)}</td>
+                        <td className="px-4 py-3 text-center">
+                          <Button
+                            size="sm"
+                            className="bg-teal-600 hover:bg-teal-700"
+                            onClick={() =>
+                              navigate(`/superadmin/machine-details/${machine.machine_code}`, { state: { machine } })
+                            }
+                          >
+                            Visit
+                          </Button>
+                        </td>
+                      </motion.tr>
+                    ))}
+                  </AnimatePresence>
+                </tbody>
+              </table>
             )}
-          </AnimatePresence>
-        </div>
+          </CardContent>
+        </Card>
 
         {/* Pagination */}
         <div className="flex justify-center items-center gap-2 mt-6">
@@ -232,38 +238,6 @@ const Machines = () => {
             Next <ChevronRight className="h-4 w-4" />
           </Button>
         </div>
-
-        {/* Details Modal */}
-        <AnimatePresence>
-          {showDetails && (
-            <motion.div
-              className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-            >
-              <motion.div
-                className="bg-white rounded-2xl p-6 max-w-lg w-full shadow-xl"
-                initial={{ scale: 0.9 }}
-                animate={{ scale: 1 }}
-                exit={{ scale: 0.9 }}
-              >
-                <h2 className="text-xl font-semibold mb-4">Machine Details</h2>
-                <p>🆔 {showDetails.machine_code}</p>
-                <p>📍 {showDetails.machine_name}</p>
-                <p>⚡ {showDetails.machine_type}</p>
-                <p>📦 {machineStockMap[showDetails.machine_code] || "Unknown"}</p>
-                <p>⏱ {timeConverter(showDetails.created_at)}</p>
-
-                <div className="flex justify-end mt-4">
-                  <Button variant="outline" onClick={() => setShowDetails(null)}>
-                    Close
-                  </Button>
-                </div>
-              </motion.div>
-            </motion.div>
-          )}
-        </AnimatePresence>
       </div>
     </div>
   )
