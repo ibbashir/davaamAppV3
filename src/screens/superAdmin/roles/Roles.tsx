@@ -23,6 +23,13 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   IconPlus,
   IconEdit,
   IconTrash,
@@ -31,6 +38,10 @@ import {
   IconLoader2,
   IconEyeOff,
   IconEye,
+  IconChevronLeft,
+  IconChevronRight,
+  IconChevronsLeft,
+  IconChevronsRight,
 } from "@tabler/icons-react";
 import {
   Dialog,
@@ -43,7 +54,6 @@ import {
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { deleteRequest, getRequest, postRequest, putRequest } from "@/Apis/Api";
-import Select from "react-select";
 
 // Interfaces
 interface Machine {
@@ -63,6 +73,10 @@ interface User {
   role_code: string;
   machine_type: string | null;
   update_at: string;
+  superAdminRoles: number;
+  adminRoles:number;
+  opsRoles:number;
+  companyRoles: number;
   machines: Machine[];
 }
 
@@ -73,6 +87,11 @@ interface ApiResponse {
   pagination?: {
     total: number;
   };
+  total?: number;
+  superAdminRoles?: number;
+  adminRoles?: number;
+  opsRoles?: number;
+  companyRoles?: number;
 }
 
 interface UserFormData {
@@ -82,63 +101,40 @@ interface UserFormData {
   password: string;
 }
 
-interface RoleStats {
-  [key: string]: number;
-}
-
-interface SelectOption {
-  value: string;
-  label: string;
-}
-
 // Constants
-const ROWS_PER_PAGE = 10;
+const DEFAULT_PAGE_SIZE = 10;
 
-const ROLE_OPTIONS: SelectOption[] = [
+const ROLE_OPTIONS = [
   { value: "ops", label: "Ops" },
   { value: "admin", label: "Admin" },
   { value: "company", label: "Company" },
 ];
 
-const MACHINE_TYPE_OPTIONS: SelectOption[] = [
+const MACHINE_TYPE_OPTIONS = [
   { value: "liquid", label: "Liquid" },
   { value: "product", label: "Product" },
 ];
-
-// Custom styles for react-select to match shadcn style
-const selectStyles = {
-  control: (base: any) => ({
-    ...base,
-    minHeight: "40px",
-    borderColor: "hsl(214.3 31.8% 91.4%)",
-    "&:hover": {
-      borderColor: "hsl(214.3 31.8% 91.4%)",
-    },
-  }),
-  menu: (base: any) => ({
-    ...base,
-    zIndex: 50,
-  }),
-};
 
 const Roles = () => {
   // State
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [users, setUsers] = useState<User[]>([]);
+  const [totalRoleList, setTotalRolesList] = useState<ApiResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
   const [editing, setEditing] = useState(false);
-  const [userRole, setUserRole] = useState<SelectOption | null>(null);
-  const [machineType, setMachineType] = useState<SelectOption | null>(null);
+  const [userRole, setUserRole] = useState<string>("");
+  const [machineType, setMachineType] = useState<string>("");
   const [machineData, setMachineData] = useState<Machine[]>([]);
   const [currentUserForEdit, setCurrentUserForEdit] = useState<User | null>(null);
-  const [selectedMachines, setSelectedMachines] = useState<SelectOption[]>([]);
+  const [selectedMachines, setSelectedMachines] = useState<string[]>([]);
   const [visiblePasswords, setVisiblePasswords] = useState<{ [key: number]: boolean }>({});
   const [currentPage, setCurrentPage] = useState(1);
   const [totalRecords, setTotalRecords] = useState(0);
+  const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
 
-  const totalPages = Math.ceil(totalRecords / ROWS_PER_PAGE);
+  const totalPages = Math.ceil(totalRecords / pageSize);
 
   // Form handling
   const {
@@ -150,14 +146,15 @@ const Roles = () => {
   } = useForm<UserFormData>();
 
   // Data fetching
-  const fetchRoles = async (page: number = 1) => {
+  const fetchRoles = async (page: number = 1, limit: number = pageSize) => {
     try {
       setLoading(true);
       const res: ApiResponse = await getRequest(
-        `/superadmin/getAllRoleLists?page=${page}&limit=${ROWS_PER_PAGE}`
+        `/superadmin/getAllRoleLists?page=${page}&limit=${limit}`
       );
 
-      if (res.data) {
+      if (res) {
+        setTotalRolesList(res);
         setUsers(res.data);
         setTotalRecords(res.total || res.data.length);
         setCurrentPage(page);
@@ -170,7 +167,7 @@ const Roles = () => {
     }
   };
 
-  const getAllMachineList = async (selectedType: string) => {
+  const getAllMachineList = async (selectedType: string) => { 
     try {
       const res = await getRequest(
         `/superadmin/getAllMachines?machine_type=${selectedType}`
@@ -186,20 +183,17 @@ const Roles = () => {
 
   // Effects
   useEffect(() => {
-    fetchRoles(1);
+    fetchRoles(1, pageSize);
   }, []);
 
   useEffect(() => {
-  if (machineType?.value) {
-    getAllMachineList(machineType.value);
-
-    // ✅ only reset when NOT editing
-    if (!editDialogOpen) {
-      setSelectedMachines([]);
+    if (machineType) {
+      getAllMachineList(machineType);
+      if (!editDialogOpen) {
+        setSelectedMachines([]);
+      }
     }
-  }
-}, [machineType, editDialogOpen]);
-
+  }, [machineType, editDialogOpen]);
 
   useEffect(() => {
     if (editDialogOpen && currentUserForEdit) {
@@ -210,34 +204,25 @@ const Roles = () => {
       setValue("password", currentUserForEdit.password);
       
       // Set user role
-      const userRoleOption = ROLE_OPTIONS.find(role => role.value === currentUserForEdit.user_role);
-      setUserRole(userRoleOption || null);
+      setUserRole(currentUserForEdit.user_role);
       
       // Set machine type if exists
       if (currentUserForEdit.machine_type) {
-        const machineTypeOption = MACHINE_TYPE_OPTIONS.find(
-          type => type.value === currentUserForEdit.machine_type
-        );
-        setMachineType(machineTypeOption || null);
+        setMachineType(currentUserForEdit.machine_type);
       } else {
-        setMachineType(null);
+        setMachineType("");
       }
       
       // Set selected machines for company role
       if (
-  currentUserForEdit.user_role === "company" &&
-  currentUserForEdit.machines.length > 0
-) {
-  const machineOptions = currentUserForEdit.machines.map(machine => ({
-    value: machine.machine_code,
-    label: `${machine.machine_name} | ${machine.machine_code}`,
-  }));
-  setSelectedMachines(machineOptions);   // ✅ preserves existing machines
-} else {
-  setSelectedMachines([]);
-}
-
-
+        currentUserForEdit.user_role === "company" &&
+        currentUserForEdit.machines.length > 0
+      ) {
+        const machineCodes = currentUserForEdit.machines.map(machine => machine.machine_code);
+        setSelectedMachines(machineCodes);
+      } else {
+        setSelectedMachines([]);
+      }
     } else if (!editDialogOpen) {
       // Reset form when dialog closes
       resetForm();
@@ -247,8 +232,8 @@ const Roles = () => {
   // Helper functions
   const resetForm = () => {
     reset();
-    setUserRole(null);
-    setMachineType(null);
+    setUserRole("");
+    setMachineType("");
     setSelectedMachines([]);
     setCurrentUserForEdit(null);
   };
@@ -263,13 +248,29 @@ const Roles = () => {
   };
 
   const getRoleBadgeVariant = (role: string) => {
-    const roleVariants: { [key: string]: "destructive" | "default" | "secondary" | "outline" } = {
+    const roleVariants: { [key: string]: "default" | "secondary" | "destructive" | "outline" } = {
       "super admin": "destructive",
       "admin": "default",
       "ops": "secondary",
       "company": "outline",
     };
     return roleVariants[role.toLowerCase()] || "secondary";
+  };
+
+  const formatRoleDisplay = (role: string) => {
+    if (!role) return "Unknown";
+    
+    const roleLower = role.toLowerCase();
+    const roleMap: { [key: string]: string } = {
+      "super admin": "Super Admin",
+      "superadmin": "Super Admin",
+      "admin": "Admin",
+      "ops": "Ops",
+      "operations": "Ops",
+      "company": "Company",
+    };
+    
+    return roleMap[roleLower] || role.charAt(0).toUpperCase() + role.slice(1);
   };
 
   const formatDate = (dateString: string) => {
@@ -294,20 +295,19 @@ const Roles = () => {
         lastName: data.lastName,
         email: data.email,
         password: data.password,
-        userRole: userRole.value,   // ✅ was userRole → now user_role
-        machine_type: userRole.value === "company" ? machineType?.value || null : null,
-        roleCode: getRoleCode(userRole.value),
-        machine_code: userRole.value === "company"
-          ? selectedMachines.map(m => ({ machine_code: parseInt(m.value) }))  // ✅ fix machines → machine_code array of objects
+        userRole: userRole,
+        machine_type: userRole === "company" ? machineType || null : null,
+        roleCode: getRoleCode(userRole),
+        machine_code: userRole === "company"
+          ? selectedMachines.map(m => ({ machine_code: m }))
           : [],
-};
-
+      };
 
       await postRequest("/superadmin/addNewRole", newUser);
       toast.success("User created successfully");
       setIsDialogOpen(false);
       resetForm();
-      fetchRoles(currentPage);
+      fetchRoles(currentPage, pageSize);
     } catch (error) {
       console.error("Error creating user:", error);
       toast.error("Failed to create user");
@@ -328,13 +328,15 @@ const Roles = () => {
         password: data.password,
         firstName: data.firstName,
         lastName: data.lastName,
+        email: data.email,
+        companyCode:0,
         user_role: currentUserForEdit.user_role,
         roleCode: currentUserForEdit.role_code,
-        machine_type: currentUserForEdit.user_role === "company" ? machineType?.value || null : null,
-        machine_code: userRole.value === "company"
-    ? selectedMachines.map(m => ({ machine_code: parseInt(m.value) }))
-    : [],
-};
+        machine_type: currentUserForEdit.user_role === "company" ? machineType || null : null,
+        machine_code: userRole === "company"
+          ? selectedMachines.map(m => ({ machine_code: m }))
+          : [],
+      };
 
       await putRequest(
         `/superadmin/updateRole/${currentUserForEdit.id}`,
@@ -343,7 +345,7 @@ const Roles = () => {
 
       toast.success("User updated successfully");
       setEditDialogOpen(false);
-      fetchRoles(currentPage);
+      fetchRoles(currentPage, pageSize);
     } catch (error) {
       console.error("Error updating user:", error);
       toast.error("Failed to update user");
@@ -360,7 +362,7 @@ const Roles = () => {
     try {
       await deleteRequest(`/superadmin/deleteRole/${userId}`);
       toast.success("User deleted successfully");
-      fetchRoles(currentPage);
+      fetchRoles(currentPage, pageSize);
     } catch (error) {
       console.error("Error deleting user:", error);
       toast.error("Failed to delete user");
@@ -374,53 +376,71 @@ const Roles = () => {
     }));
   };
 
-  // Get machine options for react-select
-  const getMachineOptions = (): SelectOption[] => {
-    return machineData.map(machine => ({
-      value: machine.machine_code,
-      label: `${machine.machine_name} | ${machine.machine_code}`
-    }));
+  const handlePageSizeChange = (size: string) => {
+    const newSize = Number(size);
+    setPageSize(newSize);
+    setCurrentPage(1);
+    fetchRoles(1, newSize);
   };
 
-  // Statistics
-  const roleStats: RoleStats = users.reduce((acc, user) => {
-    acc[user.user_role] = (acc[user.user_role] || 0) + 1;
-    return acc;
-  }, {} as RoleStats);
+  const handleMachineSelection = (machineCode: string) => {
+    setSelectedMachines(prev => {
+      if (prev.includes(machineCode)) {
+        return prev.filter(code => code !== machineCode);
+      } else {
+        return [...prev, machineCode];
+      }
+    });
+  };
 
   // Render functions
   const renderMachineSelection = () => {
-    if (userRole?.value !== "company") return null;
+    if (userRole !== "company") return null;
 
     return (
       <div className="flex-1">
         <Label htmlFor="machineType" className="mb-2 block">
           Select Machine Type
         </Label>
-        <Select
-          id="machineType"
-          value={machineType}
-          onChange={setMachineType}
-          options={MACHINE_TYPE_OPTIONS}
-          placeholder="Select Machine Type"
-          styles={selectStyles}
-          isSearchable={false}
-        />
+        <Select value={machineType} onValueChange={setMachineType}>
+          <SelectTrigger>
+            <SelectValue placeholder="Select Machine Type" />
+          </SelectTrigger>
+          <SelectContent>
+            {MACHINE_TYPE_OPTIONS.map((type) => (
+              <SelectItem key={type.value} value={type.value}>
+                {type.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
 
         <Label className="mt-4 mb-2 block">Machines</Label>
-        <Select
-          isMulti
-          value={selectedMachines}
-          onChange={(newValue) => setSelectedMachines(newValue as SelectOption[])}
-          options={getMachineOptions()}
-          placeholder="Select machines..."
-          styles={selectStyles}
-          isDisabled={!machineType}
-          closeMenuOnSelect={false}
-        />
+        <div className="space-y-2 max-h-40 overflow-y-auto">
+          {machineData.map((machine) => (
+            <div key={machine.machine_code} className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                id={`machine-${machine.machine_code}`}
+                checked={selectedMachines.includes(machine.machine_code)}
+                onChange={() => handleMachineSelection(machine.machine_code)}
+                className="rounded border-gray-300"
+                disabled={!machineType}
+              />
+              <Label htmlFor={`machine-${machine.machine_code}`} className="text-sm">
+                {machine.machine_name} | {machine.machine_code}
+              </Label>
+            </div>
+          ))}
+        </div>
         {!machineType && (
           <p className="text-sm text-muted-foreground mt-1">
             Please select a machine type first
+          </p>
+        )}
+        {machineType && machineData.length === 0 && (
+          <p className="text-sm text-muted-foreground mt-1">
+            No machines available for this type
           </p>
         )}
       </div>
@@ -435,27 +455,37 @@ const Roles = () => {
         <Label htmlFor="editMachineType" className="mb-2 block">
           Select Machine Type
         </Label>
-        <Select
-          id="editMachineType"
-          value={machineType}
-          onChange={setMachineType}
-          options={MACHINE_TYPE_OPTIONS}
-          placeholder="Select Machine Type"
-          styles={selectStyles}
-          isSearchable={false}
-        />
+        <Select value={machineType} onValueChange={setMachineType}>
+          <SelectTrigger>
+            <SelectValue placeholder="Select Machine Type" />
+          </SelectTrigger>
+          <SelectContent>
+            {MACHINE_TYPE_OPTIONS.map((type) => (
+              <SelectItem key={type.value} value={type.value}>
+                {type.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
 
         <Label className="mt-4 mb-2 block">Machines</Label>
-        <Select
-          isMulti
-          value={selectedMachines}
-          onChange={(newValue) => setSelectedMachines(newValue as SelectOption[])}
-          options={getMachineOptions()}
-          placeholder="Select machines..."
-          styles={selectStyles}
-          isDisabled={!machineType}
-          closeMenuOnSelect={false}
-        />
+        <div className="space-y-2 max-h-40 overflow-y-auto">
+          {machineData.map((machine) => (
+            <div key={machine.machine_code} className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                id={`edit-machine-${machine.machine_code}`}
+                checked={selectedMachines.includes(machine.machine_code)}
+                onChange={() => handleMachineSelection(machine.machine_code)}
+                className="rounded border-gray-300"
+                disabled={!machineType}
+              />
+              <Label htmlFor={`edit-machine-${machine.machine_code}`} className="text-sm">
+                {machine.machine_name} | {machine.machine_code}
+              </Label>
+            </div>
+          ))}
+        </div>
         {!machineType && (
           <p className="text-sm text-muted-foreground mt-1">
             Please select a machine type first
@@ -558,15 +588,18 @@ const Roles = () => {
                       <Label htmlFor="userRole" className="mb-2 block">
                         User Role
                       </Label>
-                      <Select
-                        id="userRole"
-                        value={userRole}
-                        onChange={setUserRole}
-                        options={ROLE_OPTIONS}
-                        placeholder="Select role"
-                        styles={selectStyles}
-                        isSearchable={false}
-                      />
+                      <Select value={userRole} onValueChange={setUserRole}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select role" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {ROLE_OPTIONS.map((role) => (
+                            <SelectItem key={role.value} value={role.value}>
+                              {role.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </div>
                     {renderMachineSelection()}
                   </div>
@@ -671,16 +704,18 @@ const Roles = () => {
                       <Label htmlFor="editUserRole" className="mb-2 block">
                         User Role
                       </Label>
-                      <Select
-                        id="editUserRole"
-                        value={userRole}
-                        onChange={setUserRole}
-                        options={ROLE_OPTIONS}
-                        placeholder="Select role"
-                        styles={selectStyles}
-                        isSearchable={false}
-                        isDisabled
-                      />
+                      <Select value={userRole} onValueChange={setUserRole} disabled>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select role" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {ROLE_OPTIONS.map((role) => (
+                            <SelectItem key={role.value} value={role.value}>
+                              {role.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                       <p className="text-sm text-muted-foreground mt-1">
                         Cannot change user role
                       </p>
@@ -713,47 +748,47 @@ const Roles = () => {
 
         {/* Statistics Cards */}
         <div className="grid gap-4 md:grid-cols-4">
-          <Card>
+          <Card className="bg-green-400">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Users</CardTitle>
-              <IconUsers className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-sm font-medium text-white">Total Users</CardTitle>
+              <IconUsers className="h-4 w-4 text-white" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{users.length}</div>
-              <p className="text-xs text-muted-foreground">Registered users</p>
+              <div className="text-2xl font-bold text-white">{totalRoleList?.total || 0}</div>
+              <p className="text-xs text-black">Registered users</p>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="bg-red-400">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Super Admins</CardTitle>
-              <IconShield className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-sm font-medium text-white">Super Admins</CardTitle>
+              <IconShield className="h-4 w-4 text-white" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{roleStats["super admin"] || 0}</div>
-              <p className="text-xs text-muted-foreground">System administrators</p>
+              <div className="text-2xl font-bold text-white">{totalRoleList?.superAdminRoles || 0}</div>
+              <p className="text-xs text-black">System administrators</p>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="bg-cyan-400">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Companies</CardTitle>
-              <IconUsers className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-sm font-medium text-white">Companies</CardTitle>
+              <IconUsers className="h-4 w-4 text-white" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{roleStats["company"] || 0}</div>
-              <p className="text-xs text-muted-foreground">Company accounts</p>
+              <div className="text-2xl font-bold text-white">{totalRoleList?.companyRoles || 0}</div>
+              <p className="text-xs text-black">Company accounts</p>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="bg-orange-400">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Operators</CardTitle>
-              <IconUsers className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-sm font-medium text-white">Operators</CardTitle>
+              <IconUsers className="h-4 w-4 text-white" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{roleStats["ops"] || 0}</div>
-              <p className="text-xs text-muted-foreground">Operations staff</p>
+              <div className="text-2xl font-bold text-white">{totalRoleList?.opsRoles || 0}</div>
+              <p className="text-xs text-black">Operations staff</p>
             </CardContent>
           </Card>
         </div>
@@ -811,7 +846,7 @@ const Roles = () => {
                         </TableCell>
                         <TableCell>
                           <Badge variant={getRoleBadgeVariant(user.user_role)}>
-                            {user.user_role}
+                            {formatRoleDisplay(user.user_role)}
                           </Badge>
                         </TableCell>
                         <TableCell>{formatDate(user.created_at)}</TableCell>
@@ -861,26 +896,80 @@ const Roles = () => {
                   </TableBody>
                 </Table>
 
-                {/* Pagination */}
-                <div className="flex items-center justify-between mt-4">
-                  <Button
-                    variant="outline"
-                    disabled={currentPage === 1}
-                    onClick={() => fetchRoles(currentPage - 1)}
-                  >
-                    Previous
-                  </Button>
-                  <span className="text-sm text-muted-foreground">
-                    Page {currentPage} of {totalPages}
-                  </span>
-                  <Button
-                    variant="outline"
-                    disabled={currentPage === totalPages || totalPages === 0}
-                    onClick={() => fetchRoles(currentPage + 1)}
-                  >
-                    Next
-                  </Button>
-                </div>
+                {/* Updated Pagination */}
+                {totalPages > 1 && (
+                  <div className="flex items-center justify-between px-4 mt-4">
+                    <div className="text-muted-foreground hidden flex-1 text-sm lg:flex">
+                      Showing {users.length} of {totalRecords} user(s)
+                    </div>
+                    <div className="flex w-full items-center gap-8 lg:w-fit">
+                      <div className="hidden items-center gap-2 lg:flex">
+                        <Label htmlFor="rows-per-page" className="text-sm font-medium">
+                          Rows per page
+                        </Label>
+                        <Select
+                          value={`${pageSize}`}
+                          onValueChange={handlePageSizeChange}
+                        >
+                          <SelectTrigger size="sm" className="w-20" id="rows-per-page">
+                            <SelectValue placeholder={pageSize} />
+                          </SelectTrigger>
+                          <SelectContent side="top">
+                            {[10, 20, 30, 40, 50].map((pageSize) => (
+                              <SelectItem key={pageSize} value={`${pageSize}`}>
+                                {pageSize}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="flex w-fit items-center justify-center text-sm font-medium">
+                        Page {currentPage} of {totalPages}
+                      </div>
+                      <div className="ml-auto flex items-center gap-2 lg:ml-0">
+                        <Button
+                          variant="outline"
+                          className="hidden h-8 w-8 p-0 lg:flex bg-transparent"
+                          onClick={() => fetchRoles(1, pageSize)}
+                          disabled={currentPage === 1 || loading}
+                        >
+                          <span className="sr-only">Go to first page</span>
+                          <IconChevronsLeft className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="outline"
+                          className="size-8 bg-transparent"
+                          size="icon"
+                          onClick={() => fetchRoles(currentPage - 1, pageSize)}
+                          disabled={currentPage === 1 || loading}
+                        >
+                          <span className="sr-only">Go to previous page</span>
+                          <IconChevronLeft className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="outline"
+                          className="size-8 bg-transparent"
+                          size="icon"
+                          onClick={() => fetchRoles(currentPage + 1, pageSize)}
+                          disabled={currentPage === totalPages || loading}
+                        >
+                          <span className="sr-only">Go to next page</span>
+                          <IconChevronRight className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="outline"
+                          className="hidden size-8 lg:flex bg-transparent"
+                          size="icon"
+                          onClick={() => fetchRoles(totalPages, pageSize)}
+                          disabled={currentPage === totalPages || loading}
+                        >
+                          <span className="sr-only">Go to last page</span>
+                          <IconChevronsRight className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </>
             )}
           </CardContent>

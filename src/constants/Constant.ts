@@ -20,6 +20,7 @@ export const LOCAL_BASE_URL="http://localhost:3009/api/dashboard";
 //PUBLIC PATHS
 export const LOGIN = "/login";
 export const FORGET_PASSWORD = "/forgetPassword";
+export const RESET_PASSWORD = "/reset-password";
 export const COMPANY_INFO = "/company-info";
 export const PRIVACY_POLICY = "/privacypolicy";
 
@@ -64,7 +65,8 @@ export const OPS_MACHINE_VISIT = "/ops/machine-details/:id";
 //MACHINE PATH
 export const MACHINE_DASHBOARD = "/company/dashboard";
 export const MACHINE_MACHINES = "/company/machines";
-export const COMPANY_MACHINE_VISIT="/company/machine-details/:id"
+export const COMPANY_MACHINE_VISIT="/company/machine-details/:id";
+export const REPORT = "/company/report";
 
 // navigation const
 export const SUPER_ADMIN_SIDEBAR_ROUTES = () => {
@@ -76,7 +78,6 @@ export const SUPER_ADMIN_SIDEBAR_ROUTES = () => {
       url: SUPERADMIN_CORPORATE,
       icon: IconUserStar,
     },
-    { title: "Users", url: SUPERADMIN_USERS, icon: IconUsers },
     {
       title: "Send Notifications",
       url: SUPERADMIN_NOTIFICATIONS,
@@ -98,7 +99,6 @@ export const ADMIN_SIDEBAR_ROUTES = () => {
   return [
     { title: "Dashboard", url: ADMIN_DASHBOARD, icon: IconHome },
     { title: "Corporate Clients", url: ADMIN_CORPORATE, icon: IconUserStar },
-    { title: "Users", url: ADMIN_USERS, icon: IconUsers },
     { title: "Send Notifications", url: ADMIN_NOTIFICATIONS, icon: IconBell },
     { title: "Machines", url: ADMIN_MACHINES, icon: IconChartBar },
     { title: "Points Share", url: ADMIN_POINTS, icon: IconShare3 },
@@ -116,7 +116,6 @@ export const OPS_SIDEBAR_ROUTES = () => {
   return [
     { title: "Dashboard", url: OPS_DASHBOARD, icon: IconHome },
     { title: "Corporate Clients", url: OPS_CORPORATE, icon: IconUserStar },
-    { title: "Users", url: OPS_USERS, icon: IconUsers },
     { title: "Machines", url: OPS_MACHINES, icon: IconChartBar },
     { title: "Points Share", url: OPS_POINTS, icon: IconShare3 },
     { title: "Locations", url: OPS_LOCATIONS, icon: IconLocation },
@@ -129,6 +128,7 @@ export const MACHINES_SIDEBAR_ROUTES = () => {
     return [
         { title: "Dashboard", url: MACHINE_DASHBOARD, icon: IconHome },
         { title: "Machines", url: MACHINE_MACHINES, icon: IconChartBar },
+        { title: "Reports", url: REPORT, icon: IconChartBar }
     ]
 }
 

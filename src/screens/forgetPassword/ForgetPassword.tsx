@@ -9,6 +9,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { ArrowLeft, Mail, CheckCircle, AlertCircle } from "lucide-react"
 import loader from "../../assets/infinite-spinner.svg"
 import { useNavigate } from 'react-router-dom';
+import { postRequest } from "@/Apis/Api"
 
 const ForgetPassword = () => {
     const navigate = useNavigate();
@@ -22,6 +23,32 @@ const ForgetPassword = () => {
         return emailRegex.test(email)
     }
 
+    const resetLink = async (email: string) => {
+        try {
+            const sendResponse = await postRequest('/auth/forget', { email })
+            
+            if (sendResponse.success || sendResponse.status === 200) {
+                setMessage({
+                    type: "success",
+                    text: "Password reset link has been sent to your email address. Please check your inbox and spam folder.",
+                })
+                setEmail("")
+            } else {
+                const errorMessage = sendResponse.message || "Failed to send reset email. Please try again later."
+                setMessage({
+                    type: "error",
+                    text: errorMessage,
+                })
+            }
+        } catch (error: any) {
+            // Handle network errors or exceptions
+            const errorMessage = error.response?.data?.message || "Failed to send reset email. Please try again later."
+            setMessage({
+                type: "error",
+                text: errorMessage,
+            })
+        }
+    }
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
@@ -40,18 +67,12 @@ const ForgetPassword = () => {
 
         setIsLoading(true)
 
-        // Simulate API call
         try {
-            await new Promise((resolve) => setTimeout(resolve, 2000))
-            setMessage({
-                type: "success",
-                text: "Password reset link has been sent to your email address. Please check your inbox and spam folder.",
-            })
-            setEmail("")
+            await resetLink(email)
         } catch (error) {
             setMessage({
                 type: "error",
-                text: "Failed to send reset email. Please try again later.",
+                text: "An unexpected error occurred. Please try again later.",
             })
         } finally {
             setIsLoading(false)
@@ -154,7 +175,7 @@ const ForgetPassword = () => {
                                 <button
                                     type="button"
                                     className="text-teal-600 hover:text-teal-800 underline font-medium"
-                                    onClick={() => handleSubmit(new Event("submit") as any)}
+                                    onClick={handleSubmit}
                                     disabled={isLoading}
                                 >
                                     try again

@@ -6,21 +6,23 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
-import { Search, ChevronLeft, ChevronRight } from "lucide-react"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Label } from "@/components/ui/label"
+import { Search, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Info } from "lucide-react"
 import type { ApiMachine, MachinesResponse } from "./Types"
-import { getRequest } from "@/Apis/Api"
+import { getRequest, postRequest } from "@/Apis/Api"
 import { timeConverter } from "@/constants/Constant"
-import { SiteHeader } from "@/components/superAdmin/site-header"
+import { SiteHeader } from "@/components/ops/site-header"
 import { useNavigate } from "react-router-dom"
 
 const categories = [
   { id: "Butterfly", label: "🦋 Butterfly" },
-  { id: "BodyWash", label: "🧴 Body Wash" },
-  { id: "Cooking Oil", label: "🛢️ Cooking Oil" },
+  { id: "BodyWash", label: "🛁 Body Wash" },
+  { id: "Cooking Oil", label: "🍳 Cooking Oil" },
   { id: "Dishwash", label: "🍽️ Dishwash" },
-  { id: "Handwash", label: "👐 Handwash" },
+  { id: "Handwash", label: "🧼 Handwash" },
   { id: "Laundry", label: "👕 Laundry" },
-  { id: "Shampoo", label: "🧼 Shampoo" },
+  { id: "Shampoo", label: "🧴 Shampoo" },
   { id: "Surface Cleaner", label: "🧹 Surface Cleaner" },
   { id: "Unknown", label: "❓ Unknown" },
 ]
@@ -33,9 +35,8 @@ const Machines = () => {
   const [machinesData, setMachinesData] = useState<{ [category: string]: ApiMachine[] } | null>(null)
   const [machineStockMap, setMachineStockMap] = useState<{ [code: string]: string }>({})
   const [loading, setLoading] = useState(true)
-  const [selectedMachine, setSelectedMachine] = useState<any>(null)
-
-  const itemsPerPage = 10
+  const [showDetails, setShowDetails] = useState<ApiMachine | null>(null)
+  const [itemsPerPage, setItemsPerPage] = useState(10)
 
   useEffect(() => {
     fetchMachines()
@@ -77,7 +78,7 @@ const Machines = () => {
     ? Object.entries(machinesData).flatMap(([category, machines]) =>
         machines.map((machine) => ({
           ...machine,
-          category,
+          category: category,
           status: machine.statusCode === "r" ? "Inactive" : machine.statusCode === "g" ? "Active" : "Pending",
           lastActive: timeConverter(machine.created_at),
           stockStatus: machineStockMap[machine.machine_code] || "Unknown",
@@ -98,164 +99,214 @@ const Machines = () => {
   const paginatedMachines = filteredMachines.slice(startIndex, startIndex + itemsPerPage)
 
   const getStatusBadge = (status: string) => {
-    const className =
-      status === "Active"
-        ? "bg-green-100 text-green-800"
-        : status === "Inactive"
-        ? "bg-red-100 text-red-800"
-        : "bg-yellow-100 text-yellow-800"
-    return <Badge className={className}>{status}</Badge>
+    const colorMap: Record<string, string> = {
+      Active: "bg-green-100 text-green-800",
+      Inactive: "bg-red-100 text-red-800",
+      Pending: "bg-yellow-100 text-yellow-800",
+    }
+    return <Badge className={colorMap[status] || "bg-gray-100 text-gray-800"}>{status}</Badge>
   }
 
   const getStockStatusBadge = (status: string) => {
-    const colorMap: { [key: string]: string } = {
-      "In Stock": "bg-green-100 text-green-800 border-green-300",
-      "Low Stock": "bg-yellow-100 text-yellow-800 border-yellow-300",
-      "Out of Stock": "bg-red-100 text-red-800 border-red-300",
-      "Unknown": "bg-gray-100 text-gray-800 border-gray-300",
+    const colorMap: Record<string, string> = {
+      "In Stock": "bg-green-100 text-green-800",
+      "Low Stock": "bg-yellow-100 text-yellow-800",
+      "Out of Stock": "bg-red-100 text-red-800",
+      Unknown: "bg-gray-100 text-gray-800",
     }
-    return <Badge variant="outline" className={colorMap[status] || colorMap["Unknown"]}>{status}</Badge>
+    return <Badge className={colorMap[status] || "bg-gray-100 text-gray-800"}>{status}</Badge>
   }
 
   return (
     <div>
-      <SiteHeader title="Deployed Machines 🚀" />
-      <div className="min-h-screen bg-gray-50 p-6">
-        {/* Search bar on top */}
-        <div className="mb-4">
-          <div className="relative w-full">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+      <SiteHeader title="Deployed Machines" />
+      <div className="min-h-screen bg-gray-50 p-4">
+        {/* Search + Filters */}
+        <div className="mb-4 space-y-4">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="🔍 Search by Machine Id or Location"
+              placeholder="Search by Machine Id or Location"
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 w-full"
+              onChange={(e) => {
+                setSearchTerm(e.target.value)
+                setCurrentPage(1)
+              }}
+              className="pl-10"
             />
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {categories.map((category) => (
+              <Button
+                key={category.id}
+                variant={activeCategory === category.id ? "default" : "outline"}
+                size="sm"
+                onClick={() => {
+                  setActiveCategory(category.id)
+                  setCurrentPage(1)
+                }}
+                className={activeCategory === category.id ? "bg-teal-600 hover:bg-teal-700" : ""}
+              >
+                {category.label}
+              </Button>
+            ))}
           </div>
         </div>
 
-        {/* Categories below search */}
-        <div className="flex flex-wrap gap-2 mb-6">
-          {categories.map((category) => (
-            <Button
-              key={category.id}
-              variant={activeCategory === category.id ? "default" : "outline"}
-              size="sm"
-              onClick={() => {
-                setActiveCategory(category.id)
-                setCurrentPage(1)
-              }}
-              className={activeCategory === category.id ? "bg-teal-600 hover:bg-teal-700 text-white" : ""}
-            >
-              {category.label}
-            </Button>
-          ))}
-        </div>
-
-        {/* Machine Cards */}
-        {loading ? (
-          <p className="text-center py-10">Loading machines...</p>
-        ) : paginatedMachines.length === 0 ? (
-          <p className="text-center py-10">No machines found for this category ❌</p>
-        ) : (
-          <motion.div layout className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <AnimatePresence>
-              {paginatedMachines.map((machine) => (
+        {/* Cards */}
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <AnimatePresence>
+            {loading ? (
+              <p className="col-span-full text-center py-6">Loading machines...</p>
+            ) : paginatedMachines.length === 0 ? (
+              <p className="col-span-full text-center py-6">No machines found.</p>
+            ) : (
+              paginatedMachines.map((machine) => (
                 <motion.div
                   key={machine.id}
-                  layout
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.9 }}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
                 >
-                  <Card className="border-2 border-teal-200 shadow-md hover:shadow-lg transition-all rounded-2xl">
-                    <CardHeader>
-                      <div className="flex justify-between items-center">
-                        <h3 className="font-semibold text-lg text-teal-700">🆔 {machine.machine_code}</h3>
-                        {getStatusBadge(machine.status)}
-                      </div>
+                  <Card className="rounded-2xl shadow-md border-teal-200">
+                    <CardHeader className="flex justify-between items-center">
+                      <h3 className="font-semibold text-lg">🆔 {machine.machine_code}</h3>
+                      {getStatusBadge(machine.status)}
                     </CardHeader>
-                    <CardContent>
+                    <CardContent className="space-y-2">
                       <p>📍 {machine.machine_name}</p>
                       <p>⚡ {machine.machine_type}</p>
-                      <p>⏱️ {machine.lastActive}</p>
-                      <div className="mt-2">{getStockStatusBadge(machine.stockStatus)}</div>
-                      <div className="flex gap-2 mt-4">
+                      <p>⏱ {machine.lastActive}</p>
+                      <p>📦 {getStockStatusBadge(machine.stockStatus)}</p>
+                      <div className="flex justify-between pt-2">
                         <Button
                           size="sm"
-                          className="bg-teal-600 hover:bg-teal-700 text-white"
+                          variant="outline"
+                          onClick={() => setShowDetails(machine)}
+                          className="flex items-center gap-1"
+                        >
+                          <Info className="h-4 w-4" /> Details
+                        </Button>
+                        <Button
+                          size="sm"
+                          className="bg-teal-600 hover:bg-teal-700"
                           onClick={() =>
                             navigate(`/admin/machine-details/${machine.machine_code}`, { state: { machine } })
                           }
                         >
-                          Visit 🚀
-                        </Button>
-                        <Button size="sm" variant="outline" onClick={() => setSelectedMachine(machine)}>
-                          Details 📦
+                          Visit
                         </Button>
                       </div>
                     </CardContent>
                   </Card>
                 </motion.div>
-              ))}
-            </AnimatePresence>
-          </motion.div>
-        )}
-
-        {/* Pagination */}
-        <div className="flex items-center justify-center space-x-2 py-6">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-            disabled={currentPage === 1}
-          >
-            <ChevronLeft className="h-4 w-4" /> Previous
-          </Button>
-          {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-            <Button
-              key={page}
-              variant={currentPage === page ? "default" : "outline"}
-              size="sm"
-              onClick={() => setCurrentPage(page)}
-              className={currentPage === page ? "bg-teal-600 hover:bg-teal-700 text-white" : ""}
-            >
-              {page}
-            </Button>
-          ))}
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
-            disabled={currentPage === totalPages}
-          >
-            Next <ChevronRight className="h-4 w-4" />
-          </Button>
+              ))
+            )}
+          </AnimatePresence>
         </div>
+
+        {/* Fixed Pagination */}
+        {paginatedMachines.length > 0 && (
+          <div className="flex items-center justify-between px-4 mt-6">
+            <div className="text-muted-foreground hidden flex-1 text-sm lg:flex">
+              Showing {paginatedMachines.length} of {filteredMachines.length} machines
+            </div>
+            <div className="flex w-full items-center gap-8 lg:w-fit">
+              <div className="hidden items-center gap-2 lg:flex">
+                <Label htmlFor="rows-per-page" className="text-sm font-medium">
+                  Rows per page
+                </Label>
+                <Select
+                  value={`${itemsPerPage}`}
+                  onValueChange={(value) => {
+                    setItemsPerPage(Number(value))
+                    setCurrentPage(1)
+                  }}
+                >
+                  <SelectTrigger size="sm" className="w-20" id="rows-per-page">
+                    <SelectValue placeholder={itemsPerPage} />
+                  </SelectTrigger>
+                  <SelectContent side="top">
+                    {[5, 10, 15, 20, 50].map((pageSize) => (
+                      <SelectItem key={pageSize} value={`${pageSize}`}>
+                        {pageSize}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex w-fit items-center justify-center text-sm font-medium">
+                Page {currentPage} of {totalPages}
+              </div>
+              <div className="ml-auto flex items-center gap-2 lg:ml-0">
+                <Button
+                  variant="outline"
+                  className="hidden h-8 w-8 p-0 lg:flex bg-transparent"
+                  onClick={() => setCurrentPage(1)}
+                  disabled={currentPage === 1}
+                >
+                  <span className="sr-only">Go to first page</span>
+                  <ChevronsLeft className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="outline"
+                  className="size-8 bg-transparent"
+                  size="icon"
+                  onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                  disabled={currentPage === 1}
+                >
+                  <span className="sr-only">Go to previous page</span>
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="outline"
+                  className="size-8 bg-transparent"
+                  size="icon"
+                  onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                  disabled={currentPage === totalPages}
+                >
+                  <span className="sr-only">Go to next page</span>
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="outline"
+                  className="hidden size-8 lg:flex bg-transparent"
+                  size="icon"
+                  onClick={() => setCurrentPage(totalPages)}
+                  disabled={currentPage === totalPages}
+                >
+                  <span className="sr-only">Go to last page</span>
+                  <ChevronsRight className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Details Modal */}
         <AnimatePresence>
-          {selectedMachine && (
+          {showDetails && (
             <motion.div
-              className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50"
+              className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
             >
               <motion.div
-                className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md"
+                className="bg-white rounded-2xl p-6 max-w-lg w-full shadow-xl"
                 initial={{ scale: 0.9 }}
                 animate={{ scale: 1 }}
                 exit={{ scale: 0.9 }}
               >
-                <h2 className="text-xl font-bold mb-4 text-teal-700">📦 Machine Details</h2>
-                <p>🆔 ID: {selectedMachine.machine_code}</p>
-                <p>📍 Location: {selectedMachine.machine_name}</p>
-                <p>⚡ Type: {selectedMachine.machine_type}</p>
-                <p>⏱️ Last Active: {selectedMachine.lastActive}</p>
-                <p>📦 Stock: {selectedMachine.stockStatus}</p>
+                <h2 className="text-xl font-semibold mb-4">Machine Details</h2>
+                <p>🆔 {showDetails.machine_code}</p>
+                <p>📍 {showDetails.machine_name}</p>
+                <p>⚡ {showDetails.machine_type}</p>
+                <p>📦 {machineStockMap[showDetails.machine_code] || "Unknown"}</p>
+                <p>⏱ {timeConverter(showDetails.created_at)}</p>
+
                 <div className="flex justify-end mt-4">
-                  <Button variant="outline" onClick={() => setSelectedMachine(null)}>
+                  <Button variant="outline" onClick={() => setShowDetails(null)}>
                     Close
                   </Button>
                 </div>

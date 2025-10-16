@@ -77,6 +77,8 @@ import {
   OPS_TOPUP,
   OPS_USERS,
   PRIVACY_POLICY,
+  REPORT,
+  RESET_PASSWORD,
   SUPERADMIN_CORPORATE,
   SUPERADMIN_DASHBOARD,
   SUPERADMIN_FEEDBACK,
@@ -90,6 +92,8 @@ import {
   SUPERADMIN_USERS
 } from '@/constants/Constant'
 import OpsMachineVisit from '@/screens/ops/machines/MachineVisit'
+import Reports from '@/screens/corporate/reports/reports'
+import ResetPassword from '@/screens/forgetPassword/ResetPassword'
 
 const Routing = () => {
   return (
@@ -98,6 +102,7 @@ const Routing = () => {
       <Route path='/' element={<Navigate to={LOGIN} replace />} />
       <Route path={LOGIN} element={<Login />} />
       <Route path={FORGET_PASSWORD} element={<ForgetPassword />} />
+      <Route path={RESET_PASSWORD} element={<ResetPassword />} />
       <Route path={COMPANY_INFO} element={<CompanyInfo />} />
       <Route path={PRIVACY_POLICY} element={<PrivacyPolicy />} />
 
@@ -110,7 +115,7 @@ const Routing = () => {
           <Route path={SUPERADMIN_POINTS} element={<PointShare />} />
           <Route path={SUPERADMIN_LOCATIONS} element={<Locations />} />
           <Route path={SUPERADMIN_TOPUP} element={<Topup />} />
-          <Route path={SUPERADMIN_USERS} element={<UsersManagement />} />
+          {/* <Route path={SUPERADMIN_USERS} element={<UsersManagement />} /> */}
           <Route path={SUPERADMIN_NOTIFICATIONS} element={<Notifications />} />
           <Route path={SUPERADMIN_FEEDBACK} element={<Feedback />} />
           <Route path={SUPERADMIN_CORPORATE} element={<Corporate />} />
@@ -125,7 +130,7 @@ const Routing = () => {
           <Route path={ADMIN_POINTS} element={<AdminPointShare />} />
           <Route path={ADMIN_LOCATIONS} element={<AdminLocations />} />
           <Route path={ADMIN_TOPUP} element={<AdminTopup />} />
-          <Route path={ADMIN_USERS} element={<AdminUsersManagement />} />
+          {/* <Route path={ADMIN_USERS} element={<AdminUsersManagement />} /> */}
           <Route path={ADMIN_NOTIFICATIONS} element={<AdminNotifications />} />
           <Route path={ADMIN_FEEDBACK} element={<AdminFeedback />} />
           <Route path={ADMIN_CORPORATE} element={<AdminCorporate />} />
@@ -140,7 +145,7 @@ const Routing = () => {
           <Route path={OPS_POINTS} element={<OpsPointShare />} />
           <Route path={OPS_LOCATIONS} element={<OpsLocations />} />
           <Route path={OPS_TOPUP} element={<OpsTopup />} />
-          <Route path={OPS_USERS} element={<OpsUsersManagement />} />
+          {/* <Route path={OPS_USERS} element={<OpsUsersManagement />} /> */}
           <Route path={OPS_FEEDBACK} element={<OpsFeedback />} />
           <Route path={OPS_CORPORATE} element={<OpsCorporate />} />
           <Route path={OPS_MACHINE_VISIT} element={<OpsMachineVisit />} />
@@ -153,6 +158,7 @@ const Routing = () => {
           <Route path={MACHINE_DASHBOARD} element={<CorporateDashboard />} />
           <Route path={MACHINE_MACHINES} element={<CorporateMachines />} />
           <Route path={COMPANY_MACHINE_VISIT} element={<CorporateMachineVisit />} />
+          <Route path={REPORT} element={<Reports />} />
         </Route>
       </Route>
 

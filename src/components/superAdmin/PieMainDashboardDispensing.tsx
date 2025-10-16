@@ -67,7 +67,7 @@ export default function SuperAdminDashboardDispensing() {
             <CardHeader>
                 <CardTitle>Dispensing Revenue Breakdown</CardTitle>
                 <CardDescription>Brand-wise breakdown of dispensing revenue</CardDescription>
-                <div className="mt-3 text-sm text-muted-foreground space-y-1">
+                <div className="mt-3 text-sm space-y-1">
                     <div>📦 <strong>Total Revenue:</strong> Rs {totalRevenue.toLocaleString(undefined, { maximumFractionDigits: 2 })}</div>
                     <div>🧾 <strong>Total Transactions:</strong> {totalTransactions.toLocaleString()}</div>
                 </div>

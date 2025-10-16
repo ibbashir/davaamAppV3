@@ -13,6 +13,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Label } from "@/components/ui/label"
 import {
     Phone,
     CreditCard,
@@ -65,31 +66,25 @@ type PhoneTopupFormData = z.infer<typeof phoneTopupSchema>
 type CardTopupFormData = z.infer<typeof cardTopupSchema>
 
 interface Topup {
-  id: number
-  user_id: number
-  msisdn: string
-  balance_added: string
-  previous_balance: string
-  total_balance: string
-  created_at: string
-  description: string | null
-  user_email: string | null
-  name: string
+    id: number
+    user_id: number
+    msisdn: string
+    balance_added: string
+    previous_balance: string
+    total_balance: string
+    created_at: string
+    description: string | null
+    user_email: string | null
+    name: string
 }
 
 interface ApiResponse {
-  status: number
-  activeUsers: number
-  totalTopup: number
-  totalBalance: number
-  topupBalance: Topup[]
+    topupBalance: Topup[]
 }
-
 
 export function Topup() {
     const [searchTerm, setSearchTerm] = useState("")
-  const [topupHistory, setTopupHistory] = useState<Topup[]>([])
-  const [stats, setStats] = useState<ApiResponse | null>(null)
+    const [topupHistory, setTopupHistory] = useState<Topup[]>([])
     const [loading, setLoading] = useState(true)
 
     // Pagination state
@@ -100,9 +95,7 @@ export function Topup() {
         try {
             setLoading(true)
             const res = await getRequest<ApiResponse>("/superadmin/getTopUpHistory")
-            setStats(res)
             setTopupHistory(res.topupBalance || [])
-
         } catch (err) {
             console.log(err)
             setTopupHistory([])
@@ -233,39 +226,8 @@ export function Topup() {
         return moment(date).format("ddd, MMM D, YYYY h:mm A")
     }
 
-    // Pagination handlers
-    const goToFirstPage = () => setCurrentPage(1)
-    const goToLastPage = () => setCurrentPage(totalPages)
-    const goToPreviousPage = () => setCurrentPage(Math.max(1, currentPage - 1))
-    const goToNextPage = () => setCurrentPage(Math.min(totalPages, currentPage + 1))
-    const goToPage = (page: number) => setCurrentPage(page)
-
-    // Generate page numbers for pagination
-    const getPageNumbers = () => {
-        const delta = 2
-        const range = []
-        const rangeWithDots = []
-
-        for (let i = Math.max(2, currentPage - delta); i <= Math.min(totalPages - 1, currentPage + delta); i++) {
-            range.push(i)
-        }
-
-        if (currentPage - delta > 2) {
-            rangeWithDots.push(1, "...")
-        } else {
-            rangeWithDots.push(1)
-        }
-
-        rangeWithDots.push(...range)
-
-        if (currentPage + delta < totalPages - 1) {
-            rangeWithDots.push("...", totalPages)
-        } else {
-            rangeWithDots.push(totalPages)
-        }
-
-        return rangeWithDots
-    }
+    const totalAmount = topupHistory.reduce((sum, item) => sum + Number.parseFloat(item.balance_added), 0)
+    const uniqueUsers = new Set(topupHistory.map((item) => item.msisdn)).size
 
     if (loading) {
         return (
@@ -291,7 +253,7 @@ export function Topup() {
                             <Wallet className="h-4 w-4 text-muted-foreground" />
                         </CardHeader>
                         <CardContent>
-                            <div className="text-2xl font-bold">{stats?.totalTopup || 0}</div>
+                            <div className="text-2xl font-bold">{topupHistory.length}</div>
                             <p className="text-xs text-muted-foreground">All time</p>
                         </CardContent>
                     </Card>
@@ -301,7 +263,7 @@ export function Topup() {
                             <Wallet className="h-4 w-4 text-green-500" />
                         </CardHeader>
                         <CardContent>
-                            <div className="text-2xl font-bold text-green-600">{formatCurrency(stats?.totalBalance || 0)}</div>
+                            <div className="text-2xl font-bold text-green-600">{formatCurrency(totalAmount)}</div>
                             <p className="text-xs text-muted-foreground">Total added</p>
                         </CardContent>
                     </Card>
@@ -311,7 +273,7 @@ export function Topup() {
                             <Phone className="h-4 w-4 text-blue-500" />
                         </CardHeader>
                         <CardContent>
-                            <div className="text-2xl font-bold text-blue-600">{stats?.activeUsers || 0}</div>
+                            <div className="text-2xl font-bold text-blue-600">{uniqueUsers}</div>
                             <p className="text-xs text-muted-foreground">Unique accounts</p>
                         </CardContent>
                     </Card>
@@ -566,27 +528,6 @@ export function Topup() {
                                                 className="pl-10"
                                             />
                                         </div>
-                                        <div className="flex items-center gap-2">
-                                            <span className="text-sm text-muted-foreground">Show:</span>
-                                            <Select
-                                                value={itemsPerPage.toString()}
-                                                onValueChange={(value) => {
-                                                    setItemsPerPage(Number(value))
-                                                    setCurrentPage(1)
-                                                }}
-                                            >
-                                                <SelectTrigger className="w-20">
-                                                    <SelectValue />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    <SelectItem value="5">5</SelectItem>
-                                                    <SelectItem value="10">10</SelectItem>
-                                                    <SelectItem value="20">20</SelectItem>
-                                                    <SelectItem value="50">50</SelectItem>
-                                                    <SelectItem value="100">100</SelectItem>
-                                                </SelectContent>
-                                            </Select>
-                                        </div>
                                     </div>
                                 </div>
                             </CardHeader>
@@ -636,55 +577,82 @@ export function Topup() {
                                     </Table>
                                 </div>
 
-                                {/* Pagination Controls */}
-                                {totalPages > 1 && (
-                                    <div className="flex items-center justify-between mt-4">
-                                        <div className="text-sm text-muted-foreground">
-                                            Showing {(currentPage - 1) * itemsPerPage + 1} to{" "}
-                                            {Math.min(currentPage * itemsPerPage, totalItems)} of {totalItems} entries
+                                {/* Fixed Pagination Controls */}
+                                {paginatedHistory.length > 0 && (
+                                    <div className="flex items-center justify-between px-4 mt-4">
+                                        <div className="text-muted-foreground hidden flex-1 text-sm lg:flex">
+                                            Showing {paginatedHistory.length} of {totalItems} topup transactions
                                             {searchTerm && ` (filtered from ${topupHistory.length} total entries)`}
                                         </div>
-
-                                        <div className="flex items-center space-x-2">
-                                            <Button variant="outline" size="sm" onClick={goToFirstPage} disabled={currentPage === 1}>
-                                                <ChevronsLeft className="h-4 w-4" />
-                                            </Button>
-                                            <Button variant="outline" size="sm" onClick={goToPreviousPage} disabled={currentPage === 1}>
-                                                <ChevronLeft className="h-4 w-4" />
-                                            </Button>
-
-                                            <div className="flex items-center space-x-1">
-                                                {getPageNumbers().map((pageNumber, index) => (
-                                                    <Button
-                                                        key={index}
-                                                        variant={pageNumber === currentPage ? "default" : "outline"}
-                                                        size="sm"
-                                                        onClick={() => typeof pageNumber === "number" && goToPage(pageNumber)}
-                                                        disabled={pageNumber === "..."}
-                                                        className="min-w-[40px]"
-                                                    >
-                                                        {pageNumber}
-                                                    </Button>
-                                                ))}
+                                        <div className="flex w-full items-center gap-8 lg:w-fit">
+                                            <div className="hidden items-center gap-2 lg:flex">
+                                                <Label htmlFor="rows-per-page" className="text-sm font-medium">
+                                                    Rows per page
+                                                </Label>
+                                                <Select
+                                                    value={`${itemsPerPage}`}
+                                                    onValueChange={(value) => {
+                                                        setItemsPerPage(Number(value))
+                                                        setCurrentPage(1)
+                                                    }}
+                                                >
+                                                    <SelectTrigger size="sm" className="w-20" id="rows-per-page">
+                                                        <SelectValue placeholder={itemsPerPage} />
+                                                    </SelectTrigger>
+                                                    <SelectContent side="top">
+                                                        {[5, 10, 20, 50, 100].map((pageSize) => (
+                                                            <SelectItem key={pageSize} value={`${pageSize}`}>
+                                                                {pageSize}
+                                                            </SelectItem>
+                                                        ))}
+                                                    </SelectContent>
+                                                </Select>
                                             </div>
-
-                                            <Button variant="outline" size="sm" onClick={goToNextPage} disabled={currentPage === totalPages}>
-                                                <ChevronRight className="h-4 w-4" />
-                                            </Button>
-                                            <Button variant="outline" size="sm" onClick={goToLastPage} disabled={currentPage === totalPages}>
-                                                <ChevronsRight className="h-4 w-4" />
-                                            </Button>
+                                            <div className="flex w-fit items-center justify-center text-sm font-medium">
+                                                Page {currentPage} of {totalPages}
+                                            </div>
+                                            <div className="ml-auto flex items-center gap-2 lg:ml-0">
+                                                <Button
+                                                    variant="outline"
+                                                    className="hidden h-8 w-8 p-0 lg:flex bg-transparent"
+                                                    onClick={() => setCurrentPage(1)}
+                                                    disabled={currentPage === 1}
+                                                >
+                                                    <span className="sr-only">Go to first page</span>
+                                                    <ChevronsLeft className="h-4 w-4" />
+                                                </Button>
+                                                <Button
+                                                    variant="outline"
+                                                    className="size-8 bg-transparent"
+                                                    size="icon"
+                                                    onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                                                    disabled={currentPage === 1}
+                                                >
+                                                    <span className="sr-only">Go to previous page</span>
+                                                    <ChevronLeft className="h-4 w-4" />
+                                                </Button>
+                                                <Button
+                                                    variant="outline"
+                                                    className="size-8 bg-transparent"
+                                                    size="icon"
+                                                    onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                                                    disabled={currentPage === totalPages}
+                                                >
+                                                    <span className="sr-only">Go to next page</span>
+                                                    <ChevronRight className="h-4 w-4" />
+                                                </Button>
+                                                <Button
+                                                    variant="outline"
+                                                    className="hidden size-8 lg:flex bg-transparent"
+                                                    size="icon"
+                                                    onClick={() => setCurrentPage(totalPages)}
+                                                    disabled={currentPage === totalPages}
+                                                >
+                                                    <span className="sr-only">Go to last page</span>
+                                                    <ChevronsRight className="h-4 w-4" />
+                                                </Button>
+                                            </div>
                                         </div>
-                                    </div>
-                                )}
-
-                                {/* Summary when no pagination needed */}
-                                {totalPages <= 1 && totalItems > 0 && (
-                                    <div className="flex items-center justify-between mt-4 text-sm text-muted-foreground">
-                                        <span>
-                                            Showing {totalItems} of {topupHistory.length} transactions
-                                            {searchTerm && ` (filtered by "${searchTerm}")`}
-                                        </span>
                                     </div>
                                 )}
                             </CardContent>

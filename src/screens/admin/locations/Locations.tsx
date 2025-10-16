@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Input } from "@/components/ui/input"
-import { SiteHeader } from '@/components/superAdmin/site-header'
+import { SiteHeader } from '@/components/admin/site-header'
 import moment from "moment-timezone"
 import {
   IconMapPin,
@@ -18,8 +18,12 @@ import {
   IconUsers,
   IconChevronLeft,
   IconChevronRight,
+  IconChevronsLeft,
+  IconChevronsRight,
 } from "@tabler/icons-react"
 import { getRequest } from "@/Apis/Api"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Label } from "@/components/ui/label"
 
 interface LocationApiResponse {
   totalLocations: number
@@ -47,14 +51,13 @@ interface LocationsDetail {
   status?: string
 }
 
-const ITEMS_PER_PAGE = 10
-
 const Locations = () => {
   const [searchTerm, setSearchTerm] = useState("")
   const [machineLocation, setMachineLocation] = useState<LocationApiResponse | null>(null)
   const [currentPage, setCurrentPage] = useState<number>(1)
   const [totalPages, setTotalPages] = useState<number>(1)
   const [totalCount, setTotalCount] = useState<number>(0)
+  const [itemsPerPage, setItemsPerPage] = useState(10)
 
   const getTypeBadge = (type: string) => {
     const colors = {
@@ -79,7 +82,7 @@ const Locations = () => {
     const locationApi = async () => {
       const params = new URLSearchParams()
       params.append("page", currentPage.toString())
-      params.append("limit", ITEMS_PER_PAGE.toString())
+      params.append("limit", itemsPerPage.toString()) // Use itemsPerPage instead of constant
 
       if (searchTerm) {
         params.append("search", searchTerm)
@@ -92,7 +95,7 @@ const Locations = () => {
         const res = await getRequest<LocationApiResponse>(url)
         setMachineLocation(res)
         setTotalPages(res.totalPages)
-        setTotalCount(res.totalPages)
+        setTotalCount(res.totalMachines) // Fixed: should be totalCount, not totalPages
       } catch (error) {
         console.error("Failed to fetch machine locations:", error)
         setMachineLocation(null)
@@ -101,10 +104,7 @@ const Locations = () => {
       }
     }
     locationApi()
-  }, [currentPage, searchTerm])
-
-  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE
-  const endIndex = startIndex + ITEMS_PER_PAGE
+  }, [currentPage, searchTerm, itemsPerPage]) // Added itemsPerPage to dependencies
 
   return (
     <div>
@@ -167,7 +167,10 @@ const Locations = () => {
                 <Input
                   placeholder="Search locations..."
                   value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
+                  onChange={(e) => {
+                    setSearchTerm(e.target.value)
+                    setCurrentPage(1) // Reset to first page when searching
+                  }}
                   className="pl-10"
                 />
               </div>
@@ -221,44 +224,85 @@ const Locations = () => {
                 ))}
               </TableBody>
             </Table>
-          </CardContent>
 
-          {/* ✅ Pagination */}
-          {totalCount > 0 && (
-            <div className="flex justify-between items-center mt-4 px-4 pb-4">
-              <div className="text-sm text-muted-foreground">
-                Showing {startIndex + 1} to {Math.min(endIndex, totalCount)} of {totalCount} entries
+            {/* ✅ Fixed Pagination */}
+            {totalCount > 0 && (
+              <div className="flex items-center justify-between px-4 mt-4">
+                <div className="text-muted-foreground hidden flex-1 text-sm lg:flex">
+                  Showing {machineLocation?.data?.length || 0} of {totalCount} locations
+                </div>
+                <div className="flex w-full items-center gap-8 lg:w-fit">
+                  <div className="hidden items-center gap-2 lg:flex">
+                    <Label htmlFor="rows-per-page" className="text-sm font-medium">
+                      Rows per page
+                    </Label>
+                    <Select
+                      value={`${itemsPerPage}`}
+                      onValueChange={(value) => {
+                        setItemsPerPage(Number(value))
+                        setCurrentPage(1)
+                      }}
+                    >
+                      <SelectTrigger size="sm" className="w-20" id="rows-per-page">
+                        <SelectValue placeholder={itemsPerPage} />
+                      </SelectTrigger>
+                      <SelectContent side="top">
+                        {[5, 10, 20, 50, 100].map((pageSize) => (
+                          <SelectItem key={pageSize} value={`${pageSize}`}>
+                            {pageSize}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="flex w-fit items-center justify-center text-sm font-medium">
+                    Page {currentPage} of {totalPages}
+                  </div>
+                  <div className="ml-auto flex items-center gap-2 lg:ml-0">
+                    <Button
+                      variant="outline"
+                      className="hidden h-8 w-8 p-0 lg:flex bg-transparent"
+                      onClick={() => setCurrentPage(1)}
+                      disabled={currentPage === 1}
+                    >
+                      <span className="sr-only">Go to first page</span>
+                      <IconChevronsLeft className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="outline"
+                      className="size-8 bg-transparent"
+                      size="icon"
+                      onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                      disabled={currentPage === 1}
+                    >
+                      <span className="sr-only">Go to previous page</span>
+                      <IconChevronLeft className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="outline"
+                      className="size-8 bg-transparent"
+                      size="icon"
+                      onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                      disabled={currentPage === totalPages}
+                    >
+                      <span className="sr-only">Go to next page</span>
+                      <IconChevronRight className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="outline"
+                      className="hidden size-8 lg:flex bg-transparent"
+                      size="icon"
+                      onClick={() => setCurrentPage(totalPages)}
+                      disabled={currentPage === totalPages}
+                    >
+                      <span className="sr-only">Go to last page</span>
+                      <IconChevronsRight className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
               </div>
-              <div className="flex items-center gap-2">
-                <Button
-                  onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-                  disabled={currentPage === 1}
-                  className="h-8 w-8 p-0"
-                  variant="outline"
-                >
-                  <IconChevronLeft className="h-4 w-4" />
-                </Button>
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                  <Button
-                    key={page}
-                    onClick={() => setCurrentPage(page)}
-                    className={`h-8 w-8 p-0 ${currentPage === page ? "bg-teal-600 hover:bg-teal-700" : ""}`}
-                    variant={currentPage === page ? "default" : "outline"}
-                  >
-                    {page}
-                  </Button>
-                ))}
-                <Button
-                  onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
-                  disabled={currentPage === totalPages}
-                  className="h-8 w-8 p-0"
-                  variant="outline"
-                >
-                  <IconChevronRight className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-          )}
+            )}
+          </CardContent>
         </Card>
       </div>
     </div>

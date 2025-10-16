@@ -91,7 +91,7 @@ export default function SuperAdminSanitaryBarChart() {
             <CardDescription>
               {view === "monthly" ? "Monthly" : "Weekly"} {metric === "transactions" ? "Transactions" : "Revenue"}
             </CardDescription>
-            <div className="mt-3 text-sm text-muted-foreground space-y-1">
+            <div className="mt-3 text-sm space-y-1">
               <div>
                 📦 <strong>Total Revenue:</strong> Rs{" "}
                 {totalRevenue.toLocaleString(undefined, { maximumFractionDigits: 2 })}

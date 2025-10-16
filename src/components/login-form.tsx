@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -39,7 +40,7 @@ export function LoginForm({
     try {
       const role = await login(data.email, data.password);
       navigate(`/${role}/dashboard`)
-    } catch (err: any) {
+    } catch (err) {
       setLoginError("Invalid email or password")
     }
   }
@@ -62,7 +63,7 @@ export function LoginForm({
           <div className="flex items-center">
             <Label htmlFor="password">Password</Label>
             <a onClick={() => { navigate("/forgetPassword") }}
-              className="ml-auto text-xs underline-offset-4 cursor-default text-teal-600 hover:text-teal-700"
+              className="ml-auto text-xs underline-offset-4 cursor-pointer text-teal-600 hover:text-teal-700 "
             >
               Forgot your password?
             </a>
