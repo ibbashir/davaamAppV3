@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
+import Select from 'react-select';
 import { SiteHeader } from "@/components/superAdmin/site-header";
 import { Button } from "@/components/ui/button";
 import {
@@ -23,7 +24,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import {
-  Select,
+  Select as ShadcnSelect,
   SelectContent,
   SelectItem,
   SelectTrigger,
@@ -59,6 +60,13 @@ import { deleteRequest, getRequest, postRequest, putRequest } from "@/Apis/Api";
 interface Machine {
   machine_code: string;
   machine_name: string;
+}
+
+interface MachineOption {
+  value: string;
+  label: string;
+  machine_name: string;
+  machine_code: string;
 }
 
 interface User {
@@ -115,6 +123,41 @@ const MACHINE_TYPE_OPTIONS = [
   { value: "product", label: "Product" },
 ];
 
+// Custom components for React Select
+const CustomOption = ({ innerProps, label, data, isSelected }: any) => (
+  <div
+    {...innerProps}
+    className={`p-2 cursor-pointer hover:bg-gray-100 ${
+      isSelected ? 'bg-teal-50' : ''
+    }`}
+  >
+    <div className="flex items-center">
+      <input
+        type="checkbox"
+        checked={isSelected}
+        readOnly
+        className="mr-2 rounded border-gray-300 text-teal-600 focus:ring-teal-500"
+      />
+      {label}
+    </div>
+  </div>
+);
+
+const CustomMultiValue = ({ innerProps, data, removeProps }: any) => (
+  <div
+    {...innerProps}
+    className="bg-teal-600 text-white rounded px-2 py-1 m-1 text-sm flex items-center"
+  >
+    <span>{data.machine_name}</span>
+    <button
+      {...removeProps}
+      className="ml-1 hover:bg-teal-700 rounded-full w-4 h-4 flex items-center justify-center"
+    >
+      ×
+    </button>
+  </div>
+);
+
 const Roles = () => {
   // State
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -127,6 +170,7 @@ const Roles = () => {
   const [userRole, setUserRole] = useState<string>("");
   const [machineType, setMachineType] = useState<string>("");
   const [machineData, setMachineData] = useState<Machine[]>([]);
+  const [machineOptions, setMachineOptions] = useState<MachineOption[]>([]);
   const [currentUserForEdit, setCurrentUserForEdit] = useState<User | null>(null);
   const [selectedMachines, setSelectedMachines] = useState<string[]>([]);
   const [visiblePasswords, setVisiblePasswords] = useState<{ [key: number]: boolean }>({});
@@ -174,6 +218,14 @@ const Roles = () => {
       );
       if (res.data) {
         setMachineData(res.data);
+        // Transform machine data to React Select options
+        const options: MachineOption[] = res.data.map((machine: Machine) => ({
+          value: machine.machine_code,
+          label: `${machine.machine_name} | ${machine.machine_code}`,
+          machine_name: machine.machine_name,
+          machine_code: machine.machine_code
+        }));
+        setMachineOptions(options);
       }
     } catch (error) {
       console.error("Error fetching machines:", error);
@@ -192,6 +244,9 @@ const Roles = () => {
       if (!editDialogOpen) {
         setSelectedMachines([]);
       }
+    } else {
+      setMachineOptions([]);
+      setSelectedMachines([]);
     }
   }, [machineType, editDialogOpen]);
 
@@ -236,6 +291,7 @@ const Roles = () => {
     setMachineType("");
     setSelectedMachines([]);
     setCurrentUserForEdit(null);
+    setMachineOptions([]);
   };
 
   const getRoleCode = (role: string): string => {
@@ -383,14 +439,11 @@ const Roles = () => {
     fetchRoles(1, newSize);
   };
 
-  const handleMachineSelection = (machineCode: string) => {
-    setSelectedMachines(prev => {
-      if (prev.includes(machineCode)) {
-        return prev.filter(code => code !== machineCode);
-      } else {
-        return [...prev, machineCode];
-      }
-    });
+  const handleMachineSelectionChange = (selectedOptions: any) => {
+    const selectedValues = selectedOptions 
+      ? selectedOptions.map((option: MachineOption) => option.value)
+      : [];
+    setSelectedMachines(selectedValues);
   };
 
   // Render functions
@@ -402,7 +455,7 @@ const Roles = () => {
         <Label htmlFor="machineType" className="mb-2 block">
           Select Machine Type
         </Label>
-        <Select value={machineType} onValueChange={setMachineType}>
+        <ShadcnSelect value={machineType} onValueChange={setMachineType}>
           <SelectTrigger>
             <SelectValue placeholder="Select Machine Type" />
           </SelectTrigger>
@@ -413,32 +466,65 @@ const Roles = () => {
               </SelectItem>
             ))}
           </SelectContent>
-        </Select>
+        </ShadcnSelect>
 
-        <Label className="mt-4 mb-2 block">Machines</Label>
-        <div className="space-y-2 max-h-40 overflow-y-auto">
-          {machineData.map((machine) => (
-            <div key={machine.machine_code} className="flex items-center space-x-2">
-              <input
-                type="checkbox"
-                id={`machine-${machine.machine_code}`}
-                checked={selectedMachines.includes(machine.machine_code)}
-                onChange={() => handleMachineSelection(machine.machine_code)}
-                className="rounded border-gray-300"
-                disabled={!machineType}
-              />
-              <Label htmlFor={`machine-${machine.machine_code}`} className="text-sm">
-                {machine.machine_name} | {machine.machine_code}
-              </Label>
-            </div>
-          ))}
-        </div>
+        <Label className="mt-4 mb-2 block">Select Machines</Label>
+        <Select
+          isMulti
+          options={machineOptions}
+          value={machineOptions.filter(option => 
+            selectedMachines.includes(option.value)
+          )}
+          onChange={handleMachineSelectionChange}
+          isDisabled={!machineType}
+          placeholder={machineType ? "Select machines..." : "Select machine type first"}
+          className="react-select-container"
+          classNamePrefix="react-select"
+          closeMenuOnSelect={false}
+          hideSelectedOptions={false}
+          components={{
+            Option: CustomOption,
+            MultiValue: CustomMultiValue
+          }}
+          styles={{
+            control: (base) => ({
+              ...base,
+              borderColor: '#d1d5db',
+              '&:hover': {
+                borderColor: '#9ca3af'
+              },
+              minHeight: '42px'
+            }),
+            menu: (base) => ({
+              ...base,
+              zIndex: 50
+            }),
+            multiValue: (base) => ({
+              ...base,
+              backgroundColor: '#0d9488',
+              color: 'white'
+            }),
+            multiValueLabel: (base) => ({
+              ...base,
+              color: 'white',
+              fontWeight: '500'
+            }),
+            multiValueRemove: (base) => ({
+              ...base,
+              color: 'white',
+              ':hover': {
+                backgroundColor: '#0f766e',
+                color: 'white'
+              }
+            })
+          }}
+        />
         {!machineType && (
           <p className="text-sm text-muted-foreground mt-1">
             Please select a machine type first
           </p>
         )}
-        {machineType && machineData.length === 0 && (
+        {machineType && machineOptions.length === 0 && (
           <p className="text-sm text-muted-foreground mt-1">
             No machines available for this type
           </p>
@@ -455,7 +541,7 @@ const Roles = () => {
         <Label htmlFor="editMachineType" className="mb-2 block">
           Select Machine Type
         </Label>
-        <Select value={machineType} onValueChange={setMachineType}>
+        <ShadcnSelect value={machineType} onValueChange={setMachineType}>
           <SelectTrigger>
             <SelectValue placeholder="Select Machine Type" />
           </SelectTrigger>
@@ -466,29 +552,67 @@ const Roles = () => {
               </SelectItem>
             ))}
           </SelectContent>
-        </Select>
+        </ShadcnSelect>
 
-        <Label className="mt-4 mb-2 block">Machines</Label>
-        <div className="space-y-2 max-h-40 overflow-y-auto">
-          {machineData.map((machine) => (
-            <div key={machine.machine_code} className="flex items-center space-x-2">
-              <input
-                type="checkbox"
-                id={`edit-machine-${machine.machine_code}`}
-                checked={selectedMachines.includes(machine.machine_code)}
-                onChange={() => handleMachineSelection(machine.machine_code)}
-                className="rounded border-gray-300"
-                disabled={!machineType}
-              />
-              <Label htmlFor={`edit-machine-${machine.machine_code}`} className="text-sm">
-                {machine.machine_name} | {machine.machine_code}
-              </Label>
-            </div>
-          ))}
-        </div>
+        <Label className="mt-4 mb-2 block">Select Machines</Label>
+        <Select
+          isMulti
+          options={machineOptions}
+          value={machineOptions.filter(option => 
+            selectedMachines.includes(option.value)
+          )}
+          onChange={handleMachineSelectionChange}
+          isDisabled={!machineType}
+          placeholder={machineType ? "Select machines..." : "Select machine type first"}
+          className="react-select-container"
+          classNamePrefix="react-select"
+          closeMenuOnSelect={false}
+          hideSelectedOptions={false}
+          components={{
+            Option: CustomOption,
+            MultiValue: CustomMultiValue
+          }}
+          styles={{
+            control: (base) => ({
+              ...base,
+              borderColor: '#d1d5db',
+              '&:hover': {
+                borderColor: '#9ca3af'
+              },
+              minHeight: '42px'
+            }),
+            menu: (base) => ({
+              ...base,
+              zIndex: 50
+            }),
+            multiValue: (base) => ({
+              ...base,
+              backgroundColor: '#0d9488',
+              color: 'white'
+            }),
+            multiValueLabel: (base) => ({
+              ...base,
+              color: 'white',
+              fontWeight: '500'
+            }),
+            multiValueRemove: (base) => ({
+              ...base,
+              color: 'white',
+              ':hover': {
+                backgroundColor: '#0f766e',
+                color: 'white'
+              }
+            })
+          }}
+        />
         {!machineType && (
           <p className="text-sm text-muted-foreground mt-1">
             Please select a machine type first
+          </p>
+        )}
+        {machineType && machineOptions.length === 0 && (
+          <p className="text-sm text-muted-foreground mt-1">
+            No machines available for this type
           </p>
         )}
       </div>
@@ -512,7 +636,7 @@ const Roles = () => {
                 <IconPlus className="mr-2 h-4 w-4" /> Create User
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[500px]">
+            <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>Create New User</DialogTitle>
                 <DialogDescription>
@@ -588,7 +712,7 @@ const Roles = () => {
                       <Label htmlFor="userRole" className="mb-2 block">
                         User Role
                       </Label>
-                      <Select value={userRole} onValueChange={setUserRole}>
+                      <ShadcnSelect value={userRole} onValueChange={setUserRole}>
                         <SelectTrigger>
                           <SelectValue placeholder="Select role" />
                         </SelectTrigger>
@@ -599,7 +723,7 @@ const Roles = () => {
                             </SelectItem>
                           ))}
                         </SelectContent>
-                      </Select>
+                      </ShadcnSelect>
                     </div>
                     {renderMachineSelection()}
                   </div>
@@ -628,7 +752,7 @@ const Roles = () => {
 
           {/* Edit User Dialog */}
           <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-            <DialogContent className="sm:max-w-[500px]">
+            <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>Edit User Details</DialogTitle>
                 <DialogDescription>
@@ -704,7 +828,7 @@ const Roles = () => {
                       <Label htmlFor="editUserRole" className="mb-2 block">
                         User Role
                       </Label>
-                      <Select value={userRole} onValueChange={setUserRole} disabled>
+                      <ShadcnSelect value={userRole} onValueChange={setUserRole} disabled>
                         <SelectTrigger>
                           <SelectValue placeholder="Select role" />
                         </SelectTrigger>
@@ -715,7 +839,7 @@ const Roles = () => {
                             </SelectItem>
                           ))}
                         </SelectContent>
-                      </Select>
+                      </ShadcnSelect>
                       <p className="text-sm text-muted-foreground mt-1">
                         Cannot change user role
                       </p>
@@ -907,7 +1031,7 @@ const Roles = () => {
                         <Label htmlFor="rows-per-page" className="text-sm font-medium">
                           Rows per page
                         </Label>
-                        <Select
+                        <ShadcnSelect
                           value={`${pageSize}`}
                           onValueChange={handlePageSizeChange}
                         >
@@ -921,7 +1045,7 @@ const Roles = () => {
                               </SelectItem>
                             ))}
                           </SelectContent>
-                        </Select>
+                        </ShadcnSelect>
                       </div>
                       <div className="flex w-fit items-center justify-center text-sm font-medium">
                         Page {currentPage} of {totalPages}
