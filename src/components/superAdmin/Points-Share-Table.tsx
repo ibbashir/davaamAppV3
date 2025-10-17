@@ -128,69 +128,90 @@ function PointsShareTable({ tableData }: PointsShareTableProps) {
                         </div>
                     </div>
 
-                    <div className="rounded-md border">
-                        <Table>
-                            <TableHeader>
-                            <TableRow className="bg-teal-600 text-white rounded-t-2xl">
-                                <TableHead className="text-center font-semibold text-white rounded-tl-2xl">
-                                Transfer Names
-                                </TableHead>
-                                <TableHead className="text-center font-semibold text-white">
-                                Transfer Phone
-                                </TableHead>
-                                <TableHead className="text-center font-semibold text-white">
-                                Amount
-                                </TableHead>
-                                <TableHead className="text-center font-semibold text-white">
-                                Transfer Date
-                                </TableHead>
-                                <TableHead className="text-center font-semibold text-white">
-                                Transaction ID
-                                </TableHead>
-                                <TableHead className="text-center font-semibold text-white rounded-tr-2xl">
-                                Status
-                                </TableHead>
-                            </TableRow>
-                            </TableHeader>
+                    
+                    <div className="rounded-2xl border overflow-hidden shadow-sm">
+                    <Table className="border-collapse">
+                        <TableHeader className="text-white">
+                        <TableRow className="bg-teal-600 hover:bg-teal-600 text-white">
+                            <TableHead className="text-center font-semibold text-white rounded-tl-2xl">
+                            Transfer Names
+                            </TableHead>
+                            <TableHead className="text-center font-semibold text-white">
+                            Transfer Phone
+                            </TableHead>
+                            <TableHead className="text-center font-semibold text-white">
+                            Amount
+                            </TableHead>
+                            <TableHead className="text-center font-semibold text-white">
+                            Transfer Date
+                            </TableHead>
+                            <TableHead className="text-center font-semibold text-white">
+                            Transaction ID
+                            </TableHead>
+                            <TableHead className="text-center font-semibold text-white rounded-tr-2xl">
+                            Status
+                            </TableHead>
+                        </TableRow>
+                        </TableHeader>
 
-                            <TableBody>
-                                {paginatedData.length > 0 ? (
-                                    paginatedData.map((item: PointsShareData) => (
-                                        <TableRow key={item.id} className="hover:bg-muted/50">
-                                            <TableCell className="text-center">
-                                                <div className="flex items-center justify-center gap-2">
-                                                    <span className="font-medium">{item.alternate_name}</span>
-                                                    <IconArrowRight className="h-3 w-3 text-muted-foreground" />
-                                                    <span>{item.user_name}</span>
-                                                </div>
-                                            </TableCell>
-                                            <TableCell className="text-center">
-                                                <div className="flex items-center justify-center gap-2">
-                                                    <span className="font-medium font-mono">{item.msisdn}</span>
-                                                    <IconArrowRight className="h-3 w-3 text-muted-foreground" />
-                                                    <span className="font-mono">{item.alternate_msisdn}</span>
-                                                </div>
-                                            </TableCell>
-                                            <TableCell className="text-center font-medium text-green-600">
-                                                {formatCurrency(item.amount)}
-                                            </TableCell>
-                                            <TableCell className="text-center text-muted-foreground">
-                                                {moment(item.created_at).tz("Etc/GMT-0").format("MMM DD, YYYY h:mm A")}
-                                            </TableCell>
-                                            <TableCell className="text-center font-mono text-sm">{item.transaction_number}</TableCell>
-                                            <TableCell className="text-center">{getStatusBadge(item.status)}</TableCell>
-                                        </TableRow>
-                                    ))
-                                ) : (
-                                    <TableRow>
-                                        <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
-                                            {searchTerm ? "No results found for your search." : "No data available."}
-                                        </TableCell>
-                                    </TableRow>
-                                )}
-                            </TableBody>
-                        </Table>
+                        <TableBody>
+                        {paginatedData.length > 0 ? (
+                            paginatedData.map((item: PointsShareData) => (
+                            <TableRow
+                                key={item.id}
+                                className="hover:bg-muted/50 transition-colors"
+                            >
+                                <TableCell className="text-center">
+                                <div className="flex items-center justify-center gap-2">
+                                    <span className="font-medium">{item.alternate_name}</span>
+                                    <IconArrowRight className="h-3 w-3 text-muted-foreground" />
+                                    <span>{item.user_name}</span>
+                                </div>
+                                </TableCell>
+
+                                <TableCell className="text-center">
+                                <div className="flex items-center justify-center gap-2">
+                                    <span className="font-medium font-mono">{item.msisdn}</span>
+                                    <IconArrowRight className="h-3 w-3 text-muted-foreground" />
+                                    <span className="font-mono">{item.alternate_msisdn}</span>
+                                </div>
+                                </TableCell>
+
+                                <TableCell className="text-center font-medium text-green-600">
+                                {formatCurrency(item.amount)}
+                                </TableCell>
+
+                                <TableCell className="text-center text-muted-foreground">
+                                {moment(item.created_at)
+                                    .tz("Etc/GMT-0")
+                                    .format("MMM DD, YYYY h:mm A")}
+                                </TableCell>
+
+                                <TableCell className="text-center font-mono text-sm">
+                                {item.transaction_number}
+                                </TableCell>
+
+                                <TableCell className="text-center">
+                                {getStatusBadge(item.status)}
+                                </TableCell>
+                            </TableRow>
+                            ))
+                        ) : (
+                            <TableRow>
+                            <TableCell
+                                colSpan={6}
+                                className="text-center py-8 text-muted-foreground"
+                            >
+                                {searchTerm
+                                ? "No results found for your search."
+                                : "No data available."}
+                            </TableCell>
+                            </TableRow>
+                        )}
+                        </TableBody>
+                    </Table>
                     </div>
+
 
                     {/* Updated Pagination Controls */}
                     {totalPages > 1 && (

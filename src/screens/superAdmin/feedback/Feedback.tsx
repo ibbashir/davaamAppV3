@@ -178,23 +178,23 @@ const Feedback = () => {
                         </div>
                     </CardHeader>
                     <CardContent>
-                        <div className="rounded-md border">
+                        <div className="rounded-2xl border overflow-hidden">
                             <Table>
                                 <TableHeader>
-                                <TableRow className="bg-teal-600 text-white rounded-t-2xl">
-                                    <TableHead className="text-center font-semibold text-white rounded-tl-2xl">
+                                <TableRow className="bg-teal-600 text-white hover:bg-teal-700">
+                                    <TableHead className="text-center font-semibold text-white border-none">
                                     Name
                                     </TableHead>
-                                    <TableHead className="text-center font-semibold text-white">
+                                    <TableHead className="text-center font-semibold text-white border-none">
                                     Message
                                     </TableHead>
-                                    <TableHead className="text-center font-semibold text-white">
+                                    <TableHead className="text-center font-semibold text-white border-none">
                                     Created at
                                     </TableHead>
-                                    <TableHead className="text-center font-semibold text-white">
+                                    <TableHead className="text-center font-semibold text-white border-none">
                                     Phone
                                     </TableHead>
-                                    <TableHead className="text-center font-semibold text-white rounded-tr-2xl">
+                                    <TableHead className="text-center font-semibold text-white border-none">
                                     Category
                                     </TableHead>
                                 </TableRow>

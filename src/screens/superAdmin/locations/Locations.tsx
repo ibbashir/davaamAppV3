@@ -178,29 +178,30 @@ const Locations = () => {
           </CardHeader>
           <CardContent>
             <div className="rounded-2xl border overflow-hidden">
-            <Table>
-              <TableHeader>
-                <TableRow className="bg-teal-600 text-white rounded-t-2xl">
-                  <TableHead className="text-center font-semibold text-white rounded-tl-2xl">
-                    Location Name
-                  </TableHead>
-                  <TableHead className="text-center font-semibold text-white">
-                    Address
-                  </TableHead>
-                  <TableHead className="text-center font-semibold text-white">
-                    Type
-                  </TableHead>
-                  <TableHead className="text-center font-semibold text-white">
-                    Gross Sales
-                  </TableHead>
-                  <TableHead className="text-center font-semibold text-white">
-                    On-boarding
-                  </TableHead>
-                  <TableHead className="text-center font-semibold text-white rounded-tr-2xl">
-                    Actions
-                  </TableHead>
-                </TableRow>
-              </TableHeader>
+            
+            <Table className="rounded-2xl overflow-hidden">
+            <TableHeader>
+              <TableRow className="bg-teal-600 text-white hover:bg-teal-600">
+                <TableHead className="text-center font-semibold text-white bg-teal-600 rounded-tl-2xl border-none">
+                  Location Name
+                </TableHead>
+                <TableHead className="text-center font-semibold text-white bg-teal-600 border-none">
+                  Address
+                </TableHead>
+                <TableHead className="text-center font-semibold text-white bg-teal-600 border-none">
+                  Type
+                </TableHead>
+                <TableHead className="text-center font-semibold text-white bg-teal-600 border-none">
+                  Gross Sales
+                </TableHead>
+                <TableHead className="text-center font-semibold text-white bg-teal-600 border-none">
+                  On-boarding
+                </TableHead>
+                <TableHead className="text-center font-semibold text-white bg-teal-600 rounded-tr-2xl border-none">
+                  Actions
+                </TableHead>
+              </TableRow>
+            </TableHeader>
 
               <TableBody>
                 {machineLocation?.data?.map((data) => (

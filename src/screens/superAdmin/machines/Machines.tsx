@@ -161,7 +161,8 @@ const Machines = () => {
             ) : paginatedMachines.length === 0 ? (
               <p className="text-center py-6">No machines found.</p>
             ) : (
-              <table className="min-w-full text-sm border-collapse border border-gray-200">
+              
+              <table className="min-w-full text-sm overflow-hidden rounded-xl border border-gray-200">
                 <thead className="bg-teal-600 text-white">
                   <tr>
                     <th className="px-4 py-2 text-center">Machine ID</th>
