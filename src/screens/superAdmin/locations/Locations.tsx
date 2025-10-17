@@ -177,17 +177,31 @@ const Locations = () => {
             </div>
           </CardHeader>
           <CardContent>
+            <div className="rounded-2xl border overflow-hidden">
             <Table>
               <TableHeader>
-                <TableRow>
-                  <TableHead>Location Name</TableHead>
-                  <TableHead>Address</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead style={{ textAlign: "center" }}>Gross Sales</TableHead>
-                  <TableHead>On-boarding</TableHead>
-                  <TableHead>Actions</TableHead>
+                <TableRow className="bg-teal-600 text-white rounded-t-2xl">
+                  <TableHead className="text-center font-semibold text-white rounded-tl-2xl">
+                    Location Name
+                  </TableHead>
+                  <TableHead className="text-center font-semibold text-white">
+                    Address
+                  </TableHead>
+                  <TableHead className="text-center font-semibold text-white">
+                    Type
+                  </TableHead>
+                  <TableHead className="text-center font-semibold text-white">
+                    Gross Sales
+                  </TableHead>
+                  <TableHead className="text-center font-semibold text-white">
+                    On-boarding
+                  </TableHead>
+                  <TableHead className="text-center font-semibold text-white rounded-tr-2xl">
+                    Actions
+                  </TableHead>
                 </TableRow>
               </TableHeader>
+
               <TableBody>
                 {machineLocation?.data?.map((data) => (
                   <TableRow key={data.id}>
@@ -224,6 +238,8 @@ const Locations = () => {
                 ))}
               </TableBody>
             </Table>
+          </div>
+
 
             {/* ✅ Fixed Pagination */}
             {totalCount > 0 && (
