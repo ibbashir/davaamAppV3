@@ -181,14 +181,25 @@ const Feedback = () => {
                         <div className="rounded-md border">
                             <Table>
                                 <TableHeader>
-                                    <TableRow className="bg-muted/50">
-                                        <TableHead>Name</TableHead>
-                                        <TableHead>Message</TableHead>
-                                        <TableHead>Created at</TableHead>
-                                        <TableHead>Phone</TableHead>
-                                        <TableHead>Category</TableHead>
-                                    </TableRow>
+                                <TableRow className="bg-teal-600 text-white rounded-t-2xl">
+                                    <TableHead className="text-center font-semibold text-white rounded-tl-2xl">
+                                    Name
+                                    </TableHead>
+                                    <TableHead className="text-center font-semibold text-white">
+                                    Message
+                                    </TableHead>
+                                    <TableHead className="text-center font-semibold text-white">
+                                    Created at
+                                    </TableHead>
+                                    <TableHead className="text-center font-semibold text-white">
+                                    Phone
+                                    </TableHead>
+                                    <TableHead className="text-center font-semibold text-white rounded-tr-2xl">
+                                    Category
+                                    </TableHead>
+                                </TableRow>
                                 </TableHeader>
+
                                 <TableBody>
                                     {feedback.length > 0 ? (
                                         feedback.map((entry) => (

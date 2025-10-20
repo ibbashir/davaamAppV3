@@ -131,15 +131,28 @@ function PointsShareTable({ tableData }: PointsShareTableProps) {
                     <div className="rounded-md border">
                         <Table>
                             <TableHeader>
-                                <TableRow className="bg-muted/50">
-                                    <TableHead className="text-center font-semibold">Transfer Names</TableHead>
-                                    <TableHead className="text-center font-semibold">Transfer Phone</TableHead>
-                                    <TableHead className="text-center font-semibold">Amount</TableHead>
-                                    <TableHead className="text-center font-semibold">Transfer Date</TableHead>
-                                    <TableHead className="text-center font-semibold">Transaction ID</TableHead>
-                                    <TableHead className="text-center font-semibold">Status</TableHead>
-                                </TableRow>
+                            <TableRow className="bg-teal-600 text-white rounded-t-2xl">
+                                <TableHead className="text-center font-semibold text-white rounded-tl-2xl">
+                                Transfer Names
+                                </TableHead>
+                                <TableHead className="text-center font-semibold text-white">
+                                Transfer Phone
+                                </TableHead>
+                                <TableHead className="text-center font-semibold text-white">
+                                Amount
+                                </TableHead>
+                                <TableHead className="text-center font-semibold text-white">
+                                Transfer Date
+                                </TableHead>
+                                <TableHead className="text-center font-semibold text-white">
+                                Transaction ID
+                                </TableHead>
+                                <TableHead className="text-center font-semibold text-white rounded-tr-2xl">
+                                Status
+                                </TableHead>
+                            </TableRow>
                             </TableHeader>
+
                             <TableBody>
                                 {paginatedData.length > 0 ? (
                                     paginatedData.map((item: PointsShareData) => (

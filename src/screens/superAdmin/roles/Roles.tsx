@@ -934,17 +934,17 @@ const Roles = () => {
             ) : (
               <>
                 <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Name</TableHead>
-                      <TableHead>Email</TableHead>
-                      <TableHead>Password</TableHead>
-                      <TableHead>Role</TableHead>
-                      <TableHead>Created</TableHead>
-                      <TableHead>Machines</TableHead>
-                      <TableHead>Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
+              <TableHeader className="bg-teal-600 rounded-t-2xl">
+                <TableRow>
+                  <TableHead className="text-center text-white font-semibold rounded-tl-2xl">Name</TableHead>
+                  <TableHead className="text-center text-white font-semibold">Email</TableHead>
+                  <TableHead className="text-center text-white font-semibold">Password</TableHead>
+                  <TableHead className="text-center text-white font-semibold">Role</TableHead>
+                  <TableHead className="text-center text-white font-semibold">Created</TableHead>
+                  <TableHead className="text-center text-white font-semibold">Machines</TableHead>
+                  <TableHead className="text-center text-white font-semibold rounded-tr-2xl">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
                   <TableBody>
                     {users.map((user) => (
                       <TableRow key={user.id}>

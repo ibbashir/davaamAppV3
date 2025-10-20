@@ -263,52 +263,75 @@ const RecentTransactions = () => {
                 </CardHeader>
 
                 <CardContent>
-                    <Table>
-                        <TableHeader>
+                    <div className="overflow-hidden rounded-t-lg border border-gray-200 shadow-sm">
+                        <Table>
+                            <TableHeader className="bg-teal-600">
                             <TableRow>
-                                <TableHead>User Name</TableHead>
-                                <TableHead>Date</TableHead>
-                                <TableHead>Phone Number / RFID</TableHead>
-                                <TableHead>Machine Code</TableHead>
-                                <TableHead>Amount</TableHead>
-                                <TableHead>Quantity</TableHead>
-                                <TableHead>Brand Name</TableHead>
+                                {[
+                                "User Name",
+                                "Date",
+                                "Phone Number / RFID",
+                                "Machine Code",
+                                "Amount",
+                                "Quantity",
+                                "Brand Name",
+                                ].map((head) => (
+                                <TableHead key={head} className="!text-white font-semibold">
+                                    {head}
+                                </TableHead>
+                                ))}
                             </TableRow>
-                        </TableHeader>
-                        <TableBody>
+                            </TableHeader>
+
+                            <TableBody>
                             {loading ? (
                                 <TableRow>
-                                    <TableCell colSpan={7} className="text-center py-8">
-                                        Loading transactions...
-                                    </TableCell>
+                                <TableCell colSpan={7} className="text-center py-8">
+                                    Loading transactions...
+                                </TableCell>
                                 </TableRow>
                             ) : filteredTransactions.length === 0 ? (
                                 <TableRow>
-                                    <TableCell colSpan={7} className="text-center py-8">
-                                        {isSearching
-                                            ? "No transactions found for your search."
-                                            : "No transactions found for the selected filters."}
-                                    </TableCell>
+                                <TableCell colSpan={7} className="text-center py-8">
+                                    {isSearching
+                                    ? "No transactions found for your search."
+                                    : "No transactions found for the selected filters."}
+                                </TableCell>
                                 </TableRow>
                             ) : (
                                 filteredTransactions.map((transaction) => (
-                                    <TableRow key={transaction.id}>
-                                        <TableCell className="font-medium">{transaction.user_name || transaction.merchant || "N/A"}</TableCell>
-                                        <TableCell>{new Date(transaction.created_at).toLocaleDateString()}</TableCell>
-                                        <TableCell className="font-mono text-sm">{transaction.msisdn}</TableCell>
-                                        <TableCell className="font-medium text-blue-600">{transaction.machine_code}</TableCell>
-                                        <TableCell>
-                                            <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
-                                                Rs. {transaction.amount}
-                                            </Badge>
-                                        </TableCell>
-                                        <TableCell>{transaction.quantity}</TableCell>
-                                        <TableCell className="font-medium">{transaction.brand_name}</TableCell>
-                                    </TableRow>
+                                <TableRow key={transaction.id}>
+                                    <TableCell className="font-medium">
+                                    {transaction.user_name || transaction.merchant || "N/A"}
+                                    </TableCell>
+                                    <TableCell>
+                                    {new Date(transaction.created_at).toLocaleDateString()}
+                                    </TableCell>
+                                    <TableCell className="font-mono text-sm">
+                                    {transaction.msisdn}
+                                    </TableCell>
+                                    <TableCell className="font-medium text-blue-600">
+                                    {transaction.machine_code}
+                                    </TableCell>
+                                    <TableCell>
+                                    <Badge
+                                        variant="outline"
+                                        className="bg-green-50 text-green-700 border-green-200"
+                                    >
+                                        Rs. {transaction.amount}
+                                    </Badge>
+                                    </TableCell>
+                                    <TableCell>{transaction.quantity}</TableCell>
+                                    <TableCell className="font-medium">
+                                    {transaction.brand_name}
+                                    </TableCell>
+                                </TableRow>
                                 ))
                             )}
-                        </TableBody>
-                    </Table>
+                            </TableBody>
+                        </Table>
+                        </div>
+
 
                     {/* Pagination */}
                     {totalPages > 1 && (
