@@ -38,6 +38,8 @@ export const SUPERADMIN_CORPORATE = "/superadmin/corporate";
 export const SUPERADMIN_STATUS = "/superadmin/status";
 export const SUPERADMIN_MACHINE_VISIT =
   "/superadmin/machine-details/:id";
+export const SUPERADMIN_CORPORATE_TOPUP =
+  "/superadmin/corporate-topup";
 
 // ADMIN PATHS
 export const ADMIN_DASHBOARD = "/admin/dashboard";
@@ -90,6 +92,11 @@ export const SUPER_ADMIN_SIDEBAR_ROUTES = () => {
     {
       title: "App Feedback",
       url: SUPERADMIN_FEEDBACK,
+      icon: IconMessage2Exclamation,
+    },
+    {
+      title: "Corporate Topup",
+      url: SUPERADMIN_CORPORATE_TOPUP,
       icon: IconMessage2Exclamation,
     },
   ];

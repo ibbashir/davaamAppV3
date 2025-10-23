@@ -80,6 +80,7 @@ import {
   REPORT,
   RESET_PASSWORD,
   SUPERADMIN_CORPORATE,
+  SUPERADMIN_CORPORATE_TOPUP,
   SUPERADMIN_DASHBOARD,
   SUPERADMIN_FEEDBACK,
   SUPERADMIN_LOCATIONS,
@@ -94,6 +95,7 @@ import {
 import OpsMachineVisit from '@/screens/ops/machines/MachineVisit'
 import Reports from '@/screens/corporate/reports/reports'
 import ResetPassword from '@/screens/forgetPassword/ResetPassword'
+import CorporateTopup from '@/screens/superAdmin/corporateTopup/corporateTopup'
 
 const Routing = () => {
   return (
@@ -120,6 +122,7 @@ const Routing = () => {
           <Route path={SUPERADMIN_FEEDBACK} element={<Feedback />} />
           <Route path={SUPERADMIN_CORPORATE} element={<Corporate />} />
           <Route path={SUPERADMIN_MACHINE_VISIT} element={<SuperAdminMachineVisit />} />
+          <Route path={SUPERADMIN_CORPORATE_TOPUP} element={<CorporateTopup />} />
         </Route>
       </Route>
 

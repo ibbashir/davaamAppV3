@@ -43,7 +43,13 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import {
   IconPlus,
@@ -117,7 +123,6 @@ const Corporate = () => {
   const [topupHistory, setTopupHistory] = useState<TopupEntry[]>([]);
   const [isAddTopupOpen, setIsAddTopupOpen] = useState(false);
 
-  // Client states
   const [clientsData, setClientsData] = useState<
     Record<string, CorporateClient[]>
   >({
@@ -130,7 +135,6 @@ const Corporate = () => {
     getz: [],
   });
 
-  // Filters + pagination
   const [dateFilter, setDateFilter] = useState("");
   const [minBalance, setMinBalance] = useState("");
   const [maxBalance, setMaxBalance] = useState("");
@@ -138,9 +142,9 @@ const Corporate = () => {
   const [itemsPerPage, setItemsPerPage] = useState(20);
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const [allData,setAllData]=useState("")
+  const [allData, setAllData] = useState("");
 
-  // Add Topup form
+  // --- Form ---
   const addTopupForm = useForm<AddTopupFormData>({
     resolver: zodResolver(addTopupSchema),
     defaultValues: { clientName: "", amount: "", purpose: "" },
@@ -162,20 +166,16 @@ const Corporate = () => {
   const getClientData = (tabName: string): CorporateClient[] =>
     clientsData[tabName] || [];
 
-  // 🔎 Search
   const handleSearchInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(e.target.value);
     setCurrentPage(1);
   };
-
   const handleSearch = (e: React.FormEvent) => e.preventDefault();
-
   const clearSearch = () => {
     setSearchTerm("");
     setCurrentPage(1);
   };
 
-  // 🧹 Reset filters
   const resetFilters = () => {
     setDateFilter("");
     setMinBalance("");
@@ -206,7 +206,6 @@ const Corporate = () => {
     });
   };
 
-  // Tab change
   const handleTabChange = (value: string) => {
     setActiveTab(value);
     resetFilters();
@@ -228,14 +227,13 @@ const Corporate = () => {
   const formatCurrency = (amount: number) =>
     new Intl.NumberFormat("en-US").format(amount);
 
-  // --- Fetch Topups ---
   useEffect(() => {
     const fetchTopups = async () => {
       try {
         const data = await getRequest<TopupEntry[]>(
           "/superadmin/getCorporateTopupHistory"
         );
-        setAllData(data)
+        setAllData(data);
         if (Array.isArray(data.data)) setTopupHistory(data.data);
       } catch (e) {
         console.error("Failed to fetch topups:", e);
@@ -244,7 +242,6 @@ const Corporate = () => {
     fetchTopups();
   }, []);
 
-  // --- Fetch Clients by Tab ---
   const fetchClientsByTab = async (tab: string) => {
     try {
       const codes = machineCodes[tab];
@@ -260,18 +257,15 @@ const Corporate = () => {
   };
 
   const totalTopupAmount = allData.total_sum || 0;
-  
   const uniqueClients = allData.total_companies || 0;
-
-  const totalTopups=allData.total_topups || 0;
-
-  const monthlyTopups=allData.currentMonthlyTopups || 0;
+  const totalTopups = allData.total_topups || 0;
+  const monthlyTopups = allData.currentMonthlyTopups || 0;
 
   return (
     <div>
       <SiteHeader title="Corporate Clients" />
       <div className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
-        {/* --- Stats --- */}
+        {/* Stats */}
         <div className="grid gap-4 md:grid-cols-4">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -287,6 +281,7 @@ const Corporate = () => {
               </p>
             </CardContent>
           </Card>
+
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
@@ -299,6 +294,7 @@ const Corporate = () => {
               <p className="text-xs text-muted-foreground">All time topups</p>
             </CardContent>
           </Card>
+
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
@@ -313,6 +309,7 @@ const Corporate = () => {
               <p className="text-xs text-muted-foreground">Total topup value</p>
             </CardContent>
           </Card>
+
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">This Month</CardTitle>
@@ -320,16 +317,14 @@ const Corporate = () => {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-purple-600">
-                {
-                  monthlyTopups || 0
-                }
+                {monthlyTopups || 0}
               </div>
               <p className="text-xs text-muted-foreground">Recent topups</p>
             </CardContent>
           </Card>
         </div>
 
-        {/* --- Tabs --- */}
+        {/* Tabs */}
         <Tabs
           value={activeTab}
           onValueChange={handleTabChange}
@@ -346,7 +341,7 @@ const Corporate = () => {
             <TabsTrigger value="mobilink">Mobilink</TabsTrigger>
           </TabsList>
 
-          {/* --- Topups Tab --- */}
+          {/* Corporate Topups */}
           <TabsContent value="corporate-topups" className="space-y-4">
             <Card>
               <CardHeader>
@@ -354,8 +349,8 @@ const Corporate = () => {
                   <div>
                     <CardTitle>Corporate Topup History</CardTitle>
                     <CardDescription>
-                      A list of all the corporate topup history in your account
-                      including their name, amount, purpose and date.
+                      A list of all corporate topup history including name,
+                      amount, purpose, and date.
                     </CardDescription>
                   </div>
                   <Dialog
@@ -459,209 +454,182 @@ const Corporate = () => {
                   </Dialog>
                 </div>
               </CardHeader>
+
+              {/* 🔹 Fixed hover + border issue */}
               <CardContent>
-  <div className="rounded-md border shadow-sm">
-    <Table>
-      <TableHeader>
-        <TableRow className="bg-teal-600 text-white rounded-t-2xl">
-          <TableHead className="font-semibold rounded-tl-2xl">Name</TableHead>
-          <TableHead className="font-semibold">Amount</TableHead>
-          <TableHead className="font-semibold">Date</TableHead>
-          <TableHead className="font-semibold rounded-tr-2xl">Purpose</TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {topupHistory.length > 0 ? (
-          topupHistory.map((entry) => (
-            <TableRow key={entry.id} className="hover:bg-muted/50 transition-colors">
-              <TableCell className="font-medium">
-                {entry.corporate_name || entry.name}
-              </TableCell>
-              <TableCell className="font-medium text-green-600">
-                {formatCurrency(entry.amount)}
-              </TableCell>
-              <TableCell className="text-muted-foreground">
-                {moment(entry.created_at).format("ddd, MMM D, YYYY h:mm A")}
-              </TableCell>
-              <TableCell className="max-w-md">
-                <div className="truncate" title={entry.purpose_of_payment}>
-                  {entry.purpose_of_payment}
+                <div className="rounded-2xl border overflow-hidden shadow-sm">
+                  <Table className="border-collapse">
+                    <TableHeader>
+                      <TableRow className="bg-teal-600 text-white hover:bg-teal-600">
+                        <TableHead className=" !text-white font-semibold rounded-tl-2xl">
+                          Name
+                        </TableHead>
+                        <TableHead className="!text-white font-semibold">Amount</TableHead>
+                        <TableHead className="!text-white font-semibold">Date</TableHead>
+                        <TableHead className="!text-white font-semibold rounded-tr-2xl">
+                          Purpose
+                        </TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {topupHistory.length > 0 ? (
+                        topupHistory.map((entry) => (
+                          <TableRow
+                            key={entry.id}
+                            className="hover:bg-muted/50 transition-colors"
+                          >
+                            <TableCell className="font-medium">
+                              {entry.corporate_name || entry.name}
+                            </TableCell>
+                            <TableCell className="font-medium text-green-600">
+                              {formatCurrency(entry.amount)}
+                            </TableCell>
+                            <TableCell className="text-muted-foreground">
+                              {moment(entry.created_at).format(
+                                "ddd, MMM D, YYYY h:mm A"
+                              )}
+                            </TableCell>
+                            <TableCell className="max-w-md">
+                              <div
+                                className="truncate"
+                                title={entry.purpose_of_payment}
+                              >
+                                {entry.purpose_of_payment}
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        ))
+                      ) : (
+                        <TableRow>
+                          <TableCell
+                            colSpan={4}
+                            className="text-center py-8 text-muted-foreground"
+                          >
+                            No topup history available.
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </TableBody>
+                  </Table>
                 </div>
-              </TableCell>
-            </TableRow>
-          ))
-        ) : (
-          <TableRow>
-            <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
-              No topup history available.
-            </TableCell>
-          </TableRow>
-        )}
-      </TableBody>
-    </Table>
-  </div>
-</CardContent>
-</Card>
-</TabsContent>
+              </CardContent>
+            </Card>
+          </TabsContent>
 
-{/* --- Client Tabs --- */}
-{["ibex", "tapal", "getz", "jpCoats", "ebm", "mobilink", "jaffer"].map((tabName) => {
-  const clientData = getClientData(tabName);
-  const filteredData = getFilteredClientData(clientData);
-  const totalPages = Math.ceil(filteredData.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  const paginatedData = filteredData.slice(startIndex, endIndex);
+          {/* 🔹 Client Tabs */}
+          {[
+            "ibex",
+            "tapal",
+            "getz",
+            "jpCoats",
+            "ebm",
+            "mobilink",
+            "jaffer",
+          ].map((tabName) => {
+            const clientData = getClientData(tabName);
+            const filteredData = getFilteredClientData(clientData);
+            const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+            const startIndex = (currentPage - 1) * itemsPerPage;
+            const endIndex = startIndex + itemsPerPage;
+            const paginatedData = filteredData.slice(startIndex, endIndex);
 
-  return (
-    <TabsContent key={tabName} value={tabName} className="space-y-4">
-      <form onSubmit={handleSearch} className="relative">
-        <IconSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-        <Input
-          placeholder="Search by name, mobile number, or card number"
-          value={searchTerm}
-          onChange={handleSearchInputChange}
-          className="pl-10 pr-10"
-        />
-        {searchTerm && (
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={clearSearch}
-            className="absolute right-2 top-1/2 transform -translate-y-1/2 h-6 w-6 p-0"
-          >
-            <IconX className="h-4 w-4" />
-            <span className="sr-only">Clear search</span>
-          </Button>
-        )}
-      </form>
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle>{tabName.toUpperCase()}</CardTitle>
-            <Button className="bg-teal-600 hover:bg-teal-700 text-white rounded-md">
-              <IconDownload className="mr-2 h-4 w-4" />
-              Export
-            </Button>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="rounded-md border shadow-sm">
-            <Table>
-              <TableHeader>
-                <TableRow className="bg-teal-600 text-white rounded-t-2xl">
-                  <TableHead className="font-semibold rounded-tl-2xl">Name</TableHead>
-                  <TableHead className="font-semibold">Card Number</TableHead>
-                  <TableHead className="font-semibold">Created At</TableHead>
-                  <TableHead className="font-semibold rounded-tr-2xl">Balance</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {paginatedData.length > 0 ? (
-                  paginatedData.map((entry) => (
-                    <TableRow key={entry.id} className="hover:bg-muted/50 transition-colors">
-                      <TableCell>{entry.name || entry.mobile_number}</TableCell>
-                      <TableCell className="font-mono">
-                        {entry.card_number || entry.mobile_number}
-                      </TableCell>
-                      <TableCell>
-                        {moment(entry.created_at).format("ddd, MMM D, YYYY h:mm A")}
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="outline">{formatCurrency(entry.balance)}</Badge>
-                      </TableCell>
-                    </TableRow>
-                  ))
-                ) : (
-                  <TableRow>
-                    <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
-                      No data found matching your criteria.
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </div>
+            return (
+              <TabsContent
+                key={tabName}
+                value={tabName}
+                className="space-y-4"
+              >
+                <form onSubmit={handleSearch} className="relative">
+                  <IconSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Search by name, mobile number, or card number"
+                    value={searchTerm}
+                    onChange={handleSearchInputChange}
+                    className="pl-10 pr-10"
+                  />
+                  {searchTerm && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="absolute right-2 top-1/2 transform -translate-y-1/2"
+                      onClick={clearSearch}
+                    >
+                      <IconX className="h-4 w-4 text-muted-foreground" />
+                    </Button>
+                  )}
+                </form>
 
-          {/* Fixed Pagination */}
-          {paginatedData.length > 0 && (
-            <div className="flex items-center justify-between px-4 mt-4">
-              <div className="text-muted-foreground hidden flex-1 text-sm lg:flex">
-                Showing {paginatedData.length} of {filteredData.length} clients
-              </div>
-              <div className="flex w-full items-center gap-8 lg:w-fit">
-                <div className="hidden items-center gap-2 lg:flex">
-                  <Label htmlFor="rows-per-page" className="text-sm font-medium">
-                    Rows per page
-                  </Label>
-                  <Select
-                    value={`${itemsPerPage}`}
-                    onValueChange={(value) => {
-                      setItemsPerPage(Number(value));
-                      setCurrentPage(1);
-                    }}
-                  >
-                    <SelectTrigger size="sm" className="w-20" id="rows-per-page">
-                      <SelectValue placeholder={itemsPerPage} />
-                    </SelectTrigger>
-                    <SelectContent side="top">
-                      {[10, 20, 50, 100].map((pageSize) => (
-                        <SelectItem key={pageSize} value={`${pageSize}`}>
-                          {pageSize}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="flex w-fit items-center justify-center text-sm font-medium">
-                  Page {currentPage} of {totalPages}
-                </div>
-                <div className="ml-auto flex items-center gap-2 lg:ml-0">
-                  <Button
-                    variant="outline"
-                    className="hidden h-8 w-8 p-0 lg:flex bg-transparent"
-                    onClick={() => setCurrentPage(1)}
-                    disabled={currentPage === 1}
-                  >
-                    <span className="sr-only">Go to first page</span>
-                    <IconChevronsLeft className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="outline"
-                    className="size-8 bg-transparent"
-                    size="icon"
-                    onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                    disabled={currentPage === 1}
-                  >
-                    <span className="sr-only">Go to previous page</span>
-                    <IconChevronLeft className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="outline"
-                    className="size-8 bg-transparent"
-                    size="icon"
-                    onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
-                    disabled={currentPage === totalPages}
-                  >
-                    <span className="sr-only">Go to next page</span>
-                    <IconChevronRight className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="outline"
-                    className="hidden size-8 lg:flex bg-transparent"
-                    size="icon"
-                    onClick={() => setCurrentPage(totalPages)}
-                    disabled={currentPage === totalPages}
-                  >
-                    <span className="sr-only">Go to last page</span>
-                    <IconChevronsRight className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-            </div>
-          )}
-        </CardContent>
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="capitalize">
+                      {tabName} Clients
+                    </CardTitle>
+                    <CardDescription>
+                      A list of all {tabName} corporate clients with balance and
+                      details.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="rounded-2xl border overflow-hidden shadow-sm">
+                      <Table className="border-collapse">
+                        <TableHeader>
+                          <TableRow className="bg-teal-600 text-white hover:bg-teal-600">
+                            <TableHead className="!text-white rounded-tl-2xl font-semibold">
+                              Name
+                            </TableHead>
+                            <TableHead className="!text-white font-semibold">
+                              Card Number
+                            </TableHead>
+                            <TableHead className="!text-white font-semibold">
+                              Mobile Number
+                            </TableHead>
+                            <TableHead className="!text-white font-semibold">
+                              Balance
+                            </TableHead>
+                            <TableHead className="!text-white rounded-tr-2xl font-semibold">
+                              Created At
+                            </TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {paginatedData.length > 0 ? (
+                            paginatedData.map((item) => (
+                              <TableRow
+                                key={item.id}
+                                className="hover:bg-muted/50 transition-colors"
+                              >
+                                <TableCell className="font-medium">
+                                  {item.name}
+                                </TableCell>
+                                <TableCell>{item.card_number}</TableCell>
+                                <TableCell>
+                                  {item.mobile_number || "N/A"}
+                                </TableCell>
+                                <TableCell className="text-green-600 font-semibold">
+                                  {formatCurrency(item.balance)}
+                                </TableCell>
+                                <TableCell className="text-muted-foreground">
+                                  {moment(item.created_at).format(
+                                    "MMM D, YYYY"
+                                  )}
+                                </TableCell>
+                              </TableRow>
+                            ))
+                          ) : (
+                            <TableRow>
+                              <TableCell
+                                colSpan={5}
+                                className="text-center py-8 text-muted-foreground"
+                              >
+                                No data found.
+                              </TableCell>
+                            </TableRow>
+                          )}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  </CardContent>
                 </Card>
               </TabsContent>
             );
