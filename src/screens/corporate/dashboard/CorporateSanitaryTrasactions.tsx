@@ -54,11 +54,10 @@ const SanitaryTransactionTable = () => {
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
 
-  // ⏳ Debounce search input (logic unchanged)
   useEffect(() => {
     const handler = setTimeout(() => {
       setDebouncedSearch(search);
-      setCurrentPage(1); // reset page when searching
+      setCurrentPage(1);
     }, 1000);
 
     return () => clearTimeout(handler);
@@ -100,63 +99,48 @@ const SanitaryTransactionTable = () => {
     fetchTransactions(currentPage, debouncedSearch);
   }, [currentPage, debouncedSearch, itemsPerPage]);
 
-  // view details overlay state
   const [activeTx, setActiveTx] = useState<Transaction | null>(null);
 
   return (
     <Card>
       <CardHeader>
-        <h2 className="text-xl font-semibold">
-          Corporate Sanitary Transactions
-        </h2>
+        <h2 className="text-xl font-semibold">Corporate Sanitary Transactions</h2>
       </CardHeader>
+
       <CardContent>
         <div className="overflow-x-auto">
-          {/* 🔍 Search Input */}
+          {/* Search Bar */}
           <div className="relative mb-3">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Search by Machine Id, Merchant, or Phone"
+              placeholder="Search by Machine ID, Merchant, or Phone"
               className="pl-10"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
           </div>
 
-          {/* Cards grid (5 per row) */}
+          {/* Table Container */}
           <div className="bg-white rounded-2xl shadow-md border border-green-50 overflow-hidden">
             {loading ? (
               <div className="text-center p-8">Loading...</div>
             ) : transactions.length === 0 ? (
               <div className="text-center p-8">No data found</div>
             ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full">
+              <div className="overflow-x-auto overflow-hidden">
+                <table className="w-full border-collapse">
                   <thead>
-                    <tr className="bg-green-50 border-b border-green-100">
-                      <th className="text-left py-4 px-6 font-semibold text-green-800">
-                        #️⃣ SNO
-                      </th>
-                      <th className="text-left py-4 px-6 font-semibold text-green-800">
-                        💰 Amount
-                      </th>
-                      <th className="text-left py-4 px-6 font-semibold text-green-800">
-                        📦 Quantity
-                      </th>
-                      <th className="text-left py-4 px-6 font-semibold text-green-800">
-                        📱 Phone Number
-                      </th>
-                      <th className="text-left py-4 px-6 font-semibold text-green-800">
-                        ⏰ Time
-                      </th>
-                      <th className="text-left py-4 px-6 font-semibold text-green-800">
-                        🏭 Machine Code
-                      </th>
-                      <th className="text-left py-4 px-6 font-semibold text-green-800">
-                        🔍 Actions
-                      </th>
+                    <tr className="bg-teal-600 text-white hover:bg-teal-700 transition-colors">
+                      <th className="text-left py-4 px-6 font-semibold">SNO</th>
+                      <th className="text-left py-4 px-6 font-semibold">Amount</th>
+                      <th className="text-left py-4 px-6 font-semibold">Quantity</th>
+                      <th className="text-left py-4 px-6 font-semibold">Phone Number</th>
+                      <th className="text-left py-4 px-6 font-semibold">Time</th>
+                      <th className="text-left py-4 px-6 font-semibold">Machine Code</th>
+                      <th className="text-left py-4 px-6 font-semibold">Actions</th>
                     </tr>
                   </thead>
+
                   <tbody>
                     {transactions.map((t, idx) => (
                       <motion.tr
@@ -164,46 +148,33 @@ const SanitaryTransactionTable = () => {
                         initial={{ opacity: 0, y: 12 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.45, delay: idx * 0.04 }}
-                        whileHover={{
-                          backgroundColor: "rgba(16,185,129,0.02)",
-                          scale: 1.002,
-                        }}
-                        className="border-b border-green-50 hover:bg-green-50/30 transition-colors"
+                        className="border-b border-gray-100 hover:bg-gray-50 transition-all"
                       >
                         <td className="py-4 px-6 text-sm text-muted-foreground">
                           #{(currentPage - 1) * itemsPerPage + idx + 1}
                         </td>
-                        <td className="py-4 px-6">
-                          <div className="text-lg font-semibold text-green-700">
-                            Rs. {t.amount}
-                          </div>
+                        <td className="py-4 px-6 font-semibold text-teal-700">
+                          Rs. {t.amount}
                         </td>
                         <td className="py-4 px-6">
-                          <div className="font-medium text-center bg-green-100 text-green-800 rounded-full px-3 py-1 text-sm w-fit">
+                          <div className="font-medium bg-teal-100 text-teal-800 rounded-full px-3 py-1 text-sm w-fit">
                             {t.quantity}
                           </div>
                         </td>
-                        <td className="py-4 px-6">
-                          <div className="text-sm font-medium text-blue-600">
-                            {t.msisdn || "N/A"}
-                          </div>
+                        <td className="py-4 px-6 text-blue-600">
+                          {t.msisdn || "N/A"}
                         </td>
-                        <td className="py-4 px-6">
-                          <div className="text-sm text-muted-foreground">
-                            {new Date(t.created_at).toLocaleString()}
-                          </div>
+                        <td className="py-4 px-6 text-muted-foreground">
+                          {new Date(t.created_at).toLocaleString()}
                         </td>
-                        <td className="py-4 px-6">
-                          <div className="text-sm font-medium text-purple-600">
-                            {t.machine_code || "N/A"}
-                          </div>
+                        <td className="py-4 px-6 text-purple-600">
+                          {t.machine_code || "N/A"}
                         </td>
                         <td className="py-4 px-6">
                           <button
                             onClick={() => setActiveTx(t)}
-                            className="px-4 py-2 rounded-lg bg-emerald-600 text-white text-sm hover:bg-emerald-700 transition-colors flex items-center gap-2"
+                            className="px-4 py-2 rounded-lg bg-teal-600 text-white text-sm hover:bg-teal-700 transition-colors"
                           >
-                            <span>🔍</span>
                             View Details
                           </button>
                         </td>
@@ -215,7 +186,7 @@ const SanitaryTransactionTable = () => {
             )}
           </div>
 
-          {/* Fixed Pagination */}
+          {/* Pagination */}
           {transactions.length > 0 && (
             <div className="flex items-center justify-between px-4 mt-6">
               <div className="text-muted-foreground hidden flex-1 text-sm lg:flex">
@@ -223,10 +194,7 @@ const SanitaryTransactionTable = () => {
               </div>
               <div className="flex w-full items-center gap-8 lg:w-fit">
                 <div className="hidden items-center gap-2 lg:flex">
-                  <Label
-                    htmlFor="rows-per-page"
-                    className="text-sm font-medium"
-                  >
+                  <Label htmlFor="rows-per-page" className="text-sm font-medium">
                     Rows per page
                   </Label>
                   <Select
@@ -236,11 +204,7 @@ const SanitaryTransactionTable = () => {
                       setCurrentPage(1);
                     }}
                   >
-                    <SelectTrigger
-                      size="sm"
-                      className="w-20"
-                      id="rows-per-page"
-                    >
+                    <SelectTrigger size="sm" className="w-20" id="rows-per-page">
                       <SelectValue placeholder={itemsPerPage} />
                     </SelectTrigger>
                     <SelectContent side="top">
@@ -261,7 +225,6 @@ const SanitaryTransactionTable = () => {
                     onClick={() => setCurrentPage(1)}
                     disabled={currentPage === 1}
                   >
-                    <span className="sr-only">Go to first page</span>
                     <ChevronsLeft className="h-4 w-4" />
                   </button>
                   <button
@@ -269,7 +232,6 @@ const SanitaryTransactionTable = () => {
                     onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
                     disabled={currentPage === 1}
                   >
-                    <span className="sr-only">Go to previous page</span>
                     <ChevronLeft className="h-4 w-4" />
                   </button>
                   <button
@@ -279,7 +241,6 @@ const SanitaryTransactionTable = () => {
                     }
                     disabled={currentPage === totalPages}
                   >
-                    <span className="sr-only">Go to next page</span>
                     <ChevronRight className="h-4 w-4" />
                   </button>
                   <button
@@ -287,7 +248,6 @@ const SanitaryTransactionTable = () => {
                     onClick={() => setCurrentPage(totalPages)}
                     disabled={currentPage === totalPages}
                   >
-                    <span className="sr-only">Go to last page</span>
                     <ChevronsRight className="h-4 w-4" />
                   </button>
                 </div>
@@ -296,7 +256,7 @@ const SanitaryTransactionTable = () => {
           )}
         </div>
 
-        {/* View Details Overlay (animated) */}
+        {/* View Details Overlay */}
         {activeTx && (
           <div className="fixed inset-0 z-50 flex items-center justify-center">
             <div
@@ -312,17 +272,13 @@ const SanitaryTransactionTable = () => {
             >
               <div className="bg-white rounded-2xl p-6 shadow-2xl">
                 <div className="flex justify-between items-start">
-                  <h3 className="text-xl font-semibold">
-                    Transaction Details 💳
-                  </h3>
+                  <h3 className="text-xl font-semibold">Transaction Details</h3>
                 </div>
 
                 <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
                     <div className="text-xs text-muted-foreground">Phone</div>
-                    <div className="font-medium">
-                      {activeTx.msisdn || "N/A"}
-                    </div>
+                    <div className="font-medium">{activeTx.msisdn || "N/A"}</div>
                   </div>
 
                   <div>
@@ -331,19 +287,13 @@ const SanitaryTransactionTable = () => {
                   </div>
 
                   <div>
-                    <div className="text-xs text-muted-foreground">
-                      Quantity
-                    </div>
+                    <div className="text-xs text-muted-foreground">Quantity</div>
                     <div className="font-medium">{activeTx.quantity}</div>
                   </div>
 
                   <div>
-                    <div className="text-xs text-muted-foreground">
-                      Merchant
-                    </div>
-                    <div className="font-medium">
-                      {activeTx.merchant || "N/A"}
-                    </div>
+                    <div className="text-xs text-muted-foreground">Merchant</div>
+                    <div className="font-medium">{activeTx.merchant || "N/A"}</div>
                   </div>
 
                   <div>
@@ -356,9 +306,7 @@ const SanitaryTransactionTable = () => {
                   </div>
 
                   <div>
-                    <div className="text-xs text-muted-foreground">
-                      Machine Code
-                    </div>
+                    <div className="text-xs text-muted-foreground">Machine Code</div>
                     <div className="font-medium">
                       {activeTx.machine_code || "N/A"}
                     </div>
@@ -368,7 +316,7 @@ const SanitaryTransactionTable = () => {
                     <div className="text-xs text-muted-foreground">
                       Transaction Number
                     </div>
-                    <div className="font-small">
+                    <div className="font-medium">
                       {activeTx.transaction_number || "N/A"}
                     </div>
                   </div>
@@ -379,9 +327,7 @@ const SanitaryTransactionTable = () => {
                   </div>
 
                   <div>
-                    <div className="text-xs text-muted-foreground">
-                      Epoch Time
-                    </div>
+                    <div className="text-xs text-muted-foreground">Epoch Time</div>
                     <div className="font-medium">{activeTx.epoch_time}</div>
                   </div>
                 </div>
