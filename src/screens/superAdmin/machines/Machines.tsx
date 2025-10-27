@@ -9,11 +9,16 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardHeader, CardContent } from "@/components/ui/card"
+import type { ApiMachine, MachinesResponse } from "./Types"
 
 const categories = [
   { id: "Butterfly", label: "🦋 Butterfly" },
-  { id: "BodyWash", label: "🛁 Body Wash" },
   { id: "Cooking Oil", label: "🍳 Cooking Oil" },
+  { id: "CleaningProducts", label: "Cleaning Products" },
+]
+
+const subCategories = [
+  { id: "BodyWash", label: "🛁 Body Wash" },
   { id: "Dishwash", label: "🍽️ Dishwash" },
   { id: "Handwash", label: "🧼 Handwash" },
   { id: "Laundry", label: "👕 Laundry" },
@@ -29,7 +34,8 @@ const Machines = () => {
   const [currentPage, setCurrentPage] = useState(1)
   const [machinesData, setMachinesData] = useState<{ [category: string]: ApiMachine[] } | null>(null)
   const [machineStockMap, setMachineStockMap] = useState<{ [code: string]: string }>({})
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(true);
+  const [isShowCleaningProducts, setIsShowCleaningProducts] = useState(false);
 
   const itemsPerPage = 10
 
@@ -71,14 +77,14 @@ const Machines = () => {
 
   const allMachines = machinesData
     ? Object.entries(machinesData).flatMap(([category, machines]) =>
-        machines.map((machine) => ({
-          ...machine,
-          category: category,
-          status: machine.statusCode === "r" ? "Inactive" : machine.statusCode === "g" ? "Active" : "Pending",
-          lastActive: timeConverter(machine.created_at),
-          stockStatus: machineStockMap[machine.machine_code] || "Unknown",
-        }))
-      )
+      machines.map((machine) => ({
+        ...machine,
+        category: category,
+        status: machine.statusCode === "r" ? "Inactive" : machine.statusCode === "g" ? "Active" : "Pending",
+        lastActive: timeConverter(machine.created_at),
+        stockStatus: machineStockMap[machine.machine_code] || "Unknown",
+      }))
+    )
     : []
 
   const filteredMachines = allMachines.filter((machine) => {
@@ -139,13 +145,40 @@ const Machines = () => {
                 onClick={() => {
                   setActiveCategory(category.id)
                   setCurrentPage(1)
+                  if (category.id === "CleaningProducts") {
+                    setIsShowCleaningProducts(true);
+                    setActiveCategory(subCategories[0].id);
+
+                  } else {
+                    setIsShowCleaningProducts(false);
+                  }
+                  // setIsShowCleaningProducts
                 }}
-                className={activeCategory === category.id ? "bg-teal-600 hover:bg-teal-700" : ""}
+                className={activeCategory === category.id ? "bg-teal-600 hover:bg-teal-700 cursor-pointer" : "cursor-pointer"}
               >
                 {category.label}
               </Button>
             ))}
           </div>
+
+          {
+            isShowCleaningProducts && (<div className="flex flex-wrap gap-2 mt-2">
+              {subCategories.map((subCategory) => (
+                <Button
+                  key={subCategory.id}
+                  variant={activeCategory === subCategory.id ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => {
+                    setActiveCategory(subCategory.id)
+                    setCurrentPage(1)
+                  }}
+                  className={activeCategory === subCategory.id ? "bg-teal-600 hover:bg-teal-700 cursor-pointer" : "cursor-pointer"}
+                >
+                  {subCategory.label}
+                </Button>
+              ))}
+            </div>)
+          }
         </div>
 
         {/* Table View */}
@@ -161,7 +194,7 @@ const Machines = () => {
             ) : paginatedMachines.length === 0 ? (
               <p className="text-center py-6">No machines found.</p>
             ) : (
-              
+
               <table className="min-w-full text-sm overflow-hidden rounded-xl border border-gray-200">
                 <thead className="bg-teal-600 text-white">
                   <tr>

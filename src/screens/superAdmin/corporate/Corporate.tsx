@@ -259,7 +259,7 @@ const Corporate = () => {
   const totalTopupAmount = allData.total_sum || 0;
   const uniqueClients = allData.total_companies || 0;
   const totalTopups = allData.total_topups || 0;
-  const monthlyTopups = allData.currentMonthlyTopups || 0;
+  const monthlyTopups = allData.totalEmployees || 0;
 
   return (
     <div>
@@ -312,12 +312,12 @@ const Corporate = () => {
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">This Month</CardTitle>
+              <CardTitle className="text-sm font-medium">Total Employees</CardTitle>
               <IconCalendar className="h-4 w-4 text-purple-500" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-purple-600">
-                {monthlyTopups || 0}
+                {formatCurrency(monthlyTopups) || 0}
               </div>
               <p className="text-xs text-muted-foreground">Recent topups</p>
             </CardContent>

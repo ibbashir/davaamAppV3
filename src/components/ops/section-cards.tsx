@@ -92,7 +92,7 @@ const formatCurrency = (amount: number) => {
       </Card>
       <Card className="@container/card">
         <CardHeader>
-          <CardDescription>Napkins Dispenseds</CardDescription>
+          <CardDescription>Napkins Dispensed</CardDescription>
           <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
             {cardsData?.napkins}
           </CardTitle>  
