@@ -1,212 +1,73 @@
-import React, { useState } from 'react';
-import { FaBuilding, FaListAlt, FaArrowLeft } from 'react-icons/fa';
-import CorporateRegisterForm from './corporateRegisterForm';
-import RegisteredCorporatesList from './registeredCorporates';
-import CorporateHistory from './corporateHistory';
+"use client";
+
+import React, { useState } from "react";
+import { FaPlus } from "react-icons/fa";
+import CorporateRegisterForm from "./corporateRegisterForm";
+import RegisteredCorporatesList from "./registeredCorporates";
+import CorporateHistory from "./corporateHistory";
 
 const CorporateTopup = () => {
-  const [currentView, setCurrentView] = useState('main'); // 'main', 'register', 'view'
-
-  // Main Dashboard Component
-  const MainDashboard = () => (
-    <div style={contentStyle}>
-      <h1 style={titleStyle}>Corporate Topup</h1>
-      
-      <div style={buttonsContainerStyle}>
-        <button 
-          style={primaryButtonStyle}
-          onClick={() => setCurrentView('register')}
-          onMouseOver={(e) => {
-            e.target.style.transform = 'translateY(-2px)';
-            e.target.style.boxShadow = '0 8px 25px rgba(0, 0, 0, 0.15)';
-          }}
-          onMouseOut={(e) => {
-            e.target.style.transform = 'translateY(0)';
-            e.target.style.boxShadow = '0 4px 15px rgba(0, 0, 0, 0.1)';
-          }}
-        >
-          <FaBuilding />
-          Register New Corporate
-        </button>
-        
-        <button 
-          style={secondaryButtonStyle}
-          onClick={() => setCurrentView('view')}
-          onMouseOver={(e) => {
-            e.target.style.transform = 'translateY(-2px)';
-            e.target.style.background = '#764ba2';
-            e.target.style.color = 'white';
-            e.target.style.boxShadow = '0 8px 25px rgba(0, 0, 0, 0.15)';
-          }}
-          onMouseOut={(e) => {
-            e.target.style.transform = 'translateY(0)';
-            e.target.style.background = 'white';
-            e.target.style.color = '#764ba2';
-            e.target.style.boxShadow = '0 4px 15px rgba(0, 0, 0, 0.1)';
-          }}
-        >
-          <FaListAlt />
-          View Registered Corporates
-        </button>
-        <button 
-          style={secondaryButtonStyle}
-          onClick={() => setCurrentView('topupHistory')}
-          onMouseOver={(e) => {
-            e.target.style.transform = 'translateY(-2px)';
-            e.target.style.background = '#764ba2';
-            e.target.style.color = 'white';
-            e.target.style.boxShadow = '0 8px 25px rgba(0, 0, 0, 0.15)';
-          }}
-          onMouseOut={(e) => {
-            e.target.style.transform = 'translateY(0)';
-            e.target.style.background = 'white';
-            e.target.style.color = '#764ba2';
-            e.target.style.boxShadow = '0 4px 15px rgba(0, 0, 0, 0.1)';
-          }}
-        >
-          <FaListAlt />
-          View Corporates History
-        </button>
-      </div>
-    </div>
-  );
-
-  // Register New Corporate Component - Using your form
-  const RegisterCorporate = () => (
-    <div style={registerContainerStyle}>
-      <div style={headerContainerStyle}>
-        <button 
-          style={backButtonStyle}
-          onClick={() => setCurrentView('main')}
-          onMouseOver={(e) => {
-            e.target.style.background = '#764ba2';
-            e.target.style.color = 'white';
-          }}
-          onMouseOut={(e) => {
-            e.target.style.background = 'white';
-            e.target.style.color = '#764ba2';
-          }}
-        >
-          <FaArrowLeft style={{ marginRight: '8px' }} />
-          Back to Dashboard
-        </button>
-      </div>
-      <CorporateRegisterForm />
-    </div>
-  );
-
-  // Render the appropriate component based on currentView
-  const renderCurrentView = () => {
-    switch (currentView) {
-      case 'register':
-        return <RegisterCorporate />;
-      case 'view':
-        return <RegisteredCorporatesList />;
-      case 'topupHistory':
-        return <CorporateHistory />;
-      default:
-        return <MainDashboard />;
-    }
-  };
+  const [showModal, setShowModal] = useState(false);
 
   return (
-    <div style={containerStyle}>
-      {renderCurrentView()}
+    <div className="min-h-screen bg-gray-50 p-6">
+      {/* Header */}
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-semibold text-gray-800">
+          Corporate Topup Management
+        </h1>
+        <button
+          onClick={() => setShowModal(true)}
+          className="flex items-center gap-2 bg-teal-600 text-white px-4 py-2 rounded-lg hover:bg-teal-700 transition"
+        >
+          <FaPlus /> Add Corporate
+        </button>
+      </div>
+
+      {/* Tables Section */}
+      <div className="space-y-6">
+        <div className="bg-white rounded-xl shadow p-4">
+          <h2 className="text-lg font-semibold mb-3 text-gray-700">
+            Registered Corporates
+          </h2>
+          <RegisteredCorporatesList />
+        </div>
+
+        <div className="bg-white rounded-xl shadow p-4">
+          <h2 className="text-lg font-semibold mb-3 text-gray-700">
+            Corporate History
+          </h2>
+          <CorporateHistory />
+        </div>
+      </div>
+
+      {/* ✅ Modal Section */}
+      {showModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          {/* Background blur but not black */}
+          <div
+            className="absolute inset-0 bg-white/70 backdrop-blur-sm"
+            onClick={() => setShowModal(false)}
+          ></div>
+
+          {/* Modal Content */}
+          <div className="relative bg-white rounded-xl shadow-lg w-full max-w-3xl max-h-[90vh] overflow-y-auto p-6 z-10">
+            <h2 className="text-xl font-semibold mb-4 text-gray-800 border-b pb-2">
+              Register New Corporate
+            </h2>
+            <CorporateRegisterForm closeModal={() => setShowModal(false)} />
+
+            <button
+              onClick={() => setShowModal(false)}
+              className="absolute top-3 right-4 text-gray-500 hover:text-gray-700 text-xl"
+            >
+              ✕
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
-
-// Styles
-const containerStyle = {
-  display: 'flex',
-  justifyContent: 'center',
-  alignItems: 'flex-start',
-  minHeight: '100vh',
-  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-  padding: '20px'
-};
-
-const registerContainerStyle = {
-  width: '100%',
-  maxWidth: '1200px'
-};
-
-const contentStyle = {
-  background: 'white',
-  borderRadius: '12px',
-  boxShadow: '0 10px 30px rgba(0, 0, 0, 0.2)',
-  padding: '40px',
-  maxWidth: '900px',
-  width: '100%',
-  textAlign: 'center'
-};
-
-const headerContainerStyle = {
-  marginBottom: '20px'
-};
-
-const titleStyle = {
-  fontSize: '2.5rem',
-  fontWeight: '700',
-  background: 'linear-gradient(135deg, #667eea, #764ba2)',
-  WebkitBackgroundClip: 'text',
-  WebkitTextFillColor: 'transparent',
-  backgroundClip: 'text',
-  marginBottom: '40px'
-};
-
-const buttonsContainerStyle = {
-  display: 'flex',
-  gap: '20px',
-  justifyContent: 'center',
-  flexWrap: 'wrap'
-};
-
-const baseButtonStyle = {
-  display: 'flex',
-  alignItems: 'center',
-  gap: '12px',
-  padding: '16px 32px',
-  border: 'none',
-  borderRadius: '8px',
-  fontSize: '1.1rem',
-  fontWeight: '600',
-  cursor: 'pointer',
-  transition: 'all 0.3s ease',
-  minWidth: '250px',
-  justifyContent: 'center',
-  boxShadow: '0 4px 15px rgba(0, 0, 0, 0.1)'
-};
-
-const primaryButtonStyle = {
-  ...baseButtonStyle,
-  background: 'linear-gradient(135deg, #667eea, #764ba2)',
-  color: 'white'
-};
-
-const secondaryButtonStyle = {
-  ...baseButtonStyle,
-  background: 'white',
-  color: '#764ba2',
-  border: '2px solid #764ba2'
-};
-
-const backButtonStyle = {
-  display: 'flex',
-  alignItems: 'center',
-  gap: '8px',
-  padding: '12px 24px',
-  border: '2px solid #764ba2',
-  borderRadius: '6px',
-  background: 'white',
-  color: '#764ba2',
-  cursor: 'pointer',
-  fontWeight: '600',
-  transition: 'all 0.3s ease',
-  fontSize: '1rem',
-  marginBottom: '20px'
-};
-
-
 
 export default CorporateTopup;
