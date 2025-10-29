@@ -1,14 +1,12 @@
-"use client"
-
 import * as React from "react"
 import { ResponsivePie } from "@nivo/pie"
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card"
 import { postRequest } from "@/Apis/Api"
 
 type DispensingPieResponse = {
-    butterflyBrandsId: string[]
-    butterflyAmount: number[]
-    butterflyTransactionCounts: number[]
+    cookingOilBrandsId: string[]
+    cookingOilAmount: number[]
+    cookingOilTransactionCounts: number[]
     totalRevenue: number
     totalTransactions: number
 }
@@ -33,11 +31,11 @@ export default function SuperAdminDashboardDispensing() {
             try {
                 const res = await postRequest<DispensingPieResponse>("/superadmin/PieMainDashboardDispensing", {})
 
-                const transformed: NivoPieData[] = res.butterflyBrandsId.map((brand, i) => ({
+                const transformed: NivoPieData[] = res.cookingOilBrandsId.map((brand, i) => ({
                     id: brand,
                     label: brand,
-                    value: res.butterflyAmount[i],
-                    transactions: res.butterflyTransactionCounts[i],
+                    value: res.cookingOilAmount[i],
+                    transactions: res.cookingOilTransactionCounts[i],
                 }))
 
                 setData(transformed)
