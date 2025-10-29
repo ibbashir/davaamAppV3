@@ -75,11 +75,11 @@ export const SUPER_ADMIN_SIDEBAR_ROUTES = () => {
   return [
     { title: "Dashboard", url: SUPERADMIN_DASHBOARD, icon: IconHome },
     { title: "Create Roles", url: SUPERADMIN_ROLES, icon: IconUserPlus },
-    {
-      title: "Corporate Clients",
-      url: SUPERADMIN_CORPORATE,
-      icon: IconUserStar,
-    },
+    // {
+    //   title: "Corporate Clients",
+    //   url: SUPERADMIN_CORPORATE,
+    //   icon: IconUserStar,
+    // },
     {
       title: "Send Notifications",
       url: SUPERADMIN_NOTIFICATIONS,
