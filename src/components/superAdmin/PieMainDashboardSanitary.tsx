@@ -1,10 +1,8 @@
-"use client"
-
 import * as React from "react"
 import { ResponsivePie } from "@nivo/pie"
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card"
 import { postRequest } from "@/Apis/Api"
-import SuperAdminDashboardDispensing from "./PieMainDashboardDispensing"
+// import SuperAdminDashboardDispensing from "./PieMainDashboardDispensing"
 
 type PieMainDashboardSanitaryResponse = {
     butterflyBrandsId: string[]
@@ -12,6 +10,8 @@ type PieMainDashboardSanitaryResponse = {
     butterflyTransactionCounts: number[]
     totalRevenue: number
     totalTransactions: number
+    butterflyAmountPercentage: number[]
+    butterflyTransactionCountsPercentage: number[]
 }
 
 type NivoPieData = {
@@ -37,8 +37,8 @@ export default function SuperAdminDashboardSanitary() {
                 const transformed: NivoPieData[] = res.butterflyBrandsId.map((brand, i) => ({
                     id: brand,
                     label: brand,
-                    value: res.butterflyAmount[i],
-                    transactions: res.butterflyTransactionCounts[i]
+                    value: res.butterflyAmountPercentage[i],
+                    transactions: res.butterflyTransactionCountsPercentage[i]
                 }))
 
                 setData(transformed)
@@ -61,44 +61,44 @@ export default function SuperAdminDashboardSanitary() {
 
     if (error) {
         return <Card className="flex justify-center items-center h-[300px] text-destructive"><p>{error}</p></Card>
-    }  
+    }
 
     return (
-            <Card>
-                <CardHeader>
-                    <CardTitle>Sanitary Brands Revenue</CardTitle>
-                    <CardDescription>Revenue distribution with total stats</CardDescription>
-                    <div className="mt-3 text-sm space-y-1">
-                        <div>📦 <strong className="">Total Revenue:</strong> Rs {totalRevenue.toLocaleString()}</div>
-                        <div>🧾 <strong className="">Total Transactions:</strong> {totalTransactions.toLocaleString()}</div>
-                    </div>
-                </CardHeader>
-                <CardContent className="h-[400px]">
-                    <ResponsivePie
-                        data={data}
-                        margin={{ top: 40, right: 80, bottom: 80, left: 80 }}
-                        innerRadius={0.5}
-                        padAngle={1}
-                        cornerRadius={4}
-                        activeOuterRadiusOffset={8}
-                        colors={{ scheme: "paired" }}
-                        borderWidth={1}
-                        borderColor={{ from: "color", modifiers: [["darker", 0.2]] }}
-                        arcLinkLabelsSkipAngle={10}
-                        arcLinkLabelsTextColor="#333"
-                        arcLinkLabelsThickness={2}
-                        arcLinkLabelsColor={{ from: "color" }}
-                        arcLabelsSkipAngle={10}
-                        arcLabelsTextColor={{ from: "color", modifiers: [["darker", 2]] }}
-                        tooltip={({ datum }) => (
-                            <div className="px-3 py-1 text-sm bg-white shadow-md rounded-md border border-gray-200 text-black">
-                                <strong>{datum.label}</strong><br />
-                                Revenue: Rs {datum.value.toLocaleString()}<br />
-                                Transactions: {(datum.data as any).transactions}
-                            </div>
-                        )}
-                    />
-                </CardContent>
-            </Card>
+        <Card>
+            <CardHeader>
+                <CardTitle>Sanitary Brands Revenue</CardTitle>
+                <CardDescription>Revenue distribution with total stats</CardDescription>
+                <div className="mt-3 text-sm space-y-1">
+                    <div>📦 <strong className="">Total Revenue:</strong> Rs {totalRevenue.toLocaleString()}</div>
+                    <div>🧾 <strong className="">Total Transactions:</strong> {totalTransactions.toLocaleString()}</div>
+                </div>
+            </CardHeader>
+            <CardContent className="h-[400px]">
+                <ResponsivePie
+                    data={data}
+                    margin={{ top: 40, right: 80, bottom: 80, left: 80 }}
+                    innerRadius={0.5}
+                    padAngle={1}
+                    cornerRadius={4}
+                    activeOuterRadiusOffset={8}
+                    colors={{ scheme: "paired" }}
+                    borderWidth={1}
+                    borderColor={{ from: "color", modifiers: [["darker", 0.2]] }}
+                    arcLinkLabelsSkipAngle={10}
+                    arcLinkLabelsTextColor="#333"
+                    arcLinkLabelsThickness={2}
+                    arcLinkLabelsColor={{ from: "color" }}
+                    arcLabelsSkipAngle={10}
+                    arcLabelsTextColor={{ from: "color", modifiers: [["darker", 2]] }}
+                    tooltip={({ datum }) => (
+                        <div className="px-3 py-1 text-sm bg-white shadow-md rounded-md border border-gray-200 text-black">
+                            <strong>{datum.label}</strong><br />
+                            Revenue: {datum.value.toLocaleString()}%<br />
+                            Transactions: {(datum.data as any).transactions.toLocaleString()}%
+                        </div>
+                    )}
+                />
+            </CardContent>
+        </Card>
     )
 }
