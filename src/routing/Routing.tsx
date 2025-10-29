@@ -95,7 +95,7 @@ import {
 import OpsMachineVisit from '@/screens/ops/machines/MachineVisit'
 import Reports from '@/screens/corporate/reports/reports'
 import ResetPassword from '@/screens/forgetPassword/ResetPassword'
-import CorporateTopup from '@/screens/superAdmin/corporateTopup/corporateTopup'
+import CorporateTopup from '@/screens/superAdmin/corporateTopup'
 
 const Routing = () => {
   return (

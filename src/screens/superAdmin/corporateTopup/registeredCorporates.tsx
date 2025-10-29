@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { FaArrowLeft } from 'react-icons/fa';
 import moment from 'moment';
 
-const ViewCorporates = ({ onBack }) => {
+const RegisteredCorporatesList = ({ onBack }) => {
   const [corporates, setCorporates] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -324,4 +324,4 @@ const noMachineCodesStyle = {
   fontSize: '0.875rem'
 };
 
-export default ViewCorporates;
+export default RegisteredCorporatesList;

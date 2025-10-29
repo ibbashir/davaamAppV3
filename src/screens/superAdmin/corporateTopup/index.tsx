@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { FaBuilding, FaListAlt, FaArrowLeft } from 'react-icons/fa';
-import CorporateRegisterForm from './corporateRegisterForm'; // Adjust the import path as needed
-import ViewCorporates from './registeredCorporates';
+import CorporateRegisterForm from './corporateRegisterForm';
+import RegisteredCorporatesList from './registeredCorporates';
+import CorporateHistory from './corporateHistory';
 
 const CorporateTopup = () => {
   const [currentView, setCurrentView] = useState('main'); // 'main', 'register', 'view'
@@ -47,6 +48,25 @@ const CorporateTopup = () => {
           <FaListAlt />
           View Registered Corporates
         </button>
+        <button 
+          style={secondaryButtonStyle}
+          onClick={() => setCurrentView('topupHistory')}
+          onMouseOver={(e) => {
+            e.target.style.transform = 'translateY(-2px)';
+            e.target.style.background = '#764ba2';
+            e.target.style.color = 'white';
+            e.target.style.boxShadow = '0 8px 25px rgba(0, 0, 0, 0.15)';
+          }}
+          onMouseOut={(e) => {
+            e.target.style.transform = 'translateY(0)';
+            e.target.style.background = 'white';
+            e.target.style.color = '#764ba2';
+            e.target.style.boxShadow = '0 4px 15px rgba(0, 0, 0, 0.1)';
+          }}
+        >
+          <FaListAlt />
+          View Corporates History
+        </button>
       </div>
     </div>
   );
@@ -81,7 +101,9 @@ const CorporateTopup = () => {
       case 'register':
         return <RegisterCorporate />;
       case 'view':
-        return <ViewCorporates />;
+        return <RegisteredCorporatesList />;
+      case 'topupHistory':
+        return <CorporateHistory />;
       default:
         return <MainDashboard />;
     }
