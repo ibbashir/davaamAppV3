@@ -3,7 +3,6 @@
 import React, { useState, useEffect } from "react";
 import { getRequest, postRequest } from "@/Apis/Api";
 import moment from "moment";
-import axios from "axios";
 import {
   IconChevronLeft,
   IconChevronsLeft,
@@ -26,7 +25,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { SiteHeader } from "@/components/superAdmin/site-header";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -93,37 +91,46 @@ const RegisteredCorporatesList = ({ onBack }) => {
     currentPage * itemsPerPage
   );
 
-  // Render machine codes neatly
-  const renderMachineCodes = (machineCodes) => {
+  // ✅ Fixed: render machine codes properly (handles array, JSON string, comma-separated)
+  const renderMachineCodes = (machineCodes: any) => {
     if (!machineCodes)
       return <span className="text-gray-400 italic">No machines</span>;
 
-    let codesArray = machineCodes;
-    if (typeof machineCodes === "string") {
+    let codesArray: string[] = [];
+
+    if (Array.isArray(machineCodes)) {
+      codesArray = machineCodes;
+    } else if (typeof machineCodes === "string") {
       try {
-        codesArray = JSON.parse(machineCodes);
+        const parsed = JSON.parse(machineCodes);
+        if (Array.isArray(parsed)) {
+          codesArray = parsed;
+        } else if (typeof parsed === "string") {
+          codesArray = parsed.split(",").map((c) => c.trim());
+        } else {
+          codesArray = [machineCodes];
+        }
       } catch {
-        codesArray = [machineCodes];
+        codesArray = machineCodes.split(",").map((c) => c.trim());
       }
     }
 
-    if (Array.isArray(codesArray) && codesArray.length > 0) {
-      return (
-        <div className="flex flex-wrap gap-1 justify-center">
-          {codesArray.map((code, i) => (
-            <Badge
-              key={i}
-              variant="outline"
-              className="bg-teal-50 text-teal-700 border border-teal-200"
-            >
-              {code}
-            </Badge>
-          ))}
-        </div>
-      );
-    }
+    if (codesArray.length === 0)
+      return <span className="text-gray-400 italic">No machines</span>;
 
-    return <span className="text-gray-400 italic">No machines</span>;
+    return (
+      <div className="flex flex-wrap gap-1 justify-center">
+        {codesArray.map((code, i) => (
+          <Badge
+            key={i}
+            variant="outline"
+            className="bg-teal-50 text-teal-700 border border-teal-200"
+          >
+            {code}
+          </Badge>
+        ))}
+      </div>
+    );
   };
 
   if (loading) {
@@ -140,10 +147,9 @@ const RegisteredCorporatesList = ({ onBack }) => {
     <div>
       <SiteHeader title="" />
       <div className="flex flex-col gap-4 p-4 lg:gap-6 lg:p-6">
-        {/* Corporates Table */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-teal-700">
+            <CardTitle className="text-black">
               Corporates Dashboard
             </CardTitle>
             <CardDescription>
@@ -158,6 +164,7 @@ const RegisteredCorporatesList = ({ onBack }) => {
               </div>
             )}
 
+            {/* Table */}
             <div className="rounded-2xl border overflow-hidden">
               <Table className="rounded-2xl overflow-hidden">
                 <TableHeader>
@@ -337,7 +344,7 @@ const RegisteredCorporatesList = ({ onBack }) => {
                     body
                   );
 
-                  if (res.status >= 200 && res.status < 300) {
+                  if (res?.success || res?.status >= 200) {
                     toast.success("Topup successful!");
                   } else {
                     toast.error("Topup failed!");

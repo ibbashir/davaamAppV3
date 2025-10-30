@@ -1,4 +1,4 @@
- "use client";
+"use client";
 
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -73,6 +73,7 @@ const CorporateRegisterForm: React.FC<CorporateRegisterFormProps> = ({
     const filteredCodes = formData.machine_codes.filter(
       (code) => code.trim() !== ""
     );
+
     if (filteredCodes.length === 0) {
       alert("Please add at least one machine code");
       return;
@@ -82,22 +83,27 @@ const CorporateRegisterForm: React.FC<CorporateRegisterFormProps> = ({
       corporate_name: formData.corporate_name.trim(),
       location: formData.location.trim(),
       topuplimit: formData.topuplimit,
-      machine_codes: JSON.stringify(filteredCodes),
+      machine_codes: JSON.stringify(filteredCodes), // ✅ send as JSON string
     };
 
     setLoading(true);
     try {
-      const response = await postRequest(
+      const response: any = await postRequest(
         "/superadmin/corporateRegisteration",
         submissionData
       );
-      if (response?.status === 200 || response?.status === 201 || response?.success) {
-        alert("Corporate registered successfully!");
+
+      console.log("Corporate Registration Response:", response);
+
+      // ✅ handle success according to backend response
+      if (response?.success || response?.message?.toLowerCase()?.includes("success")) {
+        alert("✅ Corporate registered successfully!");
         closeModal();
       } else {
-        throw new Error("Failed to register corporate");
+        alert("❌ Failed to register corporate. Please try again.");
       }
     } catch (error: any) {
+      console.error("Registration error:", error);
       alert(error?.message || "Error occurred during registration");
     } finally {
       setLoading(false);
@@ -123,7 +129,9 @@ const CorporateRegisterForm: React.FC<CorporateRegisterFormProps> = ({
             <Input
               placeholder="Enter corporate name"
               value={formData.corporate_name}
-              onChange={(e) => handleInputChange("corporate_name", e.target.value)}
+              onChange={(e) =>
+                handleInputChange("corporate_name", e.target.value)
+              }
               disabled={loading}
               required
             />
@@ -154,7 +162,9 @@ const CorporateRegisterForm: React.FC<CorporateRegisterFormProps> = ({
               type="number"
               placeholder="Enter top-up limit"
               value={formData.topuplimit}
-              onChange={(e) => handleInputChange("topuplimit", e.target.value)}
+              onChange={(e) =>
+                handleInputChange("topuplimit", e.target.value)
+              }
               min="0"
               step="0.01"
               disabled={loading}
