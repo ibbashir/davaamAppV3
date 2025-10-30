@@ -1,5 +1,3 @@
-"use client"
-
 import { useEffect, useState } from "react"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -121,9 +119,11 @@ const AllCorporatesUsers = () => {
                   <div className="bg-white rounded-2xl p-4 shadow-md border border-green-50">
                     <div className="flex items-start justify-between">
                       <div>
-                        <div className="text-sm text-muted-foreground">#{(currentPage - 1) * itemsPerPage + idx + 1}</div>
-                        <div className="text-lg font-semibold">{user.name}</div>
-                        <div className="text-sm text-muted-foreground mt-1">Phone: {user.mobile_number}</div>
+                        {/* <div className="text-sm text-muted-foreground">#{(currentPage - 1) * itemsPerPage + idx + 1}</div> */}
+                        <div className="text-lg font-semibold">
+                          {user && user?.name && user?.name?.split(" ")[0]}
+                        </div>
+                        <div className="text-sm text-muted-foreground mt-1">Emp Id: {user.mobile_number}</div>
                       </div>
 
                       <div className="text-right">

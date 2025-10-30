@@ -9,6 +9,7 @@ import {
   IconUserPlus,
   IconShare3,
   IconChartBar,
+  IconFileDescription
 } from "@tabler/icons-react";
 
 export const BASE_URL_TWO =
@@ -135,7 +136,7 @@ export const MACHINES_SIDEBAR_ROUTES = () => {
     return [
         { title: "Dashboard", url: MACHINE_DASHBOARD, icon: IconHome },
         { title: "Machines", url: MACHINE_MACHINES, icon: IconChartBar },
-        { title: "Reports", url: REPORT, icon: IconChartBar }
+        { title: "Reports", url: REPORT, icon: IconFileDescription }
     ]
 }
 

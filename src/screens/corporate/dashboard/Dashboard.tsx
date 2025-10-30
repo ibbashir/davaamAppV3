@@ -10,6 +10,8 @@ const Dashboard = () => {
   const { state } = useAuth()
   const { user } = state
 
+  console.log("Corporate Dashboard user:", user)
+
   // ✅ Extract machine_code values as array of strings/numbers
   const machineCodes = Array.isArray(user?.machines)
     ? user.machines.map((m: { machine_code: number }) => m.machine_code)
@@ -34,22 +36,27 @@ const Dashboard = () => {
 
   return (
     <>
-      <SiteHeader title=" Coperate Dashboard" />
+      <SiteHeader title=" Corporate Dashboard" />
       <div
         className="flex flex-1 flex-col"
-        
+
       >
         <div className="@container/main flex flex-1 flex-col gap-2">
           <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
+
+
+            <div className="p-4 flex flex-col gap-4">
+              {/* Cards sections (always visible) */}
+              <SanitaryTransactionTable />
+              <AllCorporatesUsers />
+            </div>
+
+            <hr />
+
             <div className="px-4 lg:px-6 flex flex-col gap-2">
               {/* Buttons area (initially visible) */}
-              <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center mb-3">
-                <div className="ml-auto text-sm text-muted-foreground">
-                  <span className="inline-block mr-2">♻️</span>
-                  <span>DavaamLife</span>
-                </div>
-              </div>
-              
+
+
               {/* Graph placeholders: only shown when toggled */}
               <div className="px-0 lg:px-6">
                 {activeGraph !== "none" && (
@@ -68,14 +75,6 @@ const Dashboard = () => {
                   </div>
                 )}
               </div>
-            </div>
-
-            <hr />
-
-            <div className="p-4 flex flex-col gap-4">
-              {/* Cards sections (always visible) */}
-              <SanitaryTransactionTable />
-              <AllCorporatesUsers />
             </div>
           </div>
         </div>
