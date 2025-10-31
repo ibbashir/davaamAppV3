@@ -1,12 +1,26 @@
 import { useState, useMemo } from "react";
 import { postRequest } from "@/Apis/Api";
-import { useAuth } from "@/contexts/AuthContext"; 
+import { useAuth } from "@/contexts/AuthContext";
 import * as XLSX from "xlsx";
+
+interface Transaction {
+  id: number;
+  amount: number;
+  created_at: string;
+  brand_id?: number;
+  machine_code?: string;
+  merchant?: string;
+  user_id?: string;
+  brand_name?: string;
+  transaction_number?: string;
+  quantity?: string;
+  // Add other fields as needed
+}
 
 export default function Report() {
   const { state } = useAuth();
   const { user } = state;
-  
+
   const machineCodes = useMemo(
     () =>
       Array.isArray(user?.machines)
@@ -21,9 +35,9 @@ export default function Report() {
     cashTotal?: number;
     onlineTotal?: number;
     cashTransactions?: any[];
-    onlineTransactions?: any[];
+    onlineTransactions?: Transaction[];
   }>({});
-  
+
   const [loading, setLoading] = useState(false);
   const [selectedDate, setSelectedDate] = useState("");
 
@@ -40,7 +54,14 @@ export default function Report() {
 
     setLoading(true);
     try {
-      const response = await postRequest("/corporates/reports", {
+      const response = await postRequest<{
+        statusCode?: number;
+        overalltotal?: number;
+        cashTotal?: number;
+        onlineTotal?: number;
+        cashTransactions?: any[];
+        onlineTransactions?: Transaction[];
+      }>("/corporates/reports", {
         machineCode: machineCodes, // Changed from machineCodes to machineCode to match backend
         Month: selectedDate // Use the selected date directly
       });
@@ -71,7 +92,7 @@ export default function Report() {
     try {
       // Create workbook
       const wb = XLSX.utils.book_new();
-      
+
       // Add summary sheet
       const summaryData = [
         ["Transaction Summary", ""],
@@ -82,7 +103,7 @@ export default function Report() {
         ["Generated on", new Date().toLocaleString()],
         ["For period", selectedDate]
       ];
-      
+
       const summaryWS = XLSX.utils.aoa_to_sheet(summaryData);
       XLSX.utils.book_append_sheet(wb, summaryWS, "Summary");
 
@@ -94,13 +115,26 @@ export default function Report() {
 
       // Add online transactions sheet if data exists
       if (data.onlineTransactions && data.onlineTransactions.length > 0) {
-        const onlineWS = XLSX.utils.json_to_sheet(data.onlineTransactions);
+        const mapOnlineTransactions = data.onlineTransactions.map((txn) => ({
+          ID: txn.id,
+          "Employee ID": txn.user_id,
+          Amount: txn.amount,
+          Date: new Date(txn.created_at).toLocaleString(),
+          "Machine Code": txn.machine_code,
+          Merchant: txn.merchant,
+          "Brand ID": txn.brand_id ?? "",
+          "Brand Name": txn.brand_name ?? "",
+          "Transaction Number": txn.transaction_number ?? "",
+          "Quantity": txn.quantity ?? "",
+        }));
+
+        const onlineWS = XLSX.utils.json_to_sheet(mapOnlineTransactions);
         XLSX.utils.book_append_sheet(wb, onlineWS, "Online Transactions");
       }
 
       // Generate file name with date
       const fileName = `transactions_report_${selectedDate || "all"}.xlsx`;
-      
+
       // Download the file
       XLSX.writeFile(wb, fileName);
     } catch (error) {
@@ -118,21 +152,7 @@ export default function Report() {
             onClick={exportToExcel}
             className="flex items-center rounded bg-green-600 px-4 py-2 font-bold text-white hover:bg-green-700"
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="mr-2 h-5 w-5"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-              />
-            </svg>
-            Export to Excel
+            Export to csv
           </button>
         )}
       </div>
@@ -187,7 +207,7 @@ export default function Report() {
       )}
 
       {data.cashTransactions && data.cashTransactions.length > 0 && (
-        <div className="mt-8">
+        <div className="mt-8 mb-8">
           <div className="flex items-center justify-between">
             <h2 className="mb-4 text-xl font-semibold">Cash Transactions</h2>
             <span className="text-sm text-gray-500">
@@ -199,7 +219,7 @@ export default function Report() {
       )}
 
       {data.onlineTransactions && data.onlineTransactions.length > 0 && (
-        <div className="mt-8">
+        <div className="mt-8 mb-8">
           <div className="flex items-center justify-between">
             <h2 className="mb-4 text-xl font-semibold">Online Transactions</h2>
             <span className="text-sm text-gray-500">
@@ -219,7 +239,7 @@ export default function Report() {
   );
 }
 
-function TransactionTable({ transactions }: { transactions: any[] }) {
+function TransactionTable({ transactions }: { transactions: Transaction[] }) {
   if (transactions.length === 0) {
     return <p className="text-gray-500">No transactions found</p>;
   }

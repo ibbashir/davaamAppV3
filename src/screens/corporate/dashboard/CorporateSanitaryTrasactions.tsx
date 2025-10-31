@@ -1,5 +1,3 @@
-"use client";
-
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -134,7 +132,7 @@ const SanitaryTransactionTable = () => {
                       <th className="text-left py-4 px-6 font-semibold">SNO</th>
                       <th className="text-left py-4 px-6 font-semibold">Amount</th>
                       <th className="text-left py-4 px-6 font-semibold">Quantity</th>
-                      <th className="text-left py-4 px-6 font-semibold">Phone Number</th>
+                      <th className="text-left py-4 px-6 font-semibold">Employee Id</th>
                       <th className="text-left py-4 px-6 font-semibold">Time</th>
                       <th className="text-left py-4 px-6 font-semibold">Machine Code</th>
                       <th className="text-left py-4 px-6 font-semibold">Actions</th>

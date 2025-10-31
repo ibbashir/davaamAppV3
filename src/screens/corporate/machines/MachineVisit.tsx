@@ -1,5 +1,3 @@
-"use client";
-
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -248,7 +246,7 @@ export default function AdminMachineVisit() {
   };
   return (
     <div>
-      <SiteHeader title="🌍 Super Admin Machine Dashboard" />
+      <SiteHeader title="🌍 Machine Detail" />
       <div className="min-h-screen bg-gradient-to-b from-green-50 to-teal-50 p-6">
         <div className="mx-auto max-w-7xl">
           <Tabs
