@@ -38,27 +38,30 @@ const CorporateRegisterForm: React.FC<CorporateRegisterFormProps> = ({
     machine_codes: [""],
   });
   const [loading, setLoading] = useState(false);
-  const [newMachineCode, setNewMachineCode] = useState("");
 
   const handleInputChange = (field: keyof CorporateFormData, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
   const addMachineCode = () => {
-    if (newMachineCode.trim()) {
-      setFormData((prev) => ({
-        ...prev,
-        machine_codes: [...prev.machine_codes, newMachineCode.trim()],
-      }));
-      setNewMachineCode("");
-    }
+    setFormData((prev) => ({
+      ...prev,
+      machine_codes: [...prev.machine_codes, ""],
+    }));
   };
 
   const removeMachineCode = (index: number) => {
-    setFormData((prev) => ({
-      ...prev,
-      machine_codes: prev.machine_codes.filter((_, i) => i !== index),
-    }));
+    if (formData.machine_codes.length === 1) {
+      // Don't remove the last one, just clear it
+      const updatedCodes = [...formData.machine_codes];
+      updatedCodes[index] = "";
+      setFormData((prev) => ({ ...prev, machine_codes: updatedCodes }));
+    } else {
+      setFormData((prev) => ({
+        ...prev,
+        machine_codes: prev.machine_codes.filter((_, i) => i !== index),
+      }));
+    }
   };
 
   const handleMachineCodeInputChange = (index: number, value: string) => {
@@ -70,6 +73,7 @@ const CorporateRegisterForm: React.FC<CorporateRegisterFormProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    // Filter out empty machine codes
     const filteredCodes = formData.machine_codes.filter(
       (code) => code.trim() !== ""
     );
@@ -83,7 +87,7 @@ const CorporateRegisterForm: React.FC<CorporateRegisterFormProps> = ({
       corporate_name: formData.corporate_name.trim(),
       location: formData.location.trim(),
       topuplimit: formData.topuplimit,
-      machine_codes: JSON.stringify(filteredCodes), // ✅ send as JSON string
+      machine_codes: JSON.stringify(filteredCodes),
     };
 
     setLoading(true);
@@ -95,7 +99,6 @@ const CorporateRegisterForm: React.FC<CorporateRegisterFormProps> = ({
 
       console.log("Corporate Registration Response:", response);
 
-      // ✅ handle success according to backend response
       if (response?.success || response?.message?.toLowerCase()?.includes("success")) {
         alert("✅ Corporate registered successfully!");
         closeModal();
@@ -189,43 +192,27 @@ const CorporateRegisterForm: React.FC<CorporateRegisterFormProps> = ({
                   }
                   disabled={loading}
                 />
-                {formData.machine_codes.length > 1 && (
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="icon"
-                    onClick={() => removeMachineCode(index)}
-                    disabled={loading}
-                    className="border-red-200 hover:bg-red-50 text-red-500"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                )}
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  onClick={() => removeMachineCode(index)}
+                  disabled={loading}
+                  className="border-red-200 hover:bg-red-50 text-red-500"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
               </div>
             ))}
 
-            <div className="flex gap-2">
-              <Input
-                placeholder="Enter new machine code"
-                value={newMachineCode}
-                onChange={(e) => setNewMachineCode(e.target.value)}
-                onKeyPress={(e) => {
-                  if (e.key === "Enter") {
-                    e.preventDefault();
-                    addMachineCode();
-                  }
-                }}
-                disabled={loading}
-              />
-              <Button
-                type="button"
-                onClick={addMachineCode}
-                disabled={loading}
-                className="bg-teal-600 hover:bg-teal-700 text-white flex items-center gap-1"
-              >
-                <Plus className="h-4 w-4" /> Add
-              </Button>
-            </div>
+            <Button
+              type="button"
+              onClick={addMachineCode}
+              disabled={loading}
+              className="bg-teal-600 hover:bg-teal-700 text-white flex items-center gap-1 w-full"
+            >
+              <Plus className="h-4 w-4" /> Add Machine Code
+            </Button>
           </div>
 
           {/* Footer */}

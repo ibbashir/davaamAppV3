@@ -336,7 +336,7 @@ const RegisteredCorporatesList = ({ onBack }) => {
                     )
                       ? selectedCorporate.machine_codes
                       : [selectedCorporate?.machine_codes],
-                    purposeOfPayment: "Monthly Topup",
+                    purposeOfPayment: `Monthly Topup for ${selectedCorporate.corporate_name || "Unknown Company"} amount of ${selectedCorporate.topuplimit || 0}`,
                   };
 
                   const res = await postRequest(
