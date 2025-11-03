@@ -1,5 +1,3 @@
-"use client"
-
 import { useState, useEffect, useMemo } from "react"
 import { useNavigate } from "react-router-dom"
 import { motion, AnimatePresence } from "framer-motion"
@@ -222,7 +220,7 @@ const CorporateMachines = () => {
 
         {/* Fixed Pagination */}
         {paginatedMachines.length > 0 && (
-          <div className="flex items-center justify-between px-4 mt-6">
+          <div className="flex items-center justify-between mt-6">
             <div className="text-muted-foreground hidden flex-1 text-sm lg:flex">
               Showing {paginatedMachines.length} of {filteredMachines.length} machines
             </div>

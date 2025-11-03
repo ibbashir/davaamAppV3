@@ -77,7 +77,7 @@ export default function PieCorporateDashboardSanitary({machineCodes}:PieCorporat
                     <div className="text-black text-lg">🧾 <span className="">Total Transactions:</span> {totalTransactions.toLocaleString()}</div>
                 </div>
             </CardHeader>
-            <CardContent className="h-[400px]">
+            <CardContent className="h-[445px]">
                 <ResponsivePie
                     data={data}
                     margin={{ top: 40, right: 80, bottom: 80, left: 80 }}
