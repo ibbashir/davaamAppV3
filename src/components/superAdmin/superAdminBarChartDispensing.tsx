@@ -151,10 +151,30 @@ export default function SuperAdminDispensingBarChart() {
             margin={{ top: 50, right: 130, bottom: 50, left: 60 }}
             padding={0.3}
             indexScale={{ type: "band", round: true }}
-            axisBottom={{
-              legend: view === "weekly" ? "Date" : "Month",
+           axisBottom={{
+              tickRotation: -90, // rotate labels
+              legend: view === "weekly" ? "Date" : "",
               legendPosition: "middle",
-              legendOffset: 32,
+              legendOffset: 50,
+              format: (value) => {
+                // Shorten month names
+                const monthMap: Record<string, string> = {
+                  JANUARY: "Jan",
+                  FEBRUARY: "Feb",
+                  MARCH: "Mar",
+                  APRIL: "Apr",
+                  MAY: "May",
+                  JUNE: "Jun",
+                  JULY: "Jul",
+                  AUGUST: "Aug",
+                  SEPTEMBER: "Sep",
+                  OCTOBER: "Oct",
+                  NOVEMBER: "Nov",
+                  DECEMBER: "Dec",
+                };
+                const key = String(value);
+                return monthMap[key] || key; // if not a month, return as is
+              },
             }}
             axisLeft={{
               legend: metric === "revenue" ? "Revenue (Rs)" : "Transactions",

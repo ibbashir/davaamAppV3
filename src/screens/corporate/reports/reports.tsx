@@ -2,6 +2,7 @@ import { useState, useMemo } from "react";
 import { postRequest } from "@/Apis/Api";
 import { useAuth } from "@/contexts/AuthContext";
 import * as XLSX from "xlsx";
+import { SiteHeader } from "@/components/superAdmin/site-header";
 
 interface Transaction {
   id: number;
@@ -144,97 +145,100 @@ export default function Report() {
   };
 
   return (
-    <div className="mt-5 px-4 sm:px-6 lg:px-8">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Transaction Report</h1>
-        {data.overalltotal !== undefined && data.overalltotal > 0 && (
+    <div>
+      <SiteHeader title="📚 Transaction Report" />
+
+      <div className=" sm:px-6 lg:px-8 py-2">
+        <div className="flex items-center justify-between">
+          {data.overalltotal !== undefined && data.overalltotal > 0 && (
+            <button
+              onClick={exportToExcel}
+              className="flex items-center rounded bg-green-600 px-4 py-2 font-bold text-white hover:bg-green-700"
+            >
+              Export to csv
+            </button>
+          )}
+        </div>
+
+        <form className="mt-5 w-full max-w-lg" onSubmit={handleSubmit}>
+          <div className="-mx-3 mb-6 flex flex-wrap">
+            <div className="mb-6 w-full px-3 md:mb-0 md:w-1/2">
+              <label
+                className="mb-2 block text-xs font-bold uppercase tracking-wide text-gray-700"
+                htmlFor="month"
+              >
+                Month
+              </label>
+              <input
+                className="mb-3 block w-full appearance-none rounded border border-gray-200 bg-gray-200 px-4 py-3 leading-tight text-gray-700 focus:border-blue-500 focus:bg-white focus:outline-none"
+                id="month"
+                name="month"
+                type="month"
+                value={selectedDate}
+                onChange={handleDateChange}
+                required
+              />
+            </div>
+          </div>
           <button
-            onClick={exportToExcel}
-            className="flex items-center rounded bg-green-600 px-4 py-2 font-bold text-white hover:bg-green-700"
+            type="submit"
+            className="rounded bg-teal-500 px-4 py-2 font-bold text-white hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-opacity-50 disabled:opacity-50"
+            disabled={loading || !selectedDate}
           >
-            Export to csv
+            {loading ? "Loading..." : "Generate Report"}
           </button>
+        </form>
+
+        {data.overalltotal !== undefined && (
+          <div className="mt-8">
+            <h2 className="text-xl font-semibold">Transaction Summary</h2>
+            <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-3">
+              <div className="rounded-lg bg-white p-4 shadow">
+                <h3 className="text-gray-500">Total Transactions</h3>
+                <p className="text-2xl font-bold">{data.overalltotal}</p>
+              </div>
+              <div className="rounded-lg bg-white p-4 shadow">
+                <h3 className="text-gray-500">Cash Transactions</h3>
+                <p className="text-2xl font-bold">{data.cashTotal}</p>
+              </div>
+              <div className="rounded-lg bg-white p-4 shadow">
+                <h3 className="text-gray-500">Online Transactions</h3>
+                <p className="text-2xl font-bold">{data.onlineTotal}</p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {data.cashTransactions && data.cashTransactions.length > 0 && (
+          <div className="mt-8 mb-8">
+            <div className="flex items-center justify-between">
+              <h2 className="mb-4 text-xl font-semibold">Cash Transactions</h2>
+              <span className="text-sm text-gray-500">
+                Count: {data.cashTotal}
+              </span>
+            </div>
+            <TransactionTable transactions={data.cashTransactions} />
+          </div>
+        )}
+
+        {data.onlineTransactions && data.onlineTransactions.length > 0 && (
+          <div className="mt-8 mb-8">
+            <div className="flex items-center justify-between">
+              <h2 className="mb-4 text-xl font-semibold">Online Transactions</h2>
+              <span className="text-sm text-gray-500">
+                Count: {data.onlineTotal}
+              </span>
+            </div>
+            <TransactionTable transactions={data.onlineTransactions} />
+          </div>
+        )}
+
+        {data.overalltotal === 0 && (
+          <div className="mt-8 text-center">
+            <p className="text-gray-500">No transactions found for the selected period.</p>
+          </div>
         )}
       </div>
-
-      <form className="mt-5 w-full max-w-lg" onSubmit={handleSubmit}>
-        <div className="-mx-3 mb-6 flex flex-wrap">
-          <div className="mb-6 w-full px-3 md:mb-0 md:w-1/2">
-            <label
-              className="mb-2 block text-xs font-bold uppercase tracking-wide text-gray-700"
-              htmlFor="month"
-            >
-              Month
-            </label>
-            <input
-              className="mb-3 block w-full appearance-none rounded border border-gray-200 bg-gray-200 px-4 py-3 leading-tight text-gray-700 focus:border-blue-500 focus:bg-white focus:outline-none"
-              id="month"
-              name="month"
-              type="month"
-              value={selectedDate}
-              onChange={handleDateChange}
-              required
-            />
-          </div>
-        </div>
-        <button
-          type="submit"
-          className="rounded bg-teal-500 px-4 py-2 font-bold text-white hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-opacity-50 disabled:opacity-50"
-          disabled={loading || !selectedDate}
-        >
-          {loading ? "Loading..." : "Generate Report"}
-        </button>
-      </form>
-
-      {data.overalltotal !== undefined && (
-        <div className="mt-8">
-          <h2 className="text-xl font-semibold">Transaction Summary</h2>
-          <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-3">
-            <div className="rounded-lg bg-white p-4 shadow">
-              <h3 className="text-gray-500">Total Transactions</h3>
-              <p className="text-2xl font-bold">{data.overalltotal}</p>
-            </div>
-            <div className="rounded-lg bg-white p-4 shadow">
-              <h3 className="text-gray-500">Cash Transactions</h3>
-              <p className="text-2xl font-bold">{data.cashTotal}</p>
-            </div>
-            <div className="rounded-lg bg-white p-4 shadow">
-              <h3 className="text-gray-500">Online Transactions</h3>
-              <p className="text-2xl font-bold">{data.onlineTotal}</p>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {data.cashTransactions && data.cashTransactions.length > 0 && (
-        <div className="mt-8 mb-8">
-          <div className="flex items-center justify-between">
-            <h2 className="mb-4 text-xl font-semibold">Cash Transactions</h2>
-            <span className="text-sm text-gray-500">
-              Count: {data.cashTotal}
-            </span>
-          </div>
-          <TransactionTable transactions={data.cashTransactions} />
-        </div>
-      )}
-
-      {data.onlineTransactions && data.onlineTransactions.length > 0 && (
-        <div className="mt-8 mb-8">
-          <div className="flex items-center justify-between">
-            <h2 className="mb-4 text-xl font-semibold">Online Transactions</h2>
-            <span className="text-sm text-gray-500">
-              Count: {data.onlineTotal}
-            </span>
-          </div>
-          <TransactionTable transactions={data.onlineTransactions} />
-        </div>
-      )}
-
-      {data.overalltotal === 0 && (
-        <div className="mt-8 text-center">
-          <p className="text-gray-500">No transactions found for the selected period.</p>
-        </div>
-      )}
     </div>
   );
 }

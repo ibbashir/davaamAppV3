@@ -20,6 +20,7 @@ const api = axios.create({
 // Request Interceptor
 api.interceptors.request.use(
   (config) => {
+
     if (accessToken) {
       config.headers["Authorization"] = `${accessToken}`;
     }
@@ -30,7 +31,10 @@ api.interceptors.request.use(
 
 // Response Interceptor
 api.interceptors.response.use(
-  (response) => response,
+  
+  (response) => response
+
+  ,
   async (error) => {
     const originalRequest = error.config;
 

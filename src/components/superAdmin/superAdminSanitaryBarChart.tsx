@@ -101,21 +101,21 @@ export default function SuperAdminSanitaryBarChart() {
                 {totalTransactions.toLocaleString()}
               </div>
             </div>
-            
-          <div className="flex p-2 space-x-2">
-            <Button
-              variant={metric === "transactions" ? "default" : "outline"}
-              onClick={() => setMetric("transactions")}
-            >
-              Transactions
-            </Button>
-            <Button
-              variant={metric === "revenue" ? "default" : "outline"}
-              onClick={() => setMetric("revenue")}
-            >
-              Revenue
-            </Button>
-          </div>
+
+            <div className="flex p-2 space-x-2">
+              <Button
+                variant={metric === "transactions" ? "default" : "outline"}
+                onClick={() => setMetric("transactions")}
+              >
+                Transactions
+              </Button>
+              <Button
+                variant={metric === "revenue" ? "default" : "outline"}
+                onClick={() => setMetric("revenue")}
+              >
+                Revenue
+              </Button>
+            </div>
           </div>
 
           <div className="space-x-2 space-y-1">
@@ -131,7 +131,7 @@ export default function SuperAdminSanitaryBarChart() {
             >
               Monthly
             </Button>
-            
+
           </div>
         </div>
       </CardHeader>
@@ -148,13 +148,33 @@ export default function SuperAdminSanitaryBarChart() {
             data={data}
             keys={[metric]} // 👈 dynamic key
             indexBy="label"
-            margin={{ top: 50, right: 130, bottom: 50, left: 60 }}
+            margin={{ top: 50, right: 130, bottom: 70, left: 60 }}
             padding={0.3}
             indexScale={{ type: "band", round: true }}
             axisBottom={{
-              legend: view === "weekly" ? "Date" : "Month",
+              tickRotation: -90, // rotate labels
+              legend: view === "weekly" ? "Date" : "",
               legendPosition: "middle",
-              legendOffset: 32,
+              legendOffset: 50,
+              format: (value) => {
+                // Shorten month names
+                const monthMap: Record<string, string> = {
+                  JANUARY: "Jan",
+                  FEBRUARY: "Feb",
+                  MARCH: "Mar",
+                  APRIL: "Apr",
+                  MAY: "May",
+                  JUNE: "Jun",
+                  JULY: "Jul",
+                  AUGUST: "Aug",
+                  SEPTEMBER: "Sep",
+                  OCTOBER: "Oct",
+                  NOVEMBER: "Nov",
+                  DECEMBER: "Dec",
+                };
+                const key = String(value);
+                return monthMap[key] || key; // if not a month, return as is
+              },
             }}
             axisLeft={{
               legend: metric === "revenue" ? "Revenue (Rs)" : "Transactions",
@@ -162,12 +182,13 @@ export default function SuperAdminSanitaryBarChart() {
               legendOffset: -40,
             }}
             labelSkipWidth={12}
-            labelSkipHeight={12}  
+            labelSkipHeight={12}
             colors={metric === "revenue" ? "#3b82f680" : "#10b98180"}
             borderRadius={15}
             role="application"
             enableGridY={false}
           />
+
         )}
       </CardContent>
     </Card>

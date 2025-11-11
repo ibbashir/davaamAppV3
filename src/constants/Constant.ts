@@ -120,6 +120,7 @@ export const ADMIN_SIDEBAR_ROUTES = () => {
 export const OPS_SIDEBAR_ROUTES = () => {
   return [
     { title: "Dashboard", url: OPS_DASHBOARD, icon: IconHome },
+    // { title: "Corporate Clients", url: OPS_CORPORATE, icon: IconUserStar },
     { title: "Machines", url: OPS_MACHINES, icon: IconChartBar },
     { title: "Points Share", url: OPS_POINTS, icon: IconShare3 },
     { title: "Locations", url: OPS_LOCATIONS, icon: IconLocation },

@@ -1,6 +1,7 @@
 import { createContext, useContext, useReducer, useEffect } from "react"
 import axios from "axios"
 import { BASE_URL } from "@/constants/Constant"
+import { setAccessToken } from "../Apis/Authorization";
 
 type User = {
   id: number
@@ -39,7 +40,6 @@ const AuthContext = createContext<{
 })
 
 function authReducer(state: AuthState, action: AuthAction): AuthState {
-  console.log("AuthReducer action:", action.type)
   switch (action.type) {
     case "LOGIN":
       return { user: action.payload.user, token: action.payload.token, loading: false }
@@ -63,6 +63,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
       const { user, accessToken } = res.data
 
+      if (accessToken) {
+        setAccessToken(accessToken); // <── ADD THIS
+      }
+
       dispatch({ type: "LOGIN", payload: { user, token: accessToken } })
     } catch {
       console.warn("User session not found or expired.")
@@ -83,8 +87,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         { withCredentials: true }
       )
 
+      console.log("Login response:", res);
+
       const data = res.data
       const role_code = data.user.role_code;
+
 
       if (data.statusCode !== "200") {
         throw new Error(data.message || "Login failed")
@@ -98,6 +105,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
       const user = data.user
       const accessToken = data.accessToken
+
+
+      if (accessToken) {
+        setAccessToken(accessToken); // <── ADD THIS
+      }
 
       dispatch({ type: "LOGIN", payload: { user, token: accessToken } })
 
