@@ -14,6 +14,7 @@ import { getRequest, postRequest } from "@/Apis/Api"
 import { timeConverter } from "@/constants/Constant"
 import { SiteHeader } from "@/components/ops/site-header"
 import { useNavigate } from "react-router-dom"
+import AddMachine from "./components/addMachines"
 
 const categories = [
   { id: "Butterfly", label: "🦋 Butterfly" },
@@ -37,6 +38,7 @@ const Machines = () => {
   const [loading, setLoading] = useState(true)
   const [showDetails, setShowDetails] = useState<ApiMachine | null>(null)
   const [itemsPerPage, setItemsPerPage] = useState(10)
+  const [open,setOpen]=useState(false)
 
   useEffect(() => {
     fetchMachines()
@@ -152,7 +154,11 @@ const Machines = () => {
             ))}
           </div>
         </div>
-
+        <div className="flex justify-end p-2">
+          <Button onClick={()=> setOpen(true)}>
+            Add Machines
+          </Button>
+        </div>
         {/* Cards */}
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <AnimatePresence>
@@ -314,7 +320,8 @@ const Machines = () => {
             </motion.div>
           )}
         </AnimatePresence>
-      </div>
+      </div> 
+      <AddMachine open={open} setOpen={setOpen} />
     </div>
   )
 }

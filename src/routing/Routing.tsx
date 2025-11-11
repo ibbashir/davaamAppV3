@@ -14,7 +14,6 @@ import Roles from '@/screens/superAdmin/roles/Roles'
 import Machines from '@/screens/superAdmin/machines/Machines'
 import Locations from '@/screens/superAdmin/locations/Locations'
 import { Topup } from '@/screens/superAdmin/topup/Topup'
-import { UsersManagement } from '@/screens/superAdmin/users/User-management'
 import Notifications from '@/screens/superAdmin/notification/Notifications'
 import Feedback from '@/screens/superAdmin/feedback/Feedback'
 import Corporate from '@/screens/superAdmin/corporate/Corporate'
@@ -26,7 +25,6 @@ import { AdminPointShare } from '@/screens/admin/pointsshare/PointShare'
 import AdminMachines from '@/screens/admin/machines/Machines'
 import AdminLocations from '@/screens/admin/locations/Locations'
 import { AdminTopup } from '@/screens/admin/topup/Topup'
-import { AdminUsersManagement } from '@/screens/admin/users/User-management'
 import AdminNotifications from '@/screens/admin/notification/Notifications'
 import AdminFeedback from '@/screens/admin/feedback/Feedback'
 import AdminCorporate from '@/screens/admin/corporate/Corporate'
@@ -38,7 +36,6 @@ import { OpsPointShare } from '@/screens/ops/pointsshare/PointShare'
 import OpsMachines from '@/screens/ops/machines/Machines'
 import OpsLocations from '@/screens/ops/locations/Locations'
 import { OpsTopup } from '@/screens/ops/topup/Topup'
-import { OpsUsersManagement } from '@/screens/ops/users/User-management'
 import OpsFeedback from '@/screens/ops/feedback/Feedback'
 import OpsCorporate from '@/screens/ops/corporate/Corporate'
 
@@ -89,8 +86,7 @@ import {
   SUPERADMIN_NOTIFICATIONS,
   SUPERADMIN_POINTS,
   SUPERADMIN_ROLES,
-  SUPERADMIN_TOPUP,
-  SUPERADMIN_USERS
+  SUPERADMIN_TOPUP
 } from '@/constants/Constant'
 import OpsMachineVisit from '@/screens/ops/machines/MachineVisit'
 import Reports from '@/screens/corporate/reports/reports'
@@ -136,7 +132,7 @@ const Routing = () => {
           {/* <Route path={ADMIN_USERS} element={<AdminUsersManagement />} /> */}
           <Route path={ADMIN_NOTIFICATIONS} element={<AdminNotifications />} />
           <Route path={ADMIN_FEEDBACK} element={<AdminFeedback />} />
-          <Route path={ADMIN_CORPORATE} element={<AdminCorporate />} />
+          {/* <Route path={ADMIN_CORPORATE} element={<AdminCorporate />} /> */}
           <Route path={ADMIN_MACHINE_VISIT} element={<AdminMachineVisit />} />
         </Route>
       </Route>
@@ -150,7 +146,7 @@ const Routing = () => {
           <Route path={OPS_TOPUP} element={<OpsTopup />} />
           {/* <Route path={OPS_USERS} element={<OpsUsersManagement />} /> */}
           <Route path={OPS_FEEDBACK} element={<OpsFeedback />} />
-          <Route path={OPS_CORPORATE} element={<OpsCorporate />} />
+          {/* <Route path={OPS_CORPORATE} element={<OpsCorporate />} /> */}
           <Route path={OPS_MACHINE_VISIT} element={<OpsMachineVisit />} />
         </Route>
       </Route>
