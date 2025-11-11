@@ -1,7 +1,6 @@
 import { Fragment, useRef, useState } from "react";
 import { Dialog, Transition } from "@headlessui/react";
 import { useForm } from "react-hook-form";
-// import { BASE_URL_TWO } from "Constant/Constant";
 import { Switch } from "@headlessui/react";
 import { postRequest } from "@/Apis/Api";
 
@@ -192,9 +191,21 @@ export default function AddMachine({
                     </label>
                     <input
                       type="text"
-                      {...register("mapLocation", {
-                        required: "Location is required.",
-                      })}
+                       {...register("mapLocation", {
+                            required: "Location is required.",
+                            validate: {
+                                validGoogleMaps: (value) => {
+                                const googleMapsPatterns = [
+                                    /^https:\/\/goo\.gl\/maps\//,
+                                    /^https:\/\/maps\.google\.com\//,
+                                    /^https:\/\/maps\.app\.goo\.gl\//
+                                ];
+                                
+                                const isValid = googleMapsPatterns.some(pattern => pattern.test(value));
+                                return isValid || "Please enter a valid Google Maps URL";
+                                }
+                            }
+                        })}
                       className="block w-full rounded-md bg-white px-3 py-1 text-base text-gray-900 outline outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-teal-600 sm:text-sm/6"
                       placeholder="Enter Location"
                     />
@@ -286,23 +297,33 @@ export default function AddMachine({
 
                   <div className="flex justify-between">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                        Latitude
-                      </label>
-                      <input
-                        type="number"
-                        step="any"
-                        {...register("lat", {
-                          required: "Latitude is required.",
-                        })}
-                        className="block w-full rounded-md bg-white px-3 py-1 text-base text-gray-900 outline outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-teal-600 sm:text-sm/6"
-                        placeholder="Enter Latitude"
-                      />
-                      {errors.lat && (
-                        <span className="text-sm text-red-500">
-                          {errors.lat.message}
-                        </span>
-                      )}
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                            Latitude
+                        </label>
+                        <input
+                            type="number"
+                            step="0.0001"
+                            {...register("lat", {
+                            required: "Latitude is required.",
+                            min: { value: -90, message: "Latitude cannot be less than -90" },
+                            max: { value: 90, message: "Latitude cannot be greater than 90" },
+                            validate: {
+                                precision: (value) => {
+                                if (!value) return true;
+                                const decimalPart = value.toString().split('.')[1];
+                                return (!decimalPart || decimalPart.length >= 4) || 
+                                    "Must have at least 4 decimal places (e.g., 25.4435)";
+                                }
+                            }
+                            })}
+                            className="block w-full rounded-md bg-white px-3 py-1 text-base text-gray-900 outline outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-teal-600 sm:text-sm/6"
+                            placeholder="Enter Latitude (e.g., 25.443526)"
+                        />
+                        {errors.lat && (
+                            <span className="text-sm text-red-500">
+                            {errors.lat.message}
+                            </span>
+                        )}
                     </div>
 
                     <div>
@@ -314,6 +335,16 @@ export default function AddMachine({
                         step="any"
                         {...register("lng", {
                           required: "Longitude is required.",
+                          min: { value: -90, message: "Longitude cannot be less than -90" },
+                          max: { value: 90, message: "Longitude cannot be greater than 90" },
+                          validate: {
+                                precision: (value) => {
+                                if (!value) return true;
+                                const decimalPart = value.toString().split('.')[1];
+                                return (!decimalPart || decimalPart.length >= 4) || 
+                                    "Must have at least 4 decimal places (e.g., 25.4435)";
+                                }
+                            }
                         })}
                         className="block w-full rounded-md bg-white px-3 py-1 text-base text-gray-900 outline outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-teal-600 sm:text-sm/6"
                         placeholder="Enter Longitude"
