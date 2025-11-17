@@ -55,20 +55,20 @@ function authReducer(state: AuthState, action: AuthAction): AuthState {
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [state, dispatch] = useReducer(authReducer, initialState);
-  const [accessTokenTwo, setAccessTokenTwo, removeAccessToken] = useCookies(['accessToken']);
-  const [refreshToken, setRefreshToken, removeRefreshToken] = useCookies(['refreshToken']);
+  const [accessTokenTwo, setAccessTokenTwo, removeAccessToken] = useCookies(['access_token']);
+  const [refreshToken, setRefreshToken, removeRefreshToken] = useCookies(['refresh_token']);
 
 
   const checkSession = async () => {
     try {
-      console.log("Access Token:", accessTokenTwo?.accessToken);
-      console.log("Refresh Token:", refreshToken?.refreshToken);
+      console.log("Access Token:", accessTokenTwo?.access_token);
+      console.log("Refresh Token:", refreshToken?.refresh_token);
 
       const res = await axios.post(
         `${BASE_URL}/auth/user`,
         {
-          accessToken: accessTokenTwo?.accessToken,
-          refreshToken: refreshToken?.refreshToken,
+          accessToken: accessTokenTwo?.access_token,
+          refreshToken: refreshToken?.refresh_token,
           message: "asjdhuid",
         },
         { withCredentials: true } // if backend sets httpOnly cookies
@@ -120,8 +120,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
       const user = data.user
       const accessToken = data.accessToken
-      setAccessTokenTwo('access_token', accessToken, { path: '/', domain: "davaam-backend-nodejs-4199d6d4d449.herokuapp.com", secure: true });
-      setRefreshToken('refresh_token', data.refreshToken, { path: '/', domain: "davaam-backend-nodejs-4199d6d4d449.herokuapp.com", secure: true });
+
+      console.log("Access Token on login:", accessToken, data.refreshToken);
+      setAccessTokenTwo('access_token', accessToken, { path: '/' });
+      setRefreshToken('refresh_token', data.refreshToken, { path: '/' });
 
 
       if (accessToken) {
