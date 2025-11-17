@@ -61,20 +61,20 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const checkSession = async () => {
     try {
-      // const [cookies] = useCookies(['access_token']); // get access token cookie
-      // const accessToken = cookies.access_token;
       console.log("Access Token from cookie:", accessTokenTwo.access_token);
       console.log("Access Token from cookie:", refreshToken.refresh_token);
 
       const res = await axios.post(`${BASE_URL}/auth/user`, {
         body: {
-          accessToken: accessTokenTwo.access_token || '', 
-          refreshToken: refreshToken.refresh_token || ''  
+          accessToken: accessTokenTwo.access_token || '',
+          refreshToken: refreshToken.refresh_token || '',
+          message: "asjdhuid"
         },
-        withCredentials: true, // still needed if refresh token is in cookie
       });
 
       const { user, accessToken: newToken } = res.data;
+
+      console.log("User session restored:", res.data);  
 
       if (newToken) setAccessTokenTwo('access_token', newToken, { path: '/' });
 
