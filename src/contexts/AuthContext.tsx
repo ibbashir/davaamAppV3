@@ -55,36 +55,39 @@ function authReducer(state: AuthState, action: AuthAction): AuthState {
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [state, dispatch] = useReducer(authReducer, initialState);
-  const [accessTokenTwo, setAccessTokenTwo, removeAccessToken] = useCookies(['access_token']);
-  const [refreshToken, setRefreshToken, removeRefreshToken] = useCookies(['refresh_token']);
+  const [accessTokenTwo, setAccessTokenTwo, removeAccessToken] = useCookies(['accessToken']);
+  const [refreshToken, setRefreshToken, removeRefreshToken] = useCookies(['refreshToken']);
 
 
   const checkSession = async () => {
     try {
-      console.log("Access Token from cookie:", accessTokenTwo.access_token);
-      console.log("Access Token from cookie:", refreshToken.refresh_token);
+      console.log("Access Token:", accessTokenTwo?.accessToken);
+      console.log("Refresh Token:", refreshToken?.refreshToken);
 
-      const res = await axios.post(`${BASE_URL}/auth/user`, {
-        body: {
-          accessToken: accessTokenTwo.access_token || '',
-          refreshToken: refreshToken.refresh_token || '',
-          message: "asjdhuid"
+      const res = await axios.post(
+        `${BASE_URL}/auth/user`,
+        {
+          accessToken: accessTokenTwo?.accessToken,
+          refreshToken: refreshToken?.refreshToken,
+          message: "asjdhuid",
         },
-      });
+        { withCredentials: true } // if backend sets httpOnly cookies
+      );
 
       const { user, accessToken: newToken } = res.data;
 
-      console.log("User session restored:", res.data);  
+      console.log("User session restored:", res.data);
 
-      if (newToken) setAccessTokenTwo('access_token', newToken, { path: '/' });
+      dispatch({
+        type: "LOGIN",
+        payload: { user, token: newToken },
+      });
 
-      dispatch({ type: "LOGIN", payload: { user, token: newToken } });
     } catch (err) {
-      console.warn("User session expired.");
+      console.warn("User session expired.", err?.response?.data);
       dispatch({ type: "LOADED" });
     }
   };
-
 
   // Load user on refresh using cookies
   useEffect(() => {
@@ -117,8 +120,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
       const user = data.user
       const accessToken = data.accessToken
-      setAccessTokenTwo('access_token', accessToken, { path: '/' });
-      setRefreshToken('refresh_token', data.refreshToken, { path: '/' });
+      setAccessTokenTwo('access_token', accessToken, { path: '/', domain: "davaam-backend-nodejs-4199d6d4d449.herokuapp.com", secure: true });
+      setRefreshToken('refresh_token', data.refreshToken, { path: '/', domain: "davaam-backend-nodejs-4199d6d4d449.herokuapp.com", secure: true });
 
 
       if (accessToken) {
