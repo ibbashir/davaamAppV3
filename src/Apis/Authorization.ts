@@ -9,6 +9,9 @@ export const setAccessToken = (token: string) => {
   accessToken = token;
 };
 
+export const getAccessToken = () => accessToken;
+
+
 const api = axios.create({
   baseURL: BASE_URL,
   withCredentials: true, // send HTTP-only cookies
@@ -34,11 +37,6 @@ api.interceptors.response.use(
   res => res,
   async (error) => {
     const originalRequest = error.config;
-
-    // ⛔ DO NOT refresh on /auth/user (prevents infinite loop)
-    if (originalRequest.url.includes("/auth/user")) {
-      return Promise.reject(error);
-    }
 
     if ((error.response?.status === 401 || error.response?.status === 403) &&
         !originalRequest._retry

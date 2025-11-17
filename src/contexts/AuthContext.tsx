@@ -2,6 +2,7 @@ import { createContext, useContext, useReducer, useEffect } from "react"
 import axios from "axios"
 import { BASE_URL } from "@/constants/Constant"
 import api, { setAccessToken } from "../Apis/Authorization";
+import { useCookies } from 'react-cookie';
 
 type User = {
   id: number
@@ -54,24 +55,36 @@ function authReducer(state: AuthState, action: AuthAction): AuthState {
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [state, dispatch] = useReducer(authReducer, initialState);
+  const [accessTokenTwo, setAccessTokenTwo, removeAccessToken] = useCookies(['access_token']);
+  const [refreshToken, setRefreshToken, removeRefreshToken] = useCookies(['refresh_token']);
+
 
   const checkSession = async () => {
     try {
-      const res = await api.get("/auth/user");
+      // const [cookies] = useCookies(['access_token']); // get access token cookie
+      // const accessToken = cookies.access_token;
+      console.log("Access Token from cookie:", accessTokenTwo.access_token);
+      console.log("Access Token from cookie:", refreshToken.refresh_token);
 
-      const { user, accessToken } = res.data;
+      const res = await axios.post(`${BASE_URL}/auth/user`, {
+        body: {
+          accessToken: accessTokenTwo.access_token || '', 
+          refreshToken: refreshToken.refresh_token || ''  
+        },
+        withCredentials: true, // still needed if refresh token is in cookie
+      });
 
-      if (accessToken) {
-        setAccessToken(accessToken);
-      }
+      const { user, accessToken: newToken } = res.data;
 
-      dispatch({ type: "LOGIN", payload: { user, token: accessToken } });
+      if (newToken) setAccessTokenTwo('access_token', newToken, { path: '/' });
 
+      dispatch({ type: "LOGIN", payload: { user, token: newToken } });
     } catch (err) {
       console.warn("User session expired.");
       dispatch({ type: "LOADED" });
     }
   };
+
 
   // Load user on refresh using cookies
   useEffect(() => {
@@ -104,6 +117,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
       const user = data.user
       const accessToken = data.accessToken
+      setAccessTokenTwo('access_token', accessToken, { path: '/' });
+      setRefreshToken('refresh_token', data.refreshToken, { path: '/' });
 
 
       if (accessToken) {
