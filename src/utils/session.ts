@@ -5,7 +5,7 @@ import axios from "axios";
 export const showSessionExpiredModal = () => {
   // E.g., use Redux, Zustand or direct state:
   // dispatch(openModal("SessionExpired"))
-  alert("Session expired. Please log in again."); // TEMP fallback
+  // alert("Session expired. Please log in again."); // TEMP fallback
   logoutUser();
 };
 

@@ -1,7 +1,7 @@
 import { createContext, useContext, useReducer, useEffect } from "react"
 import axios from "axios"
 import { BASE_URL } from "@/constants/Constant"
-import { setAccessToken } from "../Apis/Authorization";
+import api, { setAccessToken } from "../Apis/Authorization";
 
 type User = {
   id: number
@@ -57,22 +57,21 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const checkSession = async () => {
     try {
-      const res = await axios.get(`${BASE_URL}/auth/user`, {
-        withCredentials: true,
-      })
+      const res = await api.get("/auth/user");
 
-      const { user, accessToken } = res.data
+      const { user, accessToken } = res.data;
 
       if (accessToken) {
-        setAccessToken(accessToken); // <── ADD THIS
+        setAccessToken(accessToken);
       }
 
-      dispatch({ type: "LOGIN", payload: { user, token: accessToken } })
-    } catch {
-      console.warn("User session not found or expired.")
-      dispatch({ type: "LOADED" })
+      dispatch({ type: "LOGIN", payload: { user, token: accessToken } });
+
+    } catch (err) {
+      console.warn("User session expired.");
+      dispatch({ type: "LOADED" });
     }
-  }
+  };
 
   // Load user on refresh using cookies
   useEffect(() => {

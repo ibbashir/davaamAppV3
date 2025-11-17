@@ -31,18 +31,20 @@ api.interceptors.request.use(
 
 // Response Interceptor
 api.interceptors.response.use(
-  
-  (response) => response
-
-  ,
+  res => res,
   async (error) => {
     const originalRequest = error.config;
 
-    if (
-      (error.response?.status === 401 || error.response?.status === 403) &&
-      !originalRequest._retry
+    // ⛔ DO NOT refresh on /auth/user (prevents infinite loop)
+    if (originalRequest.url.includes("/auth/user")) {
+      return Promise.reject(error);
+    }
+
+    if ((error.response?.status === 401 || error.response?.status === 403) &&
+        !originalRequest._retry
     ) {
       originalRequest._retry = true;
+
       try {
         const response = await axios.post(
           `${BASE_URL}/auth/refresh`,
@@ -55,7 +57,6 @@ api.interceptors.response.use(
         originalRequest.headers["Authorization"] = `${newAccessToken}`;
         return api(originalRequest);
       } catch (refreshError) {
-        showSessionExpiredModal(); // dispatch modal (see below)
         return Promise.reject(refreshError);
       }
     }
@@ -63,5 +64,6 @@ api.interceptors.response.use(
     return Promise.reject(error);
   }
 );
+
 
 export default api;
