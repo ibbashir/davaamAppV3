@@ -15,14 +15,22 @@ type Inputs = {
   password: string,
 };
 
-export function LoginForm({
+export function LoginForm({ className }: React.ComponentProps<"form">) {
 
-  className,
-}: React.ComponentProps<"form">) {
-
-  const { login } = useAuth();
+  const { state, login } = useAuth();
+  const { user, loading } = state;
   const navigate = useNavigate();
   const [loginError, setLoginError] = useState<string>("")
+
+  // ---------------------
+  // REDIRECT IF LOGGED IN
+  // ---------------------
+  useEffect(() => {
+    if (!loading && user) {
+      const role = user.user_role.toLowerCase().replace(/\s/g, "");
+      navigate(`/${role}/dashboard`, { replace: true });
+    }
+  }, [loading, user, navigate]);
 
 
   const {
@@ -34,15 +42,26 @@ export function LoginForm({
 
   useEffect(() => {
     reset();
-  }, [isSubmitSuccessful])
+  }, [isSubmitSuccessful, reset])
 
   const onSubmit: SubmitHandler<Inputs> = async (data) => {
     try {
       const role = await login(data.email, data.password);
-      navigate(`/${role}/dashboard`)
+      navigate(`/${role}/dashboard`);
     } catch (err) {
-      setLoginError("Invalid email or password")
+      setLoginError("Invalid email or password");
     }
+  };
+
+  // ---------------------
+  // GLOBAL LOADING (session check)
+  // ---------------------
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <img src={loader} className="w-12" alt="loading..." />
+      </div>
+    );
   }
 
   return (
@@ -53,16 +72,19 @@ export function LoginForm({
           Enter your email below to login to your account
         </p>
       </div>
+
       <div className="grid gap-6">
         <div className="grid gap-3">
           <Label htmlFor="email">Email</Label>
           <Input type="email" placeholder="example@domain.com" {...register("email", { required: true })} />
           {errors.email && <span className="text-red-500 text-xs font-semibold">Email is Required</span>}
         </div>
+
         <div className="grid gap-3">
           <div className="flex items-center">
             <Label htmlFor="password">Password</Label>
-            <a onClick={() => { navigate("/forgetPassword") }}
+            <a
+              onClick={() => navigate("/forgetPassword")}
               className="ml-auto text-xs underline-offset-4 cursor-pointer text-teal-600 hover:text-teal-700 "
             >
               Forgot your password?
@@ -71,14 +93,17 @@ export function LoginForm({
           <Input type="password" placeholder="Password" {...register("password", { required: true })} />
           {errors.password && <span className="text-red-500 text-xs font-semibold">Password is Required</span>}
         </div>
+
         {loginError && (
           <p className="text-center text-red-500 text-sm font-semibold">
             {loginError}
           </p>
         )}
+
         <Button disabled={isSubmitting} type="submit" className="w-full cursor-pointer">
           {isSubmitting ? <img src={loader} alt="" className="w-7" /> : "Log In"}
         </Button>
+
         <div className="flex items-center justify-center pt-4">
           <div className="h-px bg-gray-200 flex-1"></div>
           <button
@@ -105,5 +130,5 @@ export function LoginForm({
         </p>
       </div>
     </form>
-  )
+  );
 }

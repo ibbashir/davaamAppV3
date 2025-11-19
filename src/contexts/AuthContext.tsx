@@ -61,8 +61,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const checkSession = async () => {
     try {
-      console.log("Access Token:", accessTokenTwo?.access_token);
-      console.log("Refresh Token:", refreshToken?.refresh_token);
 
       const res = await axios.post(
         `${BASE_URL}/auth/user`,
@@ -142,20 +140,45 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   }
 
+  function deleteAllCookies() {
+    document.cookie.split(";").forEach(cookie => {
+      const eqPos = cookie.indexOf("=");
+      const name = eqPos > -1 ? cookie.substring(0, eqPos).trim() : cookie.trim();
+      document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/`;
+    });
+  }
+
   const logout = async () => {
     try {
       await axios.post(
         `${BASE_URL}/auth/logout`,
-        {},
+        {
+          accessToken: accessTokenTwo?.access_token,
+          refreshToken: refreshToken?.refresh_token,
+        },
         { withCredentials: true }
-      )
-      localStorage.clear()
+      );
+
+      // Clear localStorage
+      localStorage.clear();
+      deleteAllCookies();
+
+      // Remove cookies
+      removeAccessToken('access_token', { path: '/' });
+      removeRefreshToken('refresh_token', { path: '/' });
+      console.log(accessTokenTwo);
+      console.log(refreshToken);
+
     } catch (err) {
-      console.error("Logout failed:", err)
+      console.error("Logout failed:", err);
+      removeAccessToken('access_token', { path: '/' });
+      removeRefreshToken('refresh_token', { path: '/' });
     }
 
-    dispatch({ type: "LOGOUT" })
+    // Update state
+    dispatch({ type: "LOGOUT" });
   }
+
 
   return (
     <AuthContext.Provider value={{ state, login, logout }}>

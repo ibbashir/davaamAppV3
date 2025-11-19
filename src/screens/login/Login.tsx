@@ -1,11 +1,26 @@
 import React from 'react'
-// import { GalleryVerticalEnd } from "lucide-react"
 import { LoginForm } from '@/components/login-form'
 import DLLogo from "../../assets/DL.png"
 import sec2 from "../../assets/secimg.jpeg"
 import gif from "../../assets/gif.mp4" // Your animation file
+import { useAuth } from '@/contexts/AuthContext'
+import loader from "../../assets/infinite-spinner.svg"
 
 const Login = () => {
+  const { state } = useAuth()
+  const { loading } = state
+
+  // ----------------------------
+  // Show full-page loader while auth session is being checked
+  // ----------------------------
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <img src={loader} className="w-16" alt="loading..." />
+      </div>
+    )
+  }
+
   return (
     <div className="grid min-h-svh lg:grid-cols-2">
       {/* Left Section: Form */}
@@ -26,7 +41,6 @@ const Login = () => {
 
       {/* Right Section: Background with GIF */}
       <div className="bg-muted relative hidden lg:block">
-        {/* Optional: If you want to overlay the GIF on top of an image */}
         <img
           src={sec2}
           alt="demoImg"
