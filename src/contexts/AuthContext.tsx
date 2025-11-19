@@ -67,7 +67,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         {
           accessToken: accessTokenTwo?.access_token,
           refreshToken: refreshToken?.refresh_token,
-          message: "asjdhuid",
         },
         { withCredentials: true } // if backend sets httpOnly cookies
       );
