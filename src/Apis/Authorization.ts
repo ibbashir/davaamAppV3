@@ -24,23 +24,10 @@ const api = axios.create({
   },
 });
 
-// // Request Interceptor
-// api.interceptors.request.use(
-//   (config) => {
-
-//     if (accessToken) {
-//       config.headers["Authorization"] = `${accessToken}`;
-//     }
-//     return config;
-//   },
-//   (error) => Promise.reject(error)
-// );
-
 api.interceptors.request.use(
   (config) => {
     // Read access token cookie
     const cookieToken = getCookie("access_token");
-    console.log("one", cookieToken);
 
     if (cookieToken) {
       config.headers["Authorization"] = cookieToken;
@@ -70,8 +57,8 @@ api.interceptors.response.use(
           { withCredentials: true }
         );
 
-        const cookieToken = getCookie("access_token");
-        console.log("two", cookieToken);
+        // const cookieToken = getCookie("access_token");
+        // console.log("two", cookieToken);
 
         const { accessToken: newAccessToken } = response.data;
         setAccessToken(newAccessToken);

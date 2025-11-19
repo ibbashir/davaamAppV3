@@ -1,7 +1,7 @@
 import { createContext, useContext, useReducer, useEffect } from "react"
 import axios from "axios"
 import { BASE_URL } from "@/constants/Constant"
-import api, { setAccessToken } from "../Apis/Authorization";
+import { setAccessToken } from "../Apis/Authorization";
 import { useCookies } from 'react-cookie';
 
 type User = {
@@ -73,15 +73,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
       const { user, accessToken: newToken } = res.data;
 
-      console.log("User session restored:", res.data);
-
       dispatch({
         type: "LOGIN",
         payload: { user, token: newToken },
       });
 
     } catch (err) {
-      console.warn("User session expired.", err?.response?.data);
+      console.warn("User session expired.", err);
       dispatch({ type: "LOADED" });
     }
   };
@@ -98,8 +96,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         { email, password },
         { withCredentials: true }
       )
-
-      console.log("Login response:", res);
 
       const data = res.data
       const role_code = data.user.role_code;
@@ -118,7 +114,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       const user = data.user
       const accessToken = data.accessToken
 
-      console.log("Access Token on login:", accessToken, data.refreshToken);
       setAccessTokenTwo('access_token', accessToken, { path: '/' });
       setRefreshToken('refresh_token', data.refreshToken, { path: '/' });
 
@@ -165,8 +160,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       // Remove cookies
       removeAccessToken('access_token', { path: '/' });
       removeRefreshToken('refresh_token', { path: '/' });
-      console.log(accessTokenTwo);
-      console.log(refreshToken);
 
     } catch (err) {
       console.error("Logout failed:", err);
