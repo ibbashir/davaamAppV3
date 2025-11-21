@@ -12,6 +12,7 @@ import { Search, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "
 import { getRequest } from "@/Apis/Api"
 import type { ApiTransaction, ButterflyApiResponse, OtherApiResponse, Transactions } from "@/Types/SuperAdmin/RecentTransactions"
 import { categories, paymentTypes } from "@/constants/Constant"
+import moment from "moment-timezone"
 
 const RecentTransactions = () => {
     const [activeCategory, setActiveCategory] = useState("butterfly")
@@ -305,7 +306,7 @@ const RecentTransactions = () => {
                                     {transaction.user_name || transaction.merchant || "N/A"}
                                     </TableCell>
                                     <TableCell>
-                                    {new Date(transaction.created_at).toLocaleDateString()}
+                                    {moment(transaction.created_at).format('dddd hh:mm:ss A YYYY')}
                                     </TableCell>
                                     <TableCell className="font-mono text-sm">
                                     {transaction.msisdn}
