@@ -73,6 +73,7 @@ import { Separator } from "@/components/ui/separator"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Tabs, TabsContent } from "@/components/ui/tabs"
 import { getRequest } from "@/Apis/Api"
+import moment from "moment-timezone"
 
 // Updated schema for mobile users with optional tokens
 export const mobileUserSchema = z.object({
@@ -232,7 +233,7 @@ const columns: ColumnDef<z.infer<typeof mobileUserSchema>>[] = [
     cell: ({ row }) => (
       <div className="flex items-center gap-2">
         <IconCalendar className="size-4 text-muted-foreground" />
-        <span className="text-sm">{new Date(row.original.created_at).toLocaleDateString()}</span>
+        <span className="text-sm">{moment(row.original.created_at).format("hh:mm A dddd YYYY")}</span>
       </div>
     ),
   },

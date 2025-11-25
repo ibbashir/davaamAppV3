@@ -12,6 +12,7 @@ import { Search, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "
 import { getRequest } from "@/Apis/Api"
 import type { ApiTransaction, ButterflyApiResponse, OtherApiResponse, Transactions } from "@/Types/SuperAdmin/RecentTransactions"
 import { categories, paymentTypes } from "@/constants/Constant"
+import moment from "moment-timezone"
 
 const RecentTransactions = () => {
     const [activeCategory, setActiveCategory] = useState("butterfly")
@@ -267,12 +268,12 @@ const RecentTransactions = () => {
                         <TableHeader>
                             <TableRow>
                                 <TableHead>User Name</TableHead>
-                                <TableHead>Date</TableHead>
                                 <TableHead>Phone Number / RFID</TableHead>
                                 <TableHead>Machine Code</TableHead>
                                 <TableHead>Amount</TableHead>
                                 <TableHead>Quantity</TableHead>
                                 <TableHead>Brand Name</TableHead>
+                                <TableHead>Date</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -294,7 +295,6 @@ const RecentTransactions = () => {
                                 filteredTransactions.map((transaction) => (
                                     <TableRow key={transaction.id}>
                                         <TableCell className="font-medium">{transaction.user_name || transaction.merchant || "N/A"}</TableCell>
-                                        <TableCell>{new Date(transaction.created_at).toLocaleDateString()}</TableCell>
                                         <TableCell className="font-mono text-sm">{transaction.msisdn}</TableCell>
                                         <TableCell className="font-medium text-blue-600">{transaction.machine_code}</TableCell>
                                         <TableCell>
@@ -304,6 +304,7 @@ const RecentTransactions = () => {
                                         </TableCell>
                                         <TableCell>{transaction.quantity}</TableCell>
                                         <TableCell className="font-medium">{transaction.brand_name}</TableCell>
+                                        <TableCell>{moment(transaction.created_at).format('dddd HH:MM A YYYY')}</TableCell>
                                     </TableRow>
                                 ))
                             )}

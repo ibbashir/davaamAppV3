@@ -270,12 +270,12 @@ const RecentTransactions = () => {
                             <TableRow>
                                 {[
                                 "User Name",
-                                "Date",
                                 "Phone Number / RFID",
                                 "Machine Code",
                                 "Amount",
                                 "Quantity",
                                 "Brand Name",
+                                "Date",
                                 ].map((head) => (
                                 <TableHead key={head} className="!text-white font-semibold">
                                     {head}
@@ -305,9 +305,6 @@ const RecentTransactions = () => {
                                     <TableCell className="font-medium">
                                     {transaction.user_name || transaction.merchant || "N/A"}
                                     </TableCell>
-                                    <TableCell>
-                                    {moment(transaction.created_at).format('dddd hh:mm:ss A YYYY')}
-                                    </TableCell>
                                     <TableCell className="font-mono text-sm">
                                     {transaction.msisdn}
                                     </TableCell>
@@ -325,6 +322,10 @@ const RecentTransactions = () => {
                                     <TableCell>{transaction.quantity}</TableCell>
                                     <TableCell className="font-medium">
                                     {transaction.brand_name}
+                                    </TableCell>
+                                    
+                                    <TableCell>
+                                    {moment(transaction.created_at).format('dddd hh:mm A YYYY')}
                                     </TableCell>
                                 </TableRow>
                                 ))
