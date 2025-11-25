@@ -80,7 +80,7 @@ const Machines = () => {
           ...machine,
           category: category,
           status: machine.statusCode === "r" ? "Inactive" : machine.statusCode === "g" ? "Active" : "Pending",
-          lastActive: timeConverter(machine.created_at),
+          lastActive: timeConverter(machine.lastUpdated),
           stockStatus: machineStockMap[machine.machine_code] || "Unknown",
         }))
       )
