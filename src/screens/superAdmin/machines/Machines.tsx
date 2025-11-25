@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardHeader, CardContent } from "@/components/ui/card"
 import type { ApiMachine, MachinesResponse } from "./Types"
+import moment from "moment-timezone"
 
 const categories = [
   { id: "Butterfly", label: "🦋 Butterfly" },
@@ -105,7 +106,7 @@ const Machines = () => {
         ...machine,
         category: category,
         status: machine.statusCode === "r" ? "Inactive" : machine.statusCode === "g" ? "Active" : "Pending",
-        lastActive: timeConverter(machine.created_at),
+        lastActive: timeConverter(machine.lastUpdated),
         stockStatus: machineStockMap[machine.machine_code] || "Unknown",
       }))
     )
