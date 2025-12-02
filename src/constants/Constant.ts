@@ -7,7 +7,7 @@ import {
   IconUserPlus,
   IconShare3,
   IconChartBar,
-  IconFileDescription
+  IconFileDescription,
 } from "@tabler/icons-react";
 
 export const BASE_URL_TWO =
@@ -15,7 +15,7 @@ export const BASE_URL_TWO =
 export const BASE_URL =
   "https://davaam-backend-nodejs-4199d6d4d449.herokuapp.com/api/dashboard";
 
-export const LOCAL_BASE_URL="http://localhost:3009/api/dashboard";
+export const LOCAL_BASE_URL = "http://localhost:3009/api/dashboard";
 //PUBLIC PATHS
 export const LOGIN = "/login";
 export const FORGET_PASSWORD = "/forgetPassword";
@@ -35,10 +35,8 @@ export const SUPERADMIN_NOTIFICATIONS = "/superadmin/notifications";
 export const SUPERADMIN_FEEDBACK = "/superadmin/feedback";
 export const SUPERADMIN_CORPORATE = "/superadmin/corporate";
 export const SUPERADMIN_STATUS = "/superadmin/status";
-export const SUPERADMIN_MACHINE_VISIT =
-  "/superadmin/machine-details/:id";
-export const SUPERADMIN_CORPORATE_TOPUP =
-  "/superadmin/corporate-topup";
+export const SUPERADMIN_MACHINE_VISIT = "/superadmin/machine-details/:id";
+export const SUPERADMIN_CORPORATE_TOPUP = "/superadmin/corporate-topup";
 
 // ADMIN PATHS
 export const ADMIN_DASHBOARD = "/admin/dashboard";
@@ -66,8 +64,9 @@ export const OPS_MACHINE_VISIT = "/ops/machine-details/:id";
 //MACHINE PATH
 export const MACHINE_DASHBOARD = "/company/dashboard";
 export const MACHINE_MACHINES = "/company/machines";
-export const COMPANY_MACHINE_VISIT="/company/machine-details/:id";
+export const COMPANY_MACHINE_VISIT = "/company/machine-details/:id";
 export const REPORT = "/company/report";
+export const TEST = "/company/test";
 
 // navigation const
 export const SUPER_ADMIN_SIDEBAR_ROUTES = () => {
@@ -129,13 +128,24 @@ export const OPS_SIDEBAR_ROUTES = () => {
   ];
 };
 
-export const MACHINES_SIDEBAR_ROUTES = () => {
-    return [
-        { title: "Dashboard", url: MACHINE_DASHBOARD, icon: IconHome },
-        { title: "Machines", url: MACHINE_MACHINES, icon: IconChartBar },
-        { title: "Reports", url: REPORT, icon: IconFileDescription }
-    ]
-}
+export const MACHINES_SIDEBAR_ROUTES = (firstName:string) => {
+  const routes = [
+    { title: "Dashboard", url: MACHINE_DASHBOARD, icon: IconHome },
+    { title: "Machines", url: MACHINE_MACHINES, icon: IconChartBar },
+    { title: "Reports", url: REPORT, icon: IconFileDescription },
+  ];
+
+  // Show Test only to Mobilink
+  if (firstName === "Mobilink") {
+    routes.push({
+      title: "Test",
+      url: TEST,
+      icon: IconFileDescription,
+    });
+  }
+
+  return routes;
+};
 
 // TIME STAMP CONVERTER
 export function unixTimestampToCustomString(

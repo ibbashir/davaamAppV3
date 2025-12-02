@@ -22,13 +22,13 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { state } = useAuth();
   const navigate = useNavigate();
 
-  const role = state.user?.user_role?.toLowerCase().replace(/\s/g, "") || ""
+  const role = state.user?.user_role?.toLowerCase().replace(/\s/g, "") || "";
 
   const navMain = [
     ...(role === "superadmin" ? SUPER_ADMIN_SIDEBAR_ROUTES() : []),
     ...(role === "admin" ? ADMIN_SIDEBAR_ROUTES() : []),
     ...(role === "ops" ? OPS_SIDEBAR_ROUTES() : []),
-    ...(role === "company" ? MACHINES_SIDEBAR_ROUTES() : []),
+    ...(role === "company" ? MACHINES_SIDEBAR_ROUTES(state?.user?.first_name || "User") : []),
   ]
 
   const userData = {
