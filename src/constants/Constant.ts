@@ -77,7 +77,6 @@ export const COMPANY_MACHINE_VISIT = "/company/machine-details/:id";
 export const REPORT = "/company/report";
 export const ADD_EMPLOYEES="/company/add-employees";
 export const DELETE_EMPLOYEES="/company/delete-employees";
-export const TEST = "/company/test";
 
 // navigation const
 export const SUPER_ADMIN_SIDEBAR_ROUTES = () => {
@@ -148,23 +147,26 @@ export const FULFILL_SIDEBAR_ROUTES = () => {
   ];
 };
 
-export const MACHINES_SIDEBAR_ROUTES = () => {
-    return [
+export const MACHINES_SIDEBAR_ROUTES = (firstName:string) => {
+    const routes = [
         { title: "Dashboard", url: MACHINE_DASHBOARD, icon: IconHome },
         { title: "Machines", url: MACHINE_MACHINES, icon: IconChartBar },
         { title: "Reports", url: REPORT, icon: IconFileDescription },
-        { title: "Test", url: TEST, icon: IconFileDescription },
-        { title: "Add Employee", url: ADD_EMPLOYEES, icon: IconFileDescription },
-        { title: "Delete Employee", url: DELETE_EMPLOYEES, icon: IconFileDescription },
     ]
     // Show Test only to Mobilink
   if (firstName === "Mobilink") {
     routes.push({
-      title: "Test",
-      url: TEST,
+      title: "Add Bulk Employee",
+      url: ADD_EMPLOYEES,
       icon: IconFileDescription,
+    },
+    {
+      title: "Delete Bulk Employee",
+        url: DELETE_EMPLOYEES,
+        icon: IconFileDescription,
     });
   }
+  return routes;
 }
 
 // TIME STAMP CONVERTER

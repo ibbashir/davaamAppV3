@@ -5,7 +5,7 @@ import { FaFileExcel, FaFileAlt, FaLayerGroup, FaTable, FaDownload } from 'react
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import DataTable from './components/DataTables';
-import { LOCAL_BASE_URL } from '@/constants/Constant';
+import { BASE_URL } from '@/constants/Constant';
 
 // Types
 interface UploadedUser {
@@ -68,7 +68,7 @@ function AddEmployees() {
     formData.append('machine_code', machineCode);
 
     try {
-      const response = await fetch(`${LOCAL_BASE_URL}/corporates/addBulkCorporateUsers`, {
+      const response = await fetch(`${BASE_URL}/corporates/addBulkCorporateUsers`, {
         method: 'POST',
         body: formData,
         // Add headers if you have authentication

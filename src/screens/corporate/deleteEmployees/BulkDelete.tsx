@@ -82,7 +82,6 @@ const BulkDelete = () => {
       { cardNumber: '', employeeID: 'EMP003', mobile_number: '1122334455', id: '' }
     ];
 
-    // Convert to CSV
     const headers = ['cardNumber', 'employeeID', 'mobile_number', 'id'];
     const csvRows = [
       headers.join(','),
