@@ -27,7 +27,6 @@ import AdminLocations from '@/screens/admin/locations/Locations'
 import { AdminTopup } from '@/screens/admin/topup/Topup'
 import AdminNotifications from '@/screens/admin/notification/Notifications'
 import AdminFeedback from '@/screens/admin/feedback/Feedback'
-import AdminCorporate from '@/screens/admin/corporate/Corporate'
 import AdminMachineVisit from '@/screens/admin/machines/MachineVisit'
 
 //ops screens
@@ -37,7 +36,12 @@ import OpsMachines from '@/screens/ops/machines/Machines'
 import OpsLocations from '@/screens/ops/locations/Locations'
 import { OpsTopup } from '@/screens/ops/topup/Topup'
 import OpsFeedback from '@/screens/ops/feedback/Feedback'
-import OpsCorporate from '@/screens/ops/corporate/Corporate'
+
+// FulFillMENT Screens
+import FulfillDashboard from "@/screens/fulfillment/dashboard/Dashboard";
+import FulfillMachines from "@/screens/fulfillment/machines/Machines";
+import FulfillLocations from "@/screens/fulfillment/locations/Locations";
+import FulfillMachineVisit from "@/screens/fulfillment/machines/MachineVisit"
 
 //corporate (company) screens
 import CorporateDashboard from '@/screens/corporate/dashboard/Dashboard'
@@ -48,7 +52,7 @@ import CorporateMachineVisit from '@/screens/corporate/machines/MachineVisit'
 import NotFound from '@/screens/NotFound/NotFound'
 
 import {
-  ADMIN_CORPORATE,
+  ADD_EMPLOYEES,
   ADMIN_DASHBOARD,
   ADMIN_FEEDBACK,
   ADMIN_LOCATIONS,
@@ -57,14 +61,17 @@ import {
   ADMIN_NOTIFICATIONS,
   ADMIN_POINTS,
   ADMIN_TOPUP,
-  ADMIN_USERS,
   COMPANY_INFO,
   COMPANY_MACHINE_VISIT,
   FORGET_PASSWORD,
+  FULFill_DASHBOARD,
+  FULFill_LOCATIONS,
+  FULFill_MACHINE_VISIT,
+  FULFill_MACHINES,
+  FULFill_TOPUP,
   LOGIN,
   MACHINE_DASHBOARD,
   MACHINE_MACHINES,
-  OPS_CORPORATE,
   OPS_DASHBOARD,
   OPS_FEEDBACK,
   OPS_LOCATIONS,
@@ -72,7 +79,6 @@ import {
   OPS_MACHINES,
   OPS_POINTS,
   OPS_TOPUP,
-  OPS_USERS,
   PRIVACY_POLICY,
   REPORT,
   RESET_PASSWORD,
@@ -92,6 +98,8 @@ import OpsMachineVisit from '@/screens/ops/machines/MachineVisit'
 import Reports from '@/screens/corporate/reports/reports'
 import ResetPassword from '@/screens/forgetPassword/ResetPassword'
 import CorporateTopup from '@/screens/superAdmin/corporateTopup'
+import { FulfillmentTopup } from '@/screens/fulfillment/topup/Topup'
+import AddEmployees from '@/screens/corporate/addEmployees/AddEmployees'
 
 const Routing = () => {
   return (
@@ -151,6 +159,16 @@ const Routing = () => {
         </Route>
       </Route>
 
+      <Route element={<PrivateRouting allowedRoles={["fulfill"]} />}>
+        <Route element={<Layout />}>
+          <Route path={FULFill_DASHBOARD} element={< FulfillDashboard />} />
+          <Route path={FULFill_MACHINES} element={<FulfillMachines />} />
+          <Route path={FULFill_LOCATIONS} element={<FulfillLocations />} /> 
+          <Route path={FULFill_TOPUP} element={<FulfillmentTopup />} />
+          <Route path={FULFill_MACHINE_VISIT} element={<FulfillMachineVisit />} />
+        </Route>
+      </Route>
+
       {/* ✅ Updated company (corporate) routes to /company/... */}
       <Route element={<PrivateRouting allowedRoles={["company"]} />}>
         <Route element={<Layout />}>
@@ -158,6 +176,8 @@ const Routing = () => {
           <Route path={MACHINE_MACHINES} element={<CorporateMachines />} />
           <Route path={COMPANY_MACHINE_VISIT} element={<CorporateMachineVisit />} />
           <Route path={REPORT} element={<Reports />} />
+          <Route path={ADD_EMPLOYEES} element={<AddEmployees />} />
+          {/* <Route path={DELETE_EMPLOYEE} element={<AddEmployees />} /> */}
         </Route>
       </Route>
 

@@ -63,11 +63,22 @@ export const OPS_FEEDBACK = "/ops/feedback";
 export const OPS_CORPORATE = "/ops/corporate";
 export const OPS_MACHINE_VISIT = "/ops/machine-details/:id";
 
+
+// Fulfillment PATH
+export const FULFill_DASHBOARD="/fulfill/dashboard"
+export const FULFill_MACHINES="/fulfill/machines"
+export const FULFill_LOCATIONS="/fulfill/locations"
+export const FULFill_TOPUP="/fulfill/topup"
+export const FULLFiLL_MAINTAINCE="/fulfill/maintaince"
+export const FULFill_MACHINE_VISIT = "/fulfill/machine-details/:id";
+
 //MACHINE PATH
 export const MACHINE_DASHBOARD = "/company/dashboard";
 export const MACHINE_MACHINES = "/company/machines";
 export const COMPANY_MACHINE_VISIT="/company/machine-details/:id";
 export const REPORT = "/company/report";
+export const ADD_EMPLOYEES="/company/add-employees";
+export const DELETE_EMPLOYEES="/company/delete-employees";
 
 // navigation const
 export const SUPER_ADMIN_SIDEBAR_ROUTES = () => {
@@ -120,7 +131,6 @@ export const ADMIN_SIDEBAR_ROUTES = () => {
 export const OPS_SIDEBAR_ROUTES = () => {
   return [
     { title: "Dashboard", url: OPS_DASHBOARD, icon: IconHome },
-    // { title: "Corporate Clients", url: OPS_CORPORATE, icon: IconUserStar },
     { title: "Machines", url: OPS_MACHINES, icon: IconChartBar },
     { title: "Points Share", url: OPS_POINTS, icon: IconShare3 },
     { title: "Locations", url: OPS_LOCATIONS, icon: IconLocation },
@@ -129,11 +139,23 @@ export const OPS_SIDEBAR_ROUTES = () => {
   ];
 };
 
+export const FULFILL_SIDEBAR_ROUTES = () => {
+  return [
+    { title: "Dashboard", url: FULFill_DASHBOARD, icon: IconHome },
+    { title: "Machines", url: FULFill_MACHINES, icon: IconChartBar },
+    { title: "Locations", url: FULFill_LOCATIONS, icon: IconLocation },
+    { title: "Topup", url: FULFill_TOPUP, icon: IconCircleArrowUpRight },
+    { title: "Maintaince", url: FULLFiLL_MAINTAINCE, icon: IconCircleArrowUpRight },
+  ];
+};
+
 export const MACHINES_SIDEBAR_ROUTES = () => {
     return [
         { title: "Dashboard", url: MACHINE_DASHBOARD, icon: IconHome },
         { title: "Machines", url: MACHINE_MACHINES, icon: IconChartBar },
-        { title: "Reports", url: REPORT, icon: IconFileDescription }
+        { title: "Reports", url: REPORT, icon: IconFileDescription },
+        { title: "Add Employee", url: ADD_EMPLOYEES, icon: IconFileDescription },
+        { title: "Delete Employee", url: DELETE_EMPLOYEES, icon: IconFileDescription },
     ]
 }
 
