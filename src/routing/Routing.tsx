@@ -94,6 +94,7 @@ import {
   SUPERADMIN_POINTS,
   SUPERADMIN_ROLES,
   SUPERADMIN_TOPUP,
+  USERS,
 } from '@/constants/Constant'
 import OpsMachineVisit from '@/screens/ops/machines/MachineVisit'
 import Reports from '@/screens/corporate/reports/reports'
@@ -102,6 +103,7 @@ import CorporateTopup from '@/screens/superAdmin/corporateTopup'
 import { FulfillmentTopup } from '@/screens/fulfillment/topup/Topup'
 import AddEmployees from '@/screens/corporate/addEmployees/AddEmployees'
 import BulkDelete from '@/screens/corporate/deleteEmployees/BulkDelete'
+import AllUsers from '@/screens/corporate/allUsers/allUsers'
 
 const Routing = () => {
   return (
@@ -178,6 +180,7 @@ const Routing = () => {
           <Route path={MACHINE_MACHINES} element={<CorporateMachines />} />
           <Route path={COMPANY_MACHINE_VISIT} element={<CorporateMachineVisit />} />
           <Route path={REPORT} element={<Reports />} />
+          <Route path={USERS} element={<AllUsers />} />
           <Route path={ADD_EMPLOYEES} element={<AddEmployees />} />
           <Route path={DELETE_EMPLOYEES} element={<BulkDelete />} />
         </Route>

@@ -8,6 +8,10 @@ import {
   IconShare3,
   IconChartBar,
   IconFileDescription,
+  IconUser,
+  IconHexagonPlus,
+  IconHexagonMinus
+
 } from "@tabler/icons-react";
 
 export const BASE_URL_TWO =
@@ -77,6 +81,7 @@ export const COMPANY_MACHINE_VISIT = "/company/machine-details/:id";
 export const REPORT = "/company/report";
 export const ADD_EMPLOYEES="/company/add-employees";
 export const DELETE_EMPLOYEES="/company/delete-employees";
+export const USERS="/company/users"
 
 // navigation const
 export const SUPER_ADMIN_SIDEBAR_ROUTES = () => {
@@ -156,14 +161,19 @@ export const MACHINES_SIDEBAR_ROUTES = (firstName:string) => {
     // Show Test only to Mobilink
   if (firstName === "Mobilink") {
     routes.push({
+      title: "Users",
+      url: USERS,
+      icon: IconUser,
+    }
+      ,{
       title: "Add Bulk Employee",
       url: ADD_EMPLOYEES,
-      icon: IconFileDescription,
+      icon: IconHexagonPlus,
     },
     {
       title: "Delete Bulk Employee",
         url: DELETE_EMPLOYEES,
-        icon: IconFileDescription,
+        icon: IconHexagonMinus,
     });
   }
   return routes;
