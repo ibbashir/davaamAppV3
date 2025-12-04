@@ -7,6 +7,8 @@ import 'react-toastify/dist/ReactToastify.css';
 import DataTable from './components/DataTables';
 import { BASE_URL } from '@/constants/Constant';
 
+
+
 // Types
 interface UploadedUser {
   id: string | number;

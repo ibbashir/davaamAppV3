@@ -1,15 +1,25 @@
 import { BASE_URL } from '@/constants/Constant';
-import React, { useState } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
+import React, { useEffect, useState } from 'react';
 import { FaTrashAlt, FaFileExcel, FaExclamationTriangle, FaDownload } from 'react-icons/fa';
 import { toast } from 'react-toastify';
 
 const BulkDelete = () => {
-  const [machineCode, setMachineCode] = useState('');
   const [deletionReason, setDeletionReason] = useState('');
   const [file, setFile] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [deleteResult, setDeleteResult] = useState(null);
   const [showConfirm, setShowConfirm] = useState(false);
+
+  const {state}=useAuth();
+  const [machineCode, setMachineCode] = useState<string>('');
+
+  // Set machine code from user only once
+  useEffect(() => {
+      if (state?.user?.machines?.[0]) {
+        setMachineCode(state.user.machines[0].machine_code);
+      }
+    }, [state?.user]);
 
   const handleFileChange = (e) => {
     const selectedFile = e.target.files[0];
@@ -125,20 +135,6 @@ const BulkDelete = () => {
         {!deleteResult ? (
           <>
             <div className="space-y-4">
-              {/* Machine Code */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Machine Code *
-                </label>
-                <input
-                  type="text"
-                  value={machineCode}
-                  onChange={(e) => setMachineCode(e.target.value)}
-                  placeholder="Enter machine code to filter deletions"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                  required
-                />
-              </div>
 
               {/* Deletion Reason */}
               <div>

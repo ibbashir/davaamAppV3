@@ -1,6 +1,7 @@
-import React, { useState, useRef, useCallback } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { FaFileExcel, FaUpload, FaTimes, FaInfoCircle, FaSpinner } from 'react-icons/fa';
-import { toast, ToastContainer } from 'react-toastify';
+import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
 const ExcelReader: React.FC<ExcelReaderProps> = ({ 
@@ -14,7 +15,18 @@ const ExcelReader: React.FC<ExcelReaderProps> = ({
   const [error, setError] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  
+  const { state } = useAuth();
   const [machineCode, setMachineCode] = useState<string>('');
+
+  // Set machine code from user only once
+  useEffect(() => {
+    if (state?.user?.machines?.[0]) {
+      setMachineCode(state.user.machines[0].machine_code);
+    }
+  }, [state?.user]);
+
 
   const processExcelFile = async (file: File) => {
     if (!file) return;
@@ -155,23 +167,6 @@ const ExcelReader: React.FC<ExcelReaderProps> = ({
         </div>
       ) : (
         <div className="space-y-6">
-          {/* Machine Code Input */}
-          <div className="bg-white rounded-xl shadow-lg p-6">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Machine Code *
-            </label>
-            <input
-              type="text"
-              value={machineCode}
-              onChange={(e) => setMachineCode(e.target.value)}
-              placeholder="Enter machine code (e.g., MACH001)"
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              required
-            />
-            <p className="text-sm text-gray-500 mt-2">
-              This identifies which brand/location these users belong to
-            </p>
-          </div>
           
           {/* Drop Zone */}
           <div
