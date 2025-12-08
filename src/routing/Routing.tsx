@@ -70,6 +70,7 @@ import {
   FULFill_MACHINE_VISIT,
   FULFill_MACHINES,
   FULFill_TOPUP,
+  FULLFiLL_MAINTAINCE,
   LOGIN,
   MACHINE_DASHBOARD,
   MACHINE_MACHINES,
@@ -104,6 +105,7 @@ import { FulfillmentTopup } from '@/screens/fulfillment/topup/Topup'
 import AddEmployees from '@/screens/corporate/addEmployees/AddEmployees'
 import BulkDelete from '@/screens/corporate/deleteEmployees/BulkDelete'
 import AllUsers from '@/screens/corporate/allUsers/allUsers'
+import AddMaintenanceSchedule from '@/screens/fulfillment/maintaince/AddMaintainceSchedule'
 
 const Routing = () => {
   return (
@@ -170,6 +172,7 @@ const Routing = () => {
           <Route path={FULFill_LOCATIONS} element={<FulfillLocations />} /> 
           <Route path={FULFill_TOPUP} element={<FulfillmentTopup />} />
           <Route path={FULFill_MACHINE_VISIT} element={<FulfillMachineVisit />} />
+          <Route path={FULLFiLL_MAINTAINCE} element={<AddMaintenanceSchedule />} />
         </Route>
       </Route>
 
