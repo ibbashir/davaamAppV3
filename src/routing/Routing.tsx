@@ -53,6 +53,7 @@ import NotFound from '@/screens/NotFound/NotFound'
 
 import {
   ADD_EMPLOYEES,
+  ADMIN_CORPORATE_TOPUP,
   ADMIN_DASHBOARD,
   ADMIN_FEEDBACK,
   ADMIN_LOCATIONS,
@@ -74,6 +75,7 @@ import {
   LOGIN,
   MACHINE_DASHBOARD,
   MACHINE_MACHINES,
+  MAINTAINCE_REQUESTS,
   OPS_DASHBOARD,
   OPS_FEEDBACK,
   OPS_LOCATIONS,
@@ -106,6 +108,8 @@ import AddEmployees from '@/screens/corporate/addEmployees/AddEmployees'
 import BulkDelete from '@/screens/corporate/deleteEmployees/BulkDelete'
 import AllUsers from '@/screens/corporate/allUsers/allUsers'
 import AddMaintenanceSchedule from '@/screens/fulfillment/maintaince/AddMaintainceSchedule'
+import AdminMaintenanceRequests from '@/screens/fulfillment/maintaince/getMaintainceRequests'
+import AdminCorporateTopup from '@/screens/admin/corporateTopup'
 
 const Routing = () => {
   return (
@@ -148,6 +152,7 @@ const Routing = () => {
           <Route path={ADMIN_FEEDBACK} element={<AdminFeedback />} />
           {/* <Route path={ADMIN_CORPORATE} element={<AdminCorporate />} /> */}
           <Route path={ADMIN_MACHINE_VISIT} element={<AdminMachineVisit />} />
+          <Route path={ADMIN_CORPORATE_TOPUP} element={<AdminCorporateTopup />} />
         </Route>
       </Route>
 
@@ -173,6 +178,7 @@ const Routing = () => {
           <Route path={FULFill_TOPUP} element={<FulfillmentTopup />} />
           <Route path={FULFill_MACHINE_VISIT} element={<FulfillMachineVisit />} />
           <Route path={FULLFiLL_MAINTAINCE} element={<AddMaintenanceSchedule />} />
+          <Route path={MAINTAINCE_REQUESTS} element={<AdminMaintenanceRequests />} />
         </Route>
       </Route>
 

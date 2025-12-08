@@ -53,6 +53,7 @@ export const ADMIN_NOTIFICATIONS = "/admin/notifications";
 export const ADMIN_FEEDBACK = "/admin/feedback";
 export const ADMIN_CORPORATE = "/admin/corporate";
 export const ADMIN_MACHINE_VISIT = "/admin/machine-details/:id";
+export const ADMIN_CORPORATE_TOPUP = "/admin/corporate-topup";
 
 //OPS PATHS
 export const OPS_DASHBOARD = "/ops/dashboard";
@@ -73,6 +74,7 @@ export const FULFill_LOCATIONS="/fulfill/locations"
 export const FULFill_TOPUP="/fulfill/topup"
 export const FULLFiLL_MAINTAINCE="/fulfill/maintaince"
 export const FULFill_MACHINE_VISIT = "/fulfill/machine-details/:id";
+export const MAINTAINCE_REQUESTS="/fulfill/maintaince-requests"
 
 //MACHINE PATH
 export const MACHINE_DASHBOARD = "/company/dashboard";
@@ -128,6 +130,11 @@ export const ADMIN_SIDEBAR_ROUTES = () => {
       url: ADMIN_FEEDBACK,
       icon: IconMessage2Exclamation,
     },
+    {
+      title: "Corporate Topup",
+      url: ADMIN_CORPORATE_TOPUP,
+      icon: IconMessage2Exclamation,
+    },
   ];
 };
 
@@ -149,6 +156,7 @@ export const FULFILL_SIDEBAR_ROUTES = () => {
     { title: "Locations", url: FULFill_LOCATIONS, icon: IconLocation },
     { title: "Topup", url: FULFill_TOPUP, icon: IconCircleArrowUpRight },
     { title: "Maintaince", url: FULLFiLL_MAINTAINCE, icon: IconCircleArrowUpRight },
+    { title: "Maintaince Requests", url: MAINTAINCE_REQUESTS, icon: IconCircleArrowUpRight },
   ];
 };
 
