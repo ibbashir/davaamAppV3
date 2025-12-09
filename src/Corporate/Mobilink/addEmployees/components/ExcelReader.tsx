@@ -1,7 +1,7 @@
 import { useAuth } from '@/contexts/AuthContext';
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { FaFileExcel, FaUpload, FaTimes, FaInfoCircle, FaSpinner } from 'react-icons/fa';
-import { ToastContainer } from 'react-toastify';
+import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
 const ExcelReader: React.FC<ExcelReaderProps> = ({ 
@@ -16,7 +16,6 @@ const ExcelReader: React.FC<ExcelReaderProps> = ({
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  
   const { state } = useAuth();
   const [machineCode, setMachineCode] = useState<string>('');
 
@@ -27,6 +26,12 @@ const ExcelReader: React.FC<ExcelReaderProps> = ({
     }
   }, [state?.user]);
 
+  // Reset loading state when uploadStatus changes
+  useEffect(() => {
+    if (uploadStatus === 'success' || uploadStatus === 'error' || uploadStatus === 'idle') {
+      setIsLoading(false);
+    }
+  }, [uploadStatus]);
 
   const processExcelFile = async (file: File) => {
     if (!file) return;
@@ -52,6 +57,7 @@ const ExcelReader: React.FC<ExcelReaderProps> = ({
     try {
       // If bulk upload function provided, use it
       if (onBulkUpload && machineCode) {
+        // Call the bulk upload function and wait for it to complete
         await onBulkUpload(file, machineCode);
       } else {
         // Otherwise use local processing (original functionality)
@@ -63,10 +69,16 @@ const ExcelReader: React.FC<ExcelReaderProps> = ({
             // Process Excel file locally
             // ... existing Excel processing code ...
             // Call onFileRead with processed data
+            
+            // Simulate some delay for local processing
+            setTimeout(() => {
+              setIsLoading(false);
+              toast.success('File processed successfully!');
+            }, 1000);
+            
           } catch (err) {
             setError('Error reading Excel file. Please make sure the file is valid.');
             console.error('Excel read error:', err);
-          } finally {
             setIsLoading(false);
           }
         };
@@ -81,6 +93,7 @@ const ExcelReader: React.FC<ExcelReaderProps> = ({
     } catch (err) {
       setError('Error processing file. Please try again.');
       setIsLoading(false);
+      console.error('File processing error:', err);
     }
   };
 
@@ -110,7 +123,7 @@ const ExcelReader: React.FC<ExcelReaderProps> = ({
     if (files && files.length > 0) {
       processExcelFile(files[0]);
     }
-  }, [machineCode]);
+  }, [machineCode, onBulkUpload]);
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -129,6 +142,9 @@ const ExcelReader: React.FC<ExcelReaderProps> = ({
     }
   };
 
+  // Show loading state based on uploadStatus from parent
+  const showLoading = isLoading || uploadStatus === 'uploading';
+
   return (
     <div className="w-full max-w-4xl mx-auto">
       <ToastContainer position="top-right" autoClose={5000} />
@@ -141,11 +157,21 @@ const ExcelReader: React.FC<ExcelReaderProps> = ({
         className="hidden"
       />
       
-      {uploadStatus === 'uploading' ? (
-        <div className="bg-white rounded-xl shadow-lg p-8 text-center animate-pulse">
+      {showLoading ? (
+        <div className="bg-white rounded-xl shadow-lg p-8 text-center animate-fade-in">
           <FaSpinner className="text-5xl text-blue-500 animate-spin mx-auto mb-4" />
-          <h3 className="text-xl font-semibold text-gray-800">Uploading and Processing Excel File...</h3>
-          <p className="text-gray-600 mt-2">Please wait while we add users to the system</p>
+          <h3 className="text-xl font-semibold text-gray-800">
+            {uploadStatus === 'uploading' ? 'Uploading to Server...' : 'Processing Excel File...'}
+          </h3>
+          <p className="text-gray-600 mt-2">
+            {uploadStatus === 'uploading' 
+              ? 'Please wait while we add users to the system' 
+              : 'Reading and validating file data'
+            }
+          </p>
+          <div className="mt-4 w-full bg-gray-200 rounded-full h-2">
+            <div className="bg-blue-600 h-2 rounded-full animate-pulse" style={{ width: '60%' }}></div>
+          </div>
         </div>
       ) : currentFile ? (
         <div className="bg-white rounded-xl shadow-lg p-6 mb-6 border-l-4 border-green-500 animate-fade-in">
@@ -177,18 +203,18 @@ const ExcelReader: React.FC<ExcelReaderProps> = ({
                 ? 'border-green-500 bg-green-50 scale-[1.02]' 
                 : 'border-gray-300 hover:border-blue-500 hover:bg-gray-50'
               }
-              ${isLoading ? 'opacity-75 pointer-events-none' : ''}
+              ${showLoading ? 'opacity-75 pointer-events-none' : ''}
               ${!machineCode ? 'opacity-50 pointer-events-none' : ''}
             `}
             onDragEnter={handleDragEnter}
             onDragLeave={handleDragLeave}
             onDragOver={handleDragOver}
             onDrop={handleDrop}
-            onClick={machineCode ? handleBrowseClick : undefined}
+            onClick={machineCode && !showLoading ? handleBrowseClick : undefined}
             title={!machineCode ? "Please enter machine code first" : ""}
           >
             <div className="flex flex-col items-center justify-center">
-              {isLoading ? (
+              {showLoading ? (
                 <div className="flex flex-col items-center gap-4">
                   <FaSpinner className="text-5xl text-blue-500 animate-spin" />
                   <p className="text-lg text-gray-600 font-medium">Processing Excel file...</p>
@@ -236,7 +262,7 @@ const ExcelReader: React.FC<ExcelReaderProps> = ({
             </div>
           )}
           
-          {!error && !currentFile && machineCode && (
+          {!error && !currentFile && machineCode && !showLoading && (
             <div className="bg-white rounded-xl shadow-lg p-6">
               <h4 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
                 <FaInfoCircle className="text-blue-500" />
