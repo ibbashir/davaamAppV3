@@ -104,12 +104,12 @@ import Reports from '@/screens/corporate/reports/reports'
 import ResetPassword from '@/screens/forgetPassword/ResetPassword'
 import CorporateTopup from '@/screens/superAdmin/corporateTopup'
 import { FulfillmentTopup } from '@/screens/fulfillment/topup/Topup'
-import AddEmployees from '@/screens/corporate/addEmployees/AddEmployees'
-import BulkDelete from '@/screens/corporate/deleteEmployees/BulkDelete'
-import AllUsers from '@/screens/corporate/allUsers/allUsers'
 import AddMaintenanceSchedule from '@/screens/fulfillment/maintaince/AddMaintainceSchedule'
 import AdminMaintenanceRequests from '@/screens/fulfillment/maintaince/getMaintainceRequests'
 import AdminCorporateTopup from '@/screens/admin/corporateTopup'
+import AllUsers from '@/Corporate/Mobilink/allUsers/allUsers'
+import AddEmployees from '@/Corporate/Mobilink/addEmployees/AddEmployees'
+import BulkDelete from '@/Corporate/Mobilink/deleteEmployees/BulkDelete'
 
 const Routing = () => {
   return (

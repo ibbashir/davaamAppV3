@@ -182,7 +182,7 @@ export default function Report() {
           </div>
           <button
             type="submit"
-            className="rounded bg-teal-500 px-4 py-2 font-bold text-white hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-opacity-50 disabled:opacity-50"
+            className="rounded bg-teal-700 px-4 py-2 font-bold text-white hover:bg-teal-300 focus:outline-none focus:ring-2 focus:bg-teal-300 focus:ring-opacity-50 disabled:opacity-50"
             disabled={loading || !selectedDate}
           >
             {loading ? "Loading..." : "Generate Report"}

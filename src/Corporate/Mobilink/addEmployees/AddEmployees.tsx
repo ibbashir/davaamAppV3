@@ -6,6 +6,7 @@ import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import DataTable from './components/DataTables';
 import { BASE_URL } from '@/constants/Constant';
+import { SiteHeader } from '@/components/superAdmin/site-header';
 
 
 
@@ -246,23 +247,7 @@ function AddEmployees() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50">
       <ToastContainer />
-      
-      {/* Header */}
-      <header className="bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg">
-        <div className="container mx-auto px-4 py-8">
-          <div className="max-w-6xl mx-auto text-center">
-            <div className="inline-flex items-center justify-center gap-4 mb-4">
-              <div className="p-3 bg-white/20 rounded-full">
-                <FaFileExcel className="text-3xl" />
-              </div>
-              <h1 className="text-3xl md:text-4xl font-bold">Corporate Users Bulk Upload</h1>
-            </div>
-            <p className="text-lg text-blue-100 max-w-2xl mx-auto">
-              Upload Excel files to add users, generate PINs, and send email notifications
-            </p>
-          </div>
-        </div>
-      </header>
+     <SiteHeader title="🌱 Add Bulk Employees"/>
       
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8">

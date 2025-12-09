@@ -70,14 +70,8 @@ const BulkUploadResult: React.FC<BulkUploadResultProps> = ({
     setTimeout(() => setCopiedId(null), 2000);
   };
 
-  const copyAllPins = () => {
-    const allPins = result.data.map(user => `${user.cardNumber || user.employeeID}: ${user.pin}`).join('\n');
-    navigator.clipboard.writeText(allPins);
-    alert('All PINs copied to clipboard!');
-  };
-
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+    <div className="fixed inset-0 bg-transparent bg-opacity-10 flex items-center justify-center p-4 z-50">
       <div className="bg-white rounded-xl shadow-2xl max-w-6xl w-full max-h-[90vh] overflow-hidden">
         {/* Header */}
         <div className="p-6 border-b border-gray-200">
@@ -223,7 +217,7 @@ const BulkUploadResult: React.FC<BulkUploadResultProps> = ({
                     </td>
                     <td className="p-3">{user.name}</td>
                     <td className="p-3">{user.mobileNumber}</td>
-                    <td className="p-3 font-semibold text-green-600">${user.balance}</td>
+                    <td className="p-3 font-semibold text-green-600">Rs: {user.balance}</td>
                     <td className="p-3 text-sm">{user.email || 'N/A'}</td>
                     <td className="p-3">
                       <button
@@ -313,17 +307,6 @@ const BulkUploadResult: React.FC<BulkUploadResultProps> = ({
         {/* Footer Actions */}
         <div className="p-6 border-t border-gray-200 bg-gray-50">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-            <div>
-              <p className="text-gray-600">
-                <span className="font-semibold">Important:</span> Save PINs securely before closing.
-              </p>
-              <button
-                onClick={copyAllPins}
-                className="mt-2 px-3 py-1 text-sm bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg"
-              >
-                Copy All PINs to Clipboard
-              </button>
-            </div>
             <div className="flex gap-3">
               <button
                 onClick={onDownloadCSV}
