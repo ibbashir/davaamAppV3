@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { LOCAL_BASE_URL } from "@/constants/Constant";
+import { BASE_URL } from "@/constants/Constant";
 import { getRequest, postRequest } from "@/Apis/Api";
 import {
   Calendar,
@@ -33,12 +33,12 @@ const AddMaintenanceSchedule = () => {
   const fetchRoles = async () => {
     try {
       const res = await getRequest(
-        `${LOCAL_BASE_URL}/fulfillment/getAllStockRolesForAdmin`
+        `${BASE_URL}/fulfillment/getAllStockRolesForAdmin`
       );
       setRoles(res.data || []);
 
       const getAllMachines = await getRequest(
-        `${LOCAL_BASE_URL}/fulfillment/getAllMachinesForAdmin`
+        `${BASE_URL}/fulfillment/getAllMachinesForAdmin`
       );
       setVendingMachines(getAllMachines.vendingMachines || []);
       setSanitaryMachines(getAllMachines.sanitaryMachines || []);
@@ -68,7 +68,7 @@ const AddMaintenanceSchedule = () => {
 
     try {
       const res = await postRequest(
-        `${LOCAL_BASE_URL}/fulfillment/postRequestForAdmin`,
+        `${BASE_URL}/fulfillment/postRequestForAdmin`,
         formData
       );
 

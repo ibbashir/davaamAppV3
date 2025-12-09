@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { LOCAL_BASE_URL } from "@/constants/Constant";
+import { BASE_URL } from "@/constants/Constant";
 import { getRequest } from "@/Apis/Api";
 import { 
   CheckCircle, 
@@ -30,8 +30,8 @@ const AdminMaintenanceRequests = () => {
     try {
       const apiURL =
         type === "pending"
-          ? `${LOCAL_BASE_URL}/fulfillment/getPendingRequestForAdmin`
-          : `${LOCAL_BASE_URL}/fulfillment/getFullfilledRequestForAdmin`;
+          ? `${BASE_URL}/fulfillment/getPendingRequestForAdmin`
+          : `${BASE_URL}/fulfillment/getFullfilledRequestForAdmin`;
 
       const res = await getRequest(apiURL);
       
@@ -281,7 +281,7 @@ const AdminMaintenanceRequests = () => {
                                 <p className="text-xs text-gray-500">{completeTime}</p>
                               </div>
                             </div>
-                            <div className="flex items-center gap-3">
+                            {/* <div className="flex items-center gap-3">
                               <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
                                 <Calendar className="w-5 h-5 text-gray-600" />
                               </div>
@@ -289,7 +289,7 @@ const AdminMaintenanceRequests = () => {
                                 <p className="text-sm text-gray-500">Complete Status</p>
                                 <p className="font-medium text-gray-900">ON TIME</p>
                               </div>
-                            </div>
+                            </div> */}
                           </div>
                         </div>
                       </div>
