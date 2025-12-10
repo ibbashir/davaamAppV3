@@ -8,8 +8,6 @@ import DataTable from './components/DataTables';
 import { BASE_URL } from '@/constants/Constant';
 import { SiteHeader } from '@/components/superAdmin/site-header';
 
-
-
 // Types
 interface UploadedUser {
   id: string | number;
@@ -62,6 +60,122 @@ function AddEmployees() {
   const [bulkUploadResult, setBulkUploadResult] = useState<BulkUploadResponse | null>(null);
   const [showResults, setShowResults] = useState<boolean>(false);
 
+  // Function to download Excel template
+  const downloadTemplate = () => {
+    import('xlsx').then((XLSX) => {
+      // Create template data
+      const templateData = [
+        {
+          'employeeID (Optional)': '0001',
+          'balance (Required)': '100',
+          'name (Optional)': 'John Doe',
+          'email (Optional)': 'john@example.com',
+        },
+        {
+          'employeeID (Optional)': '0002',
+          'balance (Required)': '150',
+          'name (Optional)': 'Jane Smith',
+          'email (Optional)': 'jane@example.com',
+        },
+        {
+          'employeeID (Optional)': '0003',
+          'balance (Required)': '200',
+          'name (Optional)': 'Bob Wilson',
+          'email (Optional)': 'bob@example.com',
+        }
+      ];
+
+      const worksheet = XLSX.utils.json_to_sheet(templateData);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'Users Template');
+      
+      // Add instructions sheet
+      const instructions = [
+        ['📋 BULK USER UPLOAD TEMPLATE INSTRUCTIONS'],
+        [''],
+        ['IMPORTANT NOTES:'],
+        ['1. Include at least ONE of these identification methods:'],
+        ['   - cardNumber OR'],
+        ['   - employeeID AND balance'],
+        [''],
+        ['2. REQUIRED FIELDS:'],
+        ['   - balance (must be a number)'],
+        [''],
+        ['3. OPTIONAL FIELDS:'],
+        ['   - name (user full name)'],
+        ['   - email (for PIN notifications)'],
+        ['   - mobile_number (user phone number)'],
+        [''],
+        ['4. FILE FORMAT:'],
+        ['   - Save as .xlsx, .xls, or .csv'],
+        ['   - Max file size: 10MB'],
+        [''],
+        ['5. PROCESS:'],
+        ['   - System generates 4-digit PINs automatically'],
+        ['   - Emails sent to provided email addresses'],
+        ['   - Users added to specified machine code'],
+        [''],
+        ['⚠️ DO NOT DELETE OR MODIFY THE HEADER ROW'],
+        ['⚠️ DO NOT ADD "PIN" COLUMN (system generates it)'],
+        ['⚠️ REMOVE THESE INSTRUCTIONS BEFORE UPLOADING']
+      ];
+      
+      const instructionsSheet = XLSX.utils.aoa_to_sheet(instructions);
+      XLSX.utils.book_append_sheet(workbook, instructionsSheet, 'Instructions');
+      
+      // Set column widths for better formatting
+      const wscols = [
+        {wch: 20}, // cardNumber
+        {wch: 20}, // employeeID
+        {wch: 15}, // balance
+        {wch: 25}, // name
+        {wch: 30}, // email
+        {wch: 20}  // mobile_number
+      ];
+      worksheet['!cols'] = wscols;
+      
+      // Generate filename
+      const filename = `bulk_users_template_${new Date().toISOString().split('T')[0]}.xlsx`;
+      
+      XLSX.writeFile(workbook, filename);
+      
+      toast.success('Template downloaded successfully!', {
+        position: "top-right",
+        autoClose: 3000,
+      });
+    }).catch((error) => {
+      console.error('Error downloading template:', error);
+      toast.error('Failed to download template', {
+        position: "top-right",
+        autoClose: 3000,
+      });
+    });
+  };
+
+  // Function to download CSV template
+  const downloadCSVTemplate = () => {
+    const headers = ['employeeID', 'balance', 'name', 'email'];
+    const csvData = [
+      headers.join(','),
+      '1001,100,John Doe,john@example.com'
+    ];
+
+    const csvContent = csvData.join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', `bulk_users_template_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    toast.success('CSV template downloaded!', {
+      position: "top-right",
+      autoClose: 3000,
+    });
+  };
+
   // Function to handle bulk upload
   const handleBulkUpload = async (file: File, machineCode: string) => {
     setUploadStatus('uploading');
@@ -74,10 +188,6 @@ function AddEmployees() {
       const response = await fetch(`${BASE_URL}/corporates/addBulkCorporateUsers`, {
         method: 'POST',
         body: formData,
-        // Add headers if you have authentication
-        // headers: {
-        //   'Authorization': `Bearer ${localStorage.getItem('token')}`,
-        // },
       });
 
       if (!response.ok) {
@@ -262,6 +372,37 @@ function AddEmployees() {
               uploadStatus={uploadStatus}
             />
           </div>
+
+          {/* Template Download Section */}
+          {!excelData && !showResults && (
+            <div className="mb-8 bg-white rounded-xl shadow-lg p-6 animate-fade-in">
+              <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+                <div>
+                  <h2 className="text-xl font-bold text-gray-800 flex items-center gap-3 mb-2">
+                    <FaFileExcel className="text-green-500" />
+                    Need a Template?
+                  </h2>
+                  <p className="text-gray-600">
+                    Download our pre-formatted Excel template to ensure proper formatting
+                  </p>
+                </div>
+                <div className="flex flex-col sm:flex-row gap-2">
+                  <button
+                    onClick={downloadTemplate}
+                    className="bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-200 flex items-center justify-center gap-2"
+                  >
+                    <FaDownload /> Download Excel Template
+                  </button>
+                  <button
+                    onClick={downloadCSVTemplate}
+                    className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-200 flex items-center justify-center gap-2"
+                  >
+                    <FaDownload /> Download CSV Template
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
           
           {/* Results Section */}
           {showResults && bulkUploadResult && (
@@ -467,6 +608,8 @@ function AddEmployees() {
               <span>Automatically generates 4-digit PINs</span>
               <span className="hidden md:block text-gray-300">•</span>
               <span>Sends email notifications</span>
+              <span className="hidden md:block text-gray-300">•</span>
+              <span>Download templates available</span>
             </div>
             <p className="text-xs text-gray-400 mt-4">
               Corporate Users Bulk Upload System - Secure user management with Excel integration

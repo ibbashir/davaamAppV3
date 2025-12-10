@@ -280,9 +280,9 @@ const ExcelReader: React.FC<ExcelReaderProps> = ({
               <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
                 <h5 className="font-semibold text-blue-800 mb-2">Excel File Format:</h5>
                 <p className="text-sm text-gray-700">
-                  Required columns: <code className="bg-gray-100 px-2 py-1 rounded">cardNumber</code> OR <code className="bg-gray-100 px-2 py-1 rounded">employeeID</code> AND <code className="bg-gray-100 px-2 py-1 rounded">balance</code>
+                  Required columns: <code className="bg-gray-100 px-2 py-1 rounded">employeeID</code> AND <code className="bg-gray-100 px-2 py-1 rounded">balance</code>
                   <br />
-                  Optional columns: <code className="bg-gray-100 px-2 py-1 rounded">name</code>, <code className="bg-gray-100 px-2 py-1 rounded">email</code>, <code className="bg-gray-100 px-2 py-1 rounded">mobile_number</code>
+                  Optional columns: <code className="bg-gray-100 px-2 py-1 rounded">name</code> AND <code className="bg-gray-100 px-2 py-1 rounded">email</code>
                 </p>
               </div>
             </div>

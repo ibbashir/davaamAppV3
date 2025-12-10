@@ -160,10 +160,9 @@ const BulkUploadResult: React.FC<BulkUploadResultProps> = ({
             <table className="w-full">
               <thead className="bg-gray-100 sticky top-0">
                 <tr>
-                  <th className="p-3 text-left text-sm font-semibold text-gray-700">Card Number</th>
-                  <th className="p-3 text-left text-sm font-semibold text-gray-700">PIN</th>
                   <th className="p-3 text-left text-sm font-semibold text-gray-700">Name</th>
-                  <th className="p-3 text-left text-sm font-semibold text-gray-700">Mobile</th>
+                  <th className="p-3 text-left text-sm font-semibold text-gray-700">Employee ID</th>
+                  <th className="p-3 text-left text-sm font-semibold text-gray-700">PIN</th>
                   <th className="p-3 text-left text-sm font-semibold text-gray-700">Balance</th>
                   <th className="p-3 text-left text-sm font-semibold text-gray-700">Email</th>
                   <th className="p-3 text-left text-sm font-semibold text-gray-700">Actions</th>
@@ -172,24 +171,9 @@ const BulkUploadResult: React.FC<BulkUploadResultProps> = ({
               <tbody className="divide-y divide-gray-200">
                 {result.data.map((user) => (
                   <tr key={user.id} className="hover:bg-gray-50">
-                    <td className="p-3">
-                      <div className="flex items-center gap-2">
-                        <span className="font-medium">{user.cardNumber || 'N/A'}</span>
-                        {user.cardNumber && (
-                          <button
-                            onClick={() => copyToClipboard(user.cardNumber, `card_${user.id}`)}
-                            className="text-gray-400 hover:text-blue-500 text-sm"
-                            title="Copy card number"
-                          >
-                            {copiedId === `card_${user.id}` ? (
-                              <FaCheckCircle className="text-green-500" />
-                            ) : (
-                              <FaCopy />
-                            )}
-                          </button>
-                        )}
-                      </div>
-                    </td>
+                    <td className="p-3">{user.name}</td>
+                    <td className="p-3">{user.mobileNumber}</td>
+                    
                     <td className="p-3">
                       <div className="flex items-center gap-2">
                         <div className="font-mono bg-gray-100 px-3 py-1 rounded-lg">
@@ -215,8 +199,6 @@ const BulkUploadResult: React.FC<BulkUploadResultProps> = ({
                         </button>
                       </div>
                     </td>
-                    <td className="p-3">{user.name}</td>
-                    <td className="p-3">{user.mobileNumber}</td>
                     <td className="p-3 font-semibold text-green-600">Rs: {user.balance}</td>
                     <td className="p-3 text-sm">{user.email || 'N/A'}</td>
                     <td className="p-3">

@@ -132,12 +132,10 @@ const BulkDelete = () => {
   const downloadDeleteTemplate = () => {
     // Create template Excel data
     const templateData = [
-      { cardNumber: 'CARD001', employeeID: 'EMP001', mobile_number: '1234567890', id: '' },
-      { cardNumber: 'CARD002', employeeID: 'EMP002', mobile_number: '0987654321', id: '' },
-      { cardNumber: '', employeeID: 'EMP003', mobile_number: '1122334455', id: '' }
+      { employeeID: '1001'},
     ];
 
-    const headers = ['cardNumber', 'employeeID', 'mobile_number', 'id'];
+    const headers = ['employeeID'];
     const csvRows = [
       headers.join(','),
       ...templateData.map(row => 
@@ -327,10 +325,7 @@ const BulkDelete = () => {
                 <div className="mt-3 text-sm text-gray-600">
                   <p className="font-medium">File must include at least one of these fields:</p>
                   <div className="flex flex-wrap gap-2 mt-1">
-                    <code className="px-2 py-1 bg-gray-100 rounded text-xs">cardNumber</code>
                     <code className="px-2 py-1 bg-gray-100 rounded text-xs">employeeID</code>
-                    <code className="px-2 py-1 bg-gray-100 rounded text-xs">mobile_number</code>
-                    <code className="px-2 py-1 bg-gray-100 rounded text-xs">id</code>
                   </div>
                 </div>
               </div>

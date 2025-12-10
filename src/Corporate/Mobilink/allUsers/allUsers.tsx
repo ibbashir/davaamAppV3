@@ -17,6 +17,8 @@ import {
   Plus 
 } from "lucide-react"
 import { motion } from "framer-motion"
+import { useAuth } from "@/contexts/AuthContext"
+import { toast } from "react-toastify"
 
 type CorporateUser = {
   id: number
@@ -50,16 +52,24 @@ const AllUsers = () => {
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [showAddModal, setShowAddModal] = useState(false)
   const [activeUser, setActiveUser] = useState<CorporateUser | null>(null)
+  const [machineCode, setMachineCode] = useState<string>('')
+
+  // Set machine code from user only once
+  const { state } = useAuth()
+  useEffect(() => {
+    if (state?.user?.machines?.[0]) {
+      setMachineCode(state.user.machines[0].machine_code)
+    }
+  }, [state?.user])
 
   // -------------------------
   // Add User Form State
   // -------------------------
   const [addForm, setAddForm] = useState({
-    cardNumber: "",
     employeeID: "",
     name: "",
-    balance: "",
-    machine_code: ""
+    pin: "",
+    balance: ""
   })
 
   const handleAddChange = (e: any) => {
@@ -67,18 +77,68 @@ const AllUsers = () => {
   }
 
   const handleAddSubmit = async () => {
-    if (!addForm.balance || !addForm.machine_code) {
-      alert("Balance & Machine Code are required")
+    // Validate all required fields
+    if (!addForm.employeeID.trim()) {
+      toast.error("Employee ID is required")
+      return
+    }
+    if (!addForm.name.trim()) {
+      toast.error("Employee Name is required")
+      return
+    }
+    if (!addForm.pin.trim()) {
+      toast.error("Employee PIN is required")
+      return
+    }
+    if (!addForm.balance.trim()) {
+      toast.error("Balance is required")
+      return
+    }
+    
+    // Validate PIN format (should be numeric, 4-6 digits)
+    const pinRegex = /^\d{4,6}$/
+    if (!pinRegex.test(addForm.pin)) {
+      toast.error("PIN must be 4-6 digits")
+      return
+    }
+    
+    // Validate balance (should be a positive number)
+    const balanceValue = parseFloat(addForm.balance)
+    if (isNaN(balanceValue) || balanceValue < 0) {
+      toast.error("Balance must be a valid positive number")
+      return
+    }
+
+    if (!machineCode) {
+      toast.error("Machine code is not available")
       return
     }
 
     try {
-      await postRequest("/corporates/addCorporateUsers", addForm)
+      const payload = {
+        employeeID: addForm.employeeID.trim(),
+        name: addForm.name.trim(),
+        pin: addForm.pin.trim(),
+        balance: addForm.balance.trim(),
+        machine_code: machineCode
+      }
 
+      await postRequest("/corporates/addCorporateUsers", payload)
+      
+      toast.success("User added successfully")
       setShowAddModal(false)
+      // Reset form
+      setAddForm({
+        employeeID: "",
+        name: "",
+        pin: "",
+        balance: ""
+      })
+      // Refresh user list
       fetchCorporateUsers(currentPage, debouncedSearch)
-    } catch (err) {
+    } catch (err: any) {
       console.error("Add User Error:", err)
+      toast.error(err.response?.data?.message || "Failed to add user")
     }
   }
 
@@ -154,6 +214,18 @@ const AllUsers = () => {
     fetchCorporateUsers(currentPage, debouncedSearch)
   }, [currentPage, debouncedSearch, itemsPerPage])
 
+  // Reset add form when modal opens/closes
+  useEffect(() => {
+    if (!showAddModal) {
+      setAddForm({
+        employeeID: "",
+        name: "",
+        pin: "",
+        balance: ""
+      })
+    }
+  }, [showAddModal])
+
   // -------------------------
   // Pagination Handlers
   // -------------------------
@@ -201,6 +273,20 @@ const AllUsers = () => {
     }
     
     return pageNumbers
+  }
+
+  // Check if add form is valid
+  const isAddFormValid = () => {
+    return (
+      addForm.employeeID.trim() !== "" &&
+      addForm.name.trim() !== "" &&
+      addForm.pin.trim() !== "" &&
+      addForm.balance.trim() !== "" &&
+      machineCode !== "" &&
+      /^\d{4,6}$/.test(addForm.pin) &&
+      !isNaN(parseFloat(addForm.balance)) &&
+      parseFloat(addForm.balance) >= 0
+    )
   }
 
   return (
@@ -481,24 +567,86 @@ const AllUsers = () => {
             <motion.div
               initial={{ scale: 0.8, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
-              className="bg-white rounded-lg shadow-xl p-6 w-[450px]"
+              className="bg-white rounded-lg shadow-xl p-6 w-[450px] max-w-[95vw]"
             >
               <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
                 <Plus className="w-5 h-5" />
                 Add New Corporate User
               </h2>
 
-              <div className="flex flex-col gap-3">
-                <Input name="cardNumber" placeholder="Card Number (optional)" onChange={handleAddChange} />
-                <Input name="employeeID" placeholder="Employee ID (optional)" onChange={handleAddChange} />
-                <Input name="name" placeholder="Employee Name" onChange={handleAddChange} />
-                <Input name="balance" type="number" placeholder="Balance (required)" onChange={handleAddChange} />
-                <Input name="machine_code" type="number" placeholder="Machine Code (required)" onChange={handleAddChange} />
+              <div className="flex flex-col gap-4">
+                <div>
+                  <Label htmlFor="employeeID" className="mb-1 block">Employee ID *</Label>
+                  <Input 
+                    id="employeeID" 
+                    name="employeeID" 
+                    value={addForm.employeeID}
+                    placeholder="Enter employee ID" 
+                    onChange={handleAddChange} 
+                    required
+                  />
+                </div>
+                
+                <div>
+                  <Label htmlFor="name" className="mb-1 block">Employee Name *</Label>
+                  <Input 
+                    id="name" 
+                    name="name" 
+                    value={addForm.name}
+                    placeholder="Enter employee name" 
+                    onChange={handleAddChange} 
+                    required
+                  />
+                </div>
+                
+                <div>
+                  <Label htmlFor="pin" className="mb-1 block">Employee PIN *</Label>
+                  <Input 
+                    id="pin" 
+                    name="pin" 
+                    type="password"
+                    value={addForm.pin}
+                    placeholder="Enter 4-6 digit PIN" 
+                    onChange={handleAddChange} 
+                    required
+                  />
+                  <p className="text-xs text-gray-500 mt-1">Must be 4-6 digits</p>
+                </div>
+                
+                <div>
+                  <Label htmlFor="balance" className="mb-1 block">Balance *</Label>
+                  <Input 
+                    id="balance" 
+                    name="balance" 
+                    type="number"
+                    value={addForm.balance}
+                    placeholder="Enter balance amount" 
+                    onChange={handleAddChange} 
+                    min="0"
+                    step="0.01"
+                    required
+                  />
+                </div>
+                
+                <div className="mt-2 p-3 bg-blue-50 rounded-lg">
+                  <p className="text-sm text-gray-600">
+                    <strong>Note:</strong> All fields marked with * are required. 
+                    User will be added to machine code: <span className="font-semibold">{machineCode || 'Not available'}</span>
+                  </p>
+                </div>
               </div>
 
               <div className="flex justify-end gap-3 mt-6">
                 <button 
-                  onClick={() => setShowAddModal(false)} 
+                  onClick={() => {
+                    setShowAddModal(false)
+                    setAddForm({
+                      employeeID: "",
+                      name: "",
+                      pin: "",
+                      balance: ""
+                    })
+                  }} 
                   className="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-md transition-colors"
                 >
                   Cancel
@@ -506,7 +654,12 @@ const AllUsers = () => {
 
                 <button 
                   onClick={handleAddSubmit} 
-                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md flex items-center gap-2 transition-colors"
+                  disabled={!isAddFormValid()}
+                  className={`px-4 py-2 rounded-md flex items-center gap-2 transition-colors ${
+                    isAddFormValid() 
+                      ? 'bg-blue-600 hover:bg-blue-700 text-white' 
+                      : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                  }`}
                 >
                   <Plus className="w-4 h-4" />
                   Add User
@@ -565,10 +718,12 @@ const AllUsers = () => {
                         pin: editForm.pin,
                         card_number: activeUser.card_number
                       })
+                      toast.success("User updated successfully")
                       setShowEditModal(false)
                       fetchCorporateUsers(currentPage, debouncedSearch)
                     } catch (error) {
                       console.error("Update Error:", error)
+                      toast.error("Failed to update user")
                     }
                   }}
                   className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg flex items-center gap-2 transition-colors"
@@ -606,10 +761,12 @@ const AllUsers = () => {
                   onClick={async () => {
                     try {
                       await deleteRequest(`/corporates/deleteCorporateUsers/${activeUser.id}`)
+                      toast.success("User deleted successfully")
                       setShowDeleteModal(false)
                       fetchCorporateUsers(currentPage, debouncedSearch)
                     } catch (error) {
                       console.error("Delete Error:", error)
+                      toast.error("Failed to delete user")
                     }
                   }}
                   className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg flex items-center gap-2 transition-colors"
