@@ -155,7 +155,7 @@ const BulkUploadResult: React.FC<BulkUploadResultProps> = ({
         </div>
 
         {/* Content */}
-        <div className="overflow-y-auto max-h-[50vh]">
+        <div className="overflow-y-auto max-h-[50vh] mx-5">
           {activeTab === 'users' ? (
             <table className="w-full">
               <thead className="bg-gray-100 sticky top-0">
