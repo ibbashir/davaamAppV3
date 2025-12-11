@@ -74,7 +74,8 @@ export const FULFill_LOCATIONS="/fulfill/locations"
 export const FULFill_TOPUP="/fulfill/topup"
 export const FULLFiLL_MAINTAINCE="/fulfill/maintaince"
 export const FULFill_MACHINE_VISIT = "/fulfill/machine-details/:id";
-export const MAINTAINCE_REQUESTS="/fulfill/maintaince-requests"
+export const MAINTAINCE_REQUESTS="/fulfill/maintaince-requests";
+export const CASH_COLLECTIONS="/fulfill/cashCollection";
 
 //MACHINE PATH
 export const MACHINE_DASHBOARD = "/company/dashboard";
@@ -157,6 +158,7 @@ export const FULFILL_SIDEBAR_ROUTES = () => {
     { title: "Topup", url: FULFill_TOPUP, icon: IconCircleArrowUpRight },
     { title: "Maintaince", url: FULLFiLL_MAINTAINCE, icon: IconCircleArrowUpRight },
     { title: "Maintaince Requests", url: MAINTAINCE_REQUESTS, icon: IconCircleArrowUpRight },
+    { title: "Cash Collections", url: CASH_COLLECTIONS, icon: IconCircleArrowUpRight },
   ];
 };
 

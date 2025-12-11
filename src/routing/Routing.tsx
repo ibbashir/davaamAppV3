@@ -62,6 +62,7 @@ import {
   ADMIN_NOTIFICATIONS,
   ADMIN_POINTS,
   ADMIN_TOPUP,
+  CASH_COLLECTIONS,
   COMPANY_INFO,
   COMPANY_MACHINE_VISIT,
   DELETE_EMPLOYEES,
@@ -110,6 +111,7 @@ import AdminCorporateTopup from '@/screens/admin/corporateTopup'
 import AllUsers from '@/Corporate/Mobilink/allUsers/allUsers'
 import AddEmployees from '@/Corporate/Mobilink/addEmployees/AddEmployees'
 import BulkDelete from '@/Corporate/Mobilink/deleteEmployees/BulkDelete'
+import CashCollectionPage from '@/screens/fulfillment/cashCollections/cashCollection'
 
 const Routing = () => {
   return (
@@ -179,6 +181,7 @@ const Routing = () => {
           <Route path={FULFill_MACHINE_VISIT} element={<FulfillMachineVisit />} />
           <Route path={FULLFiLL_MAINTAINCE} element={<AddMaintenanceSchedule />} />
           <Route path={MAINTAINCE_REQUESTS} element={<AdminMaintenanceRequests />} />
+          <Route path={CASH_COLLECTIONS} element={<CashCollectionPage />} />
         </Route>
       </Route>
 
