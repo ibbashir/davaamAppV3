@@ -355,13 +355,13 @@ function AddEmployees() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50">
+    <div className="min-h-screen bg-gradient-to-br from-teal-50 to-purple-50">
       <ToastContainer />
      <SiteHeader title="🌱 Add Bulk Employees"/>
       
       {/* Main Content */}
-      <main className="container mx-auto px-4 py-8">
-        <div className="max-w-6xl mx-auto">
+      <main className="container px-4 py-8">
+        <div className="">
           {/* Upload Section */}
           <div className="mb-8">
             <ExcelReader 
@@ -379,7 +379,7 @@ function AddEmployees() {
               <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
                 <div>
                   <h2 className="text-xl font-bold text-gray-800 flex items-center gap-3 mb-2">
-                    <FaFileExcel className="text-green-500" />
+                    <FaFileExcel className="text-teal-500" />
                     Need a Template?
                   </h2>
                   <p className="text-gray-600">
@@ -389,13 +389,13 @@ function AddEmployees() {
                 <div className="flex flex-col sm:flex-row gap-2">
                   <button
                     onClick={downloadTemplate}
-                    className="bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-200 flex items-center justify-center gap-2"
+                    className="bg-teal-500 hover:bg-teal-600 text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-200 flex items-center justify-center gap-2"
                   >
                     <FaDownload /> Download Excel Template
                   </button>
                   <button
                     onClick={downloadCSVTemplate}
-                    className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-200 flex items-center justify-center gap-2"
+                    className="bg-teal-500 hover:bg-teal-600 text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-200 flex items-center justify-center gap-2"
                   >
                     <FaDownload /> Download CSV Template
                   </button>
@@ -409,19 +409,19 @@ function AddEmployees() {
             <div className="mb-8 bg-white rounded-xl shadow-lg p-6 animate-fade-in">
               <div className="flex justify-between items-center mb-6">
                 <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-3">
-                  <FaFileAlt className="text-green-500" />
+                  <FaFileAlt className="text-teal-500" />
                   Upload Results
                 </h2>
                 <div className="flex gap-3">
                   <button
                     onClick={downloadResultsAsCSV}
-                    className="bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-200 flex items-center gap-2"
+                    className="bg-teal-500 hover:bg-teal-600 text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-200 flex items-center gap-2"
                   >
                     <FaDownload /> Download CSV with PINs
                   </button>
                   <button
                     onClick={downloadResultsAsExcel}
-                    className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-200 flex items-center gap-2"
+                    className="bg-teal-500 hover:bg-teal-600 text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-200 flex items-center gap-2"
                   >
                     <FaFileExcel /> Download Excel Report
                   </button>
@@ -430,13 +430,13 @@ function AddEmployees() {
               
               {/* Summary Cards */}
               <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 mb-6">
-                <div className="bg-green-50 p-4 rounded-lg">
-                  <div className="text-sm text-green-600">Total Users</div>
-                  <div className="text-2xl font-bold text-green-700">{bulkUploadResult.summary.insertedRecords}</div>
+                <div className="bg-teal-50 p-4 rounded-lg">
+                  <div className="text-sm text-teal-600">Total Users</div>
+                  <div className="text-2xl font-bold text-teal-700">{bulkUploadResult.summary.insertedRecords}</div>
                 </div>
-                <div className="bg-blue-50 p-4 rounded-lg">
-                  <div className="text-sm text-blue-600">PINs Generated</div>
-                  <div className="text-2xl font-bold text-blue-700">{bulkUploadResult.summary.generatedPINs}</div>
+                <div className="bg-teal-50 p-4 rounded-lg">
+                  <div className="text-sm text-teal-600">PINs Generated</div>
+                  <div className="text-2xl font-bold text-teal-700">{bulkUploadResult.summary.generatedPINs}</div>
                 </div>
                 <div className="bg-purple-50 p-4 rounded-lg">
                   <div className="text-sm text-purple-600">Emails Sent</div>
@@ -479,7 +479,7 @@ function AddEmployees() {
                           <td className="py-2">
                             <span className="font-mono bg-gray-100 px-2 py-1 rounded">{user.pin}</span>
                           </td>
-                          <td className="py-2 font-semibold text-green-600">${user.balance}</td>
+                          <td className="py-2 font-semibold text-teal-600">${user.balance}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -496,9 +496,9 @@ function AddEmployees() {
               {bulkUploadResult.emails.totalSent > 0 && (
                 <div className="mb-6">
                   <h3 className="text-lg font-semibold text-gray-700 mb-3">Email Notification Status</h3>
-                  <div className="bg-blue-50 rounded-lg p-4">
+                  <div className="bg-teal-50 rounded-lg p-4">
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm text-blue-700">
+                      <span className="text-sm text-teal-700">
                         {bulkUploadResult.emails.successful} emails sent successfully
                       </span>
                       <span className="text-sm text-red-600">
@@ -524,9 +524,9 @@ function AddEmployees() {
                 <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-6">
                   <div className="flex-1">
                     <h2 className="text-xl font-bold text-gray-800 flex items-center gap-3 mb-3">
-                      <FaFileAlt className="text-green-500" />
+                      <FaFileAlt className="text-teal-500" />
                       <span className="truncate">File Preview: {fileName}</span>
-                      <span className="inline-flex items-center gap-2 bg-blue-50 text-blue-700 px-3 py-1 rounded-full text-sm font-medium ml-2">
+                      <span className="inline-flex items-center gap-2 bg-teal-50 text-teal-700 px-3 py-1 rounded-full text-sm font-medium ml-2">
                         <FaLayerGroup />
                         {excelData.sheets.length} sheet(s)
                       </span>
@@ -555,7 +555,7 @@ function AddEmployees() {
                             px-4 py-2 rounded-lg transition-all duration-200 font-medium
                             flex items-center gap-2
                             ${activeSheet === sheet.name 
-                              ? 'bg-blue-500 text-white shadow-md' 
+                              ? 'bg-teal-500 text-white shadow-md' 
                               : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                             }
                           `}
@@ -581,7 +581,7 @@ function AddEmployees() {
               {/* Summary */}
               <div className="bg-gray-50 rounded-xl p-5 text-center border border-gray-200">
                 <p className="text-gray-700 flex items-center justify-center gap-3">
-                  <FaTable className="text-blue-500" />
+                  <FaTable className="text-teal-500" />
                   <span>
                     <span className="font-bold text-gray-900">{activeSheetData?.data.length || 0}</span> rows × 
                     <span className="font-bold text-gray-900"> {activeSheetData?.headers.length || 0}</span> columns
