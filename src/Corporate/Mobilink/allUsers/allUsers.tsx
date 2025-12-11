@@ -503,7 +503,7 @@ const AllUsers = () => {
                         onClick={() => setCurrentPage(page as number)}
                         className={`w-8 h-8 rounded-md flex items-center justify-center text-sm transition-colors ${
                           currentPage === page
-                            ? 'bg-blue-600 text-white'
+                            ? 'bg-teal-600 text-white'
                             : 'hover:bg-gray-100 text-gray-700'
                         }`}
                       >
@@ -657,7 +657,7 @@ const AllUsers = () => {
                   disabled={!isAddFormValid()}
                   className={`px-4 py-2 rounded-md flex items-center gap-2 transition-colors ${
                     isAddFormValid() 
-                      ? 'bg-blue-600 hover:bg-blue-700 text-white' 
+                      ? 'bg-teal-600 hover:bg-teal-700 text-white' 
                       : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                   }`}
                 >

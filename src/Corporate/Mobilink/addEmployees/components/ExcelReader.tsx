@@ -159,7 +159,7 @@ const ExcelReader: React.FC<ExcelReaderProps> = ({
       
       {showLoading ? (
         <div className="bg-white rounded-xl shadow-lg p-8 text-center animate-fade-in">
-          <FaSpinner className="text-5xl text-blue-500 animate-spin mx-auto mb-4" />
+          <FaSpinner className="text-5xl text-teal-500 animate-spin mx-auto mb-4" />
           <h3 className="text-xl font-semibold text-gray-800">
             {uploadStatus === 'uploading' ? 'Uploading to Server...' : 'Processing Excel File...'}
           </h3>
@@ -170,7 +170,7 @@ const ExcelReader: React.FC<ExcelReaderProps> = ({
             }
           </p>
           <div className="mt-4 w-full bg-gray-200 rounded-full h-2">
-            <div className="bg-blue-600 h-2 rounded-full animate-pulse" style={{ width: '60%' }}></div>
+            <div className="bg-teal-600 h-2 rounded-full animate-pulse" style={{ width: '60%' }}></div>
           </div>
         </div>
       ) : currentFile ? (
@@ -201,7 +201,7 @@ const ExcelReader: React.FC<ExcelReaderProps> = ({
               cursor-pointer
               ${isDragging 
                 ? 'border-green-500 bg-green-50 scale-[1.02]' 
-                : 'border-gray-300 hover:border-blue-500 hover:bg-gray-50'
+                : 'border-gray-300 hover:border-teal-500 hover:bg-gray-50'
               }
               ${showLoading ? 'opacity-75 pointer-events-none' : ''}
               ${!machineCode ? 'opacity-50 pointer-events-none' : ''}
@@ -216,18 +216,18 @@ const ExcelReader: React.FC<ExcelReaderProps> = ({
             <div className="flex flex-col items-center justify-center">
               {showLoading ? (
                 <div className="flex flex-col items-center gap-4">
-                  <FaSpinner className="text-5xl text-blue-500 animate-spin" />
+                  <FaSpinner className="text-5xl text-teal-500 animate-spin" />
                   <p className="text-lg text-gray-600 font-medium">Processing Excel file...</p>
                 </div>
               ) : (
                 <>
                   <div className={`
                     p-4 rounded-full mb-6 transition-colors duration-300
-                    ${isDragging ? 'bg-green-100' : 'bg-blue-100'}
+                    ${isDragging ? 'bg-green-100' : 'bg-teal-100'}
                   `}>
                     <FaUpload className={`
                       text-5xl transition-colors duration-300
-                      ${isDragging ? 'text-green-500' : 'text-blue-500'}
+                      ${isDragging ? 'text-green-500' : 'text-teal-500'}
                     `} />
                   </div>
                   
@@ -243,7 +243,7 @@ const ExcelReader: React.FC<ExcelReaderProps> = ({
                   </p>
                   
                   {machineCode && (
-                    <div className="inline-flex items-center gap-2 bg-blue-50 text-blue-700 px-4 py-2 rounded-full text-sm font-medium">
+                    <div className="inline-flex items-center gap-2 bg-teal-50 text-teal-700 px-4 py-2 rounded-full text-sm font-medium">
                       <FaInfoCircle />
                       Supports: .xlsx, .xls, .csv
                     </div>
@@ -265,7 +265,7 @@ const ExcelReader: React.FC<ExcelReaderProps> = ({
           {!error && !currentFile && machineCode && !showLoading && (
             <div className="bg-white rounded-xl shadow-lg p-6">
               <h4 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
-                <FaInfoCircle className="text-blue-500" />
+                <FaInfoCircle className="text-teal-500" />
                 How to use:
               </h4>
               <ol className="list-decimal pl-5 space-y-3 text-gray-700">
@@ -277,8 +277,8 @@ const ExcelReader: React.FC<ExcelReaderProps> = ({
                 <li className="pl-2">Download the results with generated PINs</li>
               </ol>
               
-              <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
-                <h5 className="font-semibold text-blue-800 mb-2">Excel File Format:</h5>
+              <div className="mt-6 p-4 bg-teal-50 rounded-lg border border-teal-200">
+                <h5 className="font-semibold text-teal-800 mb-2">Excel File Format:</h5>
                 <p className="text-sm text-gray-700">
                   Required columns: <code className="bg-gray-100 px-2 py-1 rounded">employeeID</code> AND <code className="bg-gray-100 px-2 py-1 rounded">balance</code>
                   <br />

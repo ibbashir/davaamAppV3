@@ -192,7 +192,7 @@ const BulkDelete = () => {
                   onChange={(e) => setDeletionReason(e.target.value)}
                   placeholder="Reason for deleting these users..."
                   rows="3"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all"
                 />
               </div>
 
@@ -204,8 +204,8 @@ const BulkDelete = () => {
                 <div
                   className={`relative border-3 border-dashed rounded-xl p-8 text-center transition-all duration-300 cursor-pointer ${
                     isDragging
-                      ? 'border-red-500 bg-red-50 scale-[1.02]'
-                      : 'border-gray-300 hover:border-red-400 hover:bg-red-50'
+                      ? 'border-teal-500 bg-teal-50 scale-[1.02]'
+                      : 'border-gray-300 hover:border-teal-400 hover:bg-teal-50'
                   } ${file ? 'bg-green-50 border-green-400' : ''}`}
                   onDragOver={handleDragOver}
                   onDragEnter={handleDragEnter}
@@ -242,7 +242,7 @@ const BulkDelete = () => {
                             e.stopPropagation();
                             removeFile();
                           }}
-                          className="text-red-500 hover:text-red-600 p-2 rounded-full hover:bg-red-50 transition-colors flex-shrink-0"
+                          className="text-teal-500 hover:text-teal-600 p-2 rounded-full hover:bg-teal-50 transition-colors flex-shrink-0"
                           title="Remove file"
                         >
                           <FaTimes className="w-5 h-5" />
@@ -258,11 +258,11 @@ const BulkDelete = () => {
                         <>
                           <div className="w-20 h-20 mb-4 flex items-center justify-center">
                             <div className="relative">
-                              <div className="w-16 h-16 border-4 border-red-500 border-dashed rounded-full animate-pulse"></div>
-                              <FaUpload className="absolute inset-0 m-auto text-red-500 text-2xl" />
+                              <div className="w-16 h-16 border-4 border-teal-500 border-dashed rounded-full animate-pulse"></div>
+                              <FaUpload className="absolute inset-0 m-auto text-teal-500 text-2xl" />
                             </div>
                           </div>
-                          <p className="text-xl font-semibold text-red-600 animate-pulse">
+                          <p className="text-xl font-semibold text-teal-600 animate-pulse">
                             Drop to upload
                           </p>
                           <p className="text-gray-500 mt-2">
@@ -306,17 +306,17 @@ const BulkDelete = () => {
               </div>
 
               {/* Template Download */}
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <div className="bg-teal-50 border border-teal-200 rounded-lg p-4">
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                   <div>
-                    <h3 className="font-medium text-blue-800">Need a template?</h3>
-                    <p className="text-sm text-blue-600 mt-1">
+                    <h3 className="font-medium text-teal-800">Need a template?</h3>
+                    <p className="text-sm text-teal-600 mt-1">
                       Download our template to ensure proper formatting
                     </p>
                   </div>
                   <button
                     onClick={downloadDeleteTemplate}
-                    className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors whitespace-nowrap"
+                    className="flex items-center gap-2 px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white rounded-lg transition-colors whitespace-nowrap"
                   >
                     <FaDownload />
                     Download Template
@@ -331,16 +331,16 @@ const BulkDelete = () => {
               </div>
 
               {/* Warning */}
-              <div className="bg-red-50 border border-red-200 rounded-lg p-5">
+              <div className="bg-teal-50 border border-teal-200 rounded-lg p-5">
                 <div className="flex items-start gap-4">
-                  <FaExclamationTriangle className="text-red-500 text-xl flex-shrink-0 mt-0.5" />
+                  <FaExclamationTriangle className="text-teal-500 text-xl flex-shrink-0 mt-0.5" />
                   <div>
-                    <p className="font-bold text-red-700 text-lg">⚠️ Warning: Irreversible Action</p>
-                    <p className="text-red-600 mt-2">
+                    <p className="font-bold text-teal-700 text-lg">⚠️ Warning: Irreversible Action</p>
+                    <p className="text-teal-600 mt-2">
                       This action will <span className="font-bold">permanently delete</span> all matching user accounts from machine code <span className="font-bold">{machineCode}</span>. 
                       This process cannot be undone.
                     </p>
-                    <ul className="list-disc list-inside text-red-600 mt-2 text-sm space-y-1">
+                    <ul className="list-disc list-inside text-teal-600 mt-2 text-sm space-y-1">
                       <li>Deleted users will lose access immediately</li>
                       <li>All user data will be permanently removed</li>
                       <li>Ensure you have a backup before proceeding</li>
@@ -356,7 +356,7 @@ const BulkDelete = () => {
                 className={`w-full py-4 px-6 rounded-xl font-bold text-lg flex items-center justify-center gap-3 transition-all duration-300 ${
                   isLoading || !machineCode || !file
                     ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                    : 'bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white shadow-lg hover:shadow-xl transform hover:scale-[1.02] active:scale-[0.98]'
+                    : 'bg-gradient-to-r from-teal-600 to-teal-700 hover:from-teal-700 hover:to-teal-800 text-white shadow-lg hover:shadow-xl transform hover:scale-[1.02] active:scale-[0.98]'
                 }`}
               >
                 {isLoading ? (
@@ -409,12 +409,12 @@ const BulkDelete = () => {
 
             {/* Summary Cards */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-5">
-              <div className="bg-gradient-to-br from-red-50 to-red-100 border border-red-200 rounded-xl p-6 shadow-sm">
-                <div className="text-sm font-semibold text-red-700 uppercase tracking-wide">Deleted</div>
-                <div className="text-4xl font-bold text-red-800 mt-2">
+              <div className="bg-gradient-to-br from-teal-50 to-teal-100 border border-teal-200 rounded-xl p-6 shadow-sm">
+                <div className="text-sm font-semibold text-teal-700 uppercase tracking-wide">Deleted</div>
+                <div className="text-4xl font-bold text-teal-800 mt-2">
                   {deleteResult.summary.deletedRecords}
                 </div>
-                <div className="text-xs text-red-600 mt-2">Users permanently removed</div>
+                <div className="text-xs text-teal-600 mt-2">Users permanently removed</div>
               </div>
               <div className="bg-gradient-to-br from-yellow-50 to-yellow-100 border border-yellow-200 rounded-xl p-6 shadow-sm">
                 <div className="text-sm font-semibold text-yellow-700 uppercase tracking-wide">Not Found</div>
@@ -423,12 +423,12 @@ const BulkDelete = () => {
                 </div>
                 <div className="text-xs text-yellow-600 mt-2">No matching records</div>
               </div>
-              <div className="bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200 rounded-xl p-6 shadow-sm">
-                <div className="text-sm font-semibold text-blue-700 uppercase tracking-wide">Emails Sent</div>
-                <div className="text-4xl font-bold text-blue-800 mt-2">
+              <div className="bg-gradient-to-br from-teal-50 to-teal-100 border border-teal-200 rounded-xl p-6 shadow-sm">
+                <div className="text-sm font-semibold text-teal-700 uppercase tracking-wide">Emails Sent</div>
+                <div className="text-4xl font-bold text-teal-800 mt-2">
                   {deleteResult.emails?.successful || 0}
                 </div>
-                <div className="text-xs text-blue-600 mt-2">Notification emails sent</div>
+                <div className="text-xs text-teal-600 mt-2">Notification emails sent</div>
               </div>
               <div className="bg-gradient-to-br from-gray-50 to-gray-100 border border-gray-300 rounded-xl p-6 shadow-sm">
                 <div className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Total in File</div>
@@ -474,11 +474,11 @@ const BulkDelete = () => {
                           <td className="px-6 py-4 font-medium">{user.cardNumber || '—'}</td>
                           <td className="px-6 py-4">{user.name}</td>
                           <td className="px-6 py-4">{user.mobile_number || '—'}</td>
-                          <td className="px-6 py-4 font-bold text-red-600">
+                          <td className="px-6 py-4 font-bold text-teal-600">
                             Rs: {user.balance ? parseFloat(user.balance).toFixed(2) : '0.00'}
                           </td>
                           <td className="px-6 py-4">
-                            <span className="px-3 py-1 bg-red-100 text-red-800 text-xs font-semibold rounded-full">
+                            <span className="px-3 py-1 bg-teal-100 text-teal-800 text-xs font-semibold rounded-full">
                               Deleted
                             </span>
                           </td>
@@ -493,7 +493,7 @@ const BulkDelete = () => {
                       <p className="text-sm text-gray-500">
                         ... and {deleteResult.data.length - 10} more users
                       </p>
-                      <button className="text-sm text-blue-600 hover:text-blue-700 font-medium">
+                      <button className="text-sm text-teal-600 hover:text-teal-700 font-medium">
                         View Complete List →
                       </button>
                     </div>
@@ -510,8 +510,8 @@ const BulkDelete = () => {
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50 backdrop-blur-sm">
           <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full p-8 animate-scale-in">
             <div className="flex items-center gap-4 mb-6">
-              <div className="p-3 bg-red-100 rounded-xl">
-                <FaExclamationTriangle className="text-2xl text-red-600" />
+              <div className="p-3 bg-teal-100 rounded-xl">
+                <FaExclamationTriangle className="text-2xl text-teal-600" />
               </div>
               <div>
                 <h3 className="text-2xl font-bold text-gray-900">Confirm Deletion</h3>
@@ -520,7 +520,7 @@ const BulkDelete = () => {
             </div>
             
             <div className="space-y-4 mb-8">
-              <div className="p-4 bg-red-50 rounded-xl border border-red-200">
+              <div className="p-4 bg-teal-50 rounded-xl border border-teal-200">
                 <div className="flex items-center gap-3">
                   <FaFileExcel className="text-green-500 text-xl" />
                   <div>
@@ -535,17 +535,17 @@ const BulkDelete = () => {
               </div>
               
               {deletionReason && (
-                <div className="p-4 bg-blue-50 rounded-xl border border-blue-200">
-                  <p className="text-sm font-semibold text-blue-800 mb-1">Deletion Reason:</p>
+                <div className="p-4 bg-teal-50 rounded-xl border border-teal-200">
+                  <p className="text-sm font-semibold text-teal-800 mb-1">Deletion Reason:</p>
                   <p className="text-gray-700">"{deletionReason}"</p>
                 </div>
               )}
             </div>
             
-            <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-6">
+            <div className="bg-teal-50 border border-teal-200 rounded-xl p-4 mb-6">
               <div className="flex items-start gap-3">
-                <FaExclamationTriangle className="text-red-500 mt-0.5 flex-shrink-0" />
-                <p className="text-red-700 font-medium">
+                <FaExclamationTriangle className="text-teal-500 mt-0.5 flex-shrink-0" />
+                <p className="text-teal-700 font-medium">
                   This action <span className="font-bold underline">cannot be undone</span>. 
                   All matching users will be permanently deleted.
                 </p>
@@ -561,7 +561,7 @@ const BulkDelete = () => {
               </button>
               <button
                 onClick={confirmDelete}
-                className="flex-1 py-3 px-6 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white rounded-xl font-semibold flex items-center justify-center gap-3 transition-all"
+                className="flex-1 py-3 px-6 bg-gradient-to-r from-teal-600 to-teal-700 hover:from-teal-700 hover:to-teal-800 text-white rounded-xl font-semibold flex items-center justify-center gap-3 transition-all"
               >
                 <FaTrashAlt />
                 Confirm Delete
