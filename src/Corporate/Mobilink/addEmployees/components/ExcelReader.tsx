@@ -146,7 +146,7 @@ const ExcelReader: React.FC<ExcelReaderProps> = ({
   const showLoading = isLoading || uploadStatus === 'uploading';
 
   return (
-    <div className="w-full max-w-4xl mx-auto">
+    <div className="w-full mx-auto">
       <ToastContainer position="top-right" autoClose={5000} />
       
       <input
