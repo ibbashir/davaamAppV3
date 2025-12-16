@@ -92,6 +92,7 @@ import {
   SUPERADMIN_DASHBOARD,
   SUPERADMIN_FEEDBACK,
   SUPERADMIN_LOCATIONS,
+  SUPERADMIN_MACHINE_MAP,
   SUPERADMIN_MACHINE_VISIT,
   SUPERADMIN_MACHINES,
   SUPERADMIN_NOTIFICATIONS,
@@ -112,6 +113,7 @@ import AllUsers from '@/Corporate/Mobilink/allUsers/allUsers'
 import AddEmployees from '@/Corporate/Mobilink/addEmployees/AddEmployees'
 import BulkDelete from '@/Corporate/Mobilink/deleteEmployees/BulkDelete'
 import CashCollectionPage from '@/screens/fulfillment/cashCollections/cashCollection'
+import MachineMap from '@/screens/superAdmin/MachinesMap/MachineMap'
 
 const Routing = () => {
   return (
@@ -139,6 +141,7 @@ const Routing = () => {
           <Route path={SUPERADMIN_CORPORATE} element={<Corporate />} />
           <Route path={SUPERADMIN_MACHINE_VISIT} element={<SuperAdminMachineVisit />} />
           <Route path={SUPERADMIN_CORPORATE_TOPUP} element={<CorporateTopup />} />
+          <Route path={SUPERADMIN_MACHINE_MAP} element={<MachineMap />} />
         </Route>
       </Route>
 
