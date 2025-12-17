@@ -1,14 +1,5 @@
-"use client";
-
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { getRequest, postRequest } from "@/Apis/Api";
-import moment from "moment";
-import {
-  IconChevronLeft,
-  IconChevronsLeft,
-  IconChevronRight,
-  IconChevronsRight,
-} from "@tabler/icons-react";
 import {
   Card,
   CardContent,
@@ -25,7 +16,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { SiteHeader } from "@/components/superAdmin/site-header";
 import { Badge } from "@/components/ui/badge";
 import {
   Dialog,
@@ -34,17 +24,58 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { toast } from "sonner";
 
-const RegisteredCorporatesList = ({ onBack }) => {
-  const [corporates, setCorporates] = useState([]);
-  const [filteredCorporates, setFilteredCorporates] = useState([]);
-  const [searchTerm, setSearchTerm] = useState("");
+import moment from "moment";
+import { toast } from "react-toastify";
+import {
+  IconChevronLeft,
+  IconChevronsLeft,
+  IconChevronRight,
+  IconChevronsRight,
+} from "@tabler/icons-react";
+import { FaPlus } from "react-icons/fa";
+
+interface CorporateTopupsData {
+  corporate_name: string;
+  created_at: string;
+  epoch_time: number;
+  id: number;
+  location: string;
+  topuplimit: number;
+  updated_at: string | null;
+  machine_codes: string[] | string;
+  name?: string;
+}
+
+interface ApiResponse {
+  data: CorporateTopupsData[];
+  success?: boolean;
+  status?: number;
+  message:string;
+  [key: string]: unknown;
+}
+
+interface PostTopupBody {
+  machineCodes: string[];
+  purposeOfPayment: string;
+}
+
+interface RegisteredCorporatesListProps {
+  setShowModal: (show: boolean) => void;
+  fetchCorporatesAll: (page: number, limit: number) => Promise<void>;
+
+}
+
+
+
+const RegisteredCorporatesList = ({ setShowModal, fetchCorporatesAll }: RegisteredCorporatesListProps) => {
+
+  const [corporates, setCorporates] = useState<CorporateTopupsData[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10);
-  const [selectedCorporate, setSelectedCorporate] = useState(null);
+  const [selectedCorporate, setSelectedCorporate] = useState<CorporateTopupsData | null>(null);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -53,10 +84,9 @@ const RegisteredCorporatesList = ({ onBack }) => {
     const fetchCorporates = async () => {
       try {
         setLoading(true);
-        const response = await getRequest("/superadmin/getAllCorporateClients");
+        const response = await getRequest("/superadmin/getAllCorporateClients") as ApiResponse;
         if (response && response.data) {
           setCorporates(response.data);
-          setFilteredCorporates(response.data);
         }
       } catch (err) {
         console.error("Error fetching corporates:", err);
@@ -69,60 +99,50 @@ const RegisteredCorporatesList = ({ onBack }) => {
     fetchCorporates();
   }, []);
 
-  // Filter corporates based on search
-  useEffect(() => {
-    if (!searchTerm) {
-      setFilteredCorporates(corporates);
-    } else {
-      const filtered = corporates.filter((c) =>
-        (c.corporate_name || c.name || "")
-          .toLowerCase()
-          .includes(searchTerm.toLowerCase())
-      );
-      setFilteredCorporates(filtered);
-    }
-    setCurrentPage(1);
-  }, [searchTerm, corporates]);
-
   // Pagination logic
-  const totalPages = Math.ceil(filteredCorporates.length / itemsPerPage);
-  const paginatedData = filteredCorporates.slice(
+  const totalPages = Math.ceil(corporates.length / itemsPerPage);
+  const paginatedData = corporates.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
 
-  // ✅ Fixed: render machine codes properly (handles array, JSON string, comma-separated)
-  const renderMachineCodes = (machineCodes: any) => {
-    if (!machineCodes)
-      return <span className="text-gray-400 italic">No machines</span>;
-
-    let codesArray: string[] = [];
+  // Parse machine codes from various formats
+  const parseMachineCodes = (machineCodes: CorporateTopupsData['machine_codes']): string[] => {
+    if (!machineCodes) return [];
 
     if (Array.isArray(machineCodes)) {
-      codesArray = machineCodes;
-    } else if (typeof machineCodes === "string") {
+      return machineCodes.filter((code): code is string => typeof code === 'string');
+    }
+
+    if (typeof machineCodes === 'string') {
       try {
         const parsed = JSON.parse(machineCodes);
         if (Array.isArray(parsed)) {
-          codesArray = parsed;
-        } else if (typeof parsed === "string") {
-          codesArray = parsed.split(",").map((c) => c.trim());
-        } else {
-          codesArray = [machineCodes];
+          return parsed.filter((code): code is string => typeof code === 'string');
+        } else if (typeof parsed === 'string') {
+          return parsed.split(',').map((c) => c.trim()).filter(Boolean);
         }
       } catch {
-        codesArray = machineCodes.split(",").map((c) => c.trim());
+        return machineCodes.split(',').map((c) => c.trim()).filter(Boolean);
       }
     }
 
-    if (codesArray.length === 0)
+    return [];
+  };
+
+  // Render machine codes properly
+  const renderMachineCodes = (machineCodes: CorporateTopupsData['machine_codes']) => {
+    const codesArray = parseMachineCodes(machineCodes);
+
+    if (codesArray.length === 0) {
       return <span className="text-gray-400 italic">No machines</span>;
+    }
 
     return (
-      <div className="flex flex-wrap gap-1 justify-center">
+      <div className="flex flex-wrap gap-1 justify-start">
         {codesArray.map((code, i) => (
           <Badge
-            key={i}
+            key={`${code}-${i}`}
             variant="outline"
             className="bg-teal-50 text-teal-700 border border-teal-200"
           >
@@ -131,6 +151,36 @@ const RegisteredCorporatesList = ({ onBack }) => {
         ))}
       </div>
     );
+  };
+
+  const handleTopupConfirm = async () => {
+    if (!selectedCorporate) return;
+
+    setIsSubmitting(true);
+    try {
+      const body: PostTopupBody = {
+        machineCodes: parseMachineCodes(selectedCorporate.machine_codes),
+        purposeOfPayment: `Monthly Topup for ${selectedCorporate.corporate_name || "Unknown Company"} amount of ${selectedCorporate.topuplimit || 0}`,
+      };
+
+      const res = await postRequest(
+        "/superadmin/addCorporateRegisterationwithMachines",
+        body
+      ) as ApiResponse;
+
+        //here we need to call
+        toast.success(res.message);
+        console.log("done.................")
+        fetchCorporatesAll(1, 10);
+
+      
+    } catch (err) {
+      console.error(err);
+      toast.error("Something went wrong during topup!");
+    } finally {
+      setIsSubmitting(false);
+      setConfirmOpen(false);
+    }
   };
 
   if (loading) {
@@ -144,18 +194,31 @@ const RegisteredCorporatesList = ({ onBack }) => {
   }
 
   return (
-    <div>
-      <SiteHeader title="" />
-      <div className="flex flex-col gap-4 p-4 lg:gap-6 lg:p-6">
+    <div className="flex flex-col gap-4 p-4 lg:gap-6 lg:p-6 mb-5">
+      <div className="">
         <Card>
-          <CardHeader>
-            <CardTitle className="text-black">
-              Corporates Dashboard
-            </CardTitle>
-            <CardDescription>
-              List of all registered corporate clients
-            </CardDescription>
-          </CardHeader>
+          {/* Fixed: Removed w-full to prevent full width */}
+          <div className="flex justify-between items-center">
+            <div className=" w-3xl">
+              <CardHeader>
+                <CardTitle className="text-black">
+                  Corporates Dashboard
+                </CardTitle>
+                <CardDescription>
+                  List of all registered corporate clients
+                </CardDescription>
+              </CardHeader>
+            </div>
+
+            <div className="pr-6">
+              <button
+                onClick={() => setShowModal(true)}
+                className="flex items-center gap-2 cursor-pointer bg-teal-600 text-white px-4 py-2 rounded-lg hover:bg-teal-700 transition"
+              >
+                <FaPlus /> Add Corporate
+              </button>
+            </div>
+          </div>
 
           <CardContent>
             {error && (
@@ -169,22 +232,22 @@ const RegisteredCorporatesList = ({ onBack }) => {
               <Table className="rounded-2xl overflow-hidden">
                 <TableHeader>
                   <TableRow className="bg-teal-600 text-white hover:bg-teal-600">
-                    <TableHead className="text-center font-semibold text-white bg-teal-600 border-none rounded-tl-2xl">
+                    <TableHead className="font-semibold text-white bg-teal-600 border-none rounded-tl-2xl">
                       Company Name
                     </TableHead>
-                    <TableHead className="text-center font-semibold text-white bg-teal-600 border-none">
+                    <TableHead className="font-semibold text-white bg-teal-600 border-none">
                       Location
                     </TableHead>
-                    <TableHead className="text-center font-semibold text-white bg-teal-600 border-none">
+                    <TableHead className="font-semibold text-white bg-teal-600 border-none">
                       Machine Codes
                     </TableHead>
-                    <TableHead className="text-center font-semibold text-white bg-teal-600 border-none">
+                    <TableHead className="font-semibold text-white bg-teal-600 border-none">
                       Topup Limit
                     </TableHead>
-                    <TableHead className="text-center font-semibold text-white bg-teal-600 border-none">
+                    <TableHead className="font-semibold text-white bg-teal-600 border-none">
                       Created At
                     </TableHead>
-                    <TableHead className="text-center font-semibold text-white bg-teal-600 border-none rounded-tr-2xl">
+                    <TableHead className="font-semibold text-white bg-teal-600 border-none rounded-tr-2xl">
                       Action
                     </TableHead>
                   </TableRow>
@@ -194,26 +257,26 @@ const RegisteredCorporatesList = ({ onBack }) => {
                   {paginatedData.length > 0 ? (
                     paginatedData.map((corporate) => (
                       <TableRow key={corporate.id}>
-                        <TableCell className="text-center font-medium">
+                        <TableCell className="font-medium">
                           {corporate.corporate_name || corporate.name || "N/A"}
                         </TableCell>
-                        <TableCell className="text-center">
+                        <TableCell>
                           {corporate.location || "N/A"}
                         </TableCell>
-                        <TableCell className="text-center">
+                        <TableCell className="text-left">
                           {renderMachineCodes(corporate.machine_codes)}
                         </TableCell>
-                        <TableCell className="text-center font-semibold text-teal-700">
+                        <TableCell className="font-semibold text-teal-700">
                           {corporate.topuplimit || "N/A"}
                         </TableCell>
-                        <TableCell className="text-center text-muted-foreground">
+                        <TableCell className="text-muted-foreground">
                           {corporate.created_at
                             ? moment
-                                .utc(corporate.created_at)
-                                .format("YYYY-MM-DD HH:mm:ss")
+                              .utc(corporate.created_at)
+                              .format("DD-MM-YYYY")
                             : "N/A"}
                         </TableCell>
-                        <TableCell className="text-center">
+                        <TableCell>
                           <Button
                             variant="outline"
                             size="sm"
@@ -221,6 +284,7 @@ const RegisteredCorporatesList = ({ onBack }) => {
                               setSelectedCorporate(corporate);
                               setConfirmOpen(true);
                             }}
+                            className="cursor-pointer"
                           >
                             Topup
                           </Button>
@@ -242,11 +306,11 @@ const RegisteredCorporatesList = ({ onBack }) => {
             </div>
 
             {/* Pagination */}
-            {filteredCorporates.length > 0 && (
+            {corporates.length > 0 && (
               <div className="flex items-center justify-between px-4 mt-4">
                 <div className="hidden text-sm text-muted-foreground lg:flex">
                   Showing {paginatedData.length} of{" "}
-                  {filteredCorporates.length} corporates
+                  {corporates.length} corporates
                 </div>
                 <div className="flex items-center gap-2">
                   <Button
@@ -321,42 +385,13 @@ const RegisteredCorporatesList = ({ onBack }) => {
               variant="outline"
               onClick={() => setConfirmOpen(false)}
               disabled={isSubmitting}
+              className="cursor-pointer"
             >
               Cancel
             </Button>
             <Button
-              className="bg-teal-600 hover:bg-teal-700 text-white"
-              onClick={async () => {
-                if (!selectedCorporate) return;
-                setIsSubmitting(true);
-                try {
-                  const body = {
-                    machineCodes: Array.isArray(
-                      selectedCorporate?.machine_codes
-                    )
-                      ? selectedCorporate.machine_codes
-                      : [selectedCorporate?.machine_codes],
-                    purposeOfPayment: `Monthly Topup for ${selectedCorporate.corporate_name || "Unknown Company"} amount of ${selectedCorporate.topuplimit || 0}`,
-                  };
-
-                  const res = await postRequest(
-                    "/superadmin/addCorporateRegisterationwithMachines",
-                    body
-                  );
-
-                  if (res?.success || res?.status >= 200) {
-                    toast.success("Topup successful!");
-                  } else {
-                    toast.error("Topup failed!");
-                  }
-                } catch (err) {
-                  console.error(err);
-                  toast.error("Something went wrong during topup!");
-                } finally {
-                  setIsSubmitting(false);
-                  setConfirmOpen(false);
-                }
-              }}
+              className="bg-teal-600 hover:bg-teal-700 text-white cursor-pointer"
+              onClick={handleTopupConfirm}
               disabled={isSubmitting}
             >
               {isSubmitting ? "Processing..." : "Yes, Proceed"}

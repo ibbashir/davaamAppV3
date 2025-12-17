@@ -1,43 +1,153 @@
-"use client";
-
-import React, { useState } from "react";
-import { FaPlus } from "react-icons/fa";
+import { useEffect, useState } from "react";
 import CorporateRegisterForm from "./corporateRegisterForm";
 import RegisteredCorporatesList from "./registeredCorporates";
 import CorporateHistory from "./corporateHistory";
 
+import { SiteHeader } from "@/components/superAdmin/site-header";
+import { getRequest } from "@/Apis/Api";
+
+interface TopupHistoryResponse {
+  currentMonthlyTopups?: number;
+  status?: number;
+  totalEmployees?: number;
+  total_companies?: number;
+  total_sum?: number;
+  total_topups?: number;
+  data: TopupHistoryData[];
+  pagination?: TopupHistoryPagination;
+}
+
+interface TopupHistoryPagination {
+  current_page: number;
+  has_next: number;
+  has_prev: number;
+  limit: number;
+  total_pages: number;
+  total_records: number;
+}
+
+interface TopupHistoryData {
+  amount: string;
+  corporate_name: string;
+  created_at: string;
+  epoch_time: number;
+  id: number;
+  purpose_of_payment: string;
+  uuid: string;
+}
+
+interface PaginationState {
+  current_page: number;
+  limit: number;
+  total_records: number;
+  total_pages: number;
+}
+
+interface CorporateStats {
+  totalEmployees: number;
+  total_sum: number;
+  total_companies: number;
+  total_topups: number;
+  overall_topups: number;
+  data: TopupHistoryData[];
+}
+
 const CorporateTopup = () => {
   const [showModal, setShowModal] = useState(false);
 
-  return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      {/* Header */}
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-semibold text-gray-800">
-          Corporate Topup Management
-        </h1>
-        <button
-          onClick={() => setShowModal(true)}
-          className="flex items-center gap-2 bg-teal-600 text-white px-4 py-2 rounded-lg hover:bg-teal-700 transition"
-        >
-          <FaPlus /> Add Corporate
-        </button>
-      </div>
+  // Corporate history state
+  const [loading, setLoading] = useState(true);
+  const [corporates, setCorporates] = useState<CorporateStats>({
+    totalEmployees: 0,
+    total_sum: 0,
+    total_companies: 0,
+    total_topups: 0,
+    overall_topups: 0,
+    data: []
+  });
+  const [error, setError] = useState<string | null>(null);
+  const [pagination, setPagination] = useState<PaginationState>({
+    current_page: 1,
+    limit: 10,
+    total_records: 0,
+    total_pages: 0,
+  });
 
+  const fetchCorporates = async (page: number = 1, limit: number = 10) => {
+    try {
+      setLoading(true);
+      const response = await getRequest(
+        `/superadmin/getCorporateTopupHistory?page=${page}&limit=${limit}`
+      ) as TopupHistoryResponse;
+
+      if (response && response.data) {
+        setCorporates({
+          totalEmployees: response.totalEmployees || 0,
+          total_sum: response.total_sum || 0,
+          total_companies: response.total_companies || 0,
+          total_topups: response.total_topups || 0,
+          overall_topups: response.currentMonthlyTopups || 0,
+          data: response.data
+        });
+
+        // Use response pagination if available, otherwise calculate from total_topups
+        if (response.pagination) {
+          setPagination({
+            current_page: response.pagination.current_page,
+            limit: response.pagination.limit,
+            total_records: response.pagination.total_records,
+            total_pages: response.pagination.total_pages,
+          });
+        } else if (response.total_topups) {
+          setPagination({
+            current_page: page,
+            limit: limit,
+            total_records: response.total_topups,
+            total_pages: Math.ceil(response.total_topups / limit),
+          });
+        } else {
+          setPagination({
+            current_page: page,
+            limit: limit,
+            total_records: response.data.length,
+            total_pages: 1,
+          });
+        }
+      }
+    } catch (err) {
+      console.error("Error fetching corporates:", err);
+      setError("Failed to load corporate data");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchCorporates(1, 10);
+  }, []);
+
+  return (
+    <div className="min-h-screen bg-gray-50">
       {/* Tables Section */}
-      <div className="space-y-6">
-        <div className="bg-white rounded-xl shadow p-4">
-          <h2 className="text-lg font-semibold mb-3 text-gray-700">
-            Registered Corporates
-          </h2>
-          <RegisteredCorporatesList />
+      <div className="">
+        <SiteHeader title="Registered Corporates" />
+
+        <div className="flex justify-start mt-2 mr-2">
+          {/* Empty div for layout if needed */}
         </div>
 
-        <div className="bg-white rounded-xl shadow p-4">
-          <h2 className="text-lg font-semibold mb-3 text-gray-700">
-            Corporate History
-          </h2>
-          <CorporateHistory />
+        <div className="bg-white rounded-xl shadow">
+          <RegisteredCorporatesList setShowModal={setShowModal} fetchCorporatesAll={fetchCorporates}/>
+        </div>
+
+        <div className="bg-white rounded-xl shadow">
+          <CorporateHistory 
+            loading={loading} 
+            corporates={corporates} 
+            error={error} 
+            pagination={pagination} 
+            fetchCorporates={fetchCorporates}
+          />
         </div>
       </div>
 
@@ -59,7 +169,7 @@ const CorporateTopup = () => {
 
             <button
               onClick={() => setShowModal(false)}
-              className="absolute top-3 right-4 text-gray-500 hover:text-gray-700 text-xl"
+              className="absolute top-3 right-4 cursor-pointer text-gray-500 hover:text-gray-700 text-xl"
             >
               ✕
             </button>

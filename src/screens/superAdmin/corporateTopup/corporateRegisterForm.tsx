@@ -1,11 +1,11 @@
-"use client";
-
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { postRequest } from "@/Apis/Api";
+
 import {
   Plus,
   Trash2,
@@ -15,13 +15,20 @@ import {
   DollarSign,
   Loader2,
 } from "lucide-react";
-import { postRequest } from "@/Apis/Api";
 
 interface CorporateFormData {
   corporate_name: string;
   location: string;
   topuplimit: string;
   machine_codes: string[];
+}
+
+interface ApiResponse {
+  success?: boolean;
+  message?: string;
+  status?: number;
+  data?: unknown;
+  [key: string]: unknown;
 }
 
 interface CorporateRegisterFormProps {
@@ -92,10 +99,10 @@ const CorporateRegisterForm: React.FC<CorporateRegisterFormProps> = ({
 
     setLoading(true);
     try {
-      const response: any = await postRequest(
+      const response = await postRequest(
         "/superadmin/corporateRegisteration",
         submissionData
-      );
+      ) as ApiResponse;
 
       console.log("Corporate Registration Response:", response);
 
@@ -105,9 +112,10 @@ const CorporateRegisterForm: React.FC<CorporateRegisterFormProps> = ({
       } else {
         alert("❌ Failed to register corporate. Please try again.");
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Registration error:", error);
-      alert(error?.message || "Error occurred during registration");
+      const errorMessage = error instanceof Error ? error.message : "Error occurred during registration";
+      alert(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -222,6 +230,7 @@ const CorporateRegisterForm: React.FC<CorporateRegisterFormProps> = ({
               variant="outline"
               onClick={closeModal}
               disabled={loading}
+              className="cursor-pointer"
             >
               Cancel
             </Button>
@@ -229,7 +238,7 @@ const CorporateRegisterForm: React.FC<CorporateRegisterFormProps> = ({
               type="submit"
               size="lg"
               disabled={!isFormValid || loading}
-              className="bg-teal-600 hover:bg-teal-700 text-white"
+              className="bg-teal-600 hover:bg-teal-700 text-white cursor-pointer"
             >
               {loading ? (
                 <>
