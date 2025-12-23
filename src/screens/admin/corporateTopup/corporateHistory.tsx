@@ -1,8 +1,3 @@
-"use client";
-
-import React, { useState, useEffect } from "react";
-import { getRequest } from "@/Apis/Api";
-import moment from "moment";
 import {
   IconChevronLeft,
   IconChevronsLeft,
@@ -19,50 +14,52 @@ import {
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 
-const CorporateHistory = ({ onBack }) => {
-  const [corporates, setCorporates] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [pagination, setPagination] = useState({
-    current_page: 1,
-    limit: 10,
-    total_records: 0,
-    total_pages: 0,
-  });
+import moment from "moment";
 
-  // Fetch data with pagination
-  const fetchCorporates = async (page = 1, limit = 10) => {
-    try {
-      setLoading(true);
-      const response = await getRequest(
-        `/admin/getCorporateTopupHistory?page=${page}&limit=${limit}`
-      );
+interface TopupHistoryData {
+  amount: string;
+  corporate_name: string;
+  created_at: string;
+  epoch_time: number;
+  id: number;
+  purpose_of_payment: string;
+  uuid: string;
+}
 
-      if (response && response.data) {
-        setCorporates(response.data);
-        setPagination(
-          response.pagination || {
-            current_page: page,
-            limit: limit,
-            total_records: response.total_topups || 0,
-            total_pages: Math.ceil((response.total_topups || 0) / limit),
-          }
-        );
-      }
-    } catch (err) {
-      console.error("Error fetching corporates:", err);
-      setError("Failed to load corporate data");
-    } finally {
-      setLoading(false);
-    }
-  };
+interface PaginationState {
+  current_page: number;
+  limit: number;
+  total_records: number;
+  total_pages: number;
+}
 
-  useEffect(() => {
-    fetchCorporates(1, 10);
-  }, []);
+interface CorporateStats {
+  totalEmployees: number;
+  total_sum: number;
+  total_companies: number;
+  total_topups: number;
+  overall_topups: number;
+  data: TopupHistoryData[];
+}
+
+interface CorporateHistoryProps {
+  loading: boolean;
+  corporates: CorporateStats;
+  error: string | null;
+  pagination: PaginationState;
+  fetchCorporates: (page: number, limit: number) => Promise<void>;
+}
+
+const CorporateHistory = ({
+  loading, 
+  corporates, 
+  error, 
+  pagination, 
+  fetchCorporates
+}: CorporateHistoryProps) => {
 
   // Handle page change
-  const handlePageChange = (newPage) => {
+  const handlePageChange = (newPage: number) => {
     if (newPage >= 1 && newPage <= pagination.total_pages) {
       fetchCorporates(newPage, pagination.limit);
     }
@@ -80,58 +77,81 @@ const CorporateHistory = ({ onBack }) => {
 
   return (
     <div className="flex flex-col gap-4 p-4 lg:gap-6 lg:p-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <h2 className="text-xl font-normal text-gray-800">
-          Corporate Topup History
-        </h2>
-        <Button variant="outline" onClick={onBack}>
-          <IconChevronLeft className="mr-2 h-4 w-4" />
-          Back to Dashboard
-        </Button>
-      </div>
-
       {/* Stats Summary */}
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-5">
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-gray-500">
-              Total Records
+              Total Amount
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-semibold text-gray-800">
-              {pagination.total_records}
+            <div className="text-2xl font-semibold text-teal-700">
+              {corporates.total_sum.toLocaleString()}
             </div>
             <p className="text-xs text-muted-foreground">
-              All topup transactions
+              Total topup amount
             </p>
           </CardContent>
         </Card>
+
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-gray-500">
-              Current Page
+              Total Employees
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-semibold text-gray-800">
-              {pagination.current_page} / {pagination.total_pages || 1}
+              {corporates.totalEmployees.toLocaleString()}
             </div>
-            <p className="text-xs text-muted-foreground">Pagination view</p>
+            <p className="text-xs text-muted-foreground">
+              Across all companies
+            </p>
           </CardContent>
         </Card>
+
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-gray-500">
-              Records Displayed
+              Overall Monthly Topup
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-semibold text-gray-800">
-              {corporates.length}
+              {corporates.overall_topups.toLocaleString()}
             </div>
-            <p className="text-xs text-muted-foreground">On current page</p>
+            <p className="text-xs text-muted-foreground">
+              Across all companies
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-gray-500">
+              Total Companies
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-semibold text-gray-800">
+              {corporates.total_companies.toLocaleString()}
+            </div>
+            <p className="text-xs text-muted-foreground">Registered companies</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-gray-500">
+              Total Topups
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-semibold text-gray-800">
+              {corporates.total_topups.toLocaleString()}
+            </div>
+            <p className="text-xs text-muted-foreground">Transactions count</p>
           </CardContent>
         </Card>
       </div>
@@ -154,42 +174,42 @@ const CorporateHistory = ({ onBack }) => {
 
         <CardContent>
           <div className="rounded-2xl border overflow-hidden">
-            <Table>
+            <Table className="rounded-2xl overflow-hidden">
               <TableHeader>
                 <TableRow className="bg-teal-600 text-white hover:bg-teal-600">
-                  <TableHead className="text-center font-semibold text-white bg-teal-600 border-none rounded-tl-2xl">
+                  <TableHead className="font-semibold text-white bg-teal-600 border-none rounded-tl-2xl">
                     Company Name
                   </TableHead>
-                  <TableHead className="text-center font-semibold text-white bg-teal-600 border-none">
+                  <TableHead className="font-semibold text-white bg-teal-600 border-none">
                     Amount
                   </TableHead>
-                  <TableHead className="text-center font-semibold text-white bg-teal-600 border-none">
+                  <TableHead className="font-semibold text-white bg-teal-600 border-none">
                     Purpose
                   </TableHead>
-                  <TableHead className="text-center font-semibold text-white bg-teal-600 border-none rounded-tr-2xl">
+                  <TableHead className="font-semibold text-white bg-teal-600 border-none rounded-tr-2xl">
                     Created At
                   </TableHead>
                 </TableRow>
               </TableHeader>
 
               <TableBody>
-                {corporates.length > 0 ? (
-                  corporates.map((corporate) => (
+                {corporates.data.length > 0 ? (
+                  corporates.data.map((corporate) => (
                     <TableRow key={corporate.id}>
-                      <TableCell className="text-center font-medium">
+                      <TableCell className="font-medium">
                         {corporate.corporate_name || "N/A"}
                       </TableCell>
-                      <TableCell className="text-center text-teal-700 font-semibold">
+                      <TableCell className="font-semibold text-teal-700">
                         Rs: {corporate.amount || "0.00"}
                       </TableCell>
-                      <TableCell className="text-center">
+                      <TableCell>
                         {corporate.purpose_of_payment || "N/A"}
                       </TableCell>
-                      <TableCell className="text-center text-muted-foreground">
+                      <TableCell className="text-muted-foreground">
                         {corporate.created_at
                           ? moment
-                              .utc(corporate.created_at)
-                              .format("YYYY-MM-DD HH:mm:ss")
+                            .utc(corporate.created_at)
+                            .format("DD-MM-YYYY")
                           : "N/A"}
                       </TableCell>
                     </TableRow>
@@ -212,7 +232,7 @@ const CorporateHistory = ({ onBack }) => {
           {pagination.total_pages > 1 && (
             <div className="flex items-center justify-between px-4 mt-4">
               <div className="hidden text-sm text-muted-foreground lg:flex">
-                Showing {corporates.length} of {pagination.total_records} records
+                Showing {corporates.data.length} of {pagination.total_records} records
               </div>
               <div className="flex items-center gap-2">
                 <Button
