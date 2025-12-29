@@ -13,6 +13,7 @@ import { SiteHeader } from "@/components/superAdmin/site-header"
 import { useLocation } from "react-router-dom"
 import { postRequest } from "@/Apis/Api"
 import { ResponsiveBar } from "@nivo/bar"
+import moment from "moment-timezone"
 
 type ApiResponse = {
   data: {
@@ -452,7 +453,9 @@ const exportToCSV = () => {
                               <TableCell>{transaction.quantity}</TableCell>
                               <TableCell>{transaction.machine_code}</TableCell>
                               <TableCell className="text-sm text-slate-500">
-                                {transaction.created_at}
+                               {moment(transaction.created_at).tz("Etc/GMT+5").format("MMM DD, YYYY h:mm ")}
+                                
+                                {/* {transaction.created_at} */}
                               </TableCell>
                             </TableRow>
                           ))
