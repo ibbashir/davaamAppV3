@@ -189,6 +189,12 @@ const Locations = () => {
                   Address
                 </TableHead>
                 <TableHead className="text-center font-semibold text-white bg-teal-600 border-none">
+                  Latitude
+                </TableHead>
+                <TableHead className="text-center font-semibold text-white bg-teal-600 border-none">
+                  Longitude
+                </TableHead>
+                <TableHead className="text-center font-semibold text-white bg-teal-600 border-none">
                   Type
                 </TableHead>
                 <TableHead className="text-center font-semibold text-white bg-teal-600 border-none">
@@ -217,6 +223,12 @@ const Locations = () => {
                     </TableCell>
                     <TableCell className="max-w-xs">
                       <div className="truncate">{data.machine_location}</div>
+                    </TableCell>
+                    <TableCell className="max-w-xs">
+                      <div className="truncate">{data.lat|| 'N/A'} </div>
+                    </TableCell>
+                    <TableCell className="max-w-xs">
+                      <div className="truncate">{data.lng || 'N/A'}</div>
                     </TableCell>
                     <TableCell>{getTypeBadge(data.machine_type)}</TableCell>
                     <TableCell className="font-medium text-green-600 text-center">

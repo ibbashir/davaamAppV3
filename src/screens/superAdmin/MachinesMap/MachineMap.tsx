@@ -4,6 +4,7 @@ import { useEffect, useState, useMemo } from "react";
 import "leaflet/dist/leaflet.css";
 import { getRequest } from "@/Apis/Api";
 import type { ApiMachine, MachinesResponse } from "../machines/Types"
+import { SiteHeader } from "@/components/superAdmin/site-header";
 
 type Machine = {
   _id: string;
@@ -19,12 +20,32 @@ type Machine = {
   location: string;
   category: string;
   stockedBy: string;
+  map_link?: string; // Add map_link field
 };
 
 // Filter categories
 type StatusFilter = "online" | "offline" | "unknown";
 type StockFilter = "good-stock" | "low-stock" | "out-of-stock";
-type CategoryFilter = "Butterfly" | "Cooking Oil" | "Laundry" | "Shampoo" | "BodyWash" | "Handwash" | "Dishwash" | "Surface Cleaner" | "Unknown";
+
+// Define machine types
+type MachineType = "sanitary" | "dispensing";
+
+// Sanitary categories
+const SANITARY_CATEGORIES = ["Butterfly"];
+
+// Dispensing categories
+const DISPENSING_CATEGORIES = [
+  "Cooking Oil",
+  "Laundry",
+  "Shampoo",
+  "BodyWash",
+  "Handwash",
+  "Dishwash",
+  "Surface Cleaner",
+  "Unknown"
+];
+
+type CategoryFilter = typeof SANITARY_CATEGORIES[number] | typeof DISPENSING_CATEGORIES[number];
 
 // Pakistan bounds coordinates
 const PAKISTAN_BOUNDS: L.LatLngBoundsExpression = [
@@ -72,6 +93,173 @@ const FitBoundsButton = ({ machines }: { machines: Machine[] }) => {
   );
 };
 
+// Function to extract coordinates from map links (including short URLs)
+const extractCoordinatesFromMapLink = async (mapLink: string | undefined): Promise<{ lat: number; lng: number } | null> => {
+  if (!mapLink) return null;
+  
+  try {
+    // Clean the URL
+    const cleanLink = mapLink.trim();
+    
+    // Try direct coordinate extraction first
+    const directCoords = extractDirectCoordinates(cleanLink);
+    if (directCoords) return directCoords;
+    
+    // For short URLs, we might need to fetch the full URL
+    // This is a simplified approach - in production, you'd want a server-side solution
+    if (cleanLink.includes('goo.gl') || cleanLink.includes('maps.app.goo.gl')) {
+      // Extract coordinates from short URLs by pattern matching
+      const shortUrlCoords = extractFromShortUrl(cleanLink);
+      if (shortUrlCoords) return shortUrlCoords;
+      
+      // If we can't extract directly, try to get the final URL
+      // Note: This won't work in browser due to CORS, but shows the approach
+      try {
+        // In a real app, you'd need a proxy server for this
+        // const response = await fetch(`/api/resolve-url?url=${encodeURIComponent(cleanLink)}`);
+        // const data = await response.json();
+        // if (data.finalUrl) {
+        //   return extractDirectCoordinates(data.finalUrl);
+        // }
+      } catch (error) {
+        console.warn('Could not resolve short URL:', cleanLink);
+      }
+    }
+    
+    // Try various map service patterns
+    const mapServiceCoords = extractFromMapServices(cleanLink);
+    if (mapServiceCoords) return mapServiceCoords;
+    
+  } catch (error) {
+    console.error('Error parsing map link:', mapLink, error);
+  }
+  
+  return null;
+};
+
+// Extract coordinates directly from various formats
+const extractDirectCoordinates = (url: string): { lat: number; lng: number } | null => {
+  // Direct coordinates: "31.5497,74.3436"
+  const coordMatch = url.match(/^(-?\d+\.?\d*)[,\s]+(-?\d+\.?\d*)$/);
+  if (coordMatch) {
+    const lat = parseFloat(coordMatch[1]);
+    const lng = parseFloat(coordMatch[2]);
+    if (!isNaN(lat) && !isNaN(lng) && Math.abs(lat) <= 90 && Math.abs(lng) <= 180) {
+      return { lat, lng };
+    }
+  }
+  
+  // Google Maps patterns
+  // Format: https://www.google.com/maps?q=lat,lng
+  const googleQMatch = url.match(/google\.com\/maps\?q=(-?\d+\.?\d*),(-?\d+\.?\d*)/);
+  if (googleQMatch) {
+    const lat = parseFloat(googleQMatch[1]);
+    const lng = parseFloat(googleQMatch[2]);
+    if (!isNaN(lat) && !isNaN(lng)) return { lat, lng };
+  }
+  
+  // Format: https://www.google.com/maps/@lat,lng,z
+  const googleAtMatch = url.match(/@(-?\d+\.?\d*),(-?\d+\.?\d*)/);
+  if (googleAtMatch) {
+    const lat = parseFloat(googleAtMatch[1]);
+    const lng = parseFloat(googleAtMatch[2]);
+    if (!isNaN(lat) && !isNaN(lng)) return { lat, lng };
+  }
+  
+  // Apple Maps
+  const appleMatch = url.match(/ll=(-?\d+\.?\d*),(-?\d+\.?\d*)/);
+  if (appleMatch) {
+    const lat = parseFloat(appleMatch[1]);
+    const lng = parseFloat(appleMatch[2]);
+    if (!isNaN(lat) && !isNaN(lng)) return { lat, lng };
+  }
+  
+  // Try to extract any coordinates from the string
+  const anyMatch = url.match(/(-?\d+\.?\d*)[,\s]+(-?\d+\.?\d*)/);
+  if (anyMatch) {
+    const lat = parseFloat(anyMatch[1]);
+    const lng = parseFloat(anyMatch[2]);
+    if (!isNaN(lat) && !isNaN(lng) && Math.abs(lat) <= 90 && Math.abs(lng) <= 180) {
+      return { lat, lng };
+    }
+  }
+  
+  return null;
+};
+
+// Try to extract coordinates from short URLs
+const extractFromShortUrl = (url: string): { lat: number; lng: number } | null => {
+  // Some short URLs embed coordinates in the path
+  // Example patterns that might work:
+  
+  // Try to find coordinates in the URL path
+  const pathMatch = url.match(/(-?\d+\.?\d*)[,_](-?\d+\.?\d*)/);
+  if (pathMatch) {
+    const lat = parseFloat(pathMatch[1]);
+    const lng = parseFloat(pathMatch[2]);
+    if (!isNaN(lat) && !isNaN(lng) && Math.abs(lat) <= 90 && Math.abs(lng) <= 180) {
+      return { lat, lng };
+    }
+  }
+  
+  return null;
+};
+
+// Extract from various map services
+const extractFromMapServices = (url: string): { lat: number; lng: number } | null => {
+  // OpenStreetMap
+  const osmMatch = url.match(/openstreetmap\.org\/#map=\d+\/(-?\d+\.?\d*)\/(-?\d+\.?\d*)/);
+  if (osmMatch) {
+    const lat = parseFloat(osmMatch[1]);
+    const lng = parseFloat(osmMatch[2]);
+    if (!isNaN(lat) && !isNaN(lng)) return { lat, lng };
+  }
+  
+  // Bing Maps
+  const bingMatch = url.match(/cp=(-?\d+\.?\d*)~(-?\d+\.?\d*)/);
+  if (bingMatch) {
+    const lat = parseFloat(bingMatch[1]);
+    const lng = parseFloat(bingMatch[2]);
+    if (!isNaN(lat) && !isNaN(lng)) return { lat, lng };
+  }
+  
+  return null;
+};
+
+// Fallback coordinates for Pakistan if no coordinates can be extracted
+const getFallbackCoordinates = (machineName: string): { lat: number; lng: number } => {
+  const hash = machineName.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+  
+  const pakistaniCities = [
+    { name: "Karachi", lat: 24.8607, lng: 67.0011 },
+    { name: "Lahore", lat: 31.5497, lng: 74.3436 },
+    { name: "Islamabad", lat: 33.6844, lng: 73.0479 },
+    { name: "Rawalpindi", lat: 33.5651, lng: 73.0169 },
+    { name: "Faisalabad", lat: 31.4504, lng: 73.1350 },
+    { name: "Multan", lat: 30.1575, lng: 71.5249 },
+    { name: "Peshawar", lat: 34.0150, lng: 71.5805 },
+    { name: "Quetta", lat: 30.1798, lng: 66.9750 },
+    { name: "Sialkot", lat: 32.4945, lng: 74.5229 },
+    { name: "Gujranwala", lat: 32.1617, lng: 74.1883 },
+  ];
+  
+  const cityIndex = hash % pakistaniCities.length;
+  const baseCity = pakistaniCities[cityIndex];
+  
+  const latOffset = ((hash % 100) / 1000) - 0.05;
+  const lngOffset = (((hash * 7) % 100) / 1000) - 0.05;
+  
+  return {
+    lat: baseCity.lat + latOffset,
+    lng: baseCity.lng + lngOffset
+  };
+};
+
+// Generate a Google Maps link from coordinates
+const generateMapLink = (lat: number, lng: number): string => {
+  return `https://www.google.com/maps?q=${lat},${lng}`;
+};
+
 const MachineMap: React.FC = () => {
   const [allMachines, setAllMachines] = useState<Machine[]>([]);
   const [filteredMachines, setFilteredMachines] = useState<Machine[]>([]);
@@ -87,7 +275,7 @@ const MachineMap: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [machineStockMap, setMachineStockMap] = useState<{ [code: string]: { status: string, stockedBy?: string } }>({});
 
-  // Calculate statistics including category counts
+  // Calculate statistics including category counts and machine type counts
   const stats = useMemo(() => {
     const onlineMachines = allMachines.filter(m => m.status === "online").length;
     const offlineMachines = allMachines.filter(m => m.status === "offline").length;
@@ -96,11 +284,15 @@ const MachineMap: React.FC = () => {
     const lowStockMachines = allMachines.filter(m => m.stockStatus === "Low Stock").length;
     const outOfStockMachines = allMachines.filter(m => m.stockStatus === "Out of Stock").length;
     
+    // Machine type counts
+    const sanitaryMachines = allMachines.filter(m => m.machine_type === "sanitary").length;
+    const dispensingMachines = allMachines.filter(m => m.machine_type === "dispensing").length;
+    
     // Category counts
     const categoryCounts: { [key: string]: number } = {};
-    const categories = ["Butterfly", "Cooking Oil", "Laundry", "Shampoo", "BodyWash", "Handwash", "Dishwash", "Surface Cleaner", "Unknown"];
     
-    categories.forEach(category => {
+    const allCategories = [...SANITARY_CATEGORIES, ...DISPENSING_CATEGORIES];
+    allCategories.forEach(category => {
       categoryCounts[category] = allMachines.filter(m => m.category === category).length;
     });
     
@@ -112,6 +304,8 @@ const MachineMap: React.FC = () => {
       lowStock: lowStockMachines,
       outOfStock: outOfStockMachines,
       total: allMachines.length,
+      sanitary: sanitaryMachines,
+      dispensing: dispensingMachines,
       categories: categoryCounts
     };
   }, [allMachines]);
@@ -249,8 +443,8 @@ const MachineMap: React.FC = () => {
       const processedMachines: Machine[] = [];
 
       // Process each category separately
-      Object.entries(machinesData).forEach(([category, machines]) => {
-        machines.forEach((machine: ApiMachine) => {
+      for (const [category, machines] of Object.entries(machinesData)) {
+        for (const machine of machines) {
           let status: "online" | "offline" | "unknown" = "offline";
 
           // Map API status to our status types
@@ -274,25 +468,56 @@ const MachineMap: React.FC = () => {
             ? new Date(machine.lastUpdated * 1000).toISOString().split('T')[0]
             : new Date().toISOString().split('T')[0];
 
-          if (machine.lat && machine.lng) {
-            processedMachines.push({
-              _id: machine.id.toString(),
-              name: machine.machine_name,
-              lat: machine.lat,
-              lng: machine.lng,
-              status,
-              stockStatus,
-              stockLevel,
-              lastUpdated,
-              machine_code: machine.machine_code,
-              machine_type: machine.machine_type,
-              location: machine.machine_location,
-              category: category,
-              stockedBy: stockInfo.stockedBy || "Unknown"
-            });
+          // Determine machine type based on category
+          let machineType: MachineType = "dispensing"; // default
+          if (category === "Butterfly") {
+            machineType = "sanitary";
           }
-        });
-      });
+
+          // Extract coordinates - prioritize map_link if available
+          let lat = machine.lat;
+          let lng = machine.lng;
+          let map_link = machine.map_link; // Assuming API provides this field
+
+          // If we have a map link, try to extract coordinates from it
+          if (map_link && (!lat || !lng || isNaN(lat) || isNaN(lng))) {
+            const coords = await extractCoordinatesFromMapLink(map_link);
+            if (coords) {
+              lat = coords.lat;
+              lng = coords.lng;
+            }
+          }
+
+          // If still no valid coordinates, use fallback
+          if (!lat || !lng || isNaN(lat) || isNaN(lng)) {
+            const fallbackCoords = getFallbackCoordinates(machine.machine_name);
+            lat = fallbackCoords.lat;
+            lng = fallbackCoords.lng;
+          }
+
+          // Generate a map link if none exists
+          if (!map_link) {
+            map_link = generateMapLink(lat, lng);
+          }
+
+          processedMachines.push({
+            _id: machine.id.toString(),
+            name: machine.machine_name,
+            lat,
+            lng,
+            status,
+            stockStatus,
+            stockLevel,
+            lastUpdated,
+            machine_code: machine.machine_code,
+            machine_type: machineType,
+            location: machine.machine_location,
+            category: category,
+            stockedBy: stockInfo.stockedBy || "Unknown",
+            map_link
+          });
+        }
+      }
 
       setAllMachines(processedMachines);
       setFilteredMachines(processedMachines);
@@ -308,21 +533,24 @@ const MachineMap: React.FC = () => {
     fetchMachines();
   }, []);
 
-  const getMarkerIcon = (status: string, stockStatus: string) => {
+  const getMarkerIcon = (status: string, stockStatus: string, machineType: MachineType) => {
     let iconSvg = '';
     let fillColor = '#0d9488'; // teal-600
 
+    if (machineType === "sanitary") {
+      fillColor = '#8b5cf6'; // purple-500 for sanitary machines
+    }
+
     if (status === "offline") {
-      fillColor = '#dc2626';
+      fillColor = machineType === "sanitary" ? '#a78bfa' : '#c02458ff';
       iconSvg = `
         <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
           <circle cx="12" cy="12" r="10" fill="white" stroke="${fillColor}" stroke-width="2"/>
-          <path d="M16 8L8 16" stroke="${fillColor}" stroke-width="2" stroke-linecap="round"/>
-          <path d="M8 8L16 16" stroke="${fillColor}" stroke-width="2" stroke-linecap="round"/>
+          <circle cx="12" cy="12" r="5" fill="white" stroke="${fillColor}" stroke-width="2"/>
         </svg>
       `;
     } else if (status === "unknown") {
-      fillColor = '#d97706';
+      fillColor = machineType === "sanitary" ? '#a78bfa' : '#d97706';
       iconSvg = `
         <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
           <circle cx="12" cy="12" r="10" fill="white" stroke="${fillColor}" stroke-width="2"/>
@@ -331,7 +559,9 @@ const MachineMap: React.FC = () => {
         </svg>
       `;
     } else if (stockStatus === "Low Stock" || stockStatus === "Out of Stock") {
-      fillColor = stockStatus === "Out of Stock" ? '#dc2626' : '#d97706';
+      fillColor = stockStatus === "Out of Stock" 
+        ? (machineType === "sanitary" ? '#c4b5fd' : '#dc2626') 
+        : (machineType === "sanitary" ? '#a78bfa' : '#d97706');
       iconSvg = `
         <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
           <circle cx="12" cy="12" r="10" fill="white" stroke="${fillColor}" stroke-width="2"/>
@@ -340,7 +570,6 @@ const MachineMap: React.FC = () => {
         </svg>
       `;
     } else {
-      fillColor = '#0d9488';
       iconSvg = `
         <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
           <circle cx="12" cy="12" r="10" fill="white" stroke="${fillColor}" stroke-width="2"/>
@@ -384,73 +613,102 @@ const MachineMap: React.FC = () => {
   const MapLegend = () => (
     <div className="absolute bottom-5 right-5 bg-white p-4 rounded-lg shadow-md z-[1000] font-sans text-sm border border-gray-200">
       <h3 className="mt-0 mb-2.5 text-teal-600 font-semibold">Machine Status</h3>
-      <div className="flex items-center mb-2">
-        <div className="w-5 h-5 mr-2.5">
-          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <circle cx="12" cy="12" r="10" fill="white" stroke="#0d9488" strokeWidth="2" />
-            <path d="M8 12L11 15L16 9" stroke="#0d9488" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
+      <div className="mb-3">
+        <h4 className="text-xs font-semibold text-gray-500 mb-2">Dispensing Machines</h4>
+        <div className="flex items-center mb-2">
+          <div className="w-5 h-5 mr-2.5">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="12" cy="12" r="10" fill="white" stroke="#0d9488" strokeWidth="2" />
+              <path d="M8 12L11 15L16 9" stroke="#0d9488" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </div>
+          <span>Online & Good Stock</span>
         </div>
-        <span>Online & Good Stock</span>
+        
+        <div className="flex items-center mb-2">
+          <div className="w-5 h-5 mr-2.5">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="12" cy="12" r="10" fill="white" stroke="#c02458ff" strokeWidth="2" />
+              <circle cx="12" cy="12" r="5" fill="white" stroke="#c02458ff" stroke-width="2"/>
+            </svg>
+          </div>
+          <span>Offline Machine</span>
+        </div>
+        <div className="flex items-center mb-2">
+          <div className="w-5 h-5 mr-2.5">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="12" cy="12" r="10" fill="white" stroke="#d97706" strokeWidth="2" />
+              <path d="M12 16V12" stroke="#d97706" strokeWidth="2" strokeLinecap="round" />
+              <circle cx="12" cy="8" r="1" fill="#d97706" />
+            </svg>
+          </div>
+          <span>Pending (Connecting)</span>
+        </div>
+        <div className="flex items-center mb-2">
+          <div className="w-5 h-5 mr-2.5">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="12" cy="12" r="10" fill="white" stroke="#d97706" strokeWidth="2" />
+              <path d="M12 8V12" stroke="#d97706" strokeWidth="2" strokeLinecap="round" />
+              <circle cx="12" cy="16" r="1" fill="#d97706" />
+            </svg>
+          </div>
+          <span>Low Stock</span>
+        </div>
+        <div className="flex items-center mb-2">
+          <div className="w-5 h-5 mr-2.5">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="12" cy="12" r="10" fill="white" stroke="#dc2626" strokeWidth="2" />
+              <path d="M12 8V12" stroke="#dc2626" strokeWidth="2" strokeLinecap="round" />
+              <circle cx="12" cy="16" r="1" fill="#dc2626" />
+            </svg>
+          </div>
+          <span>Out of Stock</span>
+        </div>
       </div>
-      <div className="flex items-center mb-2">
-        <div className="w-5 h-5 mr-2.5">
-          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <circle cx="12" cy="12" r="10" fill="white" stroke="#d97706" strokeWidth="2" />
-            <path d="M12 16V12" stroke="#d97706" strokeWidth="2" strokeLinecap="round" />
-            <circle cx="12" cy="8" r="1" fill="#d97706" />
-          </svg>
+      
+      <div>
+        <h4 className="text-xs font-semibold text-gray-500 mb-2">Sanitary Machines (Butterfly)</h4>
+        <div className="flex items-center mb-2">
+          <div className="w-5 h-5 mr-2.5">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="12" cy="12" r="10" fill="white" stroke="#8b5cf6" strokeWidth="2" />
+              <path d="M8 12L11 15L16 9" stroke="#8b5cf6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </div>
+          <span>Online & Good Stock</span>
         </div>
-        <span>Pending (Connecting)</span>
-      </div>
-      <div className="flex items-center mb-2">
-        <div className="w-5 h-5 mr-2.5">
-          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <circle cx="12" cy="12" r="10" fill="white" stroke="#d97706" strokeWidth="2" />
-            <path d="M12 8V12" stroke="#d97706" strokeWidth="2" strokeLinecap="round" />
-            <circle cx="12" cy="16" r="1" fill="#d97706" />
-          </svg>
+        <div className="flex items-center mb-2">
+          <div className="w-5 h-5 mr-2.5">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="12" cy="12" r="10" fill="white" stroke="#a78bfa" strokeWidth="2" />
+              <circle cx="12" cy="12" r="5" fill="white" stroke="#a78bfa" stroke-width="2"/>
+            </svg>
+          </div>
+          <span>Offline Machine</span>
         </div>
-        <span>Low Stock</span>
-      </div>
-      <div className="flex items-center mb-2">
-        <div className="w-5 h-5 mr-2.5">
-          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <circle cx="12" cy="12" r="10" fill="white" stroke="#dc2626" strokeWidth="2" />
-            <path d="M12 8V12" stroke="#dc2626" strokeWidth="2" strokeLinecap="round" />
-            <circle cx="12" cy="16" r="1" fill="#dc2626" />
-          </svg>
-        </div>
-        <span>Out of Stock</span>
-      </div>
-      <div className="flex items-center">
-        <div className="w-5 h-5 mr-2.5">
-          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <circle cx="12" cy="12" r="10" fill="white" stroke="#dc2626" strokeWidth="2" />
-            <path d="M16 8L8 16" stroke="#dc2626" strokeWidth="2" strokeLinecap="round" />
-            <path d="M8 8L16 16" stroke="#dc2626" strokeWidth="2" strokeLinecap="round" />
-          </svg>
-        </div>
-        <span>Offline Machine</span>
       </div>
     </div>
   );
 
-  const StatusBadge = ({ status, stockStatus }: { status: string, stockStatus: string }) => {
+  const StatusBadge = ({ status, stockStatus, machineType }: { status: string, stockStatus: string, machineType: string }) => {
     let bgColor = 'bg-green-100 text-green-800';
     let icon = '✓';
 
+    if (machineType === "sanitary") {
+      bgColor = 'bg-purple-100 text-purple-800';
+    }
+
     if (status === "offline") {
-      bgColor = 'bg-red-100 text-red-800';
+      bgColor = machineType === "sanitary" ? 'bg-purple-50 text-purple-600' : 'bg-red-100 text-red-800';
       icon = '✗';
     } else if (status === "unknown") {
-      bgColor = 'bg-amber-100 text-amber-800';
+      bgColor = machineType === "sanitary" ? 'bg-purple-50 text-purple-600' : 'bg-amber-100 text-amber-800';
       icon = '⏳';
     } else if (stockStatus === "Out of Stock") {
-      bgColor = 'bg-red-100 text-red-800';
+      bgColor = machineType === "sanitary" ? 'bg-purple-50 text-purple-600' : 'bg-red-100 text-red-800';
       icon = '⚠';
     } else if (stockStatus === "Low Stock") {
-      bgColor = 'bg-yellow-100 text-yellow-800';
+      bgColor = machineType === "sanitary" ? 'bg-purple-50 text-purple-600' : 'bg-yellow-100 text-yellow-800';
       icon = '⚠';
     }
 
@@ -482,7 +740,7 @@ const MachineMap: React.FC = () => {
   };
 
   // Get category icon
-  const getCategoryIcon = (category: string) => {
+  const getCategoryIcon = (category: string, machineType: string) => {
     const icons: { [key: string]: string } = {
       "Butterfly": "🦋",
       "Cooking Oil": "🫙",
@@ -495,13 +753,16 @@ const MachineMap: React.FC = () => {
       "Unknown": "❓"
     };
     
-    return icons[category] || "📦";
+    return icons[category] || (machineType === "sanitary" ? "🧻" : "📦");
   };
 
   // Get category color
-  const getCategoryColor = (category: string) => {
+  const getCategoryColor = (category: string, machineType: string) => {
+    if (machineType === "sanitary") {
+      return "bg-purple-100 text-purple-800";
+    }
+
     const colors: { [key: string]: string } = {
-      "Butterfly": "bg-purple-100 text-purple-800",
       "Cooking Oil": "bg-yellow-100 text-yellow-800",
       "Laundry": "bg-blue-100 text-blue-800",
       "Shampoo": "bg-pink-100 text-pink-800",
@@ -526,21 +787,12 @@ const MachineMap: React.FC = () => {
     )
   }
 
-  // Categories to display
-  const categories = [
-    "Butterfly",
-    "Cooking Oil", 
-    "Laundry",
-    "Shampoo",
-    "BodyWash",
-    "Handwash",
-    "Dishwash",
-    "Surface Cleaner",
-    "Unknown"
-  ];
+  // All categories to display
+  const allCategories = [...SANITARY_CATEGORIES, ...DISPENSING_CATEGORIES];
 
   return (
     <div className="relative h-screen w-full">
+      <SiteHeader title="Map Locations" />
       <MapContainer
         center={[30.3753, 69.3451]}
         zoom={6}
@@ -560,7 +812,7 @@ const MachineMap: React.FC = () => {
           <Marker
             key={m._id}
             position={[m.lat, m.lng]}
-            icon={getMarkerIcon(m.status, m.stockStatus)}
+            icon={getMarkerIcon(m.status, m.stockStatus, m.machine_type as MachineType)}
           >
             <Popup>
               <div className="min-w-[200px] font-sans">
@@ -568,15 +820,20 @@ const MachineMap: React.FC = () => {
                   <h3 className="m-0 text-teal-600 text-base font-semibold">
                     {m.name}
                   </h3>
-                  <StatusBadge status={m.status} stockStatus={m.stockStatus} />
+                  <div className="flex flex-col items-end gap-1">
+                    <StatusBadge status={m.status} stockStatus={m.stockStatus} machineType={m.machine_type} />
+                    <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${
+                      m.machine_type === "sanitary" 
+                        ? "bg-purple-600 text-white" 
+                        : "bg-teal-600 text-white"
+                    }`}>
+                      {m.machine_type.charAt(0).toUpperCase() + m.machine_type.slice(1)}
+                    </span>
+                  </div>
                 </div>
 
                 <div className="mb-1.5 text-sm text-gray-500">
                   <strong>Code:</strong> {m.machine_code}
-                </div>
-
-                <div className="mb-1.5 text-sm text-gray-500">
-                  <strong>Type:</strong> {m.machine_type}
                 </div>
 
                 <div className="mb-1.5 text-sm text-gray-500">
@@ -585,8 +842,8 @@ const MachineMap: React.FC = () => {
 
                 <div className="mb-1.5 text-sm text-gray-500">
                   <strong>Category:</strong> 
-                  <span className={`ml-1 px-2 py-0.5 rounded-full text-xs font-semibold ${getCategoryColor(m.category)}`}>
-                    {m.category}
+                  <span className={`ml-1 px-2 py-0.5 rounded-full text-xs font-semibold ${getCategoryColor(m.category, m.machine_type)}`}>
+                    {getCategoryIcon(m.category, m.machine_type)} {m.category}
                   </span>
                 </div>
 
@@ -613,6 +870,23 @@ const MachineMap: React.FC = () => {
                     </span>
                   </div>
                   <StockIndicator stockLevel={m.stockLevel} stockStatus={m.stockStatus} />
+                </div>
+
+                {/* Map Link */}
+                <div className="mb-1.5 text-sm text-gray-500">
+                  <strong>Map Location:</strong> 
+                  <a 
+                    href={m.map_link} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="ml-1 px-2 py-0.5 rounded text-xs font-semibold bg-blue-100 text-blue-800 hover:bg-blue-200 transition-colors inline-flex items-center gap-1"
+                  >
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                      <circle cx="12" cy="10" r="3" />
+                    </svg>
+                    View on Map
+                  </a>
                 </div>
 
                 <div className="text-xs text-gray-500 pt-2 border-t border-gray-200">
@@ -653,7 +927,7 @@ const MachineMap: React.FC = () => {
       <MapLegend />
 
       {/* Filter Panel - Updated for multiple filters */}
-      <div className="absolute top-5 left-5 bg-white p-5 rounded-xl shadow-lg z-[1000] w-80 border border-gray-200 max-h-[85vh] overflow-y-auto">
+      <div className="absolute top-12 left-0 bg-white p-5 rounded-xl shadow-lg z-[1000] w-80 border border-gray-200 max-h-[85vh] overflow-y-auto">
         <div className="flex justify-between items-center mb-5">
           <h2 className="m-0 text-teal-600 text-xl font-bold">
             🇵🇰 Machine Filters
@@ -670,6 +944,26 @@ const MachineMap: React.FC = () => {
               Reset All
             </button>
           )}
+        </div>
+
+        {/* Machine Type Summary */}
+        <div className="mb-5 p-3 bg-gray-50 rounded-lg">
+          <div className="flex justify-between items-center mb-2">
+            <span className="text-gray-700 font-semibold">Machine Types:</span>
+            <span className="bg-teal-600 text-white px-2 py-0.5 rounded-full text-xs font-semibold">
+              {stats.total} total
+            </span>
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <div className="bg-purple-50 p-2 rounded text-center">
+              <div className="text-purple-600 font-bold text-sm">Sanitary</div>
+              <div className="text-xs text-gray-600">{stats.sanitary} machines</div>
+            </div>
+            <div className="bg-teal-50 p-2 rounded text-center">
+              <div className="text-teal-600 font-bold text-sm">Dispensing</div>
+              <div className="text-xs text-gray-600">{stats.dispensing} machines</div>
+            </div>
+          </div>
         </div>
 
         {/* Active Filters Indicator */}
@@ -696,7 +990,11 @@ const MachineMap: React.FC = () => {
                   </span>
                 ))}
                 {activeFilters.categories.map(category => (
-                  <span key={category} className="bg-purple-100 text-purple-800 px-2 py-0.5 rounded-full text-xs">
+                  <span key={category} className={`px-2 py-0.5 rounded-full text-xs ${
+                    SANITARY_CATEGORIES.includes(category) 
+                      ? "bg-purple-100 text-purple-800" 
+                      : "bg-gray-100 text-gray-800"
+                  }`}>
                     {category}
                   </span>
                 ))}
@@ -906,62 +1204,139 @@ const MachineMap: React.FC = () => {
         {/* Product Category Filters */}
         <div>
           <h3 className="mt-0 mb-3 text-gray-700 text-sm font-semibold">
-            Product Categories (Select Multiple)
+            Machine Types (Select Multiple)
           </h3>
           
           <div className="space-y-2.5">
-            {categories.map(category => (
-              <div
-                key={category}
-                onClick={() => toggleCategoryFilter(category as CategoryFilter)}
-                className={`flex items-center justify-between rounded-lg p-3 cursor-pointer transition-all duration-200 hover:scale-[1.02] ${
-                  activeFilters.categories.includes(category as CategoryFilter) 
-                    ? `${getCategoryColor(category)} border-2 border-current` 
-                    : 'bg-gray-50 border-2 border-gray-200'
-                }`}
-              >
-                <div className="flex items-center gap-2.5">
-                  <span className="text-lg">{getCategoryIcon(category)}</span>
+            {/* Sanitary Type Filter */}
+            <div
+              onClick={() => {
+                const sanitaryCategories = ["Butterfly"] as CategoryFilter[];
+                const allCurrentlySelected = sanitaryCategories.every(cat => 
+                  activeFilters.categories.includes(cat)
+                );
+                
+                if (allCurrentlySelected) {
+                  const newCategories = activeFilters.categories.filter(
+                    cat => !sanitaryCategories.includes(cat)
+                  );
+                  setActiveFilters(prev => ({
+                    ...prev,
+                    categories: newCategories
+                  }));
+                } else {
+                  const newCategories = [
+                    ...activeFilters.categories.filter(cat => !sanitaryCategories.includes(cat)),
+                    ...sanitaryCategories
+                  ];
+                  setActiveFilters(prev => ({
+                    ...prev,
+                    categories: newCategories
+                  }));
+                }
+              }}
+              className={`flex items-center justify-between rounded-lg p-3 cursor-pointer transition-all duration-200 hover:scale-[1.02] ${
+                activeFilters.categories.some(cat => SANITARY_CATEGORIES.includes(cat))
+                  ? 'bg-purple-100 text-purple-800 border-2 border-purple-600' 
+                  : 'bg-gray-50 border-2 border-gray-200'
+              }`}
+            >
+              <div className="flex items-center gap-2.5">
+                <span className="text-lg">🧻</span>
+                <div>
                   <span className="text-sm font-semibold text-gray-700">
-                    {category}
+                    Sanitary
                   </span>
+                  <div className="text-xs text-gray-500">Butterfly machines</div>
                 </div>
-                <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${
-                  activeFilters.categories.includes(category as CategoryFilter) 
-                    ? 'bg-teal-600 text-white' 
-                    : 'bg-gray-500 text-white'
-                }`}>
-                  {stats.categories[category] || 0}
-                </span>
               </div>
-            ))}
+              <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${
+                activeFilters.categories.some(cat => SANITARY_CATEGORIES.includes(cat))
+                  ? 'bg-purple-600 text-white' 
+                  : 'bg-gray-500 text-white'
+              }`}>
+                {stats.sanitary}
+              </span>
+            </div>
+            
+            {/* Dispensing Type Filter */}
+            <div
+              onClick={() => {
+                const dispensingCategories = DISPENSING_CATEGORIES as CategoryFilter[];
+                const allCurrentlySelected = dispensingCategories.every(cat => 
+                  activeFilters.categories.includes(cat)
+                );
+                
+                if (allCurrentlySelected) {
+                  const newCategories = activeFilters.categories.filter(
+                    cat => !dispensingCategories.includes(cat)
+                  );
+                  setActiveFilters(prev => ({
+                    ...prev,
+                    categories: newCategories
+                  }));
+                } else {
+                  const newCategories = [
+                    ...activeFilters.categories.filter(cat => !dispensingCategories.includes(cat)),
+                    ...dispensingCategories
+                  ];
+                  setActiveFilters(prev => ({
+                    ...prev,
+                    categories: newCategories
+                  }));
+                }
+              }}
+              className={`flex items-center justify-between rounded-lg p-3 cursor-pointer transition-all duration-200 hover:scale-[1.02] ${
+                activeFilters.categories.some(cat => DISPENSING_CATEGORIES.includes(cat))
+                  ? 'bg-teal-50 border-2 border-teal-600' 
+                  : 'bg-gray-50 border-2 border-gray-200'
+              }`}
+            >
+              <div className="flex items-center gap-2.5">
+                <span className="text-lg">📦</span>
+                <div>
+                  <span className="text-sm font-semibold text-gray-700">
+                    Dispensing
+                  </span>
+                  <div className="text-xs text-gray-500">Cooking Oil, Laundry, Shampoo, etc.</div>
+                </div>
+              </div>
+              <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${
+                activeFilters.categories.some(cat => DISPENSING_CATEGORIES.includes(cat))
+                  ? 'bg-teal-600 text-white' 
+                  : 'bg-gray-500 text-white'
+              }`}>
+                {stats.dispensing}
+              </span>
+            </div>
             
             {/* Select All Categories */}
             <div
               onClick={() => {
-                if (activeFilters.categories.length === categories.length) {
+                const allCategories = [...SANITARY_CATEGORIES, ...DISPENSING_CATEGORIES] as CategoryFilter[];
+                if (activeFilters.categories.length === allCategories.length) {
                   setActiveFilters(prev => ({ ...prev, categories: [] }));
                 } else {
                   setActiveFilters(prev => ({ 
                     ...prev, 
-                    categories: categories as CategoryFilter[]
+                    categories: allCategories
                   }));
                 }
               }}
               className={`flex items-center justify-between bg-gray-50 rounded-lg p-3 cursor-pointer transition-all duration-200 hover:scale-[1.02] ${
-                activeFilters.categories.length === categories.length
+                activeFilters.categories.length === (SANITARY_CATEGORIES.length + DISPENSING_CATEGORIES.length)
                   ? 'bg-teal-50 border-2 border-teal-600' 
                   : 'border-2 border-gray-200'
               }`}
             >
               <div className="flex items-center gap-2.5">
-                <span className="text-lg">📦</span>
+                <span className="text-lg">🏭</span>
                 <span className="text-sm font-semibold text-gray-700">
-                  All Categories
+                  All Machine Types
                 </span>
               </div>
               <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${
-                activeFilters.categories.length === categories.length
+                activeFilters.categories.length === (SANITARY_CATEGORIES.length + DISPENSING_CATEGORIES.length)
                   ? 'bg-teal-600 text-white' 
                   : 'bg-gray-500 text-white'
               }`}>
