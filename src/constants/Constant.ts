@@ -44,6 +44,7 @@ export const SUPERADMIN_STATUS = "/superadmin/status";
 export const SUPERADMIN_MACHINE_VISIT = "/superadmin/machine-details/:id";
 export const SUPERADMIN_CORPORATE_TOPUP = "/superadmin/corporate-topup";
 export const SUPERADMIN_MACHINE_MAP = "/superadmin/machine-map";
+export const SUPERADMIN_CASH_COLLECTION="/superadmin/cashCollection"
 
 // ADMIN PATHS
 export const ADMIN_DASHBOARD = "/admin/dashboard";
@@ -118,7 +119,12 @@ export const SUPER_ADMIN_SIDEBAR_ROUTES = () => {
       url: SUPERADMIN_CORPORATE_TOPUP,
       icon: IconCashBanknote,
     },
-        { title: "Map Machines", url: SUPERADMIN_MACHINE_MAP, icon: IconMapPin },
+    { 
+      title: "Map Machines", url: SUPERADMIN_MACHINE_MAP, icon: IconMapPin 
+    },
+    { 
+      title: "Cash Collection", url: SUPERADMIN_CASH_COLLECTION, icon: IconCashBanknote 
+    },
 
   ];
 };
@@ -163,7 +169,7 @@ export const FULFILL_SIDEBAR_ROUTES = () => {
     { title: "Topup", url: FULFill_TOPUP, icon: IconCircleArrowUpRight },
     { title: "Maintaince", url: FULLFiLL_MAINTAINCE, icon: IconCircleArrowUpRight },
     { title: "Maintaince Requests", url: MAINTAINCE_REQUESTS, icon: IconCircleArrowUpRight },
-    { title: "Cash Collections", url: CASH_COLLECTIONS, icon: IconCircleArrowUpRight },
+    { title: "Cash Collections", url: CASH_COLLECTIONS, icon: IconCashBanknote },
   ];
 };
 

@@ -87,6 +87,7 @@ import {
   PRIVACY_POLICY,
   REPORT,
   RESET_PASSWORD,
+  SUPERADMIN_CASH_COLLECTION,
   SUPERADMIN_CORPORATE,
   SUPERADMIN_CORPORATE_TOPUP,
   SUPERADMIN_DASHBOARD,
@@ -114,6 +115,7 @@ import AddEmployees from '@/Corporate/Mobilink/addEmployees/AddEmployees'
 import BulkDelete from '@/Corporate/Mobilink/deleteEmployees/BulkDelete'
 import CashCollectionPage from '@/screens/fulfillment/cashCollections/cashCollection'
 import MachineMap from '@/screens/superAdmin/MachinesMap/MachineMap'
+import SuperAdminCashCollectionPage from '@/screens/superAdmin/cashCollections/cashCollection'
 
 const Routing = () => {
   return (
@@ -142,6 +144,7 @@ const Routing = () => {
           <Route path={SUPERADMIN_MACHINE_VISIT} element={<SuperAdminMachineVisit />} />
           <Route path={SUPERADMIN_CORPORATE_TOPUP} element={<CorporateTopup />} />
           <Route path={SUPERADMIN_MACHINE_MAP} element={<MachineMap />} />
+          <Route path={SUPERADMIN_CASH_COLLECTION} element={<SuperAdminCashCollectionPage />} />
         </Route>
       </Route>
 
