@@ -542,7 +542,7 @@ const MachineMap: React.FC = () => {
     }
 
     if (status === "offline") {
-      fillColor = machineType === "sanitary" ? '#a78bfa' : '#c02458ff';
+      fillColor = machineType === "sanitary" ? '#a78bfa' : '#0d9488';
       iconSvg = `
         <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
           <circle cx="12" cy="12" r="10" fill="white" stroke="${fillColor}" stroke-width="2"/>
@@ -550,7 +550,7 @@ const MachineMap: React.FC = () => {
         </svg>
       `;
     } else if (status === "unknown") {
-      fillColor = machineType === "sanitary" ? '#a78bfa' : '#d97706';
+      fillColor = machineType === "sanitary" ? '#a78bfa' : '#0d9488';
       iconSvg = `
         <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
           <circle cx="12" cy="12" r="10" fill="white" stroke="${fillColor}" stroke-width="2"/>
@@ -560,8 +560,8 @@ const MachineMap: React.FC = () => {
       `;
     } else if (stockStatus === "Low Stock" || stockStatus === "Out of Stock") {
       fillColor = stockStatus === "Out of Stock" 
-        ? (machineType === "sanitary" ? '#c4b5fd' : '#dc2626') 
-        : (machineType === "sanitary" ? '#a78bfa' : '#d97706');
+        ? (machineType === "sanitary" ? '#c4b5fd' : '#0d9488') 
+        : (machineType === "sanitary" ? '#a78bfa' : '#0d9488');
       iconSvg = `
         <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
           <circle cx="12" cy="12" r="10" fill="white" stroke="${fillColor}" stroke-width="2"/>
@@ -628,8 +628,8 @@ const MachineMap: React.FC = () => {
         <div className="flex items-center mb-2">
           <div className="w-5 h-5 mr-2.5">
             <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <circle cx="12" cy="12" r="10" fill="white" stroke="#c02458ff" strokeWidth="2" />
-              <circle cx="12" cy="12" r="5" fill="white" stroke="#c02458ff" stroke-width="2"/>
+              <circle cx="12" cy="12" r="10" fill="white" stroke="#0d9488" strokeWidth="2" />
+              <circle cx="12" cy="12" r="5" fill="white" stroke="#0d9488" stroke-width="2"/>
             </svg>
           </div>
           <span>Offline Machine</span>
@@ -637,9 +637,9 @@ const MachineMap: React.FC = () => {
         <div className="flex items-center mb-2">
           <div className="w-5 h-5 mr-2.5">
             <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <circle cx="12" cy="12" r="10" fill="white" stroke="#d97706" strokeWidth="2" />
-              <path d="M12 16V12" stroke="#d97706" strokeWidth="2" strokeLinecap="round" />
-              <circle cx="12" cy="8" r="1" fill="#d97706" />
+              <circle cx="12" cy="12" r="10" fill="white" stroke="#0d9488" strokeWidth="2" />
+              <path d="M12 16V12" stroke="#0d9488" strokeWidth="2" strokeLinecap="round" />
+              <circle cx="12" cy="8" r="1" fill="#0d9488" />
             </svg>
           </div>
           <span>Pending (Connecting)</span>
@@ -647,9 +647,9 @@ const MachineMap: React.FC = () => {
         <div className="flex items-center mb-2">
           <div className="w-5 h-5 mr-2.5">
             <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <circle cx="12" cy="12" r="10" fill="white" stroke="#d97706" strokeWidth="2" />
-              <path d="M12 8V12" stroke="#d97706" strokeWidth="2" strokeLinecap="round" />
-              <circle cx="12" cy="16" r="1" fill="#d97706" />
+              <circle cx="12" cy="12" r="10" fill="white" stroke="#0d9488" strokeWidth="2" />
+              <path d="M12 8V12" stroke="#0d9488" strokeWidth="2" strokeLinecap="round" />
+              <circle cx="12" cy="16" r="1" fill="#0d9488" />
             </svg>
           </div>
           <span>Low Stock</span>
@@ -657,9 +657,9 @@ const MachineMap: React.FC = () => {
         <div className="flex items-center mb-2">
           <div className="w-5 h-5 mr-2.5">
             <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <circle cx="12" cy="12" r="10" fill="white" stroke="#dc2626" strokeWidth="2" />
-              <path d="M12 8V12" stroke="#dc2626" strokeWidth="2" strokeLinecap="round" />
-              <circle cx="12" cy="16" r="1" fill="#dc2626" />
+              <circle cx="12" cy="12" r="10" fill="white" stroke="#0d9488" strokeWidth="2" />
+              <path d="M12 8V12" stroke="#0d9488" strokeWidth="2" strokeLinecap="round" />
+              <circle cx="12" cy="16" r="1" fill="#0d9488" />
             </svg>
           </div>
           <span>Out of Stock</span>
@@ -685,6 +685,36 @@ const MachineMap: React.FC = () => {
             </svg>
           </div>
           <span>Offline Machine</span>
+        </div>
+        <div className="flex items-center mb-2">
+          <div className="w-5 h-5 mr-2.5">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="12" cy="12" r="10" fill="white" stroke="#a78bfa" strokeWidth="2" />
+              <path d="M12 16V12" stroke="#a78bfa" strokeWidth="2" strokeLinecap="round" />
+              <circle cx="12" cy="8" r="1" fill="#a78bfa" />
+            </svg>
+          </div>
+          <span>Pending (Connecting)</span>
+        </div>
+        <div className="flex items-center mb-2">
+          <div className="w-5 h-5 mr-2.5">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="12" cy="12" r="10" fill="white" stroke="#a78bfa" strokeWidth="2" />
+              <path d="M12 8V12" stroke="#a78bfa" strokeWidth="2" strokeLinecap="round" />
+              <circle cx="12" cy="16" r="1" fill="#a78bfa" />
+            </svg>
+          </div>
+          <span>Low Stock</span>
+        </div>
+        <div className="flex items-center mb-2">
+          <div className="w-5 h-5 mr-2.5">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="12" cy="12" r="10" fill="white" stroke="#a78bfa" strokeWidth="2" />
+              <path d="M12 8V12" stroke="#a78bfa" strokeWidth="2" strokeLinecap="round" />
+              <circle cx="12" cy="16" r="1" fill="#a78bfa" />
+            </svg>
+          </div>
+          <span>Out of Stock</span>
         </div>
       </div>
     </div>
