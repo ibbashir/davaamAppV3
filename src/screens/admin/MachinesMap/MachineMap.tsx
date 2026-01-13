@@ -4,7 +4,7 @@ import { useEffect, useState, useMemo } from "react";
 import "leaflet/dist/leaflet.css";
 import { getRequest } from "@/Apis/Api";
 import type { ApiMachine, MachinesResponse } from "../machines/Types"
-import { SiteHeader } from "@/components/superAdmin/site-header";
+import { SiteHeader } from "@/components/admin/site-header";
 
 type Machine = {
   _id: string;
@@ -260,7 +260,7 @@ const generateMapLink = (lat: number, lng: number): string => {
   return `https://www.google.com/maps?q=${lat},${lng}`;
 };
 
-const SuperAdminMachineMap: React.FC = () => {
+const AdminMachineMap: React.FC = () => {
   const [allMachines, setAllMachines] = useState<Machine[]>([]);
   const [filteredMachines, setFilteredMachines] = useState<Machine[]>([]);
   const [activeFilters, setActiveFilters] = useState<{
@@ -396,7 +396,7 @@ const SuperAdminMachineMap: React.FC = () => {
   const fetchMachines = async () => {
     try {
       setLoading(true);
-      const res = await getRequest<MachinesResponse>(`/superadmin/getAllMachineStockAndStatus`);
+      const res = await getRequest<MachinesResponse>(`/admin/getAllMachineStockAndStatus`);
       const { machines: machinesData, brands } = res.data;
 
       const stockMap: { [code: string]: { status: string, stockedBy?: string } } = {};
@@ -1380,4 +1380,4 @@ const SuperAdminMachineMap: React.FC = () => {
   );
 };
 
-export default SuperAdminMachineMap;
+export default AdminMachineMap;

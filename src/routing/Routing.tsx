@@ -57,6 +57,7 @@ import {
   ADMIN_DASHBOARD,
   ADMIN_FEEDBACK,
   ADMIN_LOCATIONS,
+  ADMIN_MACHINE_MAP,
   ADMIN_MACHINE_VISIT,
   ADMIN_MACHINES,
   ADMIN_NOTIFICATIONS,
@@ -69,6 +70,7 @@ import {
   FORGET_PASSWORD,
   FULFill_DASHBOARD,
   FULFill_LOCATIONS,
+  FULFill_MACHINE_MAP,
   FULFill_MACHINE_VISIT,
   FULFill_MACHINES,
   FULFill_TOPUP,
@@ -80,6 +82,7 @@ import {
   OPS_DASHBOARD,
   OPS_FEEDBACK,
   OPS_LOCATIONS,
+  OPS_MACHINE_MAP,
   OPS_MACHINE_VISIT,
   OPS_MACHINES,
   OPS_POINTS,
@@ -87,10 +90,12 @@ import {
   PRIVACY_POLICY,
   REPORT,
   RESET_PASSWORD,
+  SUPERADMIN_ADD_EMPLOYEES,
   SUPERADMIN_CASH_COLLECTION,
   SUPERADMIN_CORPORATE,
   SUPERADMIN_CORPORATE_TOPUP,
   SUPERADMIN_DASHBOARD,
+  SUPERADMIN_DELETE_EMPLOYEES,
   SUPERADMIN_FEEDBACK,
   SUPERADMIN_LOCATIONS,
   SUPERADMIN_MACHINE_MAP,
@@ -114,8 +119,13 @@ import AllUsers from '@/Corporate/Mobilink/allUsers/allUsers'
 import AddEmployees from '@/Corporate/Mobilink/addEmployees/AddEmployees'
 import BulkDelete from '@/Corporate/Mobilink/deleteEmployees/BulkDelete'
 import CashCollectionPage from '@/screens/fulfillment/cashCollections/cashCollection'
-import MachineMap from '@/screens/superAdmin/MachinesMap/MachineMap'
 import SuperAdminCashCollectionPage from '@/screens/superAdmin/cashCollections/cashCollection'
+import SuperAdminAddEmployees from '@/Corporate/superadmin/addEmployees/AddEmployees'
+import SuperAdminBulkDelete from '@/Corporate/superadmin/deleteEmployees/BulkDelete'
+import SuperAdminMachineMap from '@/screens/superAdmin/MachinesMap/MachineMap'
+import AdminMachineMap from '@/screens/admin/MachinesMap/MachineMap'
+import FulfillMachineMap from '@/screens/fulfillment/MachinesMap/MachineMap'
+import OpsMachineMap from '@/screens/ops/MachinesMap/MachineMap'
 
 const Routing = () => {
   return (
@@ -143,8 +153,10 @@ const Routing = () => {
           <Route path={SUPERADMIN_CORPORATE} element={<Corporate />} />
           <Route path={SUPERADMIN_MACHINE_VISIT} element={<SuperAdminMachineVisit />} />
           <Route path={SUPERADMIN_CORPORATE_TOPUP} element={<CorporateTopup />} />
-          <Route path={SUPERADMIN_MACHINE_MAP} element={<MachineMap />} />
+          <Route path={SUPERADMIN_MACHINE_MAP} element={<SuperAdminMachineMap />} />
           <Route path={SUPERADMIN_CASH_COLLECTION} element={<SuperAdminCashCollectionPage />} />
+          <Route path={SUPERADMIN_ADD_EMPLOYEES} element={<SuperAdminAddEmployees />} />
+          <Route path={SUPERADMIN_DELETE_EMPLOYEES} element={<SuperAdminBulkDelete />} />
         </Route>
       </Route>
 
@@ -161,6 +173,7 @@ const Routing = () => {
           {/* <Route path={ADMIN_CORPORATE} element={<AdminCorporate />} /> */}
           <Route path={ADMIN_MACHINE_VISIT} element={<AdminMachineVisit />} />
           <Route path={ADMIN_CORPORATE_TOPUP} element={<AdminCorporateTopup />} />
+          <Route path={ADMIN_MACHINE_MAP} element={<AdminMachineMap />} />
         </Route>
       </Route>
 
@@ -175,6 +188,7 @@ const Routing = () => {
           <Route path={OPS_FEEDBACK} element={<OpsFeedback />} />
           {/* <Route path={OPS_CORPORATE} element={<OpsCorporate />} /> */}
           <Route path={OPS_MACHINE_VISIT} element={<OpsMachineVisit />} />
+          <Route path={OPS_MACHINE_MAP} element={<OpsMachineMap />} />
         </Route>
       </Route>
 
@@ -188,6 +202,7 @@ const Routing = () => {
           <Route path={FULLFiLL_MAINTAINCE} element={<AddMaintenanceSchedule />} />
           <Route path={MAINTAINCE_REQUESTS} element={<AdminMaintenanceRequests />} />
           <Route path={CASH_COLLECTIONS} element={<CashCollectionPage />} />
+          <Route path={FULFill_MACHINE_MAP} element={<FulfillMachineMap />} />
         </Route>
       </Route>
 
