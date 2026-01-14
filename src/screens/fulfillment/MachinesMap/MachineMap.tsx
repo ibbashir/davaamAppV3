@@ -396,7 +396,7 @@ const FulfillMachineMap: React.FC = () => {
   const fetchMachines = async () => {
     try {
       setLoading(true);
-      const res = await getRequest<MachinesResponse>(`/fulfill/getAllMachineStockAndStatus`);
+      const res = await getRequest<MachinesResponse>(`/fulfillment/getAllMachineStockAndStatus`);
       const { machines: machinesData, brands } = res.data;
 
       const stockMap: { [code: string]: { status: string, stockedBy?: string } } = {};

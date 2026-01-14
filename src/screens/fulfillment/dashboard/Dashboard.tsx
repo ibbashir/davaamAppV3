@@ -24,7 +24,6 @@ const CorporateDashboard = () => {
                 </div>
             </div>
         </>
-
     )
 }
 
