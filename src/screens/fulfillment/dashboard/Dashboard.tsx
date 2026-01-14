@@ -1,5 +1,5 @@
-import { SectionCards } from "@/components/ops/section-cards"
-import { SiteHeader } from "@/components/ops/site-header"
+import { SectionCards } from "@/components/fulfillment/section-cards"
+import { SiteHeader } from "@/components/fulfillment/site-header"
 import RecentTransactions from "./RecentTransactions"
 import FulfillmentDashboardSanitary from "@/components/fulfillment/PieMainDashboardSanitary"
 import { FulfillmentMobileUsersDataTable } from "@/components/fulfillment/data-table"

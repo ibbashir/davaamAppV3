@@ -19,20 +19,9 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
-import { SiteHeader } from "@/components/admin/site-header";
+import { SiteHeader } from "@/components/fulfillment/site-header";
 import { Textarea } from "@/components/ui/textarea";
 import moment from "moment-timezone";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-// import { Label } from "@/components/ui/label";
 import {
   Dialog,
   DialogContent,
@@ -99,7 +88,7 @@ interface EditFormData {
   lng: number | null;
 }
 
-const Locations = () => {
+const FulfillmentLocations = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [machineLocation, setMachineLocation] =
     useState<LocationApiResponse | null>(null);
@@ -107,11 +96,7 @@ const Locations = () => {
   const [totalPages, setTotalPages] = useState<number>(1);
   const [totalCount, setTotalCount] = useState<number>(0);
   const [itemsPerPage, setItemsPerPage] = useState(10);
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
-  const [locationToDelete, setLocationToDelete] =
-    useState<LocationsDetail | null>(null);
-  const [isDeleting, setIsDeleting] = useState(false);
   const [editFormData, setEditFormData] = useState<EditFormData>({
     machine_name: "",
     machine_location: "",
@@ -124,12 +109,20 @@ const Locations = () => {
     null
   );
 
+  const isDirty =
+  JSON.stringify(editFormData) !==
+  JSON.stringify({
+    machine_name: locationToEdit?.machine_name,
+    machine_location: locationToEdit?.machine_location,
+    machine_type: locationToEdit?.machine_type,
+    lat: locationToEdit?.lat,
+    lng: locationToEdit?.lng,
+  });
+
   const getTypeBadge = (type: string) => {
     const colors = {
-      "Office Building": "bg-blue-100 text-blue-800",
-      Educational: "bg-green-100 text-green-800",
-      Retail: "bg-purple-100 text-purple-800",
-      Healthcare: "bg-red-100 text-red-800",
+      liquid: "bg-blue-100 text-blue-800",
+      product: "bg-green-100 text-green-800",
     };
     return (
       <Badge
@@ -159,11 +152,6 @@ const Locations = () => {
     setEditDialogOpen(true);
   };
 
-  const handleDeleteClick = (location: LocationsDetail) => {
-    setLocationToDelete(location);
-    setDeleteDialogOpen(true);
-  };
-
   const handleEditChange = (
     field: keyof EditFormData,
     value: string | number
@@ -175,50 +163,50 @@ const Locations = () => {
   };
 
   const handleEditSubmit = async () => {
-    if (!locationToEdit) return;
-    setIsEditing(true);
+  if (!locationToEdit) return;
 
-    try {
-      await putRequest(
-        `fulfillment/updateMachineLocation/${locationToEdit.id}`,
-        editFormData
-      );
-      setIsEditing(false);
-    } catch (error) {
-      console.log("Form Submission Error: ", error);
-    } finally {
-      setIsEditing(false);
+  setIsEditing(true);
+
+  try {
+    await putRequest(
+      `fulfillment/updateMachineLocation/${locationToEdit.id}`,
+      editFormData
+    );
+
+    // ✅ Refresh table
+    await fetchLocations();
+
+    // ✅ Close dialog
+    setEditDialogOpen(false);
+    setLocationToEdit(null);
+  } catch (error) {
+    console.error("Update failed:", error);
+  } finally {
+    setIsEditing(false);
+  }
+};
+
+const fetchLocations = async () => {
+    const params = new URLSearchParams();
+    params.append("page", currentPage.toString());
+    params.append("limit", itemsPerPage.toString());
+
+    if (searchTerm) {
+      params.append("search", searchTerm);
     }
+
+    const res = await getRequest<LocationApiResponse>(
+      `/fulfillment/MachineLocations?${params.toString()}`
+    );
+
+    setMachineLocation(res);
+    setTotalPages(res.totalPages);
+    setTotalCount(res.totalMachines);
   };
+
   useEffect(() => {
-    const locationApi = async () => {
-      const params = new URLSearchParams();
-      params.append("page", currentPage.toString());
-      params.append("limit", itemsPerPage.toString()); // Use itemsPerPage instead of constant
-
-      if (searchTerm) {
-        params.append("search", searchTerm);
-      }
-
-      const queryString = params.toString();
-      const url = `/fulfillment/MachineLocations${
-        queryString ? `?${queryString}` : ""
-      }`;
-
-      try {
-        const res = await getRequest<LocationApiResponse>(url);
-        setMachineLocation(res);
-        setTotalPages(res.totalPages);
-        setTotalCount(res.totalMachines); // Fixed: should be totalCount, not totalPages
-      } catch (error) {
-        console.error("Failed to fetch machine locations:", error);
-        setMachineLocation(null);
-        setTotalPages(1);
-        setTotalCount(0);
-      }
-    };
-    locationApi();
-  }, [currentPage, searchTerm, itemsPerPage]); // Added itemsPerPage to dependencies
+    fetchLocations().catch(console.error);
+  }, [currentPage, searchTerm, itemsPerPage]);
 
   return (
     <div>
@@ -377,13 +365,6 @@ const Locations = () => {
                         >
                           <IconEdit className="h-4 w-4" />
                         </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleDeleteClick(data)}
-                        >
-                          <IconTrash className="h-4 w-4" />
-                        </Button>
                       </div>
                     </TableCell>
                   </TableRow>
@@ -483,58 +464,6 @@ const Locations = () => {
           </CardContent>
         </Card>
       </div>
-      {/* Delete Confirmation Dialog */}
-      <AlertDialog
-        open={deleteDialogOpen}
-        onOpenChange={(open) => {
-          setEditDialogOpen(open);
-          if (!open) {
-            setLocationToEdit(null);
-            setEditFormData({
-              machine_name: "",
-              machine_location: "",
-              machine_type: "",
-              lat: null,
-              lng: null,
-            });
-          }
-        }}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This will permanently delete the location{" "}
-              <span className="font-semibold">
-                {locationToDelete?.machine_name}
-              </span>
-              . This action cannot be undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel
-              disabled={isDeleting}
-              onClick={() => setLocationToDelete(null)}
-            >
-              Cancel
-            </AlertDialogCancel>
-            <AlertDialogAction
-              // onClick={handleDeleteConfirm}
-              disabled={isDeleting}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
-              {isDeleting ? (
-                <>
-                  <span className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
-                  Deleting...
-                </>
-              ) : (
-                "Delete"
-              )}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
 
       {/* Edit Dialog */}
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
@@ -629,7 +558,7 @@ const Locations = () => {
             >
               Cancel
             </Button>
-            <Button onClick={handleEditSubmit} disabled={isEditing}>
+            <Button onClick={handleEditSubmit} disabled={isEditing || !isDirty}>
               {isEditing ? (
                 <>
                   <span className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
@@ -649,4 +578,4 @@ const Locations = () => {
   );
 };
 
-export default Locations;
+export default FulfillmentLocations;

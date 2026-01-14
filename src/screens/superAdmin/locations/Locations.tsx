@@ -107,11 +107,7 @@ const Locations = () => {
   const [totalPages, setTotalPages] = useState<number>(1);
   const [totalCount, setTotalCount] = useState<number>(0);
   const [itemsPerPage, setItemsPerPage] = useState(10);
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
-  const [locationToDelete, setLocationToDelete] =
-    useState<LocationsDetail | null>(null);
-  const [isDeleting, setIsDeleting] = useState(false);
   const [editFormData, setEditFormData] = useState<EditFormData>({
     machine_name: "",
     machine_location: "",
@@ -126,10 +122,8 @@ const Locations = () => {
 
   const getTypeBadge = (type: string) => {
     const colors = {
-      "Office Building": "bg-blue-100 text-blue-800",
-      Educational: "bg-green-100 text-green-800",
-      Retail: "bg-purple-100 text-purple-800",
-      Healthcare: "bg-red-100 text-red-800",
+      "liquid": "bg-blue-100 text-blue-800",
+      "product": "bg-green-100 text-green-800",
     };
     return (
       <Badge
@@ -157,11 +151,6 @@ const Locations = () => {
     });
     setLocationToEdit(location);
     setEditDialogOpen(true);
-  };
-
-  const handleDeleteClick = (location: LocationsDetail) => {
-    setLocationToDelete(location);
-    setDeleteDialogOpen(true);
   };
 
   const handleEditChange = (
@@ -377,13 +366,6 @@ const Locations = () => {
                         >
                           <IconEdit className="h-4 w-4" />
                         </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleDeleteClick(data)}
-                        >
-                          <IconTrash className="h-4 w-4" />
-                        </Button>
                       </div>
                     </TableCell>
                   </TableRow>
@@ -483,58 +465,6 @@ const Locations = () => {
           </CardContent>
         </Card>
       </div>
-      {/* Delete Confirmation Dialog */}
-      <AlertDialog
-        open={deleteDialogOpen}
-        onOpenChange={(open) => {
-          setEditDialogOpen(open);
-          if (!open) {
-            setLocationToEdit(null);
-            setEditFormData({
-              machine_name: "",
-              machine_location: "",
-              machine_type: "",
-              lat: null,
-              lng: null,
-            });
-          }
-        }}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This will permanently delete the location{" "}
-              <span className="font-semibold">
-                {locationToDelete?.machine_name}
-              </span>
-              . This action cannot be undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel
-              disabled={isDeleting}
-              onClick={() => setLocationToDelete(null)}
-            >
-              Cancel
-            </AlertDialogCancel>
-            <AlertDialogAction
-              // onClick={handleDeleteConfirm}
-              disabled={isDeleting}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
-              {isDeleting ? (
-                <>
-                  <span className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
-                  Deleting...
-                </>
-              ) : (
-                "Delete"
-              )}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
 
       {/* Edit Dialog */}
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
