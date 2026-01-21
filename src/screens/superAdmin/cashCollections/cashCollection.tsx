@@ -10,43 +10,10 @@ import {
   RefreshCw,
   FileText,
   Calendar,
-  Users,
   MapPin,
-  Filter,
   ChevronDown,
-  ExternalLink,
-  CheckCircle,
   AlertCircle,
 } from "lucide-react";
-import { Line, Bar, Pie } from "react-chartjs-2";
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  BarElement,
-  ArcElement,
-  Title,
-  Tooltip,
-  Legend,
-  Filler,
-} from "chart.js";
-import { date } from "zod";
-
-// Register ChartJS components
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  BarElement,
-  ArcElement,
-  Title,
-  Tooltip,
-  Legend,
-  Filler,
-);
 
 interface MachineReport {
   machine_code: string;
