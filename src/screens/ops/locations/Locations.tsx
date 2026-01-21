@@ -19,7 +19,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
-import { SiteHeader } from "@/components/admin/site-header";
+import { SiteHeader } from "@/components/ops/site-header";
 import { Textarea } from "@/components/ui/textarea";
 import moment from "moment-timezone";
 import {
@@ -88,7 +88,7 @@ interface EditFormData {
   lng: number | null;
 }
 
-const Locations = () => {
+const OpsLocations = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [machineLocation, setMachineLocation] =
     useState<LocationApiResponse | null>(null);
@@ -109,10 +109,20 @@ const Locations = () => {
     null
   );
 
+  const isDirty =
+  JSON.stringify(editFormData) !==
+  JSON.stringify({
+    machine_name: locationToEdit?.machine_name,
+    machine_location: locationToEdit?.machine_location,
+    machine_type: locationToEdit?.machine_type,
+    lat: locationToEdit?.lat,
+    lng: locationToEdit?.lng,
+  });
+
   const getTypeBadge = (type: string) => {
     const colors = {
-      "liquid": "bg-blue-100 text-blue-800",
-      "product": "bg-green-100 text-green-800",
+      liquid: "bg-blue-100 text-blue-800",
+      product: "bg-green-100 text-green-800",
     };
     return (
       <Badge
@@ -153,50 +163,50 @@ const Locations = () => {
   };
 
   const handleEditSubmit = async () => {
-    if (!locationToEdit) return;
-    setIsEditing(true);
+  if (!locationToEdit) return;
 
-    try {
-      await putRequest(
-        `ops/updateMachineLocation/${locationToEdit.id}`,
-        editFormData
-      );
-      setIsEditing(false);
-    } catch (error) {
-      console.log("Form Submission Error: ", error);
-    } finally {
-      setIsEditing(false);
+  setIsEditing(true);
+
+  try {
+    await putRequest(
+      `ops/updateMachineLocation/${locationToEdit.id}`,
+      editFormData
+    );
+
+    // ✅ Refresh table
+    await fetchLocations();
+
+    // ✅ Close dialog
+    setEditDialogOpen(false);
+    setLocationToEdit(null);
+  } catch (error) {
+    console.error("Update failed:", error);
+  } finally {
+    setIsEditing(false);
+  }
+};
+
+const fetchLocations = async () => {
+    const params = new URLSearchParams();
+    params.append("page", currentPage.toString());
+    params.append("limit", itemsPerPage.toString());
+
+    if (searchTerm) {
+      params.append("search", searchTerm);
     }
+
+    const res = await getRequest<LocationApiResponse>(
+      `/ops/MachineLocations?${params.toString()}`
+    );
+
+    setMachineLocation(res);
+    setTotalPages(res.totalPages);
+    setTotalCount(res.totalMachines);
   };
+
   useEffect(() => {
-    const locationApi = async () => {
-      const params = new URLSearchParams();
-      params.append("page", currentPage.toString());
-      params.append("limit", itemsPerPage.toString()); // Use itemsPerPage instead of constant
-
-      if (searchTerm) {
-        params.append("search", searchTerm);
-      }
-
-      const queryString = params.toString();
-      const url = `/ops/MachineLocations${
-        queryString ? `?${queryString}` : ""
-      }`;
-
-      try {
-        const res = await getRequest<LocationApiResponse>(url);
-        setMachineLocation(res);
-        setTotalPages(res.totalPages);
-        setTotalCount(res.totalMachines); // Fixed: should be totalCount, not totalPages
-      } catch (error) {
-        console.error("Failed to fetch machine locations:", error);
-        setMachineLocation(null);
-        setTotalPages(1);
-        setTotalCount(0);
-      }
-    };
-    locationApi();
-  }, [currentPage, searchTerm, itemsPerPage]); // Added itemsPerPage to dependencies
+    fetchLocations().catch(console.error);
+  }, [currentPage, searchTerm, itemsPerPage]);
 
   return (
     <div>
@@ -454,6 +464,7 @@ const Locations = () => {
           </CardContent>
         </Card>
       </div>
+
       {/* Edit Dialog */}
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
         <DialogContent className="sm:max-w-[600px]">
@@ -547,7 +558,7 @@ const Locations = () => {
             >
               Cancel
             </Button>
-            <Button onClick={handleEditSubmit} disabled={isEditing}>
+            <Button onClick={handleEditSubmit} disabled={isEditing || !isDirty}>
               {isEditing ? (
                 <>
                   <span className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
@@ -567,4 +578,4 @@ const Locations = () => {
   );
 };
 
-export default Locations;
+export default OpsLocations;

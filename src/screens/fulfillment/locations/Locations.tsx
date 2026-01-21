@@ -35,7 +35,6 @@ import {
   IconSearch,
   IconBuilding,
   IconEdit,
-  IconTrash,
   IconMap,
   IconUsers,
   IconChevronLeft,
