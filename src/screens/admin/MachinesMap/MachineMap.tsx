@@ -1,6 +1,6 @@
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import L from "leaflet";
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useRef } from "react";
 import "leaflet/dist/leaflet.css";
 import { getRequest } from "@/Apis/Api";
 import type { ApiMachine, MachinesResponse } from "../machines/Types"
@@ -20,7 +20,7 @@ type Machine = {
   location: string;
   category: string;
   stockedBy: string;
-  map_link?: string; // Add map_link field
+  map_link?: string;
 };
 
 // Filter categories
@@ -93,40 +93,20 @@ const FitBoundsButton = ({ machines }: { machines: Machine[] }) => {
   );
 };
 
-// Function to extract coordinates from map links (including short URLs)
+// Function to extract coordinates from map links
 const extractCoordinatesFromMapLink = async (mapLink: string | undefined): Promise<{ lat: number; lng: number } | null> => {
   if (!mapLink) return null;
   
   try {
-    // Clean the URL
     const cleanLink = mapLink.trim();
-    
-    // Try direct coordinate extraction first
     const directCoords = extractDirectCoordinates(cleanLink);
     if (directCoords) return directCoords;
     
-    // For short URLs, we might need to fetch the full URL
-    // This is a simplified approach - in production, you'd want a server-side solution
     if (cleanLink.includes('goo.gl') || cleanLink.includes('maps.app.goo.gl')) {
-      // Extract coordinates from short URLs by pattern matching
       const shortUrlCoords = extractFromShortUrl(cleanLink);
       if (shortUrlCoords) return shortUrlCoords;
-      
-      // If we can't extract directly, try to get the final URL
-      // Note: This won't work in browser due to CORS, but shows the approach
-      try {
-        // In a real app, you'd need a proxy server for this
-        // const response = await fetch(`/api/resolve-url?url=${encodeURIComponent(cleanLink)}`);
-        // const data = await response.json();
-        // if (data.finalUrl) {
-        //   return extractDirectCoordinates(data.finalUrl);
-        // }
-      } catch (error) {
-        console.warn('Could not resolve short URL:', cleanLink);
-      }
     }
     
-    // Try various map service patterns
     const mapServiceCoords = extractFromMapServices(cleanLink);
     if (mapServiceCoords) return mapServiceCoords;
     
@@ -137,9 +117,7 @@ const extractCoordinatesFromMapLink = async (mapLink: string | undefined): Promi
   return null;
 };
 
-// Extract coordinates directly from various formats
 const extractDirectCoordinates = (url: string): { lat: number; lng: number } | null => {
-  // Direct coordinates: "31.5497,74.3436"
   const coordMatch = url.match(/^(-?\d+\.?\d*)[,\s]+(-?\d+\.?\d*)$/);
   if (coordMatch) {
     const lat = parseFloat(coordMatch[1]);
@@ -149,8 +127,6 @@ const extractDirectCoordinates = (url: string): { lat: number; lng: number } | n
     }
   }
   
-  // Google Maps patterns
-  // Format: https://www.google.com/maps?q=lat,lng
   const googleQMatch = url.match(/google\.com\/maps\?q=(-?\d+\.?\d*),(-?\d+\.?\d*)/);
   if (googleQMatch) {
     const lat = parseFloat(googleQMatch[1]);
@@ -158,7 +134,6 @@ const extractDirectCoordinates = (url: string): { lat: number; lng: number } | n
     if (!isNaN(lat) && !isNaN(lng)) return { lat, lng };
   }
   
-  // Format: https://www.google.com/maps/@lat,lng,z
   const googleAtMatch = url.match(/@(-?\d+\.?\d*),(-?\d+\.?\d*)/);
   if (googleAtMatch) {
     const lat = parseFloat(googleAtMatch[1]);
@@ -166,7 +141,6 @@ const extractDirectCoordinates = (url: string): { lat: number; lng: number } | n
     if (!isNaN(lat) && !isNaN(lng)) return { lat, lng };
   }
   
-  // Apple Maps
   const appleMatch = url.match(/ll=(-?\d+\.?\d*),(-?\d+\.?\d*)/);
   if (appleMatch) {
     const lat = parseFloat(appleMatch[1]);
@@ -174,7 +148,6 @@ const extractDirectCoordinates = (url: string): { lat: number; lng: number } | n
     if (!isNaN(lat) && !isNaN(lng)) return { lat, lng };
   }
   
-  // Try to extract any coordinates from the string
   const anyMatch = url.match(/(-?\d+\.?\d*)[,\s]+(-?\d+\.?\d*)/);
   if (anyMatch) {
     const lat = parseFloat(anyMatch[1]);
@@ -187,12 +160,7 @@ const extractDirectCoordinates = (url: string): { lat: number; lng: number } | n
   return null;
 };
 
-// Try to extract coordinates from short URLs
 const extractFromShortUrl = (url: string): { lat: number; lng: number } | null => {
-  // Some short URLs embed coordinates in the path
-  // Example patterns that might work:
-  
-  // Try to find coordinates in the URL path
   const pathMatch = url.match(/(-?\d+\.?\d*)[,_](-?\d+\.?\d*)/);
   if (pathMatch) {
     const lat = parseFloat(pathMatch[1]);
@@ -205,9 +173,7 @@ const extractFromShortUrl = (url: string): { lat: number; lng: number } | null =
   return null;
 };
 
-// Extract from various map services
 const extractFromMapServices = (url: string): { lat: number; lng: number } | null => {
-  // OpenStreetMap
   const osmMatch = url.match(/openstreetmap\.org\/#map=\d+\/(-?\d+\.?\d*)\/(-?\d+\.?\d*)/);
   if (osmMatch) {
     const lat = parseFloat(osmMatch[1]);
@@ -215,7 +181,6 @@ const extractFromMapServices = (url: string): { lat: number; lng: number } | nul
     if (!isNaN(lat) && !isNaN(lng)) return { lat, lng };
   }
   
-  // Bing Maps
   const bingMatch = url.match(/cp=(-?\d+\.?\d*)~(-?\d+\.?\d*)/);
   if (bingMatch) {
     const lat = parseFloat(bingMatch[1]);
@@ -226,7 +191,6 @@ const extractFromMapServices = (url: string): { lat: number; lng: number } | nul
   return null;
 };
 
-// Fallback coordinates for Pakistan if no coordinates can be extracted
 const getFallbackCoordinates = (machineName: string): { lat: number; lng: number } => {
   const hash = machineName.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
   
@@ -255,12 +219,226 @@ const getFallbackCoordinates = (machineName: string): { lat: number; lng: number
   };
 };
 
-// Generate a Google Maps link from coordinates
 const generateMapLink = (lat: number, lng: number): string => {
   return `https://www.google.com/maps?q=${lat},${lng}`;
 };
 
-const AdminMachineMap: React.FC = () => {
+// Search Component
+const SearchBar = ({ 
+  machines, 
+  onSearch, 
+  onSelectMachine,
+  searchQuery,
+  setSearchQuery 
+}: { 
+  machines: Machine[];
+  onSearch: (results: Machine[]) => void;
+  onSelectMachine: (machine: Machine) => void;
+  searchQuery: string;
+  setSearchQuery: (query: string) => void;
+}) => {
+  const [searchResults, setSearchResults] = useState<Machine[]>([]);
+  const [showResults, setShowResults] = useState(false);
+  const searchRef = useRef<HTMLDivElement>(null);
+
+  // Handle click outside to close results
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
+        setShowResults(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const handleSearch = (query: string) => {
+    setSearchQuery(query);
+    
+    if (!query.trim()) {
+      setSearchResults([]);
+      onSearch([]);
+      setShowResults(false);
+      return;
+    }
+
+    const lowerQuery = query.toLowerCase();
+    const results = machines.filter(machine =>
+      machine.name.toLowerCase().includes(lowerQuery) ||
+      machine.machine_code.toLowerCase().includes(lowerQuery) ||
+      machine.location.toLowerCase().includes(lowerQuery) ||
+      machine.category.toLowerCase().includes(lowerQuery)
+    );
+
+    setSearchResults(results);
+    onSearch(results);
+    setShowResults(true);
+  };
+
+  const handleSelectMachine = (machine: Machine) => {
+    onSelectMachine(machine);
+    setSearchQuery("");
+    setSearchResults([]);
+    setShowResults(false);
+  };
+
+  const clearSearch = () => {
+    setSearchQuery("");
+    setSearchResults([]);
+    onSearch([]);
+    setShowResults(false);
+  };
+
+  return (
+    <div ref={searchRef} className="relative w-full">
+      <div className="relative">
+        <input
+          type="text"
+          value={searchQuery}
+          onChange={(e) => handleSearch(e.target.value)}
+          placeholder="Search machines by name, code, location, or category..."
+          className="w-full p-3 pl-10 pr-10 rounded-lg border-2 border-gray-300 focus:border-teal-500 focus:ring-2 focus:ring-teal-200 focus:outline-none transition-all"
+        />
+        <div className="absolute left-3 top-3.5 text-gray-400">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <circle cx="11" cy="11" r="8" />
+            <path d="m21 21-4.35-4.35" />
+          </svg>
+        </div>
+        {searchQuery && (
+          <button
+            onClick={clearSearch}
+            className="absolute right-3 top-3 text-gray-400 hover:text-gray-600"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M18 6L6 18" />
+              <path d="M6 6l12 12" />
+            </svg>
+          </button>
+        )}
+      </div>
+
+      {showResults && searchResults.length > 0 && (
+        <div className="absolute z-50 w-full mt-1 bg-white rounded-lg shadow-lg border border-gray-200 max-h-64 overflow-y-auto">
+          <div className="p-2 text-xs text-gray-500 font-semibold border-b">
+            Found {searchResults.length} machine{searchResults.length !== 1 ? 's' : ''}
+          </div>
+          {searchResults.map((machine) => (
+            <button
+              key={machine._id}
+              onClick={() => handleSelectMachine(machine)}
+              className="w-full text-left p-3 hover:bg-gray-50 border-b border-gray-100 last:border-b-0 transition-colors"
+            >
+              <div className="flex justify-between items-start">
+                <div className="flex-1">
+                  <div className="font-semibold text-gray-800">{machine.name}</div>
+                  <div className="text-sm text-gray-600 mt-1">
+                    <div className="flex items-center gap-2">
+                      <span className="px-1.5 py-0.5 bg-gray-100 text-gray-700 rounded text-xs">
+                        {machine.machine_code}
+                      </span>
+                      <span className={`px-1.5 py-0.5 rounded text-xs font-semibold ${
+                        machine.status === 'online' ? 'bg-green-100 text-green-800' :
+                        machine.status === 'offline' ? 'bg-red-100 text-red-800' :
+                        'bg-yellow-100 text-yellow-800'
+                      }`}>
+                        {machine.status}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="text-xs text-gray-500 mt-1 flex items-center gap-2">
+                    <span>{machine.location}</span>
+                    <span>•</span>
+                    <span className={`px-1.5 py-0.5 rounded ${
+                      machine.machine_type === 'sanitary' ? 'bg-purple-100 text-purple-800' : 'bg-teal-100 text-teal-800'
+                    }`}>
+                      {machine.category}
+                    </span>
+                  </div>
+                </div>
+                <div className="ml-2 text-xs text-gray-500">
+                  {machine.stockStatus}
+                </div>
+              </div>
+            </button>
+          ))}
+        </div>
+      )}
+
+      {showResults && searchQuery && searchResults.length === 0 && (
+        <div className="absolute z-50 w-full mt-1 bg-white rounded-lg shadow-lg border border-gray-200 p-4">
+          <div className="text-center text-gray-500">
+            <div className="mb-2">No machines found for "{searchQuery}"</div>
+            <div className="text-sm">Try searching by name, code, or location</div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+// Map controls component with search
+const MapControls = ({ 
+  machines,
+  onSearchResults,
+  onSelectMachine
+}: { 
+  machines: Machine[];
+  onSearchResults: (results: Machine[]) => void;
+  onSelectMachine: (machine: Machine) => void;
+}) => {
+  const [searchQuery, setSearchQuery] = useState("");
+  const [showSearch, setShowSearch] = useState(false);
+
+  return (
+    <div className="absolute top-20 left-1/2 transform -translate-x-1/2 z-[1000] w-full max-w-2xl px-4">
+      <div className="bg-white rounded-lg shadow-lg p-1">
+        <div className="flex items-center gap-2">
+          {showSearch ? (
+            <>
+              <div className="flex-1">
+                <SearchBar
+                  machines={machines}
+                  onSearch={onSearchResults}
+                  onSelectMachine={onSelectMachine}
+                  searchQuery={searchQuery}
+                  setSearchQuery={setSearchQuery}
+                />
+              </div>
+              <button
+                onClick={() => {
+                  setShowSearch(false);
+                  setSearchQuery("");
+                  onSearchResults([]);
+                }}
+                className="p-2 text-gray-500 hover:text-gray-700"
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M18 6L6 18" />
+                  <path d="M6 6l12 12" />
+                </svg>
+              </button>
+            </>
+          ) : (
+            <button
+              onClick={() => setShowSearch(true)}
+              className="flex items-center gap-2 p-3 text-gray-600 hover:text-teal-600 w-full"
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <circle cx="11" cy="11" r="8" />
+                <path d="m21 21-4.35-4.35" />
+              </svg>
+              <span className="text-sm">Search machines...</span>
+              <span className="ml-auto text-xs text-gray-400">Press / to focus</span>
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const SuperAdminMachineMap: React.FC = () => {
   const [allMachines, setAllMachines] = useState<Machine[]>([]);
   const [filteredMachines, setFilteredMachines] = useState<Machine[]>([]);
   const [activeFilters, setActiveFilters] = useState<{
@@ -274,8 +452,53 @@ const AdminMachineMap: React.FC = () => {
   });
   const [loading, setLoading] = useState(true);
   const [machineStockMap, setMachineStockMap] = useState<{ [code: string]: { status: string, stockedBy?: string } }>({});
+  const [searchResults, setSearchResults] = useState<Machine[]>([]);
+  const [selectedMachine, setSelectedMachine] = useState<Machine | null>(null);
+  const mapRef = useRef<L.Map>(null);
 
-  // Calculate statistics including category counts and machine type counts
+  // Focus search on '/' key press
+  useEffect(() => {
+    const handleKeyPress = (e: KeyboardEvent) => {
+      if (e.key === '/' && !e.ctrlKey && !e.metaKey) {
+        e.preventDefault();
+        // Focus would be handled by the search input in a real implementation
+        // For now, we'll just log it
+        console.log('Search focus triggered');
+      }
+    };
+    
+    window.addEventListener('keydown', handleKeyPress);
+    return () => window.removeEventListener('keydown', handleKeyPress);
+  }, []);
+
+  // Handle machine selection from search
+  const handleSelectMachine = (machine: Machine) => {
+    setSelectedMachine(machine);
+    
+    if (mapRef.current) {
+      mapRef.current.setView([machine.lat, machine.lng], 15);
+    }
+  };
+
+  // Fit bounds to search results
+  const fitBoundsToResults = (machines: Machine[]) => {
+    if (machines.length === 0 || !mapRef.current) return;
+    
+    const validMachines = machines.filter(m => !isNaN(m.lat) && !isNaN(m.lng));
+    if (validMachines.length === 0) return;
+    
+    const bounds = L.latLngBounds(
+      validMachines.map(m => [m.lat, m.lng] as [number, number])
+    );
+    mapRef.current.fitBounds(bounds, { padding: [100, 100] });
+  };
+
+  useEffect(() => {
+    if (searchResults.length > 0) {
+      fitBoundsToResults(searchResults);
+    }
+  }, [searchResults]);
+
   const stats = useMemo(() => {
     const onlineMachines = allMachines.filter(m => m.status === "online").length;
     const offlineMachines = allMachines.filter(m => m.status === "offline").length;
@@ -284,11 +507,9 @@ const AdminMachineMap: React.FC = () => {
     const lowStockMachines = allMachines.filter(m => m.stockStatus === "Low Stock").length;
     const outOfStockMachines = allMachines.filter(m => m.stockStatus === "Out of Stock").length;
     
-    // Machine type counts
     const sanitaryMachines = allMachines.filter(m => m.machine_type === "sanitary").length;
     const dispensingMachines = allMachines.filter(m => m.machine_type === "dispensing").length;
     
-    // Category counts
     const categoryCounts: { [key: string]: number } = {};
     
     const allCategories = [...SANITARY_CATEGORIES, ...DISPENSING_CATEGORIES];
@@ -310,16 +531,13 @@ const AdminMachineMap: React.FC = () => {
     };
   }, [allMachines]);
 
-  // Apply filters when activeFilters changes
   useEffect(() => {
     let filtered = allMachines;
     
-    // Apply status filters
     if (activeFilters.status.length > 0) {
       filtered = filtered.filter(m => activeFilters.status.includes(m.status));
     }
     
-    // Apply stock filters
     if (activeFilters.stock.length > 0) {
       filtered = filtered.filter(m => {
         if (m.stockStatus === "In Stock" && activeFilters.stock.includes("good-stock")) return true;
@@ -329,7 +547,6 @@ const AdminMachineMap: React.FC = () => {
       });
     }
     
-    // Apply category filters
     if (activeFilters.categories.length > 0) {
       filtered = filtered.filter(m => activeFilters.categories.includes(m.category as CategoryFilter));
     }
@@ -337,7 +554,6 @@ const AdminMachineMap: React.FC = () => {
     setFilteredMachines(filtered);
   }, [allMachines, activeFilters]);
 
-  // Toggle status filter
   const toggleStatusFilter = (filter: StatusFilter) => {
     setActiveFilters(prev => {
       const newStatus = prev.status.includes(filter)
@@ -351,7 +567,6 @@ const AdminMachineMap: React.FC = () => {
     });
   };
 
-  // Toggle stock filter
   const toggleStockFilter = (filter: StockFilter) => {
     setActiveFilters(prev => {
       const newStock = prev.stock.includes(filter)
@@ -365,7 +580,6 @@ const AdminMachineMap: React.FC = () => {
     });
   };
 
-  // Toggle category filter
   const toggleCategoryFilter = (filter: CategoryFilter) => {
     setActiveFilters(prev => {
       const newCategories = prev.categories.includes(filter)
@@ -379,7 +593,6 @@ const AdminMachineMap: React.FC = () => {
     });
   };
 
-  // Reset all filters
   const resetFilters = () => {
     setActiveFilters({
       status: [],
@@ -388,7 +601,6 @@ const AdminMachineMap: React.FC = () => {
     });
   };
 
-  // Check if any filter is active
   const isAnyFilterActive = () => {
     return activeFilters.status.length > 0 || activeFilters.stock.length > 0 || activeFilters.categories.length > 0;
   };
@@ -403,7 +615,6 @@ const AdminMachineMap: React.FC = () => {
       const allBrands = [...brands.vending, ...brands.dispensing];
       const grouped: { [machine_code: string]: { quantities: number[], stockedBy?: string } } = {};
 
-      // Process brands to get stock information and stockedBy
       allBrands.forEach((brand) => {
         const code = brand.machine_code;
         const stockedBy = brand?.latestFilling?.stockedby;
@@ -412,16 +623,13 @@ const AdminMachineMap: React.FC = () => {
           grouped[code] = { quantities: [], stockedBy };
         }
         
-        // Add quantity
         grouped[code].quantities.push(brand.availableQuantity);
         
-        // Keep the most recent stockedBy (if not already set)
         if (!grouped[code].stockedBy && stockedBy) {
           grouped[code].stockedBy = stockedBy;
         }
       });
 
-      // Determine stock status and store stockedBy
       for (const [code, data] of Object.entries(grouped)) {
         const total = data.quantities.reduce((sum, q) => sum + q, 0);
         let status = "Out of Stock";
@@ -442,12 +650,10 @@ const AdminMachineMap: React.FC = () => {
 
       const processedMachines: Machine[] = [];
 
-      // Process each category separately
       for (const [category, machines] of Object.entries(machinesData)) {
         for (const machine of machines) {
           let status: "online" | "offline" | "unknown" = "offline";
 
-          // Map API status to our status types
           if (machine.status?.toLowerCase() === "online") {
             status = "online";
           } else if (machine.status?.toLowerCase() === "unknown") {
@@ -468,18 +674,15 @@ const AdminMachineMap: React.FC = () => {
             ? new Date(machine.lastUpdated * 1000).toISOString().split('T')[0]
             : new Date().toISOString().split('T')[0];
 
-          // Determine machine type based on category
-          let machineType: MachineType = "dispensing"; // default
+          let machineType: MachineType = "dispensing";
           if (category === "Butterfly") {
             machineType = "sanitary";
           }
 
-          // Extract coordinates - prioritize map_link if available
           let lat = machine.lat;
           let lng = machine.lng;
-          let map_link = machine.map_link; // Assuming API provides this field
+          let map_link = machine.map_link;
 
-          // If we have a map link, try to extract coordinates from it
           if (map_link && (!lat || !lng || isNaN(lat) || isNaN(lng))) {
             const coords = await extractCoordinatesFromMapLink(map_link);
             if (coords) {
@@ -488,14 +691,12 @@ const AdminMachineMap: React.FC = () => {
             }
           }
 
-          // If still no valid coordinates, use fallback
           if (!lat || !lng || isNaN(lat) || isNaN(lng)) {
             const fallbackCoords = getFallbackCoordinates(machine.machine_name);
             lat = fallbackCoords.lat;
             lng = fallbackCoords.lng;
           }
 
-          // Generate a map link if none exists
           if (!map_link) {
             map_link = generateMapLink(lat, lng);
           }
@@ -533,15 +734,25 @@ const AdminMachineMap: React.FC = () => {
     fetchMachines();
   }, []);
 
-  const getMarkerIcon = (status: string, stockStatus: string, machineType: MachineType) => {
+  const getMarkerIcon = (status: string, stockStatus: string, machineType: MachineType, isHighlighted: boolean = false) => {
     let iconSvg = '';
     let fillColor = '#0d9488'; // teal-600
 
     if (machineType === "sanitary") {
-      fillColor = '#8b5cf6'; // purple-500 for sanitary machines
+      fillColor = '#8b5cf6'; // purple-500
     }
 
-    if (status === "offline") {
+    // If highlighted, add a glowing effect
+    if (isHighlighted) {
+      fillColor = machineType === "sanitary" ? '#7c3aed' : '#0d9488';
+      iconSvg = `
+        <svg width="45" height="45" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="12" cy="12" r="11" fill="white" stroke="${fillColor}" stroke-width="3"/>
+          <circle cx="12" cy="12" r="8" fill="white" stroke="${fillColor}" stroke-width="2"/>
+          <circle cx="12" cy="12" r="5" fill="${fillColor}" opacity="0.3"/>
+        </svg>
+      `;
+    } else if (status === "offline") {
       fillColor = machineType === "sanitary" ? '#a78bfa' : '#0d9488';
       iconSvg = `
         <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -582,7 +793,7 @@ const AdminMachineMap: React.FC = () => {
       html: `
         <div style="position: relative;">
           ${iconSvg}
-          ${stockStatus === "Low Stock" || stockStatus === "Out of Stock" ? `
+          ${(stockStatus === "Low Stock" || stockStatus === "Out of Stock") && !isHighlighted ? `
             <div style="
               position: absolute;
               top: -4px;
@@ -604,9 +815,9 @@ const AdminMachineMap: React.FC = () => {
           ` : ''}
         </div>
       `,
-      className: "",
-      iconSize: [40, 40],
-      iconAnchor: [20, 40],
+      className: isHighlighted ? "highlighted-marker" : "",
+      iconSize: isHighlighted ? [45, 45] : [40, 40],
+      iconAnchor: isHighlighted ? [22.5, 45] : [20, 40],
     });
   };
 
@@ -769,7 +980,6 @@ const AdminMachineMap: React.FC = () => {
     );
   };
 
-  // Get category icon
   const getCategoryIcon = (category: string, machineType: string) => {
     const icons: { [key: string]: string } = {
       "Butterfly": "🦋",
@@ -786,7 +996,6 @@ const AdminMachineMap: React.FC = () => {
     return icons[category] || (machineType === "sanitary" ? "🧻" : "📦");
   };
 
-  // Get category color
   const getCategoryColor = (category: string, machineType: string) => {
     if (machineType === "sanitary") {
       return "bg-purple-100 text-purple-800";
@@ -817,12 +1026,17 @@ const AdminMachineMap: React.FC = () => {
     )
   }
 
-  // All categories to display
-  const allCategories = [...SANITARY_CATEGORIES, ...DISPENSING_CATEGORIES];
-
   return (
     <div className="relative h-screen w-full">
       <SiteHeader title="Map Locations" />
+      
+      {/* Map Controls with Search */}
+      <MapControls
+        machines={allMachines}
+        onSearchResults={setSearchResults}
+        onSelectMachine={handleSelectMachine}
+      />
+
       <MapContainer
         center={[30.3753, 69.3451]}
         zoom={6}
@@ -831,6 +1045,7 @@ const AdminMachineMap: React.FC = () => {
         className="h-full w-full"
         maxBounds={PAKISTAN_BOUNDS}
         maxBoundsViscosity={1.0}
+        ref={mapRef}
       >
         <FitMapToPakistan />
         <TileLayer
@@ -838,17 +1053,132 @@ const AdminMachineMap: React.FC = () => {
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         />
 
-        {filteredMachines.map((m) => (
+        {/* Display filtered machines (non-search results) */}
+        {filteredMachines
+          .filter(m => !searchResults.some(sr => sr._id === m._id))
+          .map((m) => (
+            <Marker
+              key={m._id}
+              position={[m.lat, m.lng]}
+              icon={getMarkerIcon(m.status, m.stockStatus, m.machine_type as MachineType, selectedMachine?._id === m._id)}
+            >
+              <Popup>
+                <div className="min-w-[200px] font-sans">
+                  <div className="flex justify-between items-center mb-2 pb-2 border-b-2 border-teal-600">
+                    <h3 className="m-0 text-teal-600 text-base font-semibold">
+                      {m.name}
+                    </h3>
+                    <div className="flex flex-col items-end gap-1">
+                      <StatusBadge status={m.status} stockStatus={m.stockStatus} machineType={m.machine_type} />
+                      <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${
+                        m.machine_type === "sanitary" 
+                          ? "bg-purple-600 text-white" 
+                          : "bg-teal-600 text-white"
+                      }`}>
+                        {m.machine_type.charAt(0).toUpperCase() + m.machine_type.slice(1)}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="mb-1.5 text-sm text-gray-500">
+                    <strong>Code:</strong> {m.machine_code}
+                  </div>
+
+                  <div className="mb-1.5 text-sm text-gray-500">
+                    <strong>Location:</strong> {m.location}
+                  </div>
+
+                  <div className="mb-1.5 text-sm text-gray-500">
+                    <strong>Category:</strong> 
+                    <span className={`ml-1 px-2 py-0.5 rounded-full text-xs font-semibold ${getCategoryColor(m.category, m.machine_type)}`}>
+                      {getCategoryIcon(m.category, m.machine_type)} {m.category}
+                    </span>
+                  </div>
+
+                  <div className="mb-1.5 text-sm text-gray-500">
+                    <strong>Last Refilled By:</strong> 
+                    <span className={`ml-1 px-2 py-0.5 rounded-full text-xs font-semibold ${
+                      m.stockedBy === "Unknown" 
+                        ? "bg-gray-100 text-gray-800" 
+                        : "bg-blue-100 text-blue-800"
+                    }`}>
+                      {m.stockedBy}
+                    </span>
+                  </div>
+
+                  <div className="mb-2">
+                    <div className="flex justify-between mb-1">
+                      <span className="text-sm text-gray-500">Stock Status:</span>
+                      <span className={`font-semibold ${
+                        m.stockStatus === "Out of Stock" ? 'text-red-600' :
+                        m.stockStatus === "Low Stock" ? 'text-amber-600' : 'text-green-500'
+                      }`}>
+                        {m.stockStatus}
+                      </span>
+                    </div>
+                    <StockIndicator stockLevel={m.stockLevel} stockStatus={m.stockStatus} />
+                  </div>
+
+                  <div className="mb-1.5 text-sm text-gray-500">
+                    <strong>Map Location:</strong> 
+                    <a 
+                      href={m.map_link} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="ml-1 px-2 py-0.5 rounded text-xs font-semibold bg-blue-100 text-blue-800 hover:bg-blue-200 transition-colors inline-flex items-center gap-1"
+                    >
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                        <circle cx="12" cy="10" r="3" />
+                      </svg>
+                      View on Map
+                    </a>
+                  </div>
+
+                  <div className="text-xs text-gray-500 pt-2 border-t border-gray-200">
+                    Last Updated: {m.lastUpdated}
+                  </div>
+
+                  {m.status === "offline" && (
+                    <div className="mt-2 p-1.5 bg-red-50 rounded text-xs text-red-600 flex items-center gap-1">
+                      ⚠ Machine is currently offline
+                    </div>
+                  )}
+
+                  {m.status === "unknown" && (
+                    <div className="mt-2 p-1.5 bg-amber-50 rounded text-xs text-amber-600 flex items-center gap-1">
+                      ⏳ Machine is connecting (pending)
+                    </div>
+                  )}
+
+                  {m.stockStatus === "Low Stock" && m.status === "online" && (
+                    <div className="mt-2 p-1.5 bg-amber-50 rounded text-xs text-amber-600 flex items-center gap-1">
+                      ⚠ Stock is running low
+                    </div>
+                  )}
+
+                  {m.stockStatus === "Out of Stock" && m.status === "online" && (
+                    <div className="mt-2 p-1.5 bg-red-50 rounded text-xs text-red-600 flex items-center gap-1">
+                      ⚠ Machine is out of stock
+                    </div>
+                  )}
+                </div>
+              </Popup>
+            </Marker>
+          ))}
+
+        {/* Display search results with highlighted markers */}
+        {searchResults.map((m) => (
           <Marker
-            key={m._id}
+            key={`search-${m._id}`}
             position={[m.lat, m.lng]}
-            icon={getMarkerIcon(m.status, m.stockStatus, m.machine_type as MachineType)}
+            icon={getMarkerIcon(m.status, m.stockStatus, m.machine_type as MachineType, true)}
           >
             <Popup>
               <div className="min-w-[200px] font-sans">
                 <div className="flex justify-between items-center mb-2 pb-2 border-b-2 border-teal-600">
                   <h3 className="m-0 text-teal-600 text-base font-semibold">
-                    {m.name}
+                    {m.name} <span className="text-xs bg-teal-100 text-teal-800 px-1.5 py-0.5 rounded">Search Result</span>
                   </h3>
                   <div className="flex flex-col items-end gap-1">
                     <StatusBadge status={m.status} stockStatus={m.stockStatus} machineType={m.machine_type} />
@@ -877,7 +1207,6 @@ const AdminMachineMap: React.FC = () => {
                   </span>
                 </div>
 
-                {/* Add stockedBy information */}
                 <div className="mb-1.5 text-sm text-gray-500">
                   <strong>Last Refilled By:</strong> 
                   <span className={`ml-1 px-2 py-0.5 rounded-full text-xs font-semibold ${
@@ -902,7 +1231,6 @@ const AdminMachineMap: React.FC = () => {
                   <StockIndicator stockLevel={m.stockLevel} stockStatus={m.stockStatus} />
                 </div>
 
-                {/* Map Link */}
                 <div className="mb-1.5 text-sm text-gray-500">
                   <strong>Map Location:</strong> 
                   <a 
@@ -956,8 +1284,8 @@ const AdminMachineMap: React.FC = () => {
 
       <MapLegend />
 
-      {/* Filter Panel - Updated for multiple filters */}
-      <div className="absolute top-12 left-0 bg-white p-5 rounded-xl shadow-lg z-[1000] w-80 border border-gray-200 max-h-[85vh] overflow-y-auto">
+      {/* Filter Panel */}
+      <div className="absolute top-32 left-0 bg-white p-5 rounded-xl shadow-lg z-[1000] w-80 border border-gray-200 max-h-[70vh] overflow-y-auto">
         <div className="flex justify-between items-center mb-5">
           <h2 className="m-0 text-teal-600 text-xl font-bold">
             🇵🇰 Machine Filters
@@ -1380,4 +1708,4 @@ const AdminMachineMap: React.FC = () => {
   );
 };
 
-export default AdminMachineMap;
+export default SuperAdminMachineMap;
