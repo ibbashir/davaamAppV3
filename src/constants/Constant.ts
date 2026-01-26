@@ -61,6 +61,7 @@ export const ADMIN_CORPORATE = "/admin/corporate";
 export const ADMIN_MACHINE_VISIT = "/admin/machine-details/:id";
 export const ADMIN_CORPORATE_TOPUP = "/admin/corporate-topup";
 export const ADMIN_MACHINE_MAP = "/admin/machine-map";
+export const ADMIN_CASH_COLLECTION="/admin/cashCollection"
 
 //OPS PATHS
 export const OPS_DASHBOARD = "/ops/dashboard";
@@ -159,6 +160,8 @@ export const ADMIN_SIDEBAR_ROUTES = () => {
     },
     { 
       title: "Map Machines", url: ADMIN_MACHINE_MAP, icon: IconMapPin 
+    },{ 
+      title: "Cash Collection", url: ADMIN_CASH_COLLECTION, icon: IconCashBanknote 
     },
   ];
 };

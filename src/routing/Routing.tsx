@@ -53,6 +53,7 @@ import NotFound from '@/screens/NotFound/NotFound'
 
 import {
   ADD_EMPLOYEES,
+  ADMIN_CASH_COLLECTION,
   ADMIN_CORPORATE_TOPUP,
   ADMIN_DASHBOARD,
   ADMIN_FEEDBACK,
@@ -126,6 +127,7 @@ import SuperAdminMachineMap from '@/screens/superAdmin/MachinesMap/MachineMap'
 import AdminMachineMap from '@/screens/admin/MachinesMap/MachineMap'
 import FulfillMachineMap from '@/screens/fulfillment/MachinesMap/MachineMap'
 import OpsMachineMap from '@/screens/ops/MachinesMap/MachineMap'
+import AdminCashCollectionPage from '@/screens/admin/cashCollections/cashCollection'
 
 const Routing = () => {
   return (
@@ -174,6 +176,7 @@ const Routing = () => {
           <Route path={ADMIN_MACHINE_VISIT} element={<AdminMachineVisit />} />
           <Route path={ADMIN_CORPORATE_TOPUP} element={<AdminCorporateTopup />} />
           <Route path={ADMIN_MACHINE_MAP} element={<AdminMachineMap />} />
+          <Route path={ADMIN_CASH_COLLECTION} element={<AdminCashCollectionPage />} />
         </Route>
       </Route>
 
