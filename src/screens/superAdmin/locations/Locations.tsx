@@ -19,7 +19,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
-import { SiteHeader } from "@/components/superadmin/site-header";
+import { SiteHeader } from "@/components/superAdmin/site-header";
 import { Textarea } from "@/components/ui/textarea";
 import moment from "moment-timezone";
 import {
