@@ -67,6 +67,7 @@ import {
   CASH_COLLECTIONS,
   COMPANY_INFO,
   COMPANY_MACHINE_VISIT,
+  CORPORATE_CASH_COLLECTION,
   DELETE_EMPLOYEES,
   FORGET_PASSWORD,
   FULFill_DASHBOARD,
@@ -128,6 +129,7 @@ import AdminMachineMap from '@/screens/admin/MachinesMap/MachineMap'
 import FulfillMachineMap from '@/screens/fulfillment/MachinesMap/MachineMap'
 import OpsMachineMap from '@/screens/ops/MachinesMap/MachineMap'
 import AdminCashCollectionPage from '@/screens/admin/cashCollections/cashCollection'
+import CorporateCashCollectionPage from '@/screens/corporate/cashCollections/cashCollectionCorporate'
 
 const Routing = () => {
   return (
@@ -156,6 +158,7 @@ const Routing = () => {
           <Route path={SUPERADMIN_MACHINE_VISIT} element={<SuperAdminMachineVisit />} />
           <Route path={SUPERADMIN_CORPORATE_TOPUP} element={<CorporateTopup />} />
           <Route path={SUPERADMIN_MACHINE_MAP} element={<SuperAdminMachineMap />} />
+          {/* this one */}
           <Route path={SUPERADMIN_CASH_COLLECTION} element={<SuperAdminCashCollectionPage />} />
           <Route path={SUPERADMIN_ADD_EMPLOYEES} element={<SuperAdminAddEmployees />} />
           <Route path={SUPERADMIN_DELETE_EMPLOYEES} element={<SuperAdminBulkDelete />} />
@@ -219,6 +222,8 @@ const Routing = () => {
           <Route path={USERS} element={<AllUsers />} />
           <Route path={ADD_EMPLOYEES} element={<AddEmployees />} />
           <Route path={DELETE_EMPLOYEES} element={<BulkDelete />} />
+          <Route path={CORPORATE_CASH_COLLECTION} element={<CorporateCashCollectionPage />} />
+          
         </Route>
       </Route>
 

@@ -12,8 +12,7 @@ import {
   IconHexagonPlus,
   IconHexagonMinus,
   IconMapPin,
-  IconCashBanknote
-
+  IconCashBanknote,
 } from "@tabler/icons-react";
 
 export const BASE_URL_TWO =
@@ -44,9 +43,9 @@ export const SUPERADMIN_STATUS = "/superadmin/status";
 export const SUPERADMIN_MACHINE_VISIT = "/superadmin/machine-details/:id";
 export const SUPERADMIN_CORPORATE_TOPUP = "/superadmin/corporate-topup";
 export const SUPERADMIN_MACHINE_MAP = "/superadmin/machine-map";
-export const SUPERADMIN_CASH_COLLECTION="/superadmin/cashCollection"
-export const SUPERADMIN_ADD_EMPLOYEES="/superadmin/add-employees";
-export const SUPERADMIN_DELETE_EMPLOYEES="/superadmin/delete-employees";
+export const SUPERADMIN_CASH_COLLECTION = "/superadmin/cashCollection";
+export const SUPERADMIN_ADD_EMPLOYEES = "/superadmin/add-employees";
+export const SUPERADMIN_DELETE_EMPLOYEES = "/superadmin/delete-employees";
 
 // ADMIN PATHS
 export const ADMIN_DASHBOARD = "/admin/dashboard";
@@ -61,7 +60,7 @@ export const ADMIN_CORPORATE = "/admin/corporate";
 export const ADMIN_MACHINE_VISIT = "/admin/machine-details/:id";
 export const ADMIN_CORPORATE_TOPUP = "/admin/corporate-topup";
 export const ADMIN_MACHINE_MAP = "/admin/machine-map";
-export const ADMIN_CASH_COLLECTION="/admin/cashCollection"
+export const ADMIN_CASH_COLLECTION = "/admin/cashCollection";
 
 //OPS PATHS
 export const OPS_DASHBOARD = "/ops/dashboard";
@@ -76,14 +75,14 @@ export const OPS_MACHINE_VISIT = "/ops/machine-details/:id";
 export const OPS_MACHINE_MAP = "/ops/machine-map";
 
 // Fulfillment PATH
-export const FULFill_DASHBOARD="/fulfill/dashboard"
-export const FULFill_MACHINES="/fulfill/machines"
-export const FULFill_LOCATIONS="/fulfill/locations"
-export const FULFill_TOPUP="/fulfill/topup"
-export const FULLFiLL_MAINTAINCE="/fulfill/maintaince"
+export const FULFill_DASHBOARD = "/fulfill/dashboard";
+export const FULFill_MACHINES = "/fulfill/machines";
+export const FULFill_LOCATIONS = "/fulfill/locations";
+export const FULFill_TOPUP = "/fulfill/topup";
+export const FULLFiLL_MAINTAINCE = "/fulfill/maintaince";
 export const FULFill_MACHINE_VISIT = "/fulfill/machine-details/:id";
-export const MAINTAINCE_REQUESTS="/fulfill/maintaince-requests";
-export const CASH_COLLECTIONS="/fulfill/cashCollection";
+export const MAINTAINCE_REQUESTS = "/fulfill/maintaince-requests";
+export const CASH_COLLECTIONS = "/fulfill/cashCollection";
 export const FULFill_MACHINE_MAP = "/fulfill/machine-map";
 
 //MACHINE PATH
@@ -91,9 +90,11 @@ export const MACHINE_DASHBOARD = "/company/dashboard";
 export const MACHINE_MACHINES = "/company/machines";
 export const COMPANY_MACHINE_VISIT = "/company/machine-details/:id";
 export const REPORT = "/company/report";
-export const ADD_EMPLOYEES="/company/add-employees";
-export const DELETE_EMPLOYEES="/company/delete-employees";
-export const USERS="/company/users"
+export const ADD_EMPLOYEES = "/company/add-employees";
+export const DELETE_EMPLOYEES = "/company/delete-employees";
+export const USERS = "/company/users";
+export const CORPORATE_CASH_COLLECTION = "/company/cashCollection";
+
 
 // navigation const
 export const SUPER_ADMIN_SIDEBAR_ROUTES = () => {
@@ -124,19 +125,22 @@ export const SUPER_ADMIN_SIDEBAR_ROUTES = () => {
       url: SUPERADMIN_CORPORATE_TOPUP,
       icon: IconCashBanknote,
     },
-    { 
-      title: "Map Machines", url: SUPERADMIN_MACHINE_MAP, icon: IconMapPin 
+    {
+      title: "Map Machines",
+      url: SUPERADMIN_MACHINE_MAP,
+      icon: IconMapPin,
     },
-    { 
-      title: "Cash Collection", url: SUPERADMIN_CASH_COLLECTION, icon: IconCashBanknote 
+    {
+      title: "Cash Collection",
+      url: SUPERADMIN_CASH_COLLECTION,
+      icon: IconCashBanknote,
     },
-    // { 
-    //   title: "Add Corporate Employees", url: SUPERADMIN_ADD_EMPLOYEES, icon: IconHexagonPlus 
+    // {
+    //   title: "Add Corporate Employees", url: SUPERADMIN_ADD_EMPLOYEES, icon: IconHexagonPlus
     // },
-    // { 
-    //   title: "Delete Corporate Employees", url: SUPERADMIN_DELETE_EMPLOYEES, icon: IconHexagonMinus 
+    // {
+    //   title: "Delete Corporate Employees", url: SUPERADMIN_DELETE_EMPLOYEES, icon: IconHexagonMinus
     // },
-
   ];
 };
 
@@ -158,10 +162,15 @@ export const ADMIN_SIDEBAR_ROUTES = () => {
       url: ADMIN_CORPORATE_TOPUP,
       icon: IconMessage2Exclamation,
     },
-    { 
-      title: "Map Machines", url: ADMIN_MACHINE_MAP, icon: IconMapPin 
-    },{ 
-      title: "Cash Collection", url: ADMIN_CASH_COLLECTION, icon: IconCashBanknote 
+    {
+      title: "Map Machines",
+      url: ADMIN_MACHINE_MAP,
+      icon: IconMapPin,
+    },
+    {
+      title: "Cash Collection",
+      url: ADMIN_CASH_COLLECTION,
+      icon: IconCashBanknote,
     },
   ];
 };
@@ -174,8 +183,10 @@ export const OPS_SIDEBAR_ROUTES = () => {
     { title: "Locations", url: OPS_LOCATIONS, icon: IconLocation },
     { title: "Topup", url: OPS_TOPUP, icon: IconCircleArrowUpRight },
     { title: "App Feedback", url: OPS_FEEDBACK, icon: IconMessage2Exclamation },
-    { 
-      title: "Map Machines", url: OPS_MACHINE_MAP, icon: IconMapPin 
+    {
+      title: "Map Machines",
+      url: OPS_MACHINE_MAP,
+      icon: IconMapPin,
     },
   ];
 };
@@ -186,47 +197,70 @@ export const FULFILL_SIDEBAR_ROUTES = () => {
     { title: "Machines", url: FULFill_MACHINES, icon: IconChartBar },
     { title: "Locations", url: FULFill_LOCATIONS, icon: IconLocation },
     { title: "Topup", url: FULFill_TOPUP, icon: IconCircleArrowUpRight },
-    { title: "Maintaince", url: FULLFiLL_MAINTAINCE, icon: IconCircleArrowUpRight },
-    { title: "Maintaince Requests", url: MAINTAINCE_REQUESTS, icon: IconCircleArrowUpRight },
-    { title: "Cash Collections", url: CASH_COLLECTIONS, icon: IconCashBanknote },
-    { 
-      title: "Map Machines", url: FULFill_MACHINE_MAP, icon: IconMapPin 
+    {
+      title: "Maintaince",
+      url: FULLFiLL_MAINTAINCE,
+      icon: IconCircleArrowUpRight,
+    },
+    {
+      title: "Maintaince Requests",
+      url: MAINTAINCE_REQUESTS,
+      icon: IconCircleArrowUpRight,
+    },
+    {
+      title: "Cash Collections",
+      url: CASH_COLLECTIONS,
+      icon: IconCashBanknote,
+    },
+    {
+      title: "Map Machines",
+      url: FULFill_MACHINE_MAP,
+      icon: IconMapPin,
     },
   ];
 };
 
-export const MACHINES_SIDEBAR_ROUTES = (firstName:string) => {
-    const routes = [
-        { title: "Dashboard", url: MACHINE_DASHBOARD, icon: IconHome },
-        { title: "Machines", url: MACHINE_MACHINES, icon: IconChartBar },
-        { title: "Reports", url: REPORT, icon: IconFileDescription },
-    ]
-    // Show Test only to Mobilink
+export const MACHINES_SIDEBAR_ROUTES = (firstName: string) => {
+  const routes = [
+    { title: "Dashboard", url: MACHINE_DASHBOARD, icon: IconHome },
+    { title: "Machines", url: MACHINE_MACHINES, icon: IconChartBar },
+    { title: "Reports", url: REPORT, icon: IconFileDescription },
+  ];
+  // Show Test only to Mobilink
   if (firstName === "Mobilink") {
-    routes.push({
-      title: "Users",
-      url: USERS,
-      icon: IconUser,
-    }
-      ,{
-      title: "Add Bulk Employee",
-      url: ADD_EMPLOYEES,
-      icon: IconHexagonPlus,
-    },
-    {
-      title: "Delete Bulk Employee",
+    routes.push(
+      {
+        title: "Users",
+        url: USERS,
+        icon: IconUser,
+      },
+      {
+        title: "Add Bulk Employee",
+        url: ADD_EMPLOYEES,
+        icon: IconHexagonPlus,
+      },
+      {
+        title: "Delete Bulk Employee",
         url: DELETE_EMPLOYEES,
         icon: IconHexagonMinus,
+      },
+    );
+  }
+  if (firstName === "Butterfly") {
+    routes.push({
+      title: "Cash Collection",
+      url: CORPORATE_CASH_COLLECTION,
+      icon: IconCashBanknote,
     });
   }
   return routes;
-}
+};
 
 // TIME STAMP CONVERTER
 export function unixTimestampToCustomString(
   unixTimestamp: number,
   format: string,
-  timeZoneOffset: number
+  timeZoneOffset: number,
 ): string {
   const date = new Date(unixTimestamp * 1000);
 
@@ -272,7 +306,7 @@ export function unixTimestampToCustomString(
   // Replace format placeholders with actual values
   const formattedDate: string = format.replace(
     /YYYY|MM|DD|HH|mm|ss|MMM|TZHH|TZmm/g,
-    (match) => String(placeholders[match]) || match
+    (match) => String(placeholders[match]) || match,
   );
 
   return formattedDate;

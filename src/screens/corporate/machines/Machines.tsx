@@ -158,7 +158,8 @@ const CorporateMachines = () => {
                   <CardHeader>
                     <CardTitle className="flex justify-between items-center text-teal-700">
                       🏷️ {machine.machine_code}
-                      {getStatusBadge(machine.status)}
+                      {/* here */}
+                      { user?.first_name === "Butterfly" ? null :getStatusBadge(machine.status)}
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-3">
