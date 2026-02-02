@@ -49,10 +49,10 @@ interface CorporateTopupsData {
 
 interface ApiResponse {
   data: CorporateTopupsData[];
+  total: number;
+  message: string;
   success?: boolean;
   status?: number;
-  message:string;
-  [key: string]: unknown;
 }
 
 interface PostTopupBody {
@@ -78,34 +78,33 @@ const RegisteredCorporatesList = ({ setShowModal, fetchCorporatesAll }: Register
   const [selectedCorporate, setSelectedCorporate] = useState<CorporateTopupsData | null>(null);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [totalRecords, setTotalRecords] = useState(0);
 
-  // Fetch corporates
-  useEffect(() => {
-    const fetchCorporates = async () => {
-      try {
-        setLoading(true);
-        const response = await getRequest("/superadmin/getAllCorporateClients") as ApiResponse;
-        if (response && response.data) {
-          setCorporates(response.data);
-        }
-      } catch (err) {
-        console.error("Error fetching corporates:", err);
-        setError("Failed to load corporate data");
-      } finally {
-        setLoading(false);
-      }
-    };
+ useEffect(() => {
+  const fetchCorporates = async () => {
+    try {
+      setLoading(true);
+      const response = await getRequest(
+        `/superadmin/getAllCorporateClients?page=${currentPage}&limit=${itemsPerPage}`
+      ) as ApiResponse;
 
-    fetchCorporates();
-  }, []);
+      setCorporates(response.data);
+      setTotalRecords(response.totalRecords);
+    } catch {
+      setError("Failed to load corporate data");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  fetchCorporates();
+}, [currentPage, itemsPerPage]);
+
 
   // Pagination logic
-  const totalPages = Math.ceil(corporates.length / itemsPerPage);
-  const paginatedData = corporates.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
+  const totalPages = Math.ceil(totalRecords / itemsPerPage);
 
+  console.log(totalRecords)
   // Parse machine codes from various formats
   const parseMachineCodes = (machineCodes: CorporateTopupsData['machine_codes']): string[] => {
     if (!machineCodes) return [];
@@ -254,8 +253,8 @@ const RegisteredCorporatesList = ({ setShowModal, fetchCorporatesAll }: Register
                 </TableHeader>
 
                 <TableBody>
-                  {paginatedData.length > 0 ? (
-                    paginatedData.map((corporate) => (
+                  {corporates.length > 0 ? (
+                    corporates.map((corporate) => (
                       <TableRow key={corporate.id}>
                         <TableCell className="font-medium">
                           {corporate.corporate_name || corporate.name || "N/A"}
@@ -309,9 +308,9 @@ const RegisteredCorporatesList = ({ setShowModal, fetchCorporatesAll }: Register
             {corporates.length > 0 && (
               <div className="flex items-center justify-between px-4 mt-4">
                 <div className="hidden text-sm text-muted-foreground lg:flex">
-                  Showing {paginatedData.length} of{" "}
-                  {corporates.length} corporates
+                  Showing {corporates.length} of {totalRecords} corporates
                 </div>
+
                 <div className="flex items-center gap-2">
                   <Button
                     variant="outline"
