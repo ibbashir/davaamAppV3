@@ -38,7 +38,7 @@ export default function AdminSanitaryBarChart() {
   const fetchData = async (type: "monthly" | "weekly") => {
     setLoading(true)
     try {
-      const res = await postRequest<ApiResponse>("/admin/BarchartMainDashboardDispensing", {})
+      const res = await postRequest<ApiResponse>("/admin/BarchartMainDashboardSanitary", {})
 
       let revenueArr: Record<string, number>[] = []
       let transactionArr: Record<string, number>[] = []
