@@ -157,7 +157,8 @@ const CorporateMachines = () => {
                 <Card className="border border-teal-300 shadow-md">
                   <CardHeader>
                     <CardTitle className="flex justify-between items-center text-teal-700">
-                      🏷️ {machine.machine_code}
+                       
+                      🏷️ {machine.machine_name} 
                       {/* here */}
                       { user?.first_name === "Butterfly" ? null :getStatusBadge(machine.status)}
                     </CardTitle>
@@ -205,7 +206,7 @@ const CorporateMachines = () => {
                           transition={{ duration: 0.3 }}
                           className="mt-2 space-y-2 text-sm text-gray-600"
                         >
-                          <p>📍 Location: {machine.machine_name}</p>
+                          <p>📍 Machine code: {machine.machine_code}</p>
                           <p>⚙️ Type: {machine.machine_type}</p>
                           <p>📅 Last Active: {machine.lastActive}</p>
                           <p>📦 Category: {machine.category}</p>
