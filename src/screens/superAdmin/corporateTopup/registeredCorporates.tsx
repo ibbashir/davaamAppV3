@@ -53,6 +53,7 @@ interface ApiResponse {
   message: string;
   success?: boolean;
   status?: number;
+  totalRecords?:number
 }
 
 interface PostTopupBody {
