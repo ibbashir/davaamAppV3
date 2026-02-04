@@ -94,7 +94,7 @@ export function OpsTopup() {
     const fetchTopupHistory = async () => {
         try {
             setLoading(true)
-            const res = await getRequest<ApiResponse>("/Ops/getTopUpHistory")
+            const res = await getRequest<ApiResponse>("/ops/getTopUpHistory")
             setTopupHistory(res.topupBalance || [])
         } catch (err) {
             console.log(err)
@@ -158,7 +158,7 @@ export function OpsTopup() {
     const onPhoneTopupSubmit = async (data: PhoneTopupFormData) => {
         try {
             await new Promise((resolve) => setTimeout(resolve, 1000))
-            await postRequest("/Ops/topupUsers/phone", data);
+            await postRequest("/ops/topupUsers/phone", data);
         } catch (error) {
             console.error("Phone topup error:", error)
         } finally {
@@ -172,7 +172,7 @@ export function OpsTopup() {
             return;
         }
         try {
-            await postRequest("/Ops/topupUsersResetZero/phone", { phoneNumber: data.phoneNumber });
+            await postRequest("/ops/topupUsersResetZero/phone", { phoneNumber: data.phoneNumber });
         } catch (error) {
             console.error(error);
         } finally {
@@ -183,7 +183,7 @@ export function OpsTopup() {
     const onCardTopupSubmit = async (data: CardTopupFormData) => {
         try {
             await new Promise((resolve) => setTimeout(resolve, 1000))
-            await postRequest("/Ops/topupUsers/card", data)
+            await postRequest("/ops/topupUsers/card", data)
         } catch (error) {
             console.error("Card topup error:", error)
         } finally {
@@ -197,7 +197,7 @@ export function OpsTopup() {
             return;
         }
         try {
-            await postRequest("/Ops/topupUsersResetZero/card", { cardNumber: data.cardNumber })
+            await postRequest("/ops/topupUsersResetZero/card", { cardNumber: data.cardNumber })
         } catch (err) {
             console.log(err)
         } finally {

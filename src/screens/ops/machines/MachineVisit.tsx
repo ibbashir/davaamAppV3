@@ -61,7 +61,7 @@ export default function AdminMachineVisit() {
   }, [])
 
   const fetchMachineDetails = async () => {
-    const res = await postRequest(`/Ops/machineDetailsWithMachineCode`, { machine_code: machine.machine_code })
+    const res = await postRequest(`/ops/machineDetailsWithMachineCode`, { machine_code: machine.machine_code })
     setUserTransactions(res.transactions)
     setFilteredTransactions(res.transactions) // Initialize filtered transactions with all data
     setBrandFillings(res.fillings)
@@ -71,7 +71,7 @@ export default function AdminMachineVisit() {
   const fetchChartData = async (type: "monthly" | "weekly") => {
     setLoading(true)
     try {
-      const res = await postRequest<ApiResponse>("/Ops/BarChartMainDashboardSanitaryByMachineCode", { machine_code: machine.machine_code })
+      const res = await postRequest<ApiResponse>("/ops/BarChartMainDashboardSanitaryByMachineCode", { machine_code: machine.machine_code })
       let revenueArr: Record<string, number>[] = []
       let transactionArr: Record<string, number>[] = []
 

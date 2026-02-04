@@ -68,7 +68,7 @@ const Feedback = () => {
             }
 
             const queryString = params.toString()
-            const url = `/Ops/getAllAppFeedbacks${queryString ? `?${queryString}` : ""}`
+            const url = `/ops/getAllAppFeedbacks${queryString ? `?${queryString}` : ""}`
 
             try {
                 const res = await getRequest<AppFeedbackApiResponse>(url)

@@ -47,7 +47,7 @@ const Machines = () => {
   const fetchMachines = async () => {
     try {
       setLoading(true)
-      const res = await getRequest<MachinesResponse>(`/Ops/getAllMachineStockAndStatus`)
+      const res = await getRequest<MachinesResponse>(`/ops/getAllMachineStockAndStatus`)
       const { machines, brands } = res.data
 
       const stockMap: { [code: string]: string } = {}
@@ -197,7 +197,7 @@ const Machines = () => {
                           size="sm"
                           className="bg-teal-600 hover:bg-teal-700"
                           onClick={() =>
-                            navigate(`/Ops/machine-details/${machine.machine_code}`, { state: { machine } })
+                            navigate(`/ops/machine-details/${machine.machine_code}`, { state: { machine } })
                           }
                         >
                           Visit

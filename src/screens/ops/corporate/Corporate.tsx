@@ -233,7 +233,7 @@ const Corporate = () => {
     const fetchTopups = async () => {
       try {
         const data = await getRequest<TopupEntry[]>(
-          "/Ops/getCorporateTopupHistory"
+          "/ops/getCorporateTopupHistory"
         );
         setAllData(data)
         if (Array.isArray(data.data)) setTopupHistory(data.data);
@@ -250,7 +250,7 @@ const Corporate = () => {
       const codes = machineCodes[tab];
       if (!codes) return;
       const res = await postRequest<CorporatesClientResponse>(
-        "/Ops/getCorporateClientsByMachines",
+        "/ops/getCorporateClientsByMachines",
         { machineCodes: codes }
       );
       setClientsData((prev) => ({ ...prev, [tab]: res.corporateClients }));

@@ -27,7 +27,7 @@ export function OpsPointShare() {
 
     const fetchPointShare = async () => {
         try {
-            const res = await getRequest<ApiResponse>("/Ops/pointShareDetail");
+            const res = await getRequest<ApiResponse>("/ops/pointShareDetail");
             setTableData(res.pointsShare)
         } catch (err) {
             console.log(err);

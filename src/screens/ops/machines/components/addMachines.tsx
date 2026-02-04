@@ -55,7 +55,7 @@ export default function AddMachine({
     };
     console.log(bodyData);
     try {
-      const response = await postRequest(`/Ops/addNewMachine`,bodyData)
+      const response = await postRequest(`/ops/addNewMachine`,bodyData)
       console.log(response)
       if (response.status===200) {
         alert("Machine added successfully!");
