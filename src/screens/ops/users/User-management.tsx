@@ -98,7 +98,7 @@ export function OpsUsersManagement() {
     const fetchMobileUsers = async (page = 1, limit = 10) => {
         try {
             setLoading(true)
-            const res: ApiUserResponse = await getRequest(`/Ops/mobileAppUsers?page=${page}&limit=${limit}`)
+            const res: ApiUserResponse = await getRequest(`/ops/mobileAppUsers?page=${page}&limit=${limit}`)
             setUsers(res.users)
             setApiPagination({
                 currentPage: res.currentPage,
@@ -133,7 +133,7 @@ export function OpsUsersManagement() {
             setLoading(true)
             setIsSearching(true)
             const res: ApiUserResponse = await getRequest(
-                `/Ops/searchAllMobileAppUsers/search/${searchQuery}?page=${page}`,
+                `/ops/searchAllMobileAppUsers/search/${searchQuery}?page=${page}`,
             )
             setUsers(res.users)
             setApiPagination({
