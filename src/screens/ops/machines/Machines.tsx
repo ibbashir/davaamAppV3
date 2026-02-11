@@ -1,20 +1,30 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { motion, AnimatePresence } from "framer-motion"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Input } from "@/components/ui/input"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Label } from "@/components/ui/label"
-import { Search, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Info } from "lucide-react"
-import type { ApiMachine, MachinesResponse } from "./Types"
-import { getRequest, postRequest } from "@/Apis/Api"
-import { timeConverter } from "@/constants/Constant"
-import { SiteHeader } from "@/components/ops/site-header"
-import { useNavigate } from "react-router-dom"
-import AddMachine from "./components/addMachines"
+import { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
+import {
+  ChevronsLeft,
+  ChevronsRight
+} from "lucide-react";
+import type { ApiMachine, MachinesResponse } from "./Types";
+import { getRequest, postRequest } from "@/Apis/Api";
+import { timeConverter } from "@/constants/Constant";
+import { SiteHeader } from "@/components/ops/site-header";
+import { useNavigate } from "react-router-dom";
+import AddMachine from "./components/addMachines";
+import { Search, ChevronLeft, ChevronRight, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react"
 
 const categories = [
   { id: "Butterfly", label: "🦋 Butterfly" },
@@ -26,88 +36,188 @@ const categories = [
   { id: "Shampoo", label: "🧴 Shampoo" },
   { id: "Surface Cleaner", label: "🧹 Surface Cleaner" },
   { id: "Unknown", label: "❓ Unknown" },
-]
+];
 
 const Machines = () => {
-  const navigate = useNavigate()
-  const [searchTerm, setSearchTerm] = useState("")
-  const [activeCategory, setActiveCategory] = useState("Butterfly")
-  const [currentPage, setCurrentPage] = useState(1)
-  const [machinesData, setMachinesData] = useState<{ [category: string]: ApiMachine[] } | null>(null)
-  const [machineStockMap, setMachineStockMap] = useState<{ [code: string]: string }>({})
-  const [loading, setLoading] = useState(true)
-  const [showDetails, setShowDetails] = useState<ApiMachine | null>(null)
-  const [itemsPerPage, setItemsPerPage] = useState(10)
-  const [open,setOpen]=useState(false)
-
+  const navigate = useNavigate();
+  const [searchTerm, setSearchTerm] = useState("");
+  const [activeCategory, setActiveCategory] = useState("Butterfly");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [machinesData, setMachinesData] = useState<{
+    [category: string]: ApiMachine[];
+  } | null>(null);
+  const [machineStockMap, setMachineStockMap] = useState<{
+    [code: string]: string;
+  }>({});
+  const [loading, setLoading] = useState(true);
+  const [showDetails, setShowDetails] = useState<ApiMachine | null>(null);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [open, setOpen] = useState(false);
+  const [columnFilters, setColumnFilters] = useState<{
+    machine_code: string;
+    machine_name: string;
+    machine_type: string;
+    category: string;
+    lastActive: string;
+    stockStatus: string;
+    status: string;
+  }>({
+    machine_code: "",
+    machine_name: "",
+    machine_type: "",
+    category: "",
+    lastActive: "",
+    stockStatus: "",
+    status: "",
+  });
   useEffect(() => {
-    fetchMachines()
-  }, [])
+    fetchMachines();
+  }, []);
+  const [sortConfig, setSortConfig] = useState<{ field: SortField; direction: SortDirection }>({ 
+      field: 'machine_code', 
+      direction: 'asc' 
+    });
 
   const fetchMachines = async () => {
     try {
-      setLoading(true)
-      const res = await getRequest<MachinesResponse>(`/ops/getAllMachineStockAndStatus`)
-      const { machines, brands } = res.data
+      setLoading(true);
+      const res = await getRequest<MachinesResponse>(
+        `/ops/getAllMachineStockAndStatus`,
+      );
+      const { machines, brands } = res.data;
 
-      const stockMap: { [code: string]: string } = {}
-      const allBrands = [...brands.vending, ...brands.dispensing]
-      const grouped: { [machine_code: string]: number[] } = {}
+      const stockMap: { [code: string]: string } = {};
+      const allBrands = [...brands.vending, ...brands.dispensing];
+      const grouped: { [machine_code: string]: number[] } = {};
 
       allBrands.forEach((brand) => {
-        const code = brand.machine_code
-        if (!grouped[code]) grouped[code] = []
-        grouped[code].push(brand.availableQuantity)
-      })
+        const code = brand.machine_code;
+        if (!grouped[code]) grouped[code] = [];
+        grouped[code].push(brand.availableQuantity);
+      });
 
       for (const [code, quantities] of Object.entries(grouped)) {
-        const total = quantities.reduce((sum, q) => sum + q, 0)
-        if (total === 0) stockMap[code] = "Out of Stock"
-        else if (total < 2) stockMap[code] = "Low Stock"
-        else stockMap[code] = "In Stock"
+        const total = quantities.reduce((sum, q) => sum + q, 0);
+        if (total === 0) stockMap[code] = "Out of Stock";
+        else if (total < 2) stockMap[code] = "Low Stock";
+        else stockMap[code] = "In Stock";
       }
 
-      setMachinesData(machines)
-      setMachineStockMap(stockMap)
+      setMachinesData(machines);
+      setMachineStockMap(stockMap);
     } catch (error) {
-      console.error("Error fetching machines:", error)
+      console.error("Error fetching machines:", error);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const allMachines = machinesData
     ? Object.entries(machinesData).flatMap(([category, machines]) =>
         machines.map((machine) => ({
           ...machine,
           category: category,
-          status: machine.statusCode === "r" ? "Inactive" : machine.statusCode === "g" ? "Active" : "Pending",
+          status:
+            machine.statusCode === "r"
+              ? "Inactive"
+              : machine.statusCode === "g"
+                ? "Active"
+                : "Pending",
           lastActive: timeConverter(machine.lastUpdated),
           stockStatus: machineStockMap[machine.machine_code] || "Unknown",
-        }))
+        })),
       )
-    : []
+    : [];
 
+  const handleSort = (field: SortField) => {
+    setSortConfig((current) => ({
+      field,
+      direction:
+        current.field === field
+          ? current.direction === "asc"
+            ? "desc"
+            : current.direction === "desc"
+              ? "none"
+              : "asc"
+          : "asc",
+    }));
+    setCurrentPage(1);
+  };
+
+
+
+  const getSortIcon = (field: SortField) => {
+    if (sortConfig.field !== field)
+      return <ArrowUpDown className="h-3 w-3 ml-1" />;
+    switch (sortConfig.direction) {
+      case "asc":
+        return <ArrowUp className="h-3 w-3 ml-1" />;
+      case "desc":
+        return <ArrowDown className="h-3 w-3 ml-1" />;
+      default:
+        return <ArrowUpDown className="h-3 w-3 ml-1" />;
+    }
+  };
   const filteredMachines = allMachines.filter((machine) => {
+    const searchLower = searchTerm.toLowerCase();
     const matchesSearch =
-      machine.machine_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      machine.machine_code.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesCategory = machine.category === activeCategory
-    return matchesSearch && matchesCategory
-  })
+      machine.machine_name.toLowerCase().includes(searchLower) ||
+      machine.machine_code.toLowerCase().includes(searchLower) ||
+      machine.machine_type.toLowerCase().includes(searchLower) ||
+      machine.category.toLowerCase().includes(searchLower) ||
+      machine.lastActive.toLowerCase().includes(searchLower);
 
-  const totalPages = Math.ceil(filteredMachines.length / itemsPerPage)
+    const matchesCategory = machine.category === activeCategory;
+
+    // Apply column filters
+    const matchesColumnFilters = 
+      (!columnFilters.machine_code || machine.machine_code.toLowerCase().includes(columnFilters.machine_code.toLowerCase())) &&
+      (!columnFilters.machine_name || machine.machine_name.toLowerCase().includes(columnFilters.machine_name.toLowerCase())) &&
+      (!columnFilters.machine_type || machine.machine_type.toLowerCase().includes(columnFilters.machine_type.toLowerCase())) &&
+      (!columnFilters.category || machine.category.toLowerCase().includes(columnFilters.category.toLowerCase())) &&
+      (!columnFilters.lastActive || machine.lastActive.toLowerCase().includes(columnFilters.lastActive.toLowerCase())) &&
+      (!columnFilters.stockStatus || machine.stockStatus.toLowerCase().includes(columnFilters.stockStatus.toLowerCase())) &&
+      (!columnFilters.status || machine.status.toLowerCase().includes(columnFilters.status.toLowerCase()));
+
+    return matchesSearch && matchesCategory && matchesColumnFilters;
+  });
+
+  // Apply sorting
+  const sortedMachines = [...filteredMachines].sort((a, b) => {
+    if (sortConfig.direction === 'none') return 0;
+
+    const { field, direction } = sortConfig;
+    const multiplier = direction === 'asc' ? 1 : -1;
+
+    if (field === 'lastActive') {
+      // For date sorting, convert back to timestamp for proper comparison
+      return multiplier * (new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+    }
+
+    const aValue = a[field]?.toString().toLowerCase() || '';
+    const bValue = b[field]?.toString().toLowerCase() || '';
+
+    if (aValue < bValue) return -1 * multiplier;
+    if (aValue > bValue) return 1 * multiplier;
+    return 0;
+  });
+
+  const totalPages = Math.ceil(sortedMachines.length / itemsPerPage)
   const startIndex = (currentPage - 1) * itemsPerPage
-  const paginatedMachines = filteredMachines.slice(startIndex, startIndex + itemsPerPage)
+  const paginatedMachines = sortedMachines.slice(startIndex, startIndex + itemsPerPage)
 
   const getStatusBadge = (status: string) => {
     const colorMap: Record<string, string> = {
       Active: "bg-green-100 text-green-800",
       Inactive: "bg-red-100 text-red-800",
       Pending: "bg-yellow-100 text-yellow-800",
-    }
-    return <Badge className={colorMap[status] || "bg-gray-100 text-gray-800"}>{status}</Badge>
-  }
+    };
+    return (
+      <Badge className={colorMap[status] || "bg-gray-100 text-gray-800"}>
+        {status}
+      </Badge>
+    );
+  };
 
   const getStockStatusBadge = (status: string) => {
     const colorMap: Record<string, string> = {
@@ -115,9 +225,13 @@ const Machines = () => {
       "Low Stock": "bg-yellow-100 text-yellow-800",
       "Out of Stock": "bg-red-100 text-red-800",
       Unknown: "bg-gray-100 text-gray-800",
-    }
-    return <Badge className={colorMap[status] || "bg-gray-100 text-gray-800"}>{status}</Badge>
-  }
+    };
+    return (
+      <Badge className={colorMap[status] || "bg-gray-100 text-gray-800"}>
+        {status}
+      </Badge>
+    );
+  };
 
   return (
     <div>
@@ -131,8 +245,8 @@ const Machines = () => {
               placeholder="Search by Machine Id or Location"
               value={searchTerm}
               onChange={(e) => {
-                setSearchTerm(e.target.value)
-                setCurrentPage(1)
+                setSearchTerm(e.target.value);
+                setCurrentPage(1);
               }}
               className="pl-10"
             />
@@ -144,10 +258,14 @@ const Machines = () => {
                 variant={activeCategory === category.id ? "default" : "outline"}
                 size="sm"
                 onClick={() => {
-                  setActiveCategory(category.id)
-                  setCurrentPage(1)
+                  setActiveCategory(category.id);
+                  setCurrentPage(1);
                 }}
-                className={activeCategory === category.id ? "bg-teal-600 hover:bg-teal-700" : ""}
+                className={
+                  activeCategory === category.id
+                    ? "bg-teal-600 hover:bg-teal-700"
+                    : ""
+                }
               >
                 {category.label}
               </Button>
@@ -155,67 +273,148 @@ const Machines = () => {
           </div>
         </div>
         <div className="flex justify-end p-2">
-          <Button onClick={()=> setOpen(true)}>
-            Add Machines
-          </Button>
+          <Button onClick={() => setOpen(true)}>Add Machines</Button>
         </div>
-        {/* Cards */}
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          <AnimatePresence>
+        {/* Table View */}
+        <Card className="overflow-hidden rounded-2xl shadow-md border-teal-200">
+          <CardHeader>
+            <h3 className="font-semibold text-lg text-teal-700">
+              {categories.find((c) => c.id === activeCategory)?.label ||
+                "Machines"}
+            </h3>
+          </CardHeader>
+          <CardContent className="overflow-x-auto">
             {loading ? (
-              <p className="col-span-full text-center py-6">Loading machines...</p>
+              <p className="text-center py-6">Loading machines...</p>
             ) : paginatedMachines.length === 0 ? (
-              <p className="col-span-full text-center py-6">No machines found.</p>
+              <p className="text-center py-6">
+                {searchTerm ||
+                Object.values(columnFilters).some((filter) => filter)
+                  ? "No machines match your search criteria."
+                  : "No machines found."}
+              </p>
             ) : (
-              paginatedMachines.map((machine) => (
-                <motion.div
-                  key={machine.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -20 }}
-                >
-                  <Card className="rounded-2xl shadow-md border-teal-200">
-                    <CardHeader className="flex justify-between items-center">
-                      <h3 className="font-semibold text-lg">🆔 {machine.machine_code}</h3>
-                      {getStatusBadge(machine.status)}
-                    </CardHeader>
-                    <CardContent className="space-y-2">
-                      <p>📍 {machine.machine_name}</p>
-                      <p>⚡ {machine.machine_type}</p>
-                      <p>⏱ {machine.lastActive}</p>
-                      <p>📦 {getStockStatusBadge(machine.stockStatus)}</p>
-                      <div className="flex justify-between pt-2">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => setShowDetails(machine)}
-                          className="flex items-center gap-1"
-                        >
-                          <Info className="h-4 w-4" /> Details
-                        </Button>
-                        <Button
-                          size="sm"
-                          className="bg-teal-600 hover:bg-teal-700"
-                          onClick={() =>
-                            navigate(`/ops/machine-details/${machine.machine_code}`, { state: { machine } })
-                          }
-                        >
-                          Visit
-                        </Button>
+              <table className="min-w-full text-sm overflow-hidden rounded-xl border border-gray-200">
+                <thead className="bg-teal-600 text-white">
+                  <tr>
+                    <th className="px-4 py-2 text-center">
+                      <div
+                        className="flex items-center justify-center cursor-pointer"
+                        onClick={() => handleSort("machine_code")}
+                      >
+                        Machine ID
+                        {getSortIcon("machine_code")}
                       </div>
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              ))
+                    </th>
+                    <th className="px-4 py-2 text-center">
+                      <div
+                        className="flex items-center justify-center cursor-pointer"
+                        onClick={() => handleSort("machine_name")}
+                      >
+                        Name
+                        {getSortIcon("machine_name")}
+                      </div>
+                    </th>
+                    <th className="px-4 py-2 text-center">
+                      <div
+                        className="flex items-center justify-center cursor-pointer"
+                        onClick={() => handleSort("machine_type")}
+                      >
+                        Type
+                        {getSortIcon("machine_type")}
+                      </div>
+                    </th>
+                    <th className="px-4 py-2 text-center">
+                      <div
+                        className="flex items-center justify-center cursor-pointer"
+                        onClick={() => handleSort("category")}
+                      >
+                        Category
+                        {getSortIcon("category")}
+                      </div>
+                    </th>
+                    <th className="px-4 py-2 text-center">
+                      <div
+                        className="flex items-center justify-center cursor-pointer"
+                        onClick={() => handleSort("lastActive")}
+                      >
+                        Last Active
+                        {getSortIcon("lastActive")}
+                      </div>
+                    </th>
+                    <th className="px-4 py-2 text-center">
+                      <div
+                        className="flex items-center justify-center cursor-pointer"
+                        onClick={() => handleSort("stockStatus")}
+                      >
+                        Stock
+                        {getSortIcon("stockStatus")}
+                      </div>
+                    </th>
+                    <th className="px-4 py-2 text-center">
+                      <div
+                        className="flex items-center justify-center cursor-pointer"
+                        onClick={() => handleSort("status")}
+                      >
+                        Status
+                        {getSortIcon("status")}
+                      </div>
+                    </th>
+                    <th className="px-4 py-2 text-center">Visit</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <AnimatePresence>
+                    {paginatedMachines.map((machine) => (
+                      <motion.tr
+                        key={machine.id}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        className="hover:bg-teal-50 border-b border-gray-200 transition-all"
+                      >
+                        <td className="px-4 py-3 font-medium">
+                          {machine.machine_code}
+                        </td>
+                        <td className="px-4 py-3">{machine.machine_name}</td>
+                        <td className="px-4 py-3">{machine.machine_type}</td>
+                        <td className="px-4 py-3">{machine.category}</td>
+                        <td className="px-4 py-3">{machine.lastActive}</td>
+                        <td className="px-4 py-3">
+                          {getStockStatusBadge(machine.stockStatus)}
+                        </td>
+                        <td className="px-4 py-3">
+                          {getStatusBadge(machine.status)}
+                        </td>
+                        <td className="px-4 py-3 text-center">
+                          <Button
+                            size="sm"
+                            className="bg-teal-600 hover:bg-teal-700"
+                            onClick={() =>
+                              navigate(
+                                `/ops/machine-details/${machine.machine_code}`,
+                                { state: { machine } },
+                              )
+                            }
+                          >
+                            Visit
+                          </Button>
+                        </td>
+                      </motion.tr>
+                    ))}
+                  </AnimatePresence>
+                </tbody>
+              </table>
             )}
-          </AnimatePresence>
-        </div>
+          </CardContent>
+        </Card>
 
         {/* Fixed Pagination */}
         {paginatedMachines.length > 0 && (
           <div className="flex items-center justify-between px-4 mt-6">
             <div className="text-muted-foreground hidden flex-1 text-sm lg:flex">
-              Showing {paginatedMachines.length} of {filteredMachines.length} machines
+              Showing {paginatedMachines.length} of {filteredMachines.length}{" "}
+              machines
             </div>
             <div className="flex w-full items-center gap-8 lg:w-fit">
               <div className="hidden items-center gap-2 lg:flex">
@@ -225,8 +424,8 @@ const Machines = () => {
                 <Select
                   value={`${itemsPerPage}`}
                   onValueChange={(value) => {
-                    setItemsPerPage(Number(value))
-                    setCurrentPage(1)
+                    setItemsPerPage(Number(value));
+                    setCurrentPage(1);
                   }}
                 >
                   <SelectTrigger size="sm" className="w-20" id="rows-per-page">
@@ -268,7 +467,9 @@ const Machines = () => {
                   variant="outline"
                   className="size-8 bg-transparent"
                   size="icon"
-                  onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                  onClick={() =>
+                    setCurrentPage(Math.min(totalPages, currentPage + 1))
+                  }
                   disabled={currentPage === totalPages}
                 >
                   <span className="sr-only">Go to next page</span>
@@ -308,11 +509,16 @@ const Machines = () => {
                 <p>🆔 {showDetails.machine_code}</p>
                 <p>📍 {showDetails.machine_name}</p>
                 <p>⚡ {showDetails.machine_type}</p>
-                <p>📦 {machineStockMap[showDetails.machine_code] || "Unknown"}</p>
+                <p>
+                  📦 {machineStockMap[showDetails.machine_code] || "Unknown"}
+                </p>
                 <p>⏱ {timeConverter(showDetails.created_at)}</p>
 
                 <div className="flex justify-end mt-4">
-                  <Button variant="outline" onClick={() => setShowDetails(null)}>
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowDetails(null)}
+                  >
                     Close
                   </Button>
                 </div>
@@ -320,10 +526,10 @@ const Machines = () => {
             </motion.div>
           )}
         </AnimatePresence>
-      </div> 
+      </div>
       <AddMachine open={open} setOpen={setOpen} />
     </div>
-  )
-}
+  );
+};
 
-export default Machines
+export default Machines;

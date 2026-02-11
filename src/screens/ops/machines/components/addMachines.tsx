@@ -9,6 +9,7 @@ type Inputs = {
   machine_name: number;
   machine_location: number;
   machine_type: string;
+  variant_type:string;
   mapLocation: string;
   quantity: number;
   batchNumber: number;
@@ -45,6 +46,7 @@ export default function AddMachine({
       locationName: data.machine_location,
       mapLocation: data.mapLocation,
       machineType: data.machine_type,
+      variantType:data.variant_type,
       quantity: data.quantity,
       batchNumber: data.batchNumber,
       expiryDate: data.expiry,
@@ -267,12 +269,37 @@ export default function AddMachine({
                       <option value="" disabled>
                         Select Machine Type
                       </option>
-                      <option value="product">Product</option>
-                      <option value="liquid">Liquid</option>
+                      <option value="product">Sanitary</option>
+                      <option value="liquid">Dispening</option>
                     </select>
                     {errors.machine_type && (
                       <span className="text-sm text-red-500">
                         {errors.machine_type.message}
+                      </span>
+                    )}
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                      Variant Type
+                    </label>
+                    <select
+                      {...register("variant_type", {
+                        required: "Variant Type is required.",
+                      })}
+                      className="block w-full rounded-md bg-white px-3 py-1 text-base text-gray-900 outline outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-teal-600 sm:text-sm"
+                      defaultValue=""
+                    >
+                      <option value="" disabled>
+                        Select Variant Type
+                      </option>
+                      <option value="besties">Besties</option>
+                      <option value="breathable">Breathable</option>
+                      <option value="corporate">Corporate</option>
+                      <option value="value">Value</option>
+                    </select>
+                    {errors.variant_type && (
+                      <span className="text-sm text-red-500">
+                        {errors.variant_type.message}
                       </span>
                     )}
                   </div>
