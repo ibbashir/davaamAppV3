@@ -233,7 +233,7 @@ const columns: ColumnDef<z.infer<typeof mobileUserSchema>>[] = [
     cell: ({ row }) => (
       <div className="flex items-center gap-2">
         <IconCalendar className="size-4 text-muted-foreground" />
-        <span className="text-sm">{moment(row.original.created_at).format("hh:mm A dddd YYYY")}</span>
+        <span className="text-sm">{moment(row.original.created_at).format('DD-MM-YYYY - HH:mm')}</span>
       </div>
     ),
   },

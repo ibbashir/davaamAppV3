@@ -324,7 +324,7 @@ const RecentTransactions = () => {
                                     {transaction.brand_name}
                                     </TableCell>
                                     
-                                    <TableCell>{moment(transaction.created_at).format('DD MM YYYY - HH:mm')}</TableCell>
+                                    <TableCell>{moment(transaction.created_at).format('DD-MM-YYYY - HH:mm')}</TableCell>
                                     
                                 </TableRow>
                                 ))
