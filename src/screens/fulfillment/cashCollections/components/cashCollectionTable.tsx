@@ -57,7 +57,6 @@ const CashCollectionTable: React.FC<CashCollectionTableProps> = ({
         return (
           item.machine_code.toLowerCase().includes(searchLower) ||
           item.location.toLowerCase().includes(searchLower) ||
-          item.username.toLowerCase().includes(searchLower) ||
           item.cash_received.includes(searchTerm)
         );
       }
@@ -66,8 +65,6 @@ const CashCollectionTable: React.FC<CashCollectionTableProps> = ({
       if (filters.user_id && item.user_id !== filters.user_id) return false;
       if (filters.machine_code && item.machine_code !== filters.machine_code) return false;
       if (filters.location && !item.location.includes(filters.location)) return false;
-      if (filters.min_amount && parseFloat(item.cash_received) < filters.min_amount) return false;
-      if (filters.max_amount && parseFloat(item.cash_received) > filters.max_amount) return false;
       
       // Date filters
       if (filters.date_from || filters.date_to) {
@@ -179,8 +176,8 @@ const CashCollectionTable: React.FC<CashCollectionTableProps> = ({
   return (
     <>
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <div className="bg-white rounded-lg shadow p-5">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4 mb-6">
+        {/* <div className="bg-white rounded-lg shadow p-5">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-500">Total Collections</p>
@@ -190,9 +187,9 @@ const CashCollectionTable: React.FC<CashCollectionTableProps> = ({
               <DollarSign className="h-6 w-6 text-blue-600" />
             </div>
           </div>
-        </div>
+        </div> */}
         
-        <div className="bg-white rounded-lg shadow p-5">
+        {/* <div className="bg-white rounded-lg shadow p-5">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-500">Total Amount</p>
@@ -204,12 +201,12 @@ const CashCollectionTable: React.FC<CashCollectionTableProps> = ({
               <DollarSign className="h-6 w-6 text-green-600" />
             </div>
           </div>
-        </div>
+        </div> */}
         
         <div className="bg-white rounded-lg shadow p-5">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-500">Unique Machines</p>
+              <p className="text-sm text-gray-500">Total Machines Count</p>
               <p className="text-2xl font-bold text-gray-900">{totals.uniqueMachines}</p>
             </div>
             <div className="p-3 bg-purple-50 rounded-lg">
@@ -221,7 +218,7 @@ const CashCollectionTable: React.FC<CashCollectionTableProps> = ({
         <div className="bg-white rounded-lg shadow p-5">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-500">Unique Users</p>
+              <p className="text-sm text-gray-500">Total Roles</p>
               <p className="text-2xl font-bold text-gray-900">{totals.uniqueUsers}</p>
             </div>
             <div className="p-3 bg-indigo-50 rounded-lg">
@@ -239,7 +236,7 @@ const CashCollectionTable: React.FC<CashCollectionTableProps> = ({
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
               <input
                 type="text"
-                placeholder="Search by machine, location, user, or amount..."
+                placeholder="Search by machine OR location"
                 className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
@@ -456,22 +453,6 @@ const CashCollectionTable: React.FC<CashCollectionTableProps> = ({
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
                 />
               </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Min Amount
-                </label>
-                <input
-                  type="number"
-                  value={filters.min_amount || ''}
-                  onChange={(e) => setFilters(prev => ({ 
-                    ...prev, 
-                    min_amount: e.target.value ? Number(e.target.value) : undefined 
-                  }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
-                  placeholder="PKR"
-                />
-              </div>
             </div>
           </div>
         )}
@@ -483,17 +464,6 @@ const CashCollectionTable: React.FC<CashCollectionTableProps> = ({
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
-                <th 
-                  onClick={() => handleSort('id')}
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
-                >
-                  <div className="flex items-center gap-1">
-                    ID
-                    {sortBy === 'id' && (
-                      sortOrder === 'asc' ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />
-                    )}
-                  </div>
-                </th>
                 <th 
                   onClick={() => handleSort('machine_code')}
                   className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
@@ -579,9 +549,6 @@ const CashCollectionTable: React.FC<CashCollectionTableProps> = ({
                     key={row.id}
                     className="hover:bg-gray-50 cursor-pointer transition-colors"
                   >
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                      #{row.id}
-                    </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       <div className="flex items-center gap-2">
                         <QrCode className="h-4 w-4 text-gray-400" />
@@ -703,13 +670,6 @@ const CashCollectionTable: React.FC<CashCollectionTableProps> = ({
             <div className="p-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-500 mb-1">
-                      ID
-                    </label>
-                    <p className="text-lg font-semibold">#{selectedRow.id}</p>
-                  </div>
-                  
                   <div>
                     <label className="block text-sm font-medium text-gray-500 mb-1">
                       Machine Code

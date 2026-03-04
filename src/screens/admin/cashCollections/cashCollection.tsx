@@ -3,8 +3,13 @@ import CashCollectionTable from "./components/cashCollectionTable";
 import { getRequest, postRequest } from "@/Apis/Api";
 import {
   TrendingUp,
+  TrendingDown,
+  CheckCircle,
+  AlertCircle,
+  MinusCircle,
+  Eye,
+  X,
   PieChart as PieChartIcon,
-  BarChart as BarChartIcon,
   DollarSign,
   Download,
   RefreshCw,
@@ -12,7 +17,6 @@ import {
   Calendar,
   MapPin,
   ChevronDown,
-  AlertCircle,
 } from "lucide-react";
 
 interface MachineReport {
@@ -25,8 +29,23 @@ interface MachineReport {
     user_id: number;
     created_at: string;
     cash_received?: string;
-    username?: string; // Add username to transactions
+    username?: string;
+    location?: string;
   }[];
+  cash_collections?: {
+    total: string;
+    transaction_count: number;
+  };
+  cash_transactions?: {
+    total: string;
+    quantity: string;
+    transaction_count: number;
+  };
+  difference?: {
+    amount: string;
+    type: string;
+    percentage: string;
+  };
 }
 
 interface DailyData {
@@ -58,7 +77,7 @@ interface MonthlyReportData {
   cash_difference: number;
   overall_total_cash: number;
   total_machines: number;
-  grouped_by_machine?: MachineReport[]; // Add this to store the original data
+  grouped_by_machine?: MachineReport[];
 }
 
 interface CashCollection {
@@ -77,13 +96,34 @@ interface MachineInfo {
 }
 
 interface MonthlyReportResponse {
-  grouped_by_machine: MachineReport[];
-  totalCashTransactions: number;
-  totalCashQuantity: number;
-  cashDifference: number;
+  message: string;
   summary: {
     total_machines: number;
-    overall_total_cash: string;
+    overall_cash_collected: string;
+    overall_cash_transactions: string;
+    overall_cash_difference: string;
+    breakdown: {
+      machines_with_positive_difference: number;
+      machines_with_negative_difference: number;
+      machines_with_exact_match: number;
+      machines_with_collections_no_transactions: number;
+      total_positive_difference: string;
+      total_negative_difference: string;
+    };
+  };
+  detailed_breakdown: {
+    all_machines: MachineReport[];
+    positive_difference: MachineReport[];
+    negative_difference: MachineReport[];
+    exact_match: MachineReport[];
+    collections_without_transactions: MachineReport[];
+  };
+  raw_data: {
+    grouped_by_machine: MachineReport[];
+    total_cash_transactions: {
+      amount: number;
+      quantity: number;
+    };
   };
 }
 
@@ -100,7 +140,7 @@ const AdminCashCollectionPage: React.FC = () => {
     null,
   );
   const [rawApiResponse, setRawApiResponse] =
-    useState<MonthlyReportResponse | null>(null); // Store raw response
+    useState<MonthlyReportResponse | null>(null);
   const [selectedMonth, setSelectedMonth] = useState<string>(
     (new Date().getMonth() + 1).toString().padStart(2, "0"),
   );
@@ -110,6 +150,7 @@ const AdminCashCollectionPage: React.FC = () => {
   const [machineCode, setMachineCode] = useState<string | null>(null);
   const [selectedMachineReport, setSelectedMachineReport] =
     useState<MachineReport | null>(null);
+  const [activeMachineTab, setActiveMachineTab] = useState('all');
 
   const [machines, setMachines] = useState<MachineInfo[]>([]);
 
@@ -198,21 +239,16 @@ const AdminCashCollectionPage: React.FC = () => {
         return;
       }
 
-      // Store the raw response for later use
       const apiResponse = result as MonthlyReportResponse;
       setRawApiResponse(apiResponse);
 
-      if (
-        !apiResponse.grouped_by_machine ||
-        !Array.isArray(apiResponse.grouped_by_machine)
-      ) {
+      if (!apiResponse.raw_data?.grouped_by_machine) {
         setReportError("Invalid report data format");
         return;
       }
 
-      // If machine code is provided, find that machine
       if (machineCode) {
-        const foundMachine = apiResponse.grouped_by_machine.find(
+        const foundMachine = apiResponse.raw_data.grouped_by_machine.find(
           (m) => m.machine_code === machineCode,
         );
 
@@ -226,7 +262,7 @@ const AdminCashCollectionPage: React.FC = () => {
         setSelectedMachineReport(null);
       }
 
-      if (apiResponse.grouped_by_machine.length === 0) {
+      if (apiResponse.raw_data.grouped_by_machine.length === 0) {
         setReportError("No data found for selected period");
         return;
       }
@@ -238,25 +274,23 @@ const AdminCashCollectionPage: React.FC = () => {
         {};
       const locationMap: Record<string, number> = {};
 
-      apiResponse.grouped_by_machine.forEach((machine) => {
+      apiResponse.raw_data.grouped_by_machine.forEach((machine) => {
         const machineAmount = parseFloat(machine.total_cash_received || "0");
         totalAmount += machineAmount;
         totalTransactions += machine.transaction_count || 0;
 
-        // Aggregate by location
         if (machine.location) {
           locationMap[machine.location] =
             (locationMap[machine.location] || 0) + machineAmount;
         }
 
-        // Aggregate daily data from transactions
         if (machine.transactions && Array.isArray(machine.transactions)) {
           machine.transactions.forEach((tx) => {
             if (!tx.created_at) return;
 
             try {
-              const date = tx.created_at.split("T")[0]; // Handle ISO format
-              const dayDate = date.split(" ")[0]; // Handle datetime format
+              const date = tx.created_at.split("T")[0];
+              const dayDate = date.split(" ")[0];
 
               if (!dailyMap[dayDate]) {
                 dailyMap[dayDate] = { amount: 0, transactions: 0 };
@@ -272,7 +306,6 @@ const AdminCashCollectionPage: React.FC = () => {
         }
       });
 
-      // Convert daily map to array and sort by date
       const daily_data = Object.entries(dailyMap)
         .map(([date, data]) => ({
           date,
@@ -283,7 +316,6 @@ const AdminCashCollectionPage: React.FC = () => {
           (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
         );
 
-      // Convert location map to array and sort by amount
       const top_locations = Object.entries(locationMap)
         .map(([location, amount]) => ({
           location: location || "Unknown Location",
@@ -291,7 +323,6 @@ const AdminCashCollectionPage: React.FC = () => {
         }))
         .sort((a, b) => b.amount - a.amount);
 
-      // Prepare the monthly report data - include grouped_by_machine
       const reportData: MonthlyReportData = {
         total_amount: totalAmount,
         total_transactions: totalTransactions,
@@ -300,12 +331,18 @@ const AdminCashCollectionPage: React.FC = () => {
         top_locations,
         top_users: [],
         daily_data,
-        total_cash_transactions: apiResponse.totalCashTransactions,
-        total_cash_quantity: apiResponse.totalCashQuantity,
-        cash_difference: apiResponse.cashDifference,
-        overall_total_cash: parseFloat(apiResponse.summary.overall_total_cash),
+        total_cash_transactions:
+          apiResponse.raw_data.total_cash_transactions.amount,
+        total_cash_quantity:
+          apiResponse.raw_data.total_cash_transactions.quantity,
+        cash_difference: parseFloat(
+          apiResponse.summary.overall_cash_difference,
+        ),
+        overall_total_cash: parseFloat(
+          apiResponse.summary.overall_cash_collected,
+        ),
         total_machines: apiResponse.summary.total_machines,
-        grouped_by_machine: apiResponse.grouped_by_machine, // Store the original data
+        grouped_by_machine: apiResponse.raw_data.grouped_by_machine,
       };
 
       console.log("Generated Report Data:", reportData);
@@ -431,7 +468,7 @@ const AdminCashCollectionPage: React.FC = () => {
           "Total Collection",
           "Average Transaction",
         ],
-        ...(rawApiResponse.grouped_by_machine || []).map((machine) => [
+        ...(rawApiResponse.raw_data.grouped_by_machine || []).map((machine) => [
           machine.machine_code,
           getMachineName(machine.machine_code),
           machine.location || "N/A",
@@ -470,6 +507,25 @@ const AdminCashCollectionPage: React.FC = () => {
       "Unknown Machine"
     );
   };
+
+  // Get current machines based on active tab
+  const getCurrentMachines = () => {
+    if (!rawApiResponse) return [];
+    
+    switch (activeMachineTab) {
+      case 'positive':
+        return rawApiResponse.detailed_breakdown.positive_difference;
+      case 'negative':
+        return rawApiResponse.detailed_breakdown.negative_difference;
+      case 'exact':
+        return rawApiResponse.detailed_breakdown.exact_match;
+      case 'no-transactions':
+        return rawApiResponse.detailed_breakdown.collections_without_transactions;
+      default:
+        return rawApiResponse.detailed_breakdown.all_machines;
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -619,7 +675,6 @@ const AdminCashCollectionPage: React.FC = () => {
                       className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
                       size={18}
                     />
-
                     <input
                       list="machineList"
                       type="text"
@@ -629,11 +684,8 @@ const AdminCashCollectionPage: React.FC = () => {
                         setMachineCode(e.target.value.trim() || null)
                       }
                       disabled={reportLoading}
-                      className="pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg
-      focus:ring-2 focus:ring-blue-500 focus:border-blue-500
-      outline-none bg-white w-full"
+                      className="pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white w-full"
                     />
-
                     <datalist id="machineList">
                       {machines.map((m) => (
                         <option key={m.machine_code} value={m.machine_code}>
@@ -641,8 +693,6 @@ const AdminCashCollectionPage: React.FC = () => {
                         </option>
                       ))}
                     </datalist>
-
-                    {/* Machine name preview */}
                     {machineCode && (
                       <p className="mt-1 text-xs text-gray-600">
                         {getMachineName(machineCode) || "Unknown Machine"}
@@ -703,9 +753,10 @@ const AdminCashCollectionPage: React.FC = () => {
               </div>
             )}
 
-            {/* Summary Stats */}
-            {monthlyReport && !reportLoading && !reportError && (
+            {/* Report Content */}
+            {rawApiResponse && !reportLoading && !reportError && (
               <>
+                {/* Summary Stats */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                   <div className="bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200 rounded-xl p-6">
                     <div className="flex items-center justify-between">
@@ -714,13 +765,7 @@ const AdminCashCollectionPage: React.FC = () => {
                           Total Collection
                         </p>
                         <p className="text-2xl font-bold text-blue-800 mt-1">
-                          Rs{" "}
-                          {monthlyReport.overall_total_cash.toLocaleString(
-                            "en-IN",
-                            {
-                              minimumFractionDigits: 2,
-                            },
-                          )}
+                          Rs {parseFloat(rawApiResponse.summary.overall_cash_collected).toLocaleString("en-IN", { minimumFractionDigits: 2 })}
                         </p>
                         <p className="text-xs text-blue-600 mt-2">
                           Across all machines
@@ -736,13 +781,7 @@ const AdminCashCollectionPage: React.FC = () => {
                           Total Cash Transactions
                         </p>
                         <p className="text-2xl font-bold text-green-800 mt-1">
-                          Rs{" "}
-                          {monthlyReport.total_cash_transactions.toLocaleString(
-                            "en-IN",
-                            {
-                              minimumFractionDigits: 2,
-                            },
-                          )}
+                          Rs {rawApiResponse.raw_data.total_cash_transactions.amount.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
                         </p>
                         <p className="text-xs text-green-600 mt-2">
                           Cash transactions count
@@ -758,10 +797,10 @@ const AdminCashCollectionPage: React.FC = () => {
                           Quantity Dispensed
                         </p>
                         <p className="text-2xl font-bold text-purple-800 mt-1">
-                          {monthlyReport.total_cash_quantity.toLocaleString()}
+                          {rawApiResponse.raw_data.total_cash_transactions.quantity.toLocaleString()}
                         </p>
                         <p className="text-xs text-purple-600 mt-2">
-                          Total qunatity units
+                          Total quantity units
                         </p>
                       </div>
                     </div>
@@ -774,13 +813,7 @@ const AdminCashCollectionPage: React.FC = () => {
                           Cash Difference
                         </p>
                         <p className="text-2xl font-bold text-orange-800 mt-1">
-                          Rs{" "}
-                          {monthlyReport.cash_difference.toLocaleString(
-                            "en-IN",
-                            {
-                              minimumFractionDigits: 2,
-                            },
-                          )}
+                          Rs {parseFloat(rawApiResponse.summary.overall_cash_difference).toLocaleString("en-IN", { minimumFractionDigits: 2 })}
                         </p>
                         <p className="text-xs text-orange-600 mt-2">
                           Variance amount
@@ -790,136 +823,309 @@ const AdminCashCollectionPage: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  {/* Detailed Breakdown */}
-                  <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 lg:col-span-2">
-                    <div className="mb-6">
-                      <h3 className="text-lg font-semibold text-gray-800">
-                        Detailed Breakdown
-                      </h3>
-                      <p className="text-sm text-gray-600">
-                        Transaction insights and analysis
-                      </p>
+                {/* Breakdown Summary Cards */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                  <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <h3 className="font-semibold text-green-800">Positive Difference</h3>
+                      <TrendingUp className="h-5 w-5 text-green-600" />
                     </div>
+                    <p className="text-2xl font-bold text-green-700">
+                      {rawApiResponse.summary.breakdown.machines_with_positive_difference}
+                    </p>
+                    <p className="text-sm text-green-600 mt-1">
+                      Total: Rs {parseFloat(rawApiResponse.summary.breakdown.total_positive_difference).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                    </p>
+                  </div>
 
-                    <div className="space-y-6">
-                      {monthlyReport.top_locations.length > 0 && (
-                        <div>
-                          <h4 className="text-sm font-medium text-gray-700 mb-3">
-                            Locations
-                          </h4>
-                          <div className="space-y-3">
-                            {monthlyReport.top_locations.map(
-                              (location, index) => (
-                                <div
-                                  key={index}
-                                  className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
-                                >
-                                  <div className="flex items-center gap-3">
-                                    <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center">
-                                      <span className="text-blue-600 font-medium">
-                                        {index + 1}
-                                      </span>
-                                    </div>
-                                    <span className="font-medium text-gray-800">
-                                      {location.location}
-                                    </span>
-                                  </div>
-                                  <span className="font-bold text-gray-900">
-                                    Rs{" "}
-                                    {location.amount.toLocaleString("en-IN", {
-                                      minimumFractionDigits: 2,
-                                    })}
-                                  </span>
-                                </div>
-                              ),
-                            )}
-                          </div>
-                        </div>
-                      )}
-
-                      {selectedMachineReport && (
-                        <div>
-                          <h4 className="text-sm font-medium text-gray-700 mb-3">
-                            Cash Collection Report 
-                          </h4>
-
-                          <div className="overflow-x-auto bg-white rounded-lg border border-gray-200">
-                            <table className="min-w-full text-sm">
-                              <thead className="bg-gray-100">
-                                <tr>
-                                  <th className="px-4 py-2 text-left font-semibold text-gray-700 border-b">
-                                    Location
-                                  </th>
-                                  <th className="px-4 py-2 text-left font-semibold text-gray-700 border-b">
-                                    Amount (Rs)
-                                  </th>
-                                  <th className="px-4 py-2 text-left font-semibold text-gray-700 border-b">
-                                    Date
-                                  </th>
-                                  <th className="px-4 py-2 text-left font-semibold text-gray-700 border-b">
-                                    Collected By
-                                  </th>
-                                </tr>
-                              </thead>
-
-                              <tbody>
-                                {selectedMachineReport.transactions.length ===
-                                0 ? (
-                                  <tr>
-                                    <td
-                                      colSpan={4}
-                                      className="text-center py-4 text-gray-500"
-                                    >
-                                      No transactions found
-                                    </td>
-                                  </tr>
-                                ) : (
-                                  selectedMachineReport.transactions.map(
-                                    (tx, index) => (
-                                      <tr
-                                        key={index}
-                                        className="hover:bg-gray-50 transition"
-                                      >
-                                        <td className="px-4 py-2 border-b text-gray-800">
-                                          {tx.location ||
-                                            selectedMachineReport.location ||
-                                            "N/A"}
-                                        </td>
-
-                                        <td className="px-4 py-2 border-b font-semibold text-gray-900">
-                                          Rs{" "}
-                                          {Number(
-                                            tx.cash_received || 0,
-                                          ).toLocaleString("en-IN")}
-                                        </td>
-
-                                        <td className="px-4 py-2 border-b text-gray-800">
-                                          {new Date(
-                                            tx.created_at,
-                                          ).toLocaleString()}
-                                        </td>
-
-                                        <td className="px-4 py-2 border-b text-gray-800">
-                                          {tx.username || "—"}
-                                        </td>
-                                      </tr>
-                                    ),
-                                  )
-                                )}
-                              </tbody>
-                            </table>
-                          </div>
-                        </div>
-                      )}
+                  <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <h3 className="font-semibold text-red-800">Negative Difference</h3>
+                      <TrendingDown className="h-5 w-5 text-red-600" />
                     </div>
+                    <p className="text-2xl font-bold text-red-700">
+                      {rawApiResponse.summary.breakdown.machines_with_negative_difference}
+                    </p>
+                    <p className="text-sm text-red-600 mt-1">
+                      Total: Rs {parseFloat(rawApiResponse.summary.breakdown.total_negative_difference).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                    </p>
+                  </div>
+
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <h3 className="font-semibold text-blue-800">Exact Match</h3>
+                      <CheckCircle className="h-5 w-5 text-blue-600" />
+                    </div>
+                    <p className="text-2xl font-bold text-blue-700">
+                      {rawApiResponse.summary.breakdown.machines_with_exact_match}
+                    </p>
+                  </div>
+
+                  <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <h3 className="font-semibold text-yellow-800">Collections Only</h3>
+                      <AlertCircle className="h-5 w-5 text-yellow-600" />
+                    </div>
+                    <p className="text-2xl font-bold text-yellow-700">
+                      {rawApiResponse.summary.breakdown.machines_with_collections_no_transactions}
+                    </p>
                   </div>
                 </div>
+
+                {/* Detailed Breakdown Section */}
+                <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                  <div className="mb-6">
+                    <h3 className="text-lg font-semibold text-gray-800">
+                      Detailed Machine Breakdown
+                    </h3>
+                    <p className="text-sm text-gray-600">
+                      Comparison between cash collections and transactions by machine
+                    </p>
+                  </div>
+
+                  {/* Machine Filter Tabs */}
+                  <div className="border-b border-gray-200 mb-6">
+                    <nav className="flex -mb-px overflow-x-auto">
+                      {[
+                        { id: 'all', label: 'All Machines', count: rawApiResponse.detailed_breakdown.all_machines.length },
+                        { id: 'positive', label: 'Positive', count: rawApiResponse.detailed_breakdown.positive_difference.length },
+                        { id: 'negative', label: 'Negative', count: rawApiResponse.detailed_breakdown.negative_difference.length },
+                        { id: 'exact', label: 'Exact Match', count: rawApiResponse.detailed_breakdown.exact_match.length },
+                        { id: 'no-transactions', label: 'No Transactions', count: rawApiResponse.detailed_breakdown.collections_without_transactions.length }
+                      ].map((tab) => (
+                        <button
+                          key={tab.id}
+                          onClick={() => setActiveMachineTab(tab.id)}
+                          className={`px-6 py-3 text-sm font-medium whitespace-nowrap border-b-2 ${
+                            activeMachineTab === tab.id
+                              ? 'border-blue-500 text-blue-600'
+                              : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                          }`}
+                        >
+                          {tab.label}
+                          <span className={`ml-2 px-2 py-0.5 text-xs rounded-full ${
+                            activeMachineTab === tab.id
+                              ? 'bg-blue-100 text-blue-800'
+                              : 'bg-gray-100 text-gray-600'
+                          }`}>
+                            {tab.count}
+                          </span>
+                        </button>
+                      ))}
+                    </nav>
+                  </div>
+
+                  {/* Machines Table */}
+                  <div className="overflow-x-auto">
+                    <table className="min-w-full divide-y divide-gray-200">
+                      <thead className="bg-gray-50">
+                        <tr>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Machine Code
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Location
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Collections
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Transactions
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Difference
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Status
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Actions
+                          </th>
+                        </tr>
+                      </thead>
+                      
+                      <tbody className="bg-white divide-y divide-gray-200">
+                        {getCurrentMachines().length === 0 ? (
+                          <tr>
+                            <td colSpan={7} className="px-6 py-12 text-center">
+                              <p className="text-gray-500">No machines found</p>
+                            </td>
+                          </tr>
+                        ) : (
+                          getCurrentMachines().map((machine) => {
+                            const diffAmount = parseFloat(machine.difference?.amount || "0");
+                            
+                            let diffColor = 'text-gray-600';
+                            let diffBgColor = 'bg-gray-50';
+                            let DiffIcon = MinusCircle;
+                            
+                            if (diffAmount > 0) {
+                              diffColor = 'text-green-600';
+                              diffBgColor = 'bg-green-50';
+                              DiffIcon = TrendingUp;
+                            } else if (diffAmount < 0) {
+                              diffColor = 'text-red-600';
+                              diffBgColor = 'bg-red-50';
+                              DiffIcon = TrendingDown;
+                            } else {
+                              diffColor = 'text-blue-600';
+                              diffBgColor = 'bg-blue-50';
+                              DiffIcon = CheckCircle;
+                            }
+
+                            return (
+                              <tr 
+                                key={machine.machine_code} 
+                                className="hover:bg-gray-50 cursor-pointer"
+                                onClick={() => {
+                                  const foundMachine = rawApiResponse.raw_data.grouped_by_machine.find(
+                                    m => m.machine_code === machine.machine_code
+                                  );
+                                  if (foundMachine) {
+                                    setSelectedMachineReport(foundMachine);
+                                  }
+                                }}
+                              >
+                                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                  {machine.machine_code}
+                                </td>
+                                <td className="px-6 py-4 text-sm text-gray-500 max-w-xs truncate">
+                                  {machine.location}
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm">
+                                  <div>
+                                    <p className="font-medium text-gray-900">
+                                      Rs {parseFloat(machine.cash_collections?.total || "0").toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                                    </p>
+                                    <p className="text-xs text-gray-500">
+                                      {machine.cash_collections?.transaction_count || 0} collections
+                                    </p>
+                                  </div>
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm">
+                                  <div>
+                                    <p className="font-medium text-gray-900">
+                                      Rs {parseFloat(machine.cash_transactions?.total || "0").toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                                    </p>
+                                    <p className="text-xs text-gray-500">
+                                      {machine.cash_transactions?.transaction_count || 0} txns
+                                    </p>
+                                  </div>
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm">
+                                  <span className={`font-bold ${diffColor}`}>
+                                    Rs {Math.abs(diffAmount).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                                  </span>
+                                  {machine.difference?.percentage && machine.difference.percentage !== 'N/A' && (
+                                    <p className={`text-xs ${diffColor}`}>
+                                      ({machine.difference.percentage})
+                                    </p>
+                                  )}
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm">
+                                  <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium ${diffBgColor} ${diffColor}`}>
+                                    <DiffIcon className="h-3 w-3" />
+                                    {machine.difference?.type || 'Unknown'}
+                                  </span>
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm">
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      const foundMachine = rawApiResponse.raw_data.grouped_by_machine.find(
+                                        m => m.machine_code === machine.machine_code
+                                      );
+                                      if (foundMachine) {
+                                        setSelectedMachineReport(foundMachine);
+                                      }
+                                    }}
+                                    className="text-blue-600 hover:text-blue-800 flex items-center gap-1"
+                                  >
+                                    <Eye className="h-4 w-4" />
+                                    View Details
+                                  </button>
+                                </td>
+                              </tr>
+                            );
+                          })
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                {/* Selected Machine Details Table */}
+                {selectedMachineReport && (
+                  <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                    <div className="flex items-center justify-between mb-4">
+                      <h4 className="text-lg font-semibold text-gray-800">
+                        Transaction Details - {selectedMachineReport.machine_code}
+                      </h4>
+                      <button
+                        onClick={() => setSelectedMachineReport(null)}
+                        className="text-gray-400 hover:text-gray-600"
+                      >
+                        <X className="h-5 w-5" />
+                      </button>
+                    </div>
+
+                    <div className="overflow-x-auto bg-white rounded-lg border border-gray-200">
+                      <table className="min-w-full text-sm">
+                        <thead className="bg-gray-100">
+                          <tr>
+                            <th className="px-4 py-2 text-left font-semibold text-gray-700 border-b">
+                              Location
+                            </th>
+                            <th className="px-4 py-2 text-left font-semibold text-gray-700 border-b">
+                              Amount (Rs)
+                            </th>
+                            <th className="px-4 py-2 text-left font-semibold text-gray-700 border-b">
+                              Date
+                            </th>
+                            <th className="px-4 py-2 text-left font-semibold text-gray-700 border-b">
+                              Collected By
+                            </th>
+                          </tr>
+                        </thead>
+
+                        <tbody>
+                          {selectedMachineReport.transactions.length === 0 ? (
+                            <tr>
+                              <td colSpan={4} className="text-center py-4 text-gray-500">
+                                No transactions found
+                              </td>
+                            </tr>
+                          ) : (
+                            selectedMachineReport.transactions.map((tx, index) => (
+                              <tr key={index} className="hover:bg-gray-50 transition">
+                                <td className="px-4 py-2 border-b text-gray-800">
+                                  {tx.location || selectedMachineReport.location || "N/A"}
+                                </td>
+
+                                <td className="px-4 py-2 border-b font-semibold text-gray-900">
+                                  Rs {Number(tx.cash_received || 0).toLocaleString("en-IN")}
+                                </td>
+
+                                <td className="px-4 py-2 border-b text-gray-800">
+                                  {new Date(tx.created_at).toLocaleString()}
+                                </td>
+
+                                <td className="px-4 py-2 border-b text-gray-800">
+                                  {tx.username || "—"}
+                                </td>
+                              </tr>
+                            ))
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )}
               </>
             )}
 
             {/* Empty State */}
-            {!monthlyReport && !reportLoading && !reportError && (
+            {!rawApiResponse && !reportLoading && !reportError && (
               <div className="text-center py-12">
                 <div className="inline-flex p-4 bg-gray-100 rounded-full mb-4">
                   <PieChartIcon className="w-12 h-12 text-gray-400" />

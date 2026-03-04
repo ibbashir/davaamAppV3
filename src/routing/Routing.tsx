@@ -105,6 +105,7 @@ import {
   SUPERADMIN_MACHINES,
   SUPERADMIN_NOTIFICATIONS,
   SUPERADMIN_POINTS,
+  SUPERADMIN_RIDER_LOCATION,
   SUPERADMIN_ROLES,
   SUPERADMIN_TOPUP,
   USERS,
@@ -130,6 +131,7 @@ import FulfillMachineMap from '@/screens/fulfillment/MachinesMap/MachineMap'
 import OpsMachineMap from '@/screens/ops/MachinesMap/MachineMap'
 import AdminCashCollectionPage from '@/screens/admin/cashCollections/cashCollection'
 import CorporateCashCollectionPage from '@/screens/corporate/cashCollections/cashCollectionCorporate'
+import SuperAdminRiderLocation from '@/screens/superAdmin/RiderLocation/RiderLocation'
 
 const Routing = () => {
   return (
@@ -158,6 +160,7 @@ const Routing = () => {
           <Route path={SUPERADMIN_MACHINE_VISIT} element={<SuperAdminMachineVisit />} />
           <Route path={SUPERADMIN_CORPORATE_TOPUP} element={<CorporateTopup />} />
           <Route path={SUPERADMIN_MACHINE_MAP} element={<SuperAdminMachineMap />} />
+          <Route path={SUPERADMIN_RIDER_LOCATION} element={<SuperAdminRiderLocation />}/>
           {/* this one */}
           <Route path={SUPERADMIN_CASH_COLLECTION} element={<SuperAdminCashCollectionPage />} />
           <Route path={SUPERADMIN_ADD_EMPLOYEES} element={<SuperAdminAddEmployees />} />
