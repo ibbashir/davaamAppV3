@@ -362,7 +362,7 @@ const AddMaintenanceSchedule = () => {
                   <option value="">Select team member...</option>
                   {roles.map((item) => (
                     <option key={item.id} value={item.id}>
-                      {item.username} - {item.role || "Staff"}
+                      {item.username}
                     </option>
                   ))}
                 </select>

@@ -87,7 +87,16 @@ export const FULFill_MACHINE_VISIT = "/fulfill/machine-details/:id";
 export const MAINTAINCE_REQUESTS = "/fulfill/maintaince-requests";
 export const CASH_COLLECTIONS = "/fulfill/cashCollection";
 export const FULFill_MACHINE_MAP = "/fulfill/machine-map";
-export const FULFill_RIDER_LOCATION = "/superadmin/riderLocation";
+
+// Finance Path
+export const FINANCE_DASHBOARD = "/finance/dashboard";
+export const FINANCE_MACHINES = "/finance/machines";
+export const FINANCE_LOCATIONS = "/finance/locations";
+export const FINANCE_TOPUP = "/finance/topup";
+export const FINANCE_MAINTAINCE = "/finance/maintaince";
+export const FINANCE_MACHINE_VISIT = "/finance/machine-details/:id";
+export const FINANCE_CASH_COLLECTIONS = "/finance/cashCollection";
+export const FINANCE_MACHINE_MAP = "/finance/machine-map";
 
 //MACHINE PATH
 export const MACHINE_DASHBOARD = "/company/dashboard";
@@ -219,6 +228,24 @@ export const FULFILL_SIDEBAR_ROUTES = () => {
     {
       title: "Map Machines",
       url: FULFill_MACHINE_MAP,
+      icon: IconMapPin,
+    },
+  ];
+};
+export const FINANCE_SIDEBAR_ROUTES = () => {
+  return [
+    { title: "Dashboard", url: FINANCE_DASHBOARD, icon: IconHome },
+    { title: "Machines", url: FINANCE_MACHINES, icon: IconChartBar },
+    { title: "Locations", url: FINANCE_LOCATIONS, icon: IconLocation },
+    { title: "Topup", url: FINANCE_TOPUP, icon: IconCircleArrowUpRight },
+    {
+      title: "Cash Collections",
+      url: FINANCE_CASH_COLLECTIONS,
+      icon: IconCashBanknote,
+    },
+    {
+      title: "Map Machines",
+      url: FINANCE_MACHINE_MAP,
       icon: IconMapPin,
     },
   ];
