@@ -20,14 +20,14 @@ import Corporate from '@/screens/superAdmin/corporate/Corporate'
 import SuperAdminMachineVisit from '@/screens/superAdmin/machines/MachineVisit'
 
 //admin screens
-import AdminDashboard from '@/screens/finance/dashboard/Dashboard'
+import AdminDashboard from '@/screens/admin/dashboard/Dashboard'
 import { AdminPointShare } from '@/screens/admin/pointsshare/PointShare'
-import AdminMachines from '@/screens/finance/machines/Machines'
+import AdminMachines from '@/screens/admin/machines/Machines'
 import AdminLocations from '@/screens/admin/locations/Locations'
 import { AdminTopup } from '@/screens/admin/topup/Topup'
 import AdminNotifications from '@/screens/admin/notification/Notifications'
 import AdminFeedback from '@/screens/admin/feedback/Feedback'
-import AdminMachineVisit from '@/screens/finance/machines/MachineVisit'
+import AdminMachineVisit from '@/screens/admin/machines/MachineVisit'
 
 //ops screens
 import OpsDashboard from '@/screens/ops/dashboard/Dashboard'
@@ -76,10 +76,10 @@ import {
   DELETE_EMPLOYEES,
   FINANCE_CASH_COLLECTIONS,
   FINANCE_DASHBOARD,
-  FINANCE_LOCATIONS,
   FINANCE_MACHINE_MAP,
   FINANCE_MACHINE_VISIT,
   FINANCE_MACHINES,
+  FINANCE_REPORT,
   FINANCE_TOPUP,
   FORGET_PASSWORD,
   FULFill_DASHBOARD,
@@ -147,6 +147,7 @@ import SuperAdminRiderLocation from '@/screens/superAdmin/RiderLocation/RiderLoc
 import { FinanceTopup } from '@/screens/finance/topup/Topup'
 import FinanceCashCollectionPage from '@/screens/finance/cashCollections/cashCollection'
 import FinanceMachineMap from '@/screens/finance/MachinesMap/MachineMap'
+import FinanceReport from '@/screens/finance/Reports/Reports'
 
 const Routing = () => {
   return (
@@ -238,6 +239,7 @@ const Routing = () => {
           <Route path={FINANCE_MACHINE_VISIT} element={<FinanceMachineVisit />} />
           <Route path={FINANCE_CASH_COLLECTIONS} element={<FinanceCashCollectionPage />} />
           <Route path={FINANCE_MACHINE_MAP} element={<FinanceMachineMap />} />
+          <Route path={FINANCE_REPORT} element={<FinanceReport />} />
         </Route>
       </Route>
 

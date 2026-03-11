@@ -13,6 +13,7 @@ import {
   IconHexagonMinus,
   IconMapPin,
   IconCashBanknote,
+  IconReport,
 } from "@tabler/icons-react";
 
 export const BASE_URL_TWO =
@@ -97,6 +98,7 @@ export const FINANCE_MAINTAINCE = "/finance/maintaince";
 export const FINANCE_MACHINE_VISIT = "/finance/machine-details/:id";
 export const FINANCE_CASH_COLLECTIONS = "/finance/cashCollection";
 export const FINANCE_MACHINE_MAP = "/finance/machine-map";
+export const FINANCE_REPORT = "/finance/finance-report";
 
 //MACHINE PATH
 export const MACHINE_DASHBOARD = "/company/dashboard";
@@ -247,6 +249,11 @@ export const FINANCE_SIDEBAR_ROUTES = () => {
       title: "Map Machines",
       url: FINANCE_MACHINE_MAP,
       icon: IconMapPin,
+    },
+    {
+      title: "Finance Report",
+      url: FINANCE_REPORT,
+      icon: IconReport,
     },
   ];
 };

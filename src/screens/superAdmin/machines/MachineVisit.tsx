@@ -35,7 +35,7 @@ type NivoBarData = {
   transactions: number
 }
 
-export default function AdminMachineVisit() {
+export default function SuperAdminMachineVisit() {
   const { state } = useLocation()
   const machine = state?.machine
 
