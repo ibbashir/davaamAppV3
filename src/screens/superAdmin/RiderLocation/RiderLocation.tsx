@@ -5,7 +5,6 @@ import "leaflet/dist/leaflet.css";
 import axios from "axios";
 import { BASE_URL_STOCK } from "@/constants/Constant";
 
-// Fix for default marker icons in Leaflet with webpack
 delete (L.Icon.Default.prototype as any)._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png",
@@ -13,7 +12,6 @@ L.Icon.Default.mergeOptions({
   shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
 });
 
-// Define types for rider location data
 interface RiderLocation {
   riderId: string;
   lat: number;
@@ -30,7 +28,34 @@ interface RiderLocation {
   status: string | null;
 }
 
-// Custom motorbike marker icon
+interface RideHistory {
+  id: number;
+  user_id: number;
+  status: string;
+  start_lat: string;
+  start_lng: string;
+  end_lat: string;
+  end_lng: string;
+  start_time: string;
+  end_time: string;
+  total_distance_km: string;
+  duration_seconds: number | null;
+  created_at: string;
+}
+
+// Fix: match actual API response shape
+interface RideHistoryResponse {
+  data: RideHistory[];
+  pagination: {
+    limit: number;
+    offset: number;
+    total: number;
+    hasMore: boolean;
+  };
+}
+
+// ─── Icons ────────────────────────────────────────────────────────────────────
+
 const createRiderIcon = (active: boolean, bearing: number, riderName: string | null) => {
   const color = active ? "#10b981" : "#6b7280";
   return L.divIcon({
@@ -69,9 +94,7 @@ const createRiderIcon = (active: boolean, bearing: number, riderName: string | n
           max-width: 80px;
           overflow: hidden;
           text-overflow: ellipsis;
-        ">
-          ${riderName ?? "Unknown"}
-        </div>
+        ">${riderName ?? "Unknown"}</div>
       </div>`,
     className: "rider-marker",
     iconSize: [36, 52],
@@ -80,29 +103,12 @@ const createRiderIcon = (active: boolean, bearing: number, riderName: string | n
   });
 };
 
-// Green circle icon for ride start point
 const createStartIcon = () =>
   L.divIcon({
     html: `
-      <div style="display: flex; flex-direction: column; align-items: center;">
-        <div style="
-          width: 14px; height: 14px;
-          background-color: #3b82f6;
-          border: 2px solid white;
-          border-radius: 50%;
-          box-shadow: 0 1px 4px rgba(0,0,0,0.4);
-        "></div>
-        <div style="
-          margin-top: 2px;
-          background-color: #3b82f6;
-          color: white;
-          font-size: 9px;
-          font-weight: 600;
-          padding: 1px 5px;
-          border-radius: 999px;
-          white-space: nowrap;
-          box-shadow: 0 1px 3px rgba(0,0,0,0.3);
-        ">Start</div>
+      <div style="display:flex;flex-direction:column;align-items:center;">
+        <div style="width:14px;height:14px;background-color:#3b82f6;border:2px solid white;border-radius:50%;box-shadow:0 1px 4px rgba(0,0,0,0.4);"></div>
+        <div style="margin-top:2px;background-color:#3b82f6;color:white;font-size:9px;font-weight:600;padding:1px 5px;border-radius:999px;white-space:nowrap;box-shadow:0 1px 3px rgba(0,0,0,0.3);">Start</div>
       </div>`,
     className: "",
     iconSize: [14, 28],
@@ -110,7 +116,56 @@ const createStartIcon = () =>
     popupAnchor: [0, -14],
   });
 
-// Component to recenter map
+const createEndIcon = () =>
+  L.divIcon({
+    html: `
+      <div style="display:flex;flex-direction:column;align-items:center;">
+        <div style="width:14px;height:14px;background-color:#ef4444;border:2px solid white;border-radius:50%;box-shadow:0 1px 4px rgba(0,0,0,0.4);"></div>
+        <div style="margin-top:2px;background-color:#ef4444;color:white;font-size:9px;font-weight:600;padding:1px 5px;border-radius:999px;white-space:nowrap;box-shadow:0 1px 3px rgba(0,0,0,0.3);">End</div>
+      </div>`,
+    className: "",
+    iconSize: [14, 28],
+    iconAnchor: [7, 7],
+    popupAnchor: [0, -14],
+  });
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+const formatDuration = (startTime: string, endTime?: string): string => {
+  if (!startTime) return "N/A";
+  const start = new Date(startTime).getTime();
+  const end = endTime ? new Date(endTime).getTime() : Date.now();
+  const elapsed = Math.floor((end - start) / 1000);
+  if (elapsed < 0) return "N/A";
+  const h = Math.floor(elapsed / 3600);
+  const m = Math.floor((elapsed % 3600) / 60);
+  const s = elapsed % 60;
+  return [h, m, s].map((v) => String(v).padStart(2, "0")).join(":");
+};
+
+const formatDateTime = (iso: string) =>
+  iso ? new Date(iso).toLocaleString() : "N/A";
+
+// Fix: detect invalid/zero coordinates
+const isValidCoord = (lat: string, lng: string): boolean => {
+  const la = parseFloat(lat);
+  const ln = parseFloat(lng);
+  return !isNaN(la) && !isNaN(ln) && !(la === 0 && ln === 0);
+};
+
+// ─── Fit Bounds ───────────────────────────────────────────────────────────────
+
+const FitBounds: React.FC<{ positions: [number, number][] }> = ({ positions }) => {
+  const map = useMap();
+  useEffect(() => {
+    if (positions.length >= 2) {
+      map.fitBounds(positions, { padding: [40, 40] });
+    }
+  }, [map, positions]);
+  return null;
+};
+
+// ---------- Helper Component to Recenter Map ----------
 const RecenterMap: React.FC<{ center: [number, number] }> = ({ center }) => {
   const map = useMap();
   useEffect(() => {
@@ -118,16 +173,339 @@ const RecenterMap: React.FC<{ center: [number, number] }> = ({ center }) => {
   }, [center, map]);
   return null;
 };
+// ─── Ride Route Map ───────────────────────────────────────────────────────────
 
-// Format seconds into hh:mm:ss
-const formatDuration = (startTime: number): string => {
-  if (!startTime) return "N/A";
-  const elapsed = Math.floor((Date.now() - startTime) / 1000);
-  const h = Math.floor(elapsed / 3600);
-  const m = Math.floor((elapsed % 3600) / 60);
-  const s = elapsed % 60;
-  return [h, m, s].map((v) => String(v).padStart(2, "0")).join(":");
+const RideRouteMap: React.FC<{ ride: RideHistory }> = ({ ride }) => {
+  const startLat = parseFloat(ride.start_lat);
+  const startLng = parseFloat(ride.start_lng);
+  const endLat   = parseFloat(ride.end_lat);
+  const endLng   = parseFloat(ride.end_lng);
+
+  const hasStart = isValidCoord(ride.start_lat, ride.start_lng);
+  const hasEnd   = isValidCoord(ride.end_lat, ride.end_lng);
+
+  const positions: [number, number][] = [
+    ...(hasStart ? [[startLat, startLng] as [number, number]] : []),
+    ...(hasEnd   ? [[endLat,   endLng  ] as [number, number]] : []),
+  ];
+
+  const center: [number, number] = hasStart
+    ? [startLat, startLng]
+    : [24.8607, 67.0011];
+
+  return (
+    <MapContainer center={center} zoom={14} style={{ height: "100%", width: "100%" }}>
+      <TileLayer
+        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+      />
+
+      {positions.length === 2 && (
+        <Polyline
+          positions={positions}
+          pathOptions={{ color: "#6366f1", weight: 4, opacity: 0.8, dashArray: "8 4" }}
+        />
+      )}
+
+      {hasStart && (
+        <Marker position={[startLat, startLng]} icon={createStartIcon()}>
+          <Popup>
+            <div className="text-sm space-y-0.5">
+              <p className="font-bold text-blue-600">📍 Ride Start</p>
+              <p>Time: {formatDateTime(ride.start_time)}</p>
+              <p>Lat: {startLat.toFixed(6)}, Lng: {startLng.toFixed(6)}</p>
+            </div>
+          </Popup>
+        </Marker>
+      )}
+
+      {hasEnd && ride.status === "completed" && (
+        <Marker position={[endLat, endLng]} icon={createEndIcon()}>
+          <Popup>
+            <div className="text-sm space-y-0.5">
+              <p className="font-bold text-red-500">🏁 Ride End</p>
+              <p>Time: {formatDateTime(ride.end_time)}</p>
+              <p>Lat: {endLat.toFixed(6)}, Lng: {endLng.toFixed(6)}</p>
+            </div>
+          </Popup>
+        </Marker>
+      )}
+
+      {positions.length >= 2 && <FitBounds positions={positions} />}
+
+      {/* Fix: show message when coords are invalid/zero */}
+      {!hasStart && !hasEnd && (
+        <div style={{
+          position: "absolute", inset: 0, zIndex: 9999,
+          display: "flex", alignItems: "center", justifyContent: "center",
+          background: "rgba(255,255,255,0.85)", fontSize: 14, color: "#6b7280"
+        }}>
+          📍 No valid location data for this ride
+        </div>
+      )}
+    </MapContainer>
+  );
 };
+
+// ─── Ride Detail Panel ────────────────────────────────────────────────────────
+
+const RideDetailPanel: React.FC<{ ride: RideHistory; onClose: () => void }> = ({ ride, onClose }) => (
+  <div className="fixed inset-0 z-[99999] flex">
+    <div className="flex-1 bg-black/40" onClick={onClose} />
+    <div className="w-full max-w-2xl bg-white shadow-2xl flex flex-col">
+
+      <div className="flex items-center justify-between px-5 py-4 border-b bg-indigo-600 text-white">
+        <div className="flex items-center space-x-2">
+          <span className="text-lg">🗺️</span>
+          <h3 className="font-bold text-base">Ride #{ride.id} — Route Map</h3>
+          <span className="text-indigo-200 text-sm">· User #{ride.user_id}</span>
+        </div>
+        <button onClick={onClose} className="text-white/70 hover:text-white text-2xl leading-none">×</button>
+      </div>
+
+      {/* Stats */}
+      <div className="grid grid-cols-3 divide-x border-b bg-gray-50 text-center text-sm">
+        <div className="px-4 py-3">
+          <p className="text-xs text-gray-400 uppercase font-medium">Distance</p>
+          <p className="font-bold text-gray-800 mt-0.5">
+            {parseFloat(ride.total_distance_km) > 0
+              ? `${parseFloat(ride.total_distance_km).toFixed(2)} km`
+              : "N/A"}
+          </p>
+        </div>
+        <div className="px-4 py-3">
+          <p className="text-xs text-gray-400 uppercase font-medium">Duration</p>
+          <p className="font-bold text-gray-800 mt-0.5">
+            {formatDuration(ride.start_time, ride.status === "completed" ? ride.end_time : undefined)}
+          </p>
+        </div>
+        <div className="px-4 py-3">
+          <p className="text-xs text-gray-400 uppercase font-medium">Status</p>
+          <p className="mt-0.5">
+            <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
+              ride.status === "ongoing" ? "bg-blue-100 text-blue-700" : "bg-green-100 text-green-700"
+            }`}>
+              {ride.status === "ongoing" ? "🔵 Ongoing" : "✅ Completed"}
+            </span>
+          </p>
+        </div>
+      </div>
+
+      {/* Times */}
+      <div className="grid grid-cols-2 divide-x border-b text-sm">
+        <div className="px-5 py-3">
+          <p className="text-xs text-gray-400 uppercase font-medium">Start Time</p>
+          <p className="text-gray-700 mt-0.5">{formatDateTime(ride.start_time)}</p>
+        </div>
+        <div className="px-5 py-3">
+          <p className="text-xs text-gray-400 uppercase font-medium">End Time</p>
+          <p className="text-gray-700 mt-0.5">
+            {ride.status === "completed" ? formatDateTime(ride.end_time) : "—"}
+          </p>
+        </div>
+      </div>
+
+      {/* Map */}
+      <div className="flex-1 relative">
+        <RideRouteMap ride={ride} />
+        <div className="absolute bottom-3 left-3 z-[9999] bg-white rounded-lg shadow-md px-3 py-2 text-xs space-y-1">
+          <div className="flex items-center space-x-2">
+            <div className="w-3 h-3 rounded-full bg-blue-500"></div>
+            <span className="text-gray-600">Start point</span>
+          </div>
+          <div className="flex items-center space-x-2">
+            <div className="w-3 h-3 rounded-full bg-red-500"></div>
+            <span className="text-gray-600">End point</span>
+          </div>
+          <div className="flex items-center space-x-2">
+            <div className="w-6 border-t-2 border-dashed border-indigo-500"></div>
+            <span className="text-gray-600">Route</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+);
+
+// ─── Ride History Panel ───────────────────────────────────────────────────────
+
+const RideHistoryPanel: React.FC<{ onClose: () => void }> = ({ onClose }) => {
+  const [history, setHistory] = useState<RideHistory[]>([]);
+  const [pagination, setPagination] = useState<RideHistoryResponse["pagination"] | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [filterStatus, setFilterStatus] = useState("all");
+  const [filterUserId, setFilterUserId] = useState("");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+  const [selectedRide, setSelectedRide] = useState<RideHistory | null>(null);
+
+  useEffect(() => {
+    const fetchHistory = async () => {
+      try {
+        setLoading(true);
+        const response = await axios.get<RideHistoryResponse>(`${BASE_URL_STOCK}/rideHistory`);
+        // Fix: extract response.data.data and response.data.pagination
+        setHistory(response.data.data);
+        setPagination(response.data.pagination);
+        setError(null);
+      } catch (err) {
+        setError("Failed to fetch ride history");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchHistory();
+  }, []);
+
+  // Fix: filter using correct fields from actual response
+  const filtered = history.filter((ride) => {
+    const matchStatus = filterStatus === "all" ? true : ride.status === filterStatus;
+    const matchUser = filterUserId
+      ? String(ride.user_id).includes(filterUserId.trim())
+      : true;
+    const rideStart = new Date(ride.start_time).getTime();
+    const matchStart = startDate ? rideStart >= new Date(startDate).getTime() : true;
+    const matchEnd = endDate ? rideStart <= new Date(endDate).getTime() + 86400000 : true;
+    return matchStatus && matchUser && matchStart && matchEnd;
+  });
+
+  return (
+    <>
+      {selectedRide && (
+        <RideDetailPanel ride={selectedRide} onClose={() => setSelectedRide(null)} />
+      )}
+
+      <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50">
+        <div className="bg-white rounded-2xl shadow-2xl w-full max-w-5xl mx-4 flex flex-col max-h-[90vh]">
+
+          {/* Header */}
+          <div className="flex items-center justify-between px-6 py-4 border-b">
+            <div className="flex items-center space-x-2">
+              <span className="text-xl">🏍️</span>
+              <h2 className="text-lg font-bold text-gray-800">Ride History</h2>
+              <span className="ml-2 px-2 py-0.5 bg-blue-100 text-blue-700 text-xs rounded-full font-medium">
+                {filtered.length} / {pagination?.total ?? 0} rides
+              </span>
+            </div>
+            <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition text-2xl leading-none">
+              ×
+            </button>
+          </div>
+
+          {/* Filters */}
+          <div className="px-6 py-3 border-b bg-gray-50 grid grid-cols-2 md:grid-cols-4 gap-3">
+            <input
+              type="text"
+              placeholder="Filter by User ID..."
+              value={filterUserId}
+              onChange={(e) => setFilterUserId(e.target.value)}
+              className="border rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+            />
+            <select
+              value={filterStatus}
+              onChange={(e) => setFilterStatus(e.target.value)}
+              className="border rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+            >
+              <option value="all">All Statuses</option>
+              <option value="ongoing">Ongoing</option>
+              <option value="completed">Completed</option>
+            </select>
+            <input
+              type="date"
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+              className="border rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+            />
+            <input
+              type="date"
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
+              className="border rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+            />
+          </div>
+
+          {/* Table */}
+          <div className="overflow-y-auto flex-1">
+            {loading ? (
+              <div className="flex items-center justify-center h-40 text-gray-500">Loading...</div>
+            ) : error ? (
+              <div className="flex items-center justify-center h-40 text-red-500">{error}</div>
+            ) : filtered.length === 0 ? (
+              <div className="flex items-center justify-center h-40 text-gray-400">No rides found</div>
+            ) : (
+              <table className="w-full text-sm">
+                <thead className="bg-gray-50 sticky top-0 z-10">
+                  <tr>
+                    {["#", "UserName", "Status", "Start Time", "End Time", "Duration", "Distance", "Route"].map((h) => (
+                      <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                        {h}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {filtered.map((ride) => (
+                    <tr key={ride.id} className="hover:bg-gray-50 transition">
+                      <td className="px-4 py-3 text-gray-400 text-xs">{ride.id}</td>
+                      <td className="px-4 py-3 font-medium text-gray-800">{ride.username}</td>
+                      <td className="px-4 py-3">
+                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
+                          ride.status === "ongoing" ? "bg-blue-100 text-blue-700" : "bg-green-100 text-green-700"
+                        }`}>
+                          {ride.status === "ongoing" ? "🔵 Ongoing" : "✅ Completed"}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-gray-600">{formatDateTime(ride.start_time)}</td>
+                      <td className="px-4 py-3 text-gray-600">
+                        {ride.status === "completed" ? formatDateTime(ride.end_time) : "—"}
+                      </td>
+                      <td className="px-4 py-3 text-gray-600">
+                        {formatDuration(ride.start_time, ride.status === "completed" ? ride.end_time : undefined)}
+                      </td>
+                      {/* Fix: show N/A for 0.00 distances */}
+                      <td className="px-4 py-3 text-gray-600">
+                        {parseFloat(ride.total_distance_km) > 0
+                          ? `${parseFloat(ride.total_distance_km).toFixed(2)} km`
+                          : <span className="text-gray-300">—</span>}
+                      </td>
+                      <td className="px-4 py-3">
+                        <button
+                          onClick={() => setSelectedRide(ride)}
+                          className="flex items-center space-x-1 px-2.5 py-1 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 rounded-lg text-xs font-medium transition"
+                        >
+                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+                          </svg>
+                          <span>View Map</span>
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </div>
+
+          {/* Footer with pagination info */}
+          <div className="px-6 py-3 border-t bg-gray-50 flex items-center justify-between">
+            <p className="text-xs text-gray-400">
+              Showing {filtered.length} of {pagination?.total ?? 0} total rides
+            </p>
+            <button
+              onClick={onClose}
+              className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg text-sm hover:bg-gray-300 transition"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+};
+
+// ─── Main Component ───────────────────────────────────────────────────────────
 
 const SuperAdminRiderLocation: React.FC = () => {
   const [riders, setRiders] = useState<RiderLocation[]>([]);
@@ -135,12 +513,12 @@ const SuperAdminRiderLocation: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
   const [mapCenter, setMapCenter] = useState<[number, number]>([40.7128, -74.006]);
+  const [showHistory, setShowHistory] = useState(false);
 
   const fetchLocations = async () => {
     try {
       const response = await axios.get(`${BASE_URL_STOCK}/getliveLocationTrack`);
       if (response.status !== 200) throw new Error("Failed to fetch rider locations");
-
       const data: RiderLocation[] = response.data;
       setRiders(data);
       setLastUpdate(new Date());
@@ -164,6 +542,8 @@ const SuperAdminRiderLocation: React.FC = () => {
 
   return (
     <div className="h-screen flex flex-col">
+      {showHistory && <RideHistoryPanel onClose={() => setShowHistory(false)} />}
+
       {/* Header */}
       <header className="bg-white shadow-sm px-6 py-4 flex items-center justify-between">
         <div className="flex items-center space-x-3">
@@ -187,6 +567,15 @@ const SuperAdminRiderLocation: React.FC = () => {
             Last update: {lastUpdate ? lastUpdate.toLocaleTimeString() : "never"}
           </div>
           <button
+            onClick={() => setShowHistory(true)}
+            className="flex items-center space-x-1.5 px-3 py-1.5 bg-purple-600 text-white text-sm rounded-lg hover:bg-purple-700 transition"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span>Ride History</span>
+          </button>
+          <button
             onClick={fetchLocations}
             className="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 transition"
           >
@@ -195,7 +584,7 @@ const SuperAdminRiderLocation: React.FC = () => {
         </div>
       </header>
 
-      {/* Map */}
+      {/* Live Map */}
       <div className="flex-1 relative">
         {loading && riders.length === 0 ? (
           <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
@@ -211,44 +600,25 @@ const SuperAdminRiderLocation: React.FC = () => {
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             />
-
             {riders.map((rider) => (
               <React.Fragment key={rider.riderId}>
-
-                {/* Route line: start → current position (only if ride is ongoing and start coords exist) */}
                 {rider.status === "ongoing" && rider.start_lat !== 0 && rider.start_lng !== 0 && (
                   <Polyline
-                    positions={[
-                      [rider.start_lat, rider.start_lng],
-                      [rider.lat, rider.lng],
-                    ]}
-                    pathOptions={{
-                      color: rider.active ? "#10b981" : "#6b7280",
-                      weight: 3,
-                      opacity: 0.7,
-                      dashArray: "6 4",  // dashed line to distinguish from roads
-                    }}
+                    positions={[[rider.start_lat, rider.start_lng], [rider.lat, rider.lng]]}
+                    pathOptions={{ color: rider.active ? "#10b981" : "#6b7280", weight: 3, opacity: 0.7, dashArray: "6 4" }}
                   />
                 )}
-
-                {/* Start point marker (only if ride is ongoing and start coords exist) */}
                 {rider.status === "ongoing" && rider.start_lat !== 0 && rider.start_lng !== 0 && (
-                  <Marker
-                    position={[rider.start_lat, rider.start_lng]}
-                    icon={createStartIcon()}
-                  >
+                  <Marker position={[rider.start_lat, rider.start_lng]} icon={createStartIcon()}>
                     <Popup>
                       <div className="text-sm space-y-1">
                         <p className="font-bold text-blue-600">📍 Ride Start</p>
                         <p>Rider: {rider.riderName ?? rider.riderId}</p>
                         <p>Started: {rider.startTime ? new Date(rider.startTime).toLocaleTimeString() : "N/A"}</p>
-                        <p>Duration: {formatDuration(rider.startTime)}</p>
                       </div>
                     </Popup>
                   </Marker>
                 )}
-
-                {/* Rider marker at current position */}
                 <Marker
                   position={[rider.lat, rider.lng]}
                   icon={createRiderIcon(rider.active, rider.bearing, rider.riderName)}
@@ -261,15 +631,12 @@ const SuperAdminRiderLocation: React.FC = () => {
                       <p>Speed: {rider.speed.toFixed(1)} km/h</p>
                       <p>Bearing: {rider.bearing}°</p>
                       <p>Distance: {rider.total_distance ? `${rider.total_distance.toFixed(2)} km` : "N/A"}</p>
-                      <p>Duration: {formatDuration(rider.startTime)}</p>
                       <p>Last update: {rider.updatedAt ? new Date(rider.updatedAt).toLocaleTimeString() : "N/A"}</p>
                     </div>
                   </Popup>
                 </Marker>
-
               </React.Fragment>
             ))}
-
             <RecenterMap center={mapCenter} />
           </MapContainer>
         )}
