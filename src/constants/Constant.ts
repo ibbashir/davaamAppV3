@@ -21,7 +21,10 @@ export const BASE_URL_TWO =
 export const BASE_URL =
   "https://davaam-backend-nodejs-4199d6d4d449.herokuapp.com/api/dashboard";
 
+
 export const LOCAL_BASE_URL = "http://localhost:3009/api/dashboard";
+export const BASE_URL_STOCK = "https://davaam-backend-nodejs-4199d6d4d449.herokuapp.com/api/stockApp";
+export const LOCAL_STOCK_URL = "http://localhost:3009/api/stockApp";
 //PUBLIC PATHS
 export const LOGIN = "/login";
 export const FORGET_PASSWORD = "/forgetPassword";
