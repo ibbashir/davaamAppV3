@@ -127,7 +127,7 @@ interface MonthlyReportResponse {
   };
 }
 
-const SuperAdminCashCollectionPage: React.FC = () => {
+const FinanceCashCollectionPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState("table");
   const [data, setData] = useState<CashCollection[]>([]);
   const [loading, setLoading] = useState(true);
@@ -180,7 +180,7 @@ const SuperAdminCashCollectionPage: React.FC = () => {
       setLoading(true);
       setError(null);
 
-      const result = await getRequest(`/superadmin/getAllCashCollection`);
+      const result = await getRequest(`/finance/getAllCashCollection`);
 
       if (result && result.success && result.data) {
         setData(result.data);
@@ -199,7 +199,7 @@ const SuperAdminCashCollectionPage: React.FC = () => {
 
   const fetchMachines = async () => {
     try {
-      const result = await getRequest("/superadmin/getMachinesWithMachineCode");
+      const result = await getRequest("/finance/getMachinesWithMachineCode");
 
       if (result?.data && Array.isArray(result.data)) {
         setMachines(result.data);
@@ -224,7 +224,7 @@ const SuperAdminCashCollectionPage: React.FC = () => {
       });
 
       const result = await postRequest<MonthlyReportResponse>(
-        "/superadmin/monthlyCashCollectionReport",
+        "/finance/monthlyCashCollectionReport",
         {
           month: selectedMonth,
           year: selectedYear,
@@ -1145,4 +1145,4 @@ const SuperAdminCashCollectionPage: React.FC = () => {
   );
 };
 
-export default SuperAdminCashCollectionPage;
+export default FinanceCashCollectionPage;

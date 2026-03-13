@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/sidebar"
 import { useNavigate } from "react-router-dom"
 import { useAuth } from "@/contexts/AuthContext"
-import { ADMIN_SIDEBAR_ROUTES, FULFILL_SIDEBAR_ROUTES, MACHINES_SIDEBAR_ROUTES, OPS_SIDEBAR_ROUTES, SUPER_ADMIN_SIDEBAR_ROUTES } from "@/constants/Constant"
+import { ADMIN_SIDEBAR_ROUTES, FULFILL_SIDEBAR_ROUTES, MACHINES_SIDEBAR_ROUTES, OPS_SIDEBAR_ROUTES, SUPER_ADMIN_SIDEBAR_ROUTES,FINANCE_SIDEBAR_ROUTES } from "@/constants/Constant"
 import { useIsMobile } from "@/hooks/use-mobile"
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
@@ -29,6 +29,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     ...(role === "admin" ? ADMIN_SIDEBAR_ROUTES() : []),
     ...(role === "ops" ? OPS_SIDEBAR_ROUTES() : []),
     ...(role === "fulfill" ? FULFILL_SIDEBAR_ROUTES() : []),
+    ...(role === "finance" ? FINANCE_SIDEBAR_ROUTES() : []),
     ...(role === "company" ? MACHINES_SIDEBAR_ROUTES(state?.user?.first_name || "User") : []),
   ]
 

@@ -49,6 +49,7 @@ export const SUPERADMIN_MACHINE_VISIT = "/superadmin/machine-details/:id";
 export const SUPERADMIN_CORPORATE_TOPUP = "/superadmin/corporate-topup";
 export const SUPERADMIN_MACHINE_MAP = "/superadmin/machine-map";
 export const SUPERADMIN_CASH_COLLECTION = "/superadmin/cashCollection";
+export const SUPERADMIN_RIDER_LOCATION = "/superadmin/riderLocation";
 export const SUPERADMIN_ADD_EMPLOYEES = "/superadmin/add-employees";
 export const SUPERADMIN_DELETE_EMPLOYEES = "/superadmin/delete-employees";
 
@@ -66,6 +67,7 @@ export const ADMIN_MACHINE_VISIT = "/admin/machine-details/:id";
 export const ADMIN_CORPORATE_TOPUP = "/admin/corporate-topup";
 export const ADMIN_MACHINE_MAP = "/admin/machine-map";
 export const ADMIN_CASH_COLLECTION = "/admin/cashCollection";
+export const ADMIN_RIDER_LOCATION = "/superadmin/riderLocation";
 
 //OPS PATHS
 export const OPS_DASHBOARD = "/ops/dashboard";
@@ -78,6 +80,7 @@ export const OPS_FEEDBACK = "/ops/feedback";
 export const OPS_CORPORATE = "/ops/corporate";
 export const OPS_MACHINE_VISIT = "/ops/machine-details/:id";
 export const OPS_MACHINE_MAP = "/ops/machine-map";
+export const OPS_RIDER_LOCATION = "/superadmin/riderLocation";
 
 // Fulfillment PATH
 export const FULFill_DASHBOARD = "/fulfill/dashboard";
@@ -89,6 +92,16 @@ export const FULFill_MACHINE_VISIT = "/fulfill/machine-details/:id";
 export const MAINTAINCE_REQUESTS = "/fulfill/maintaince-requests";
 export const CASH_COLLECTIONS = "/fulfill/cashCollection";
 export const FULFill_MACHINE_MAP = "/fulfill/machine-map";
+
+// Finance Path
+export const FINANCE_DASHBOARD = "/finance/dashboard";
+export const FINANCE_MACHINES = "/finance/machines";
+export const FINANCE_LOCATIONS = "/finance/locations";
+export const FINANCE_TOPUP = "/finance/topup";
+export const FINANCE_MAINTAINCE = "/finance/maintaince";
+export const FINANCE_MACHINE_VISIT = "/finance/machine-details/:id";
+export const FINANCE_CASH_COLLECTIONS = "/finance/cashCollection";
+export const FINANCE_MACHINE_MAP = "/finance/machine-map";
 
 //MACHINE PATH
 export const MACHINE_DASHBOARD = "/company/dashboard";
@@ -140,9 +153,9 @@ export const SUPER_ADMIN_SIDEBAR_ROUTES = () => {
       url: SUPERADMIN_CASH_COLLECTION,
       icon: IconCashBanknote,
     },
-    // {
-    //   title: "Add Corporate Employees", url: SUPERADMIN_ADD_EMPLOYEES, icon: IconHexagonPlus
-    // },
+    {
+      title: "Rider Locations", url: SUPERADMIN_RIDER_LOCATION, icon: IconHexagonPlus
+    },
     // {
     //   title: "Delete Corporate Employees", url: SUPERADMIN_DELETE_EMPLOYEES, icon: IconHexagonMinus
     // },
@@ -176,7 +189,7 @@ export const ADMIN_SIDEBAR_ROUTES = () => {
       title: "Cash Collection",
       url: ADMIN_CASH_COLLECTION,
       icon: IconCashBanknote,
-    },
+    }
   ];
 };
 
@@ -220,6 +233,24 @@ export const FULFILL_SIDEBAR_ROUTES = () => {
     {
       title: "Map Machines",
       url: FULFill_MACHINE_MAP,
+      icon: IconMapPin,
+    },
+  ];
+};
+export const FINANCE_SIDEBAR_ROUTES = () => {
+  return [
+    { title: "Dashboard", url: FINANCE_DASHBOARD, icon: IconHome },
+    { title: "Machines", url: FINANCE_MACHINES, icon: IconChartBar },
+    { title: "Locations", url: FINANCE_LOCATIONS, icon: IconLocation },
+    { title: "Topup", url: FINANCE_TOPUP, icon: IconCircleArrowUpRight },
+    {
+      title: "Cash Collections",
+      url: FINANCE_CASH_COLLECTIONS,
+      icon: IconCashBanknote,
+    },
+    {
+      title: "Map Machines",
+      url: FINANCE_MACHINE_MAP,
       icon: IconMapPin,
     },
   ];

@@ -3,8 +3,8 @@ import L from "leaflet";
 import { useEffect, useState, useMemo, useRef } from "react";
 import "leaflet/dist/leaflet.css";
 import { getRequest } from "@/Apis/Api";
-import type { ApiMachine, MachinesResponse } from "../../finance/machines/Types"
-import { SiteHeader } from "@/components/admin/site-header";
+import type { MachinesResponse } from "../../finance/machines/Types"
+import { SiteHeader } from "@/components/finance/site-header";
 
 type Machine = {
   _id: string;
@@ -438,7 +438,7 @@ const MapControls = ({
   );
 };
 
-const SuperAdminMachineMap: React.FC = () => {
+const FinanceMachineMap: React.FC = () => {
   const [allMachines, setAllMachines] = useState<Machine[]>([]);
   const [filteredMachines, setFilteredMachines] = useState<Machine[]>([]);
   const [activeFilters, setActiveFilters] = useState<{
@@ -608,7 +608,7 @@ const SuperAdminMachineMap: React.FC = () => {
   const fetchMachines = async () => {
     try {
       setLoading(true);
-      const res = await getRequest<MachinesResponse>(`/admin/getAllMachineStockAndStatus`);
+      const res = await getRequest<MachinesResponse>(`/finance/getAllMachineStockAndStatus`);
       const { machines: machinesData, brands } = res.data;
 
       const stockMap: { [code: string]: { status: string, stockedBy?: string } } = {};
@@ -1708,4 +1708,4 @@ const SuperAdminMachineMap: React.FC = () => {
   );
 };
 
-export default SuperAdminMachineMap;
+export default FinanceMachineMap;

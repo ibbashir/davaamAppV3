@@ -20,14 +20,14 @@ import Corporate from '@/screens/superAdmin/corporate/Corporate'
 import SuperAdminMachineVisit from '@/screens/superAdmin/machines/MachineVisit'
 
 //admin screens
-import AdminDashboard from '@/screens/admin/dashboard/Dashboard'
+import AdminDashboard from '@/screens/finance/dashboard/Dashboard'
 import { AdminPointShare } from '@/screens/admin/pointsshare/PointShare'
-import AdminMachines from '@/screens/admin/machines/Machines'
+import AdminMachines from '@/screens/finance/machines/Machines'
 import AdminLocations from '@/screens/admin/locations/Locations'
 import { AdminTopup } from '@/screens/admin/topup/Topup'
 import AdminNotifications from '@/screens/admin/notification/Notifications'
 import AdminFeedback from '@/screens/admin/feedback/Feedback'
-import AdminMachineVisit from '@/screens/admin/machines/MachineVisit'
+import AdminMachineVisit from '@/screens/finance/machines/MachineVisit'
 
 //ops screens
 import OpsDashboard from '@/screens/ops/dashboard/Dashboard'
@@ -42,6 +42,11 @@ import FulfillDashboard from "@/screens/fulfillment/dashboard/Dashboard";
 import FulfillMachines from "@/screens/fulfillment/machines/Machines";
 import FulfillLocations from "@/screens/fulfillment/locations/Locations";
 import FulfillMachineVisit from "@/screens/fulfillment/machines/MachineVisit"
+
+// Finane Screens
+import FinanceDashboard from "@/screens/finance/dashboard/Dashboard"
+import FinanceMachines from "@/screens/finance/machines/Machines";
+import FinanceMachineVisit from "@/screens/finance/machines/MachineVisit"
 
 //corporate (company) screens
 import CorporateDashboard from '@/screens/corporate/dashboard/Dashboard'
@@ -69,6 +74,13 @@ import {
   COMPANY_MACHINE_VISIT,
   CORPORATE_CASH_COLLECTION,
   DELETE_EMPLOYEES,
+  FINANCE_CASH_COLLECTIONS,
+  FINANCE_DASHBOARD,
+  FINANCE_LOCATIONS,
+  FINANCE_MACHINE_MAP,
+  FINANCE_MACHINE_VISIT,
+  FINANCE_MACHINES,
+  FINANCE_TOPUP,
   FORGET_PASSWORD,
   FULFill_DASHBOARD,
   FULFill_LOCATIONS,
@@ -105,6 +117,7 @@ import {
   SUPERADMIN_MACHINES,
   SUPERADMIN_NOTIFICATIONS,
   SUPERADMIN_POINTS,
+  SUPERADMIN_RIDER_LOCATION,
   SUPERADMIN_ROLES,
   SUPERADMIN_TOPUP,
   USERS,
@@ -130,6 +143,10 @@ import FulfillMachineMap from '@/screens/fulfillment/MachinesMap/MachineMap'
 import OpsMachineMap from '@/screens/ops/MachinesMap/MachineMap'
 import AdminCashCollectionPage from '@/screens/admin/cashCollections/cashCollection'
 import CorporateCashCollectionPage from '@/screens/corporate/cashCollections/cashCollectionCorporate'
+import SuperAdminRiderLocation from '@/screens/superAdmin/RiderLocation/RiderLocation'
+import { FinanceTopup } from '@/screens/finance/topup/Topup'
+import FinanceCashCollectionPage from '@/screens/finance/cashCollections/cashCollection'
+import FinanceMachineMap from '@/screens/finance/MachinesMap/MachineMap'
 
 const Routing = () => {
   return (
@@ -158,6 +175,7 @@ const Routing = () => {
           <Route path={SUPERADMIN_MACHINE_VISIT} element={<SuperAdminMachineVisit />} />
           <Route path={SUPERADMIN_CORPORATE_TOPUP} element={<CorporateTopup />} />
           <Route path={SUPERADMIN_MACHINE_MAP} element={<SuperAdminMachineMap />} />
+          <Route path={SUPERADMIN_RIDER_LOCATION} element={<SuperAdminRiderLocation />}/>
           {/* this one */}
           <Route path={SUPERADMIN_CASH_COLLECTION} element={<SuperAdminCashCollectionPage />} />
           <Route path={SUPERADMIN_ADD_EMPLOYEES} element={<SuperAdminAddEmployees />} />
@@ -209,6 +227,17 @@ const Routing = () => {
           <Route path={MAINTAINCE_REQUESTS} element={<AdminMaintenanceRequests />} />
           <Route path={CASH_COLLECTIONS} element={<CashCollectionPage />} />
           <Route path={FULFill_MACHINE_MAP} element={<FulfillMachineMap />} />
+        </Route>
+      </Route>
+
+      <Route element={<PrivateRouting allowedRoles={["finance"]} />}>
+        <Route element={<Layout />}>
+          <Route path={FINANCE_DASHBOARD} element={< FinanceDashboard />} />
+          <Route path={FINANCE_MACHINES} element={<FinanceMachines />} />
+          <Route path={FINANCE_TOPUP} element={<FinanceTopup />} />
+          <Route path={FINANCE_MACHINE_VISIT} element={<FinanceMachineVisit />} />
+          <Route path={FINANCE_CASH_COLLECTIONS} element={<FinanceCashCollectionPage />} />
+          <Route path={FINANCE_MACHINE_MAP} element={<FinanceMachineMap />} />
         </Route>
       </Route>
 
