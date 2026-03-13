@@ -20,7 +20,12 @@ export const BASE_URL_TWO =
 export const BASE_URL =
   "https://davaam-backend-nodejs-4199d6d4d449.herokuapp.com/api/dashboard";
 
+
+//  export const BASE_URL_TWO = "http://localhost:3009/";
+//  export const BASE_URL = "http://localhost:3009/api/dashboard";
+
 export const LOCAL_BASE_URL = "http://localhost:3009/api/dashboard";
+export const CHATBOT_API_URL = "http://localhost:8000";
 //PUBLIC PATHS
 export const LOGIN = "/login";
 export const FORGET_PASSWORD = "/forgetPassword";

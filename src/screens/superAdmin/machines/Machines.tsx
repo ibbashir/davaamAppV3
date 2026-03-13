@@ -10,6 +10,8 @@ import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardHeader, CardContent } from "@/components/ui/card"
 import type { ApiMachine, MachinesResponse } from "./Types"
+import { buildForecastMap, enrichForecastMap, type StockForecast, type ForecastMaps } from "@/utils/stockForecast"
+import { StockForecastBadge } from "@/components/ui/stock-forecast-badge"
 import moment from "moment-timezone"
 
 const categories = [
@@ -28,7 +30,7 @@ const subCategories = [
   { id: "Unknown", label: "❓ Unknown" },
 ]
 
-type SortField = 'machine_code' | 'machine_name' | 'machine_type' | 'category' | 'lastActive' | 'stockStatus' | 'status';
+type SortField = 'machine_code' | 'machine_name' | 'machine_type' | 'category' | 'lastActive' | 'stockStatus' | 'forecast' | 'status';
 type SortDirection = 'asc' | 'desc' | 'none';
 
 const Machines = () => {
@@ -38,6 +40,9 @@ const Machines = () => {
   const [currentPage, setCurrentPage] = useState(1)
   const [machinesData, setMachinesData] = useState<{ [category: string]: ApiMachine[] } | null>(null)
   const [machineStockMap, setMachineStockMap] = useState<{ [code: string]: string }>({})
+  const [machineForecastMap, setMachineForecastMap] = useState<{ [code: string]: StockForecast }>({})
+  const [brandQuantities, setBrandQuantities] = useState<{ [brandId: string]: number }>({})
+  const [forecastEnriching, setForecastEnriching] = useState<Set<string>>(new Set())
   const [loading, setLoading] = useState(true);
   const [isShowCleaningProducts, setIsShowCleaningProducts] = useState(false);
   const [sortConfig, setSortConfig] = useState<{ field: SortField; direction: SortDirection }>({ 
@@ -91,14 +96,19 @@ const Machines = () => {
         else stockMap[code] = "In Stock"
       }
 
+      const { forecasts: forecastMap, brandQuantities: bq } = buildForecastMap(allBrands, stockMap)
+
       setMachinesData(machines)
       setMachineStockMap(stockMap)
+      setMachineForecastMap(forecastMap)
+      setBrandQuantities(bq)
     } catch (error) {
       console.error("Error fetching machines:", error)
     } finally {
       setLoading(false)
     }
   }
+
 
   const allMachines = machinesData
     ? Object.entries(machinesData).flatMap(([category, machines]) =>
@@ -188,6 +198,12 @@ const Machines = () => {
       return multiplier * (new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
     }
 
+    if (field === 'forecast') {
+      const aForecast = machineForecastMap[a.machine_code]?.daysRemaining ?? Infinity;
+      const bForecast = machineForecastMap[b.machine_code]?.daysRemaining ?? Infinity;
+      return multiplier * (aForecast - bForecast);
+    }
+
     const aValue = a[field]?.toString().toLowerCase() || '';
     const bValue = b[field]?.toString().toLowerCase() || '';
 
@@ -199,6 +215,35 @@ const Machines = () => {
   const totalPages = Math.ceil(sortedMachines.length / itemsPerPage)
   const startIndex = (currentPage - 1) * itemsPerPage
   const paginatedMachines = sortedMachines.slice(startIndex, startIndex + itemsPerPage)
+
+  // Enrich forecasts only for machines visible on the current page
+  const visibleCodes = paginatedMachines.map((m) => m.machine_code)
+  useEffect(() => {
+    if (visibleCodes.length === 0 || Object.keys(machineForecastMap).length === 0) return
+    const needsEnrichment = visibleCodes.some(
+      (code) => machineForecastMap[code] && !machineForecastMap[code].enriched,
+    )
+    if (!needsEnrichment) return
+
+    const codesToEnrich = visibleCodes.filter(
+      (code) => machineForecastMap[code] && !machineForecastMap[code].enriched,
+    )
+    let cancelled = false
+    setForecastEnriching(new Set(codesToEnrich))
+    enrichForecastMap(visibleCodes, machineForecastMap, machineStockMap, brandQuantities, (updates) => {
+      if (!cancelled) {
+        setMachineForecastMap((prev) => ({ ...prev, ...updates }))
+        setForecastEnriching((prev) => {
+          const next = new Set(prev)
+          for (const code of Object.keys(updates)) next.delete(code)
+          return next
+        })
+      }
+    }).finally(() => {
+      if (!cancelled) setForecastEnriching(new Set())
+    })
+    return () => { cancelled = true }
+  }, [visibleCodes.join(",")])
 
   const getStatusBadge = (status: string) => {
     const colorMap: Record<string, string> = {
@@ -364,6 +409,12 @@ const Machines = () => {
                       </div>
                     </th>
                     <th className="px-4 py-2 text-center">
+                      <div className="flex items-center justify-center cursor-pointer" onClick={() => handleSort('forecast')}>
+                        Forecast
+                        {getSortIcon('forecast')}
+                      </div>
+                    </th>
+                    <th className="px-4 py-2 text-center">
                       <div className="flex items-center justify-center cursor-pointer" onClick={() => handleSort('status')}>
                         Status
                         {getSortIcon('status')}
@@ -388,6 +439,12 @@ const Machines = () => {
                         <td className="px-4 py-3">{machine.category}</td>
                         <td className="px-4 py-3">{machine.lastActive}</td>
                         <td className="px-4 py-3">{getStockStatusBadge(machine.stockStatus)}</td>
+                        <td className="px-4 py-3">
+                          {forecastEnriching.has(machine.machine_code)
+                            ? <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-teal-600 border-t-transparent" />
+                            : <StockForecastBadge forecast={machineForecastMap[machine.machine_code]} />
+                          }
+                        </td>
                         <td className="px-4 py-3">{getStatusBadge(machine.status)}</td>
                         <td className="px-4 py-3 text-center">
                           <Button
