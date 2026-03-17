@@ -118,6 +118,7 @@ import {
   SUPERADMIN_NOTIFICATIONS,
   SUPERADMIN_POINTS,
   SUPERADMIN_RIDER_LOCATION,
+  SUPERADMIN_KNOWLEDGE_BASE,
   SUPERADMIN_ROLES,
   SUPERADMIN_TOPUP,
   USERS,
@@ -144,6 +145,7 @@ import OpsMachineMap from '@/screens/ops/MachinesMap/MachineMap'
 import AdminCashCollectionPage from '@/screens/admin/cashCollections/cashCollection'
 import CorporateCashCollectionPage from '@/screens/corporate/cashCollections/cashCollectionCorporate'
 import SuperAdminRiderLocation from '@/screens/superAdmin/RiderLocation/RiderLocation'
+import KnowledgeBase from '@/screens/superAdmin/knowledgeBase/KnowledgeBase'
 import { FinanceTopup } from '@/screens/finance/topup/Topup'
 import FinanceCashCollectionPage from '@/screens/finance/cashCollections/cashCollection'
 import FinanceMachineMap from '@/screens/finance/MachinesMap/MachineMap'
@@ -180,6 +182,7 @@ const Routing = () => {
           <Route path={SUPERADMIN_CASH_COLLECTION} element={<SuperAdminCashCollectionPage />} />
           <Route path={SUPERADMIN_ADD_EMPLOYEES} element={<SuperAdminAddEmployees />} />
           <Route path={SUPERADMIN_DELETE_EMPLOYEES} element={<SuperAdminBulkDelete />} />
+          <Route path={SUPERADMIN_KNOWLEDGE_BASE} element={<KnowledgeBase />} />
         </Route>
       </Route>
 

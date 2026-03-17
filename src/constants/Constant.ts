@@ -25,7 +25,8 @@ export const BASE_URL =
 //  export const BASE_URL = "http://localhost:3009/api/dashboard";
 
 export const LOCAL_BASE_URL = "http://localhost:3009/api/dashboard";
-export const CHATBOT_API_URL = "http://localhost:8000";
+export const CHATBOT_API_URL = "http://localhost:3009/api/chatbot";
+// export const CHATBOT_API_URL = "https://davaam-backend-nodejs-4199d6d4d449.herokuapp.com/api/chatbot";
 //PUBLIC PATHS
 export const LOGIN = "/login";
 export const FORGET_PASSWORD = "/forgetPassword";
@@ -49,6 +50,7 @@ export const SUPERADMIN_MACHINE_VISIT = "/superadmin/machine-details/:id";
 export const SUPERADMIN_CORPORATE_TOPUP = "/superadmin/corporate-topup";
 export const SUPERADMIN_MACHINE_MAP = "/superadmin/machine-map";
 export const SUPERADMIN_CASH_COLLECTION = "/superadmin/cashCollection";
+export const SUPERADMIN_KNOWLEDGE_BASE = "/superadmin/knowledge-base";
 export const SUPERADMIN_RIDER_LOCATION = "/superadmin/riderLocation";
 export const SUPERADMIN_ADD_EMPLOYEES = "/superadmin/add-employees";
 export const SUPERADMIN_DELETE_EMPLOYEES = "/superadmin/delete-employees";
@@ -155,6 +157,9 @@ export const SUPER_ADMIN_SIDEBAR_ROUTES = () => {
     },
     {
       title: "Rider Locations", url: SUPERADMIN_RIDER_LOCATION, icon: IconHexagonPlus
+    },
+    {
+      title: "Knowledge Base", url: SUPERADMIN_KNOWLEDGE_BASE, icon: IconFileDescription
     },
     // {
     //   title: "Delete Corporate Employees", url: SUPERADMIN_DELETE_EMPLOYEES, icon: IconHexagonMinus

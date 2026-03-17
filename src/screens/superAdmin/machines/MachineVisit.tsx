@@ -210,11 +210,11 @@ const exportToCSV = () => {
       const phone = tx.msisdn || "unknown"
       userFreq[phone] = (userFreq[phone] || 0) + 1
 
-      const d = new Date(tx.created_at)
-      hourCounts[d.getHours()]++
-      dayCounts[d.getDay()]++
+      const d = moment(tx.created_at).tz("Asia/Karachi")
+      hourCounts[d.hour()]++
+      dayCounts[d.day()]++
 
-      const dateKey = d.toISOString().slice(0, 10)
+      const dateKey = d.format("YYYY-MM-DD")
       if (!dailyTxMap[dateKey]) dailyTxMap[dateKey] = new Set()
       dailyTxMap[dateKey].add(phone)
     }
