@@ -41,7 +41,6 @@ import OpsFeedback from '@/screens/ops/feedback/Feedback'
 import FulfillDashboard from "@/screens/fulfillment/dashboard/Dashboard";
 import FulfillMachines from "@/screens/fulfillment/machines/Machines";
 import FulfillLocations from "@/screens/fulfillment/locations/Locations";
-import FulfillMachineVisit from "@/screens/fulfillment/machines/MachineVisit"
 
 // Finane Screens
 import FinanceDashboard from "@/screens/finance/dashboard/Dashboard"
@@ -148,6 +147,7 @@ import { FinanceTopup } from '@/screens/finance/topup/Topup'
 import FinanceCashCollectionPage from '@/screens/finance/cashCollections/cashCollection'
 import FinanceMachineMap from '@/screens/finance/MachinesMap/MachineMap'
 import FinanceReport from '@/screens/finance/Reports/Reports'
+import FulfillMachineVisit from '../screens/fulfillment/machines/MachineVisit'
 
 const Routing = () => {
   return (

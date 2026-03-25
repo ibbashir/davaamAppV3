@@ -9,7 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Download, Plus, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react"
-import { SiteHeader } from "@/components/superAdmin/site-header"
+import { SiteHeader } from "@/components/fulfillment/site-header"
 import { useLocation } from "react-router-dom"
 import { postRequest } from "@/Apis/Api"
 import { ResponsiveBar } from "@nivo/bar"
@@ -34,7 +34,7 @@ type NivoBarData = {
   transactions: number
 }
 
-export default function AdminMachineVisit() {
+export default function FulfillMachineVisit() {
   const { state } = useLocation()
   const machine = state?.machine
 

@@ -3,7 +3,7 @@ import { MapContainer, TileLayer, Marker, Popup, useMap, Polyline } from "react-
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import axios from "axios";
-import { BASE_URL_STOCK } from "@/constants/Constant";
+import { BASE_URL_STOCK  } from "@/constants/Constant";
 
 delete (L.Icon.Default.prototype as any)._getIconUrl;
 L.Icon.Default.mergeOptions({

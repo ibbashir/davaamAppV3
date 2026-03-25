@@ -26,7 +26,7 @@ export function SectionCards() {
     useEffect(() => {
       const fetchData = async () => {
         try {
-          const res = await getRequest("/admin/dashboardStatistics") as { data: DashboardStatistics };
+          const res = await getRequest("/finance/dashboardStatistics") as { data: DashboardStatistics };
           setCardsData(res.data);
         } catch (error) {
           console.error("Error fetching dashboard statistics:", error);

@@ -197,7 +197,7 @@ const Machines = () => {
                           size="sm"
                           className="bg-teal-600 hover:bg-teal-700"
                           onClick={() =>
-                            navigate(`/fulfillment/machine-details/${machine.machine_code}`, { state: { machine } })
+                            navigate(`/fulfill/machine-details/${machine.machine_code}`, { state: { machine } })
                           }
                         >
                           Visit
