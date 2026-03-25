@@ -5,8 +5,13 @@ import {
   SidebarProvider,
 } from "@/components/ui/sidebar"
 import { Outlet } from 'react-router-dom'
+import { useAuth } from '@/contexts/AuthContext'
+import { ChatbotWidget } from '@/components/chatbot-widget'
 
 export default function Layout() {
+  const { state } = useAuth()
+  const isSuperAdmin = state.user?.user_role.toLowerCase().replace(/\s/g, "") === "superadmin"
+
   return (
     <SidebarProvider
       style={
@@ -20,6 +25,7 @@ export default function Layout() {
       <SidebarInset>
         <Outlet />
       </SidebarInset>
+      {isSuperAdmin && <ChatbotWidget />}
     </SidebarProvider>
   )
 }
