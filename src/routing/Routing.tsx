@@ -121,6 +121,7 @@ import {
   SUPERADMIN_ROLES,
   SUPERADMIN_TOPUP,
   USERS,
+  FINANCE_LOCATIONS,
 } from '@/constants/Constant'
 import OpsMachineVisit from '@/screens/ops/machines/MachineVisit'
 import Reports from '@/screens/corporate/reports/reports'
@@ -143,13 +144,14 @@ import FulfillMachineMap from '@/screens/fulfillment/MachinesMap/MachineMap'
 import OpsMachineMap from '@/screens/ops/MachinesMap/MachineMap'
 import AdminCashCollectionPage from '@/screens/admin/cashCollections/cashCollection'
 import CorporateCashCollectionPage from '@/screens/corporate/cashCollections/cashCollectionCorporate'
-import SuperAdminRiderLocation from '@/screens/superAdmin/RiderLocation/RiderLocation'
+import SuperAdminRiderLocation from '@/screens/superAdmin/RiderLocation/SuperAdminRiderLocation'
 import KnowledgeBase from '@/screens/superAdmin/knowledgeBase/KnowledgeBase'
 import { FinanceTopup } from '@/screens/finance/topup/Topup'
 import FinanceCashCollectionPage from '@/screens/finance/cashCollections/cashCollection'
 import FinanceMachineMap from '@/screens/finance/MachinesMap/MachineMap'
 import FinanceReport from '@/screens/finance/Reports/Reports'
 import FulfillMachineVisit from '../screens/fulfillment/machines/MachineVisit'
+import FinanceLocations from '@/screens/finance/locations/Locations'
 
 const Routing = () => {
   return (
@@ -238,6 +240,7 @@ const Routing = () => {
         <Route element={<Layout />}>
           <Route path={FINANCE_DASHBOARD} element={< FinanceDashboard />} />
           <Route path={FINANCE_MACHINES} element={<FinanceMachines />} />
+          <Route path={FINANCE_LOCATIONS} element={<FinanceLocations />} />
           <Route path={FINANCE_TOPUP} element={<FinanceTopup />} />
           <Route path={FINANCE_MACHINE_VISIT} element={<FinanceMachineVisit />} />
           <Route path={FINANCE_CASH_COLLECTIONS} element={<FinanceCashCollectionPage />} />
@@ -257,7 +260,6 @@ const Routing = () => {
           <Route path={ADD_EMPLOYEES} element={<AddEmployees />} />
           <Route path={DELETE_EMPLOYEES} element={<BulkDelete />} />
           <Route path={CORPORATE_CASH_COLLECTION} element={<CorporateCashCollectionPage />} />
-          
         </Route>
       </Route>
 

@@ -22,13 +22,13 @@ export const BASE_URL =
   "https://davaam-backend-nodejs-4199d6d4d449.herokuapp.com/api/dashboard";
 
 
-export const LOCAL_BASE_URL = "http://localhost:3009/api/dashboard";
+// export const LOCAL_BASE_URL = "http://localhost:4000/api/dashboard";
 export const BASE_URL_STOCK = "https://davaam-backend-nodejs-4199d6d4d449.herokuapp.com/api/stockApp";
-export const LOCAL_STOCK_URL = "http://localhost:3009/api/stockApp";
+// export const LOCAL_STOCK_URL = "http://localhost:4000/api/stockApp";
 //  export const BASE_URL_TWO = "http://localhost:3009/";
 //  export const BASE_URL = "http://localhost:3009/api/dashboard";
 
-export const CHATBOT_API_URL = "http://localhost:3009/api/chatbot";
+export const CHATBOT_API_URL = "http://localhost:4000/api/chatbot";
 // export const CHATBOT_API_URL = "https://davaam-backend-nodejs-4199d6d4d449.herokuapp.com/api/chatbot";
 //PUBLIC PATHS
 export const LOGIN = "/login";

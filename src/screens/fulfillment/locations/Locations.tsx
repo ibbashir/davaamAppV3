@@ -77,6 +77,7 @@ interface LocationsDetail {
   machines?: number;
   totalRevenue?: number;
   status?: string;
+  category: string;
 }
 
 interface EditFormData {
@@ -85,6 +86,7 @@ interface EditFormData {
   machine_type: string;
   lat: number | null;
   lng: number | null;
+  category: string;
 }
 
 const FulfillmentLocations = () => {
@@ -99,6 +101,7 @@ const FulfillmentLocations = () => {
   const [editFormData, setEditFormData] = useState<EditFormData>({
     machine_name: "",
     machine_location: "",
+    category:"",
     machine_type: "",
     lat: null,
     lng: null,
@@ -113,6 +116,7 @@ const FulfillmentLocations = () => {
   JSON.stringify({
     machine_name: locationToEdit?.machine_name,
     machine_location: locationToEdit?.machine_location,
+    category:locationToEdit?.category,
     machine_type: locationToEdit?.machine_type,
     lat: locationToEdit?.lat,
     lng: locationToEdit?.lng,
@@ -144,8 +148,9 @@ const FulfillmentLocations = () => {
       machine_name: location.machine_name,
       machine_location: location.machine_location,
       machine_type: location.machine_type,
+      category: location.category,
       lat: location.lat,
-      lng: location.lng,
+      lng: location.lng
     });
     setLocationToEdit(location);
     setEditDialogOpen(true);
@@ -318,6 +323,9 @@ const fetchLocations = async () => {
                   <TableHead className="text-center font-semibold text-white bg-teal-600 border-none">
                     On-boarding
                   </TableHead>
+                  <TableHead className="text-center font-semibold text-white bg-teal-600 border-none">
+                    Category
+                  </TableHead>
                   <TableHead className="text-center font-semibold text-white bg-teal-600 rounded-tr-2xl border-none">
                     Actions
                   </TableHead>
@@ -354,6 +362,9 @@ const fetchLocations = async () => {
                       {moment
                         .unix(data.created_at)
                         .format("YYYY-MM-DD HH:mm:ss")}
+                    </TableCell>
+                    <TableCell className="max-w-xs">
+                      <div className="truncate">{data.category || "N/A"}</div>
                     </TableCell>
                     <TableCell>
                       <div className="flex gap-2">
@@ -502,6 +513,24 @@ const fetchLocations = async () => {
                   </SelectContent>
                 </Select>
               </div>
+            </div>
+            
+            <div className="space-y-2">
+                <Label htmlFor="category">Category</Label>
+                <Select
+                  value={editFormData?.category}
+                  onValueChange={(value) =>
+                    handleEditChange("category", value)
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select Category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="online">Online</SelectItem>
+                    <SelectItem value="offline">Offline</SelectItem>
+                  </SelectContent>
+                </Select>
             </div>
             <div className="space-y-2">
               <Label htmlFor="machine_location">Address</Label>

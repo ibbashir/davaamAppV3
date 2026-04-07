@@ -78,6 +78,7 @@ interface LocationsDetail {
   machines?: number;
   totalRevenue?: number;
   status?: string;
+  category: string;
 }
 
 interface EditFormData {
@@ -86,6 +87,7 @@ interface EditFormData {
   machine_type: string;
   lat: number | null;
   lng: number | null;
+  category: string;
 }
 
 const FinanceLocations = () => {
@@ -101,23 +103,25 @@ const FinanceLocations = () => {
     machine_name: "",
     machine_location: "",
     machine_type: "",
+    category: "",
     lat: null,
     lng: null,
   });
   const [isEditing, setIsEditing] = useState(false);
   const [locationToEdit, setLocationToEdit] = useState<LocationsDetail | null>(
-    null
+    null,
   );
 
   const isDirty =
-  JSON.stringify(editFormData) !==
-  JSON.stringify({
-    machine_name: locationToEdit?.machine_name,
-    machine_location: locationToEdit?.machine_location,
-    machine_type: locationToEdit?.machine_type,
-    lat: locationToEdit?.lat,
-    lng: locationToEdit?.lng,
-  });
+    JSON.stringify(editFormData) !==
+    JSON.stringify({
+      machine_name: locationToEdit?.machine_name,
+      machine_location: locationToEdit?.machine_location,
+      machine_type: locationToEdit?.machine_type,
+      category: locationToEdit?.category,
+      lat: locationToEdit?.lat,
+      lng: locationToEdit?.lng,
+    });
 
   const getTypeBadge = (type: string) => {
     const colors = {
@@ -145,6 +149,7 @@ const FinanceLocations = () => {
       machine_name: location.machine_name,
       machine_location: location.machine_location,
       machine_type: location.machine_type,
+      category: location.category,
       lat: location.lat,
       lng: location.lng,
     });
@@ -154,7 +159,7 @@ const FinanceLocations = () => {
 
   const handleEditChange = (
     field: keyof EditFormData,
-    value: string | number
+    value: string | number,
   ) => {
     setEditFormData((prev) => ({
       ...prev,
@@ -163,30 +168,30 @@ const FinanceLocations = () => {
   };
 
   const handleEditSubmit = async () => {
-  if (!locationToEdit) return;
+    if (!locationToEdit) return;
 
-  setIsEditing(true);
+    setIsEditing(true);
 
-  try {
-    await putRequest(
-      `finance/updateMachineLocation/${locationToEdit.id}`,
-      editFormData
-    );
+    try {
+      await putRequest(
+        `finance/updateMachineLocation/${locationToEdit.id}`,
+        editFormData,
+      );
 
-    // ✅ Refresh table
-    await fetchLocations();
+      // ✅ Refresh table
+      await fetchLocations();
 
-    // ✅ Close dialog
-    setEditDialogOpen(false);
-    setLocationToEdit(null);
-  } catch (error) {
-    console.error("Update failed:", error);
-  } finally {
-    setIsEditing(false);
-  }
-};
+      // ✅ Close dialog
+      setEditDialogOpen(false);
+      setLocationToEdit(null);
+    } catch (error) {
+      console.error("Update failed:", error);
+    } finally {
+      setIsEditing(false);
+    }
+  };
 
-const fetchLocations = async () => {
+  const fetchLocations = async () => {
     const params = new URLSearchParams();
     params.append("page", currentPage.toString());
     params.append("limit", itemsPerPage.toString());
@@ -196,7 +201,7 @@ const fetchLocations = async () => {
     }
 
     const res = await getRequest<LocationApiResponse>(
-      `/finance/MachineLocations?${params.toString()}`
+      `/finance/MachineLocations?${params.toString()}`,
     );
 
     setMachineLocation(res);
@@ -319,6 +324,9 @@ const fetchLocations = async () => {
                   <TableHead className="text-center font-semibold text-white bg-teal-600 border-none">
                     On-boarding
                   </TableHead>
+                  <TableHead className="text-center font-semibold text-white bg-teal-600 border-none">
+                    Category
+                  </TableHead>
                   <TableHead className="text-center font-semibold text-white bg-teal-600 rounded-tr-2xl border-none">
                     Actions
                   </TableHead>
@@ -355,6 +363,9 @@ const fetchLocations = async () => {
                       {moment
                         .unix(data.created_at)
                         .format("YYYY-MM-DD HH:mm:ss")}
+                    </TableCell>
+                    <TableCell className="max-w-xs">
+                      <div className="truncate">{data.category || "N/A"}</div>
                     </TableCell>
                     <TableCell>
                       <div className="flex gap-2">
@@ -503,6 +514,21 @@ const fetchLocations = async () => {
                   </SelectContent>
                 </Select>
               </div>
+              <div className="space-y-2">
+                <Label htmlFor="category">Category</Label>
+                <Select
+                  value={editFormData?.category}
+                  onValueChange={(value) => handleEditChange("category", value)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select Category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="online">Online</SelectItem>
+                    <SelectItem value="offline">Offline</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
             <div className="space-y-2">
               <Label htmlFor="machine_location">Address</Label>
@@ -526,7 +552,7 @@ const fetchLocations = async () => {
                   onChange={(e) =>
                     handleEditChange(
                       "lat",
-                      e.target.value === "" ? "" : Number(e.target.value)
+                      e.target.value === "" ? "" : Number(e.target.value),
                     )
                   }
                   placeholder="e.g., 40.7128"
@@ -542,7 +568,7 @@ const fetchLocations = async () => {
                   onChange={(e) =>
                     handleEditChange(
                       "lng",
-                      e.target.value === "" ? "" : Number(e.target.value)
+                      e.target.value === "" ? "" : Number(e.target.value),
                     )
                   }
                   placeholder="e.g., -74.0060"
@@ -578,4 +604,4 @@ const fetchLocations = async () => {
   );
 };
 
-export default AdminLocations;
+export default FinanceLocations;

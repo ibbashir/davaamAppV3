@@ -17,6 +17,7 @@ type Inputs = {
   expiry: Date;
   lat: number;
   lng: number;
+  category:number;
 };
 
 export default function AddMachine({
@@ -54,6 +55,7 @@ export default function AddMachine({
       is_active: enabled ? 1 : 0,
       lat: data.lat,
       lng: data.lng,
+      category:data.category
     };
     console.log(bodyData);
     try {
@@ -300,6 +302,30 @@ export default function AddMachine({
                     {errors.variant_type && (
                       <span className="text-sm text-red-500">
                         {errors.variant_type.message}
+                      </span>
+                    )}
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                      Machine Category
+                    </label>
+                    <select
+                      {...register("category", {
+                        required: "Catogery Type is required.",
+                      })}
+                      className="block w-full rounded-md bg-white px-3 py-1 text-base text-gray-900 outline outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-teal-600 sm:text-sm"
+                      defaultValue=""
+                    >
+                      <option value="" disabled>
+                        Select Category Type
+                      </option>
+                      <option value="online">Online</option>
+                      <option value="offline">Offline</option>
+                      <option value="hybrid">Hybrid</option>
+                    </select>
+                    {errors.category && (
+                      <span className="text-sm text-red-500">
+                        {errors.category.message}
                       </span>
                     )}
                   </div>
