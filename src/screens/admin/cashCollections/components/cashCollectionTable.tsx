@@ -1,11 +1,20 @@
-import React, { useState, useMemo } from 'react';
-import { 
-  Search, Filter, Download, 
-  X, Calendar, DollarSign, MapPin, 
-  User, QrCode, ChevronUp, ChevronDown,
-  Eye, ExternalLink
-} from 'lucide-react';
-import { format, parseISO } from 'date-fns';
+import React, { useState, useMemo } from "react";
+import {
+  Search,
+  Filter,
+  Download,
+  X,
+  Calendar,
+  DollarSign,
+  MapPin,
+  User,
+  QrCode,
+  ChevronUp,
+  ChevronDown,
+  Eye,
+  ExternalLink,
+} from "lucide-react";
+import { format, parseISO } from "date-fns";
 
 interface CashCollectionTableProps {
   data: CashCollection[];
@@ -25,9 +34,9 @@ const CashCollectionTable: React.FC<CashCollectionTableProps> = ({
   // State
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [sortBy, setSortBy] = useState<keyof CashCollection>('created_at');
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+  const [searchTerm, setSearchTerm] = useState("");
+  const [sortBy, setSortBy] = useState<keyof CashCollection>("created_at");
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
   const [filters, setFilters] = useState<Filters>({});
   const [showFilters, setShowFilters] = useState(false);
   const [selectedRow, setSelectedRow] = useState<CashCollection | null>(null);
@@ -35,11 +44,14 @@ const CashCollectionTable: React.FC<CashCollectionTableProps> = ({
 
   // Calculate totals
   const totals = useMemo(() => {
-    const totalAmount = data.reduce((sum, item) => sum + parseFloat(item.cash_received || '0'), 0);
+    const totalAmount = data.reduce(
+      (sum, item) => sum + parseFloat(item.cash_received || "0"),
+      0,
+    );
     const totalCollections = data.length;
-    const uniqueMachines = new Set(data.map(item => item.machine_code)).size;
-    const uniqueUsers = new Set(data.map(item => item.username)).size;
-    
+    const uniqueMachines = new Set(data.map((item) => item.machine_code)).size;
+    const uniqueUsers = new Set(data.map((item) => item.username)).size;
+
     return {
       totalAmount,
       totalCollections,
@@ -50,7 +62,7 @@ const CashCollectionTable: React.FC<CashCollectionTableProps> = ({
 
   // Filter and sort data
   const filteredAndSortedData = useMemo(() => {
-    let filtered = data.filter(item => {
+    let filtered = data.filter((item) => {
       // Search term filter
       if (searchTerm) {
         const searchLower = searchTerm.toLowerCase();
@@ -63,14 +75,18 @@ const CashCollectionTable: React.FC<CashCollectionTableProps> = ({
 
       // Additional filters
       if (filters.user_id && item.user_id !== filters.user_id) return false;
-      if (filters.machine_code && item.machine_code !== filters.machine_code) return false;
-      if (filters.location && !item.location.includes(filters.location)) return false;
-      
+      if (filters.machine_code && item.machine_code !== filters.machine_code)
+        return false;
+      if (filters.location && !item.location.includes(filters.location))
+        return false;
+
       // Date filters
       if (filters.date_from || filters.date_to) {
         const itemDate = new Date(item.created_at);
-        if (filters.date_from && itemDate < new Date(filters.date_from)) return false;
-        if (filters.date_to && itemDate > new Date(filters.date_to)) return false;
+        if (filters.date_from && itemDate < new Date(filters.date_from))
+          return false;
+        if (filters.date_to && itemDate > new Date(filters.date_to))
+          return false;
       }
 
       return true;
@@ -80,17 +96,17 @@ const CashCollectionTable: React.FC<CashCollectionTableProps> = ({
     filtered.sort((a, b) => {
       const aValue = a[sortBy];
       const bValue = b[sortBy];
-      
-      if (typeof aValue === 'string' && typeof bValue === 'string') {
-        return sortOrder === 'asc' 
+
+      if (typeof aValue === "string" && typeof bValue === "string") {
+        return sortOrder === "asc"
           ? aValue.localeCompare(bValue)
           : bValue.localeCompare(aValue);
       }
-      
-      if (typeof aValue === 'number' && typeof bValue === 'number') {
-        return sortOrder === 'asc' ? aValue - bValue : bValue - aValue;
+
+      if (typeof aValue === "number" && typeof bValue === "number") {
+        return sortOrder === "asc" ? aValue - bValue : bValue - aValue;
       }
-      
+
       return 0;
     });
 
@@ -105,14 +121,14 @@ const CashCollectionTable: React.FC<CashCollectionTableProps> = ({
 
   // Handlers
   const handleSort = (property: keyof CashCollection) => {
-    const isAsc = sortBy === property && sortOrder === 'asc';
-    setSortOrder(isAsc ? 'desc' : 'asc');
+    const isAsc = sortBy === property && sortOrder === "asc";
+    setSortOrder(isAsc ? "desc" : "asc");
     setSortBy(property);
   };
 
   const handleClearFilters = () => {
     setFilters({});
-    setSearchTerm('');
+    setSearchTerm("");
     setPage(0);
   };
 
@@ -130,7 +146,7 @@ const CashCollectionTable: React.FC<CashCollectionTableProps> = ({
   // Format date
   const formatDate = (dateString: string) => {
     try {
-      return format(parseISO(dateString), 'dd MMM yyyy, hh:mm a');
+      return format(parseISO(dateString), "dd MMM yyyy, hh:mm a");
     } catch {
       return dateString;
     }
@@ -139,23 +155,33 @@ const CashCollectionTable: React.FC<CashCollectionTableProps> = ({
   // Format currency
   const formatCurrency = (amount: string) => {
     const num = parseFloat(amount);
-    return new Intl.NumberFormat('en-PK', {
-      style: 'currency',
-      currency: 'PKR',
+    return new Intl.NumberFormat("en-PK", {
+      style: "currency",
+      currency: "PKR",
       minimumFractionDigits: 0,
       maximumFractionDigits: 2,
     }).format(num);
   };
 
   // Get unique values for filters
-  const uniqueMachines = useMemo(() => 
-    [...new Set(data.map(item => item.machine_code))], [data]);
-  
-  const uniqueUsers = useMemo(() => 
-    [...new Set(data.map(item => ({ id: item.user_id, name: item.username })))], [data]);
-  
-  const uniqueLocations = useMemo(() => 
-    [...new Set(data.map(item => item.location))], [data]);
+  const uniqueMachines = useMemo(
+    () => [...new Set(data.map((item) => item.machine_code))],
+    [data],
+  );
+
+  const uniqueUsers = useMemo(
+    () => [
+      ...new Set(
+        data.map((item) => ({ id: item.user_id, name: item.username })),
+      ),
+    ],
+    [data],
+  );
+
+  const uniqueLocations = useMemo(
+    () => [...new Set(data.map((item) => item.location))],
+    [data],
+  );
 
   if (loading) {
     return (
@@ -188,7 +214,7 @@ const CashCollectionTable: React.FC<CashCollectionTableProps> = ({
             </div>
           </div>
         </div> */}
-        
+
         {/* <div className="bg-white rounded-lg shadow p-5">
           <div className="flex items-center justify-between">
             <div>
@@ -202,24 +228,28 @@ const CashCollectionTable: React.FC<CashCollectionTableProps> = ({
             </div>
           </div>
         </div> */}
-        
+
         <div className="bg-white rounded-lg shadow p-5">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-500">Total Machines Count</p>
-              <p className="text-2xl font-bold text-gray-900">{totals.uniqueMachines}</p>
+              <p className="text-2xl font-bold text-gray-900">
+                {totals.uniqueMachines}
+              </p>
             </div>
             <div className="p-3 bg-purple-50 rounded-lg">
               <QrCode className="h-6 w-6 text-purple-600" />
             </div>
           </div>
         </div>
-        
+
         <div className="bg-white rounded-lg shadow p-5">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-500">Total Roles</p>
-              <p className="text-2xl font-bold text-gray-900">{totals.uniqueUsers}</p>
+              <p className="text-2xl font-bold text-gray-900">
+                {totals.uniqueUsers}
+              </p>
             </div>
             <div className="p-3 bg-indigo-50 rounded-lg">
               <User className="h-6 w-6 text-indigo-600" />
@@ -243,14 +273,14 @@ const CashCollectionTable: React.FC<CashCollectionTableProps> = ({
               />
             </div>
           </div>
-          
+
           <div className="flex items-center gap-2">
             <button
               onClick={() => setShowFilters(!showFilters)}
               className={`flex items-center gap-2 px-4 py-2 rounded-lg border ${
                 Object.keys(filters).length > 0
-                  ? 'bg-blue-50 border-blue-200 text-blue-700'
-                  : 'border-gray-300 text-gray-700 hover:bg-gray-50'
+                  ? "bg-blue-50 border-blue-200 text-blue-700"
+                  : "border-gray-300 text-gray-700 hover:bg-gray-50"
               }`}
             >
               <Filter className="h-4 w-4" />
@@ -261,7 +291,7 @@ const CashCollectionTable: React.FC<CashCollectionTableProps> = ({
                 </span>
               )}
             </button>
-            
+
             {onExport && (
               <button
                 onClick={handleExport}
@@ -271,7 +301,7 @@ const CashCollectionTable: React.FC<CashCollectionTableProps> = ({
                 Export
               </button>
             )}
-            
+
             {onRefresh && (
               <button
                 onClick={onRefresh}
@@ -280,7 +310,7 @@ const CashCollectionTable: React.FC<CashCollectionTableProps> = ({
                 Refresh
               </button>
             )}
-            
+
             {Object.keys(filters).length > 0 && (
               <button
                 onClick={handleClearFilters}
@@ -302,7 +332,12 @@ const CashCollectionTable: React.FC<CashCollectionTableProps> = ({
                 <span className="inline-flex items-center gap-1 bg-blue-100 text-blue-800 text-sm px-3 py-1 rounded-full">
                   Machine: {filters.machine_code}
                   <button
-                    onClick={() => setFilters(prev => ({ ...prev, machine_code: undefined }))}
+                    onClick={() =>
+                      setFilters((prev) => ({
+                        ...prev,
+                        machine_code: undefined,
+                      }))
+                    }
                     className="hover:text-blue-900"
                   >
                     <X className="h-3 w-3" />
@@ -313,7 +348,9 @@ const CashCollectionTable: React.FC<CashCollectionTableProps> = ({
                 <span className="inline-flex items-center gap-1 bg-green-100 text-green-800 text-sm px-3 py-1 rounded-full">
                   Location: {filters.location}
                   <button
-                    onClick={() => setFilters(prev => ({ ...prev, location: undefined }))}
+                    onClick={() =>
+                      setFilters((prev) => ({ ...prev, location: undefined }))
+                    }
                     className="hover:text-green-900"
                   >
                     <X className="h-3 w-3" />
@@ -322,9 +359,12 @@ const CashCollectionTable: React.FC<CashCollectionTableProps> = ({
               )}
               {filters.user_id && (
                 <span className="inline-flex items-center gap-1 bg-purple-100 text-purple-800 text-sm px-3 py-1 rounded-full">
-                  User: {uniqueUsers.find(u => u.id === filters.user_id)?.name}
+                  User:{" "}
+                  {uniqueUsers.find((u) => u.id === filters.user_id)?.name}
                   <button
-                    onClick={() => setFilters(prev => ({ ...prev, user_id: undefined }))}
+                    onClick={() =>
+                      setFilters((prev) => ({ ...prev, user_id: undefined }))
+                    }
                     className="hover:text-purple-900"
                   >
                     <X className="h-3 w-3" />
@@ -335,7 +375,9 @@ const CashCollectionTable: React.FC<CashCollectionTableProps> = ({
                 <span className="inline-flex items-center gap-1 bg-yellow-100 text-yellow-800 text-sm px-3 py-1 rounded-full">
                   Min: {formatCurrency(filters.min_amount.toString())}
                   <button
-                    onClick={() => setFilters(prev => ({ ...prev, min_amount: undefined }))}
+                    onClick={() =>
+                      setFilters((prev) => ({ ...prev, min_amount: undefined }))
+                    }
                     className="hover:text-yellow-900"
                   >
                     <X className="h-3 w-3" />
@@ -346,7 +388,9 @@ const CashCollectionTable: React.FC<CashCollectionTableProps> = ({
                 <span className="inline-flex items-center gap-1 bg-red-100 text-red-800 text-sm px-3 py-1 rounded-full">
                   Max: {formatCurrency(filters.max_amount.toString())}
                   <button
-                    onClick={() => setFilters(prev => ({ ...prev, max_amount: undefined }))}
+                    onClick={() =>
+                      setFilters((prev) => ({ ...prev, max_amount: undefined }))
+                    }
                     className="hover:text-red-900"
                   >
                     <X className="h-3 w-3" />
@@ -366,90 +410,102 @@ const CashCollectionTable: React.FC<CashCollectionTableProps> = ({
                   Machine Code
                 </label>
                 <select
-                  value={filters.machine_code || ''}
-                  onChange={(e) => setFilters(prev => ({ 
-                    ...prev, 
-                    machine_code: e.target.value || undefined 
-                  }))}
+                  value={filters.machine_code || ""}
+                  onChange={(e) =>
+                    setFilters((prev) => ({
+                      ...prev,
+                      machine_code: e.target.value || undefined,
+                    }))
+                  }
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
                 >
                   <option value="">All Machines</option>
-                  {uniqueMachines.map(machine => (
+                  {uniqueMachines.map((machine) => (
                     <option key={machine} value={machine}>
                       {machine}
                     </option>
                   ))}
                 </select>
               </div>
-              
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   User
                 </label>
                 <select
-                  value={filters.user_id || ''}
-                  onChange={(e) => setFilters(prev => ({ 
-                    ...prev, 
-                    user_id: e.target.value ? Number(e.target.value) : undefined 
-                  }))}
+                  value={filters.user_id || ""}
+                  onChange={(e) =>
+                    setFilters((prev) => ({
+                      ...prev,
+                      user_id: e.target.value
+                        ? Number(e.target.value)
+                        : undefined,
+                    }))
+                  }
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
                 >
                   <option value="">All Users</option>
-                  {uniqueUsers.map(user => (
+                  {uniqueUsers.map((user) => (
                     <option key={user.id} value={user.id}>
                       {user.name}
                     </option>
                   ))}
                 </select>
               </div>
-              
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Location
                 </label>
                 <select
-                  value={filters.location || ''}
-                  onChange={(e) => setFilters(prev => ({ 
-                    ...prev, 
-                    location: e.target.value || undefined 
-                  }))}
+                  value={filters.location || ""}
+                  onChange={(e) =>
+                    setFilters((prev) => ({
+                      ...prev,
+                      location: e.target.value || undefined,
+                    }))
+                  }
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
                 >
                   <option value="">All Locations</option>
-                  {uniqueLocations.map(location => (
+                  {uniqueLocations.map((location) => (
                     <option key={location} value={location}>
                       {location}
                     </option>
                   ))}
                 </select>
               </div>
-              
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   From Date
                 </label>
                 <input
                   type="date"
-                  value={filters.date_from || ''}
-                  onChange={(e) => setFilters(prev => ({ 
-                    ...prev, 
-                    date_from: e.target.value || undefined 
-                  }))}
+                  value={filters.date_from || ""}
+                  onChange={(e) =>
+                    setFilters((prev) => ({
+                      ...prev,
+                      date_from: e.target.value || undefined,
+                    }))
+                  }
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
                 />
               </div>
-              
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   To Date
                 </label>
                 <input
                   type="date"
-                  value={filters.date_to || ''}
-                  onChange={(e) => setFilters(prev => ({ 
-                    ...prev, 
-                    date_to: e.target.value || undefined 
-                  }))}
+                  value={filters.date_to || ""}
+                  onChange={(e) =>
+                    setFilters((prev) => ({
+                      ...prev,
+                      date_to: e.target.value || undefined,
+                    }))
+                  }
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
                 />
               </div>
@@ -464,59 +520,79 @@ const CashCollectionTable: React.FC<CashCollectionTableProps> = ({
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
-                <th 
-                  onClick={() => handleSort('machine_code')}
+                <th
+                  onClick={() => handleSort("machine_code")}
                   className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
                 >
                   <div className="flex items-center gap-1">
                     Machine Code
-                    {sortBy === 'machine_code' && (
-                      sortOrder === 'asc' ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />
-                    )}
+                    {sortBy === "machine_code" &&
+                      (sortOrder === "asc" ? (
+                        <ChevronUp className="h-4 w-4" />
+                      ) : (
+                        <ChevronDown className="h-4 w-4" />
+                      ))}
                   </div>
                 </th>
-                <th 
-                  onClick={() => handleSort('location')}
+                <th
+                  onClick={() => handleSort("location")}
                   className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
                 >
                   <div className="flex items-center gap-1">
                     Location
-                    {sortBy === 'location' && (
-                      sortOrder === 'asc' ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />
-                    )}
+                    {sortBy === "location" &&
+                      (sortOrder === "asc" ? (
+                        <ChevronUp className="h-4 w-4" />
+                      ) : (
+                        <ChevronDown className="h-4 w-4" />
+                      ))}
                   </div>
                 </th>
-                <th 
-                  onClick={() => handleSort('cash_received')}
+                <th
+                  onClick={() => handleSort("cash_received")}
                   className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
                 >
                   <div className="flex items-center gap-1">
                     Amount
-                    {sortBy === 'cash_received' && (
-                      sortOrder === 'asc' ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />
-                    )}
+                    {sortBy === "cash_received" &&
+                      (sortOrder === "asc" ? (
+                        <ChevronUp className="h-4 w-4" />
+                      ) : (
+                        <ChevronDown className="h-4 w-4" />
+                      ))}
                   </div>
                 </th>
-                <th 
-                  onClick={() => handleSort('username')}
+                <th
+                  onClick={() => handleSort("username")}
                   className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
                 >
                   <div className="flex items-center gap-1">
                     User
-                    {sortBy === 'username' && (
-                      sortOrder === 'asc' ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />
-                    )}
+                    {sortBy === "username" &&
+                      (sortOrder === "asc" ? (
+                        <ChevronUp className="h-4 w-4" />
+                      ) : (
+                        <ChevronDown className="h-4 w-4" />
+                      ))}
                   </div>
                 </th>
-                <th 
-                  onClick={() => handleSort('created_at')}
+                <th
+                  onClick={() => handleSort("created_at")}
                   className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
                 >
                   <div className="flex items-center gap-1">
                     Date & Time
-                    {sortBy === 'created_at' && (
-                      sortOrder === 'asc' ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />
-                    )}
+                    {sortBy === "created_at" &&
+                      (sortOrder === "asc" ? (
+                        <ChevronUp className="h-4 w-4" />
+                      ) : (
+                        <ChevronDown className="h-4 w-4" />
+                      ))}
+                  </div>
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100">
+                  <div className="flex items-center gap-1">
+                    STOCKED (1 | 2 | 3 | 4) <ChevronDown className="h-4 w-4" />
                   </div>
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -524,7 +600,7 @@ const CashCollectionTable: React.FC<CashCollectionTableProps> = ({
                 </th>
               </tr>
             </thead>
-            
+
             <tbody className="bg-white divide-y divide-gray-200">
               {paginatedData.length === 0 ? (
                 <tr>
@@ -545,7 +621,7 @@ const CashCollectionTable: React.FC<CashCollectionTableProps> = ({
                 </tr>
               ) : (
                 paginatedData.map((row) => (
-                  <tr 
+                  <tr
                     key={row.id}
                     className="hover:bg-gray-50 cursor-pointer transition-colors"
                   >
@@ -558,15 +634,19 @@ const CashCollectionTable: React.FC<CashCollectionTableProps> = ({
                     <td className="px-6 py-4 text-sm text-gray-900">
                       <div className="flex items-center gap-2">
                         <MapPin className="h-4 w-4 text-gray-400 flex-shrink-0" />
-                        <span className="truncate max-w-xs">{row.location}</span>
+                        <span className="truncate max-w-xs">
+                          {row.location}
+                        </span>
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm">
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                        parseFloat(row.cash_received) > 0
-                          ? 'bg-green-100 text-green-800'
-                          : 'bg-gray-100 text-gray-800'
-                      }`}>
+                      <span
+                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                          parseFloat(row.cash_received) > 0
+                            ? "bg-green-100 text-green-800"
+                            : "bg-gray-100 text-gray-800"
+                        }`}
+                      >
                         {formatCurrency(row.cash_received)}
                       </span>
                     </td>
@@ -578,6 +658,12 @@ const CashCollectionTable: React.FC<CashCollectionTableProps> = ({
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       {formatDate(row.created_at)}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <div className="flex items-center gap-2">
+                        <User className="h-4 w-4 text-gray-400" />
+                        {row.row1} | {row.row2} | {row.row3} | {row.row4}
+                      </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm">
                       <button
@@ -599,14 +685,22 @@ const CashCollectionTable: React.FC<CashCollectionTableProps> = ({
         <div className="flex items-center justify-between px-6 py-4 bg-gray-50 border-t">
           <div className="flex items-center gap-2">
             <span className="text-sm text-gray-700">
-              Showing <span className="font-medium">{page * rowsPerPage + 1}</span> to{" "}
+              Showing{" "}
+              <span className="font-medium">{page * rowsPerPage + 1}</span> to{" "}
               <span className="font-medium">
-                {Math.min((page + 1) * rowsPerPage, filteredAndSortedData.length)}
+                {Math.min(
+                  (page + 1) * rowsPerPage,
+                  filteredAndSortedData.length,
+                )}
               </span>{" "}
-              of <span className="font-medium">{filteredAndSortedData.length}</span> results
+              of{" "}
+              <span className="font-medium">
+                {filteredAndSortedData.length}
+              </span>{" "}
+              results
             </span>
           </div>
-          
+
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2">
               <span className="text-sm text-gray-700">Rows per page:</span>
@@ -625,7 +719,7 @@ const CashCollectionTable: React.FC<CashCollectionTableProps> = ({
                 ))}
               </select>
             </div>
-            
+
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setPage(Math.max(0, page - 1))}
@@ -634,14 +728,25 @@ const CashCollectionTable: React.FC<CashCollectionTableProps> = ({
               >
                 Previous
               </button>
-              
+
               <span className="text-sm text-gray-700">
-                Page {page + 1} of {Math.ceil(filteredAndSortedData.length / rowsPerPage)}
+                Page {page + 1} of{" "}
+                {Math.ceil(filteredAndSortedData.length / rowsPerPage)}
               </span>
-              
+
               <button
-                onClick={() => setPage(Math.min(Math.ceil(filteredAndSortedData.length / rowsPerPage) - 1, page + 1))}
-                disabled={page >= Math.ceil(filteredAndSortedData.length / rowsPerPage) - 1}
+                onClick={() =>
+                  setPage(
+                    Math.min(
+                      Math.ceil(filteredAndSortedData.length / rowsPerPage) - 1,
+                      page + 1,
+                    ),
+                  )
+                }
+                disabled={
+                  page >=
+                  Math.ceil(filteredAndSortedData.length / rowsPerPage) - 1
+                }
                 className="px-3 py-1 border border-gray-300 rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
               >
                 Next
@@ -666,7 +771,7 @@ const CashCollectionTable: React.FC<CashCollectionTableProps> = ({
                 <X className="h-6 w-6" />
               </button>
             </div>
-            
+
             <div className="p-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-4">
@@ -676,10 +781,12 @@ const CashCollectionTable: React.FC<CashCollectionTableProps> = ({
                     </label>
                     <div className="flex items-center gap-2">
                       <QrCode className="h-5 w-5 text-gray-400" />
-                      <p className="text-lg font-semibold">{selectedRow.machine_code}</p>
+                      <p className="text-lg font-semibold">
+                        {selectedRow.machine_code}
+                      </p>
                     </div>
                   </div>
-                  
+
                   <div>
                     <label className="block text-sm font-medium text-gray-500 mb-1">
                       Amount
@@ -688,7 +795,7 @@ const CashCollectionTable: React.FC<CashCollectionTableProps> = ({
                       {formatCurrency(selectedRow.cash_received)}
                     </p>
                   </div>
-                  
+
                   <div>
                     <label className="block text-sm font-medium text-gray-500 mb-1">
                       Collected By
@@ -699,7 +806,7 @@ const CashCollectionTable: React.FC<CashCollectionTableProps> = ({
                     </div>
                   </div>
                 </div>
-                
+
                 <div className="space-y-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-500 mb-1">
@@ -710,31 +817,37 @@ const CashCollectionTable: React.FC<CashCollectionTableProps> = ({
                       <p className="text-lg">{selectedRow.location}</p>
                     </div>
                   </div>
-                  
+
                   <div>
                     <label className="block text-sm font-medium text-gray-500 mb-1">
                       User ID
                     </label>
-                    <p className="text-lg font-semibold">{selectedRow.user_id}</p>
+                    <p className="text-lg font-semibold">
+                      {selectedRow.user_id}
+                    </p>
                   </div>
-                  
+
                   <div>
                     <label className="block text-sm font-medium text-gray-500 mb-1">
                       Date & Time
                     </label>
-                    <p className="text-lg">{formatDate(selectedRow.created_at)}</p>
+                    <p className="text-lg">
+                      {formatDate(selectedRow.created_at)}
+                    </p>
                   </div>
-                  
+
                   <div>
                     <label className="block text-sm font-medium text-gray-500 mb-1">
                       Epoch Time
                     </label>
-                    <p className="text-lg font-mono">{selectedRow.epoch_time}</p>
+                    <p className="text-lg font-mono">
+                      {selectedRow.epoch_time}
+                    </p>
                   </div>
                 </div>
               </div>
             </div>
-            
+
             <div className="flex justify-end p-6 border-t">
               <button
                 onClick={() => setShowDetailModal(false)}

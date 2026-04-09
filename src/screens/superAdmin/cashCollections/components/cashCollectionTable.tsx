@@ -519,6 +519,13 @@ const CashCollectionTable: React.FC<CashCollectionTableProps> = ({
                     )}
                   </div>
                 </th>
+                <th
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                >
+                  <div className="flex items-center gap-1">
+                    STOCKED (1 | 2 | 3 | 4) <ChevronDown className="h-4 w-4" />
+                  </div>
+                </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Actions
                 </th>
@@ -578,6 +585,12 @@ const CashCollectionTable: React.FC<CashCollectionTableProps> = ({
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       {formatDate(row.created_at)}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <div className="flex items-center gap-2">
+                        <User className="h-4 w-4 text-gray-400" />
+                        {row.row1} | {row.row2} | {row.row3} | {row.row4}
+                      </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm">
                       <button
