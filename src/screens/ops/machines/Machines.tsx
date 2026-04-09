@@ -19,11 +19,13 @@ import {
   ChevronsRight
 } from "lucide-react";
 import type { ApiMachine, MachinesResponse } from "./Types";
-import { getRequest, postRequest } from "@/Apis/Api";
+import { getRequest } from "@/Apis/Api";
 import { timeConverter } from "@/constants/Constant";
 import { SiteHeader } from "@/components/ops/site-header";
 import { useNavigate } from "react-router-dom";
 import AddMachine from "./components/addMachines";
+import DeleteMachine from "./components/deleteMachine";
+import UpdateMachine from "./components/updateMachine";
 import { Search, ChevronLeft, ChevronRight, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react"
 
 const categories = [
@@ -53,6 +55,9 @@ const Machines = () => {
   const [showDetails, setShowDetails] = useState<ApiMachine | null>(null);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [open, setOpen] = useState(false);
+  const [openDelete, setOpenDelete] = useState(false);
+  const [openUpdate, setOpenUpdate] = useState(false);
+  const [selectedMachine, setSelectedMachine] = useState<ApiMachine | null>(null);
   const [columnFilters, setColumnFilters] = useState<{
     machine_code: string;
     machine_name: string;
@@ -361,6 +366,7 @@ const Machines = () => {
                       </div>
                     </th>
                     <th className="px-4 py-2 text-center">Visit</th>
+                    <th className="px-4 py-2 text-center">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -399,6 +405,32 @@ const Machines = () => {
                           >
                             Visit
                           </Button>
+                        </td>
+                        <td className="px-4 py-3 text-center">
+                          <div className="flex items-center justify-center gap-2">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="border-teal-600 text-teal-600 hover:bg-teal-50"
+                              onClick={() => {
+                                setSelectedMachine(machine);
+                                setOpenUpdate(true);
+                              }}
+                            >
+                              Edit
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="border-red-500 text-red-500 hover:bg-red-50"
+                              onClick={() => {
+                                setSelectedMachine(machine);
+                                setOpenDelete(true);
+                              }}
+                            >
+                              Delete
+                            </Button>
+                          </div>
                         </td>
                       </motion.tr>
                     ))}
@@ -528,6 +560,18 @@ const Machines = () => {
         </AnimatePresence>
       </div>
       <AddMachine open={open} setOpen={setOpen} />
+      <DeleteMachine
+        open={openDelete}
+        setOpen={setOpenDelete}
+        machine={selectedMachine}
+        onSuccess={fetchMachines}
+      />
+      <UpdateMachine
+        open={openUpdate}
+        setOpen={setOpenUpdate}
+        machine={selectedMachine}
+        onSuccess={fetchMachines}
+      />
     </div>
   );
 };
