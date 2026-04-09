@@ -287,7 +287,7 @@ export function FinanceMobileUsersDataTable() {
   const dataIds = React.useMemo<UniqueIdentifier[]>(() => data?.map(({ id }) => id) || [], [data])
 
   // Helper function to normalize user data
-  const normalizeUserData = (users: any[]): z.infer<typeof mobileUserSchema>[] => {
+  const normalizeUserData = (users: (Omit<z.infer<typeof mobileUserSchema>, "tokens"> & { tokens?: { device_id: string; type: string }[] })[]): z.infer<typeof mobileUserSchema>[] => {
     return users.map((user) => ({
       ...user,
       tokens: user.tokens || [], // Ensure tokens is always an array

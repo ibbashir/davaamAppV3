@@ -62,7 +62,7 @@ const CashCollectionTable: React.FC<CashCollectionTableProps> = ({
 
   // Filter and sort data
   const filteredAndSortedData = useMemo(() => {
-    let filtered = data.filter((item) => {
+    const filtered = data.filter((item) => {
       // Search term filter
       if (searchTerm) {
         const searchLower = searchTerm.toLowerCase();

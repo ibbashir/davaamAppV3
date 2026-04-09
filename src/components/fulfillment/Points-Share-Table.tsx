@@ -46,7 +46,7 @@ function PointsShareTable({ tableData }: PointsShareTableProps) {
     }, [searchTerm])
 
     // Memoized filtered and paginated data
-    const { filteredData, paginatedData, totalPages, totalItems } = useMemo(() => {
+    const { paginatedData, totalPages, totalItems } = useMemo(() => {
         // Enhanced search functionality
         const filtered = searchTerm
             ? tableData.filter((item: PointsShareData) => {

@@ -91,7 +91,7 @@ export default function AdminDashboardDispensing() {
                         <div className="px-3 py-1 text-sm bg-white shadow-md rounded-md border border-gray-200 text-black">
                             <strong>{datum.label}</strong><br />
                             Revenue: Rs {datum.value.toLocaleString(undefined, { maximumFractionDigits: 2 })}<br />
-                            Transactions: {(datum.data as any).transactions}
+                            Transactions: {(datum.data as NivoPieData).transactions}
                         </div>
                     )}
                 />

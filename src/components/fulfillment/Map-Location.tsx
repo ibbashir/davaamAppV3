@@ -35,7 +35,7 @@ const MapLocation = ({ machineData = [] }: MapLocationProps) => {
         googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "",
     })
 
-    const [map, setMap] = useState<google.maps.Map | null>(null)
+    const [_map, setMap] = useState<google.maps.Map | null>(null)
     const [activeMarker, setActiveMarker] = useState<number | null>(null)
 
     const validMachineData = machineData.filter(

@@ -7,6 +7,7 @@ import { useForm } from "react-hook-form"
 import type { SubmitHandler } from "react-hook-form"
 import loader from "../assets/infinite-spinner.svg"
 import { useEffect, useState } from "react"
+import { Eye, EyeOff } from "lucide-react"
 import { useAuth } from "@/contexts/AuthContext"
 import { useNavigate } from "react-router-dom"
 
@@ -21,6 +22,7 @@ export function LoginForm({ className }: React.ComponentProps<"form">) {
   const { user, loading } = state;
   const navigate = useNavigate();
   const [loginError, setLoginError] = useState<string>("")
+  const [showPassword, setShowPassword] = useState(false)
 
   // ---------------------
   // REDIRECT IF LOGGED IN
@@ -90,7 +92,16 @@ export function LoginForm({ className }: React.ComponentProps<"form">) {
               Forgot your password?
             </a>
           </div>
-          <Input type="password" placeholder="Password" {...register("password", { required: true })} />
+          <div className="relative">
+            <Input type={showPassword ? "text" : "password"} placeholder="Password" {...register("password", { required: true })} className="pr-10" />
+            <button
+              type="button"
+              onClick={() => setShowPassword(prev => !prev)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+            >
+              {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+            </button>
+          </div>
           {errors.password && <span className="text-red-500 text-xs font-semibold">Password is Required</span>}
         </div>
 
