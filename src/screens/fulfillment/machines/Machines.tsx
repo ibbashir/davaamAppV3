@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Label } from "@/components/ui/label"
 import { Search, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Info } from "lucide-react"
 import type { ApiMachine, MachinesResponse } from "./Types"
-import { getRequest, postRequest } from "@/Apis/Api"
+import { getRequest } from "@/Apis/Api"
 import { timeConverter } from "@/constants/Constant"
 import { SiteHeader } from "@/components/ops/site-header"
 import { useNavigate } from "react-router-dom"
@@ -38,17 +38,25 @@ const Machines = () => {
   const [loading, setLoading] = useState(true)
   const [showDetails, setShowDetails] = useState<ApiMachine | null>(null)
   const [itemsPerPage, setItemsPerPage] = useState(10)
-  const [open,setOpen]=useState(false)
+  const [open, setOpen] = useState(false)
+  const [debouncedSearch, setDebouncedSearch] = useState("")
+  const [serverTotalPages, setServerTotalPages] = useState(1)
 
   useEffect(() => {
-    fetchMachines()
-  }, [])
+    const t = setTimeout(() => setDebouncedSearch(searchTerm), 500)
+    return () => clearTimeout(t)
+  }, [searchTerm])
 
-  const fetchMachines = async () => {
+  useEffect(() => {
+    fetchMachines(1, activeCategory, debouncedSearch, itemsPerPage)
+  }, [activeCategory, debouncedSearch, itemsPerPage])
+
+  const fetchMachines = async (page: number, category: string, search: string, limit: number) => {
     try {
       setLoading(true)
-      const res = await getRequest<MachinesResponse>(`/fulfillment/getAllMachineStockAndStatus`)
-      const { machines, brands } = res.data
+      const params = new URLSearchParams({ page: String(page), limit: String(limit), category, ...(search ? { search } : {}) })
+      const res = await getRequest<MachinesResponse>(`/fulfillment/getAllMachineStockAndStatus?${params}`)
+      const { machines, brands, pagination } = res.data
 
       const stockMap: { [code: string]: string } = {}
       const allBrands = [...brands.vending, ...brands.dispensing]
@@ -67,8 +75,10 @@ const Machines = () => {
         else stockMap[code] = "In Stock"
       }
 
+      setCurrentPage(page)
       setMachinesData(machines)
       setMachineStockMap(stockMap)
+      setServerTotalPages(pagination?.totalPages ?? 1)
     } catch (error) {
       console.error("Error fetching machines:", error)
     } finally {
@@ -87,18 +97,6 @@ const Machines = () => {
         }))
       )
     : []
-
-  const filteredMachines = allMachines.filter((machine) => {
-    const matchesSearch =
-      machine.machine_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      machine.machine_code.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesCategory = machine.category === activeCategory
-    return matchesSearch && matchesCategory
-  })
-
-  const totalPages = Math.ceil(filteredMachines.length / itemsPerPage)
-  const startIndex = (currentPage - 1) * itemsPerPage
-  const paginatedMachines = filteredMachines.slice(startIndex, startIndex + itemsPerPage)
 
   const getStatusBadge = (status: string) => {
     const colorMap: Record<string, string> = {
@@ -128,12 +126,9 @@ const Machines = () => {
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Search by Machine Id or Location"
+              placeholder="Search by Machine ID or Name"
               value={searchTerm}
-              onChange={(e) => {
-                setSearchTerm(e.target.value)
-                setCurrentPage(1)
-              }}
+              onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10"
             />
           </div>
@@ -143,31 +138,38 @@ const Machines = () => {
                 key={category.id}
                 variant={activeCategory === category.id ? "default" : "outline"}
                 size="sm"
-                onClick={() => {
-                  setActiveCategory(category.id)
-                  setCurrentPage(1)
-                }}
-                className={activeCategory === category.id ? "bg-teal-600 hover:bg-teal-700" : ""}
+                onClick={() => setActiveCategory(category.id)}
+                className={activeCategory === category.id ? "bg-teal-600 hover:bg-teal-700 cursor-pointer" : "cursor-pointer"}
               >
                 {category.label}
               </Button>
             ))}
           </div>
         </div>
+
+        {/* Results Count */}
+        <div className="mb-2 text-sm text-gray-600">
+          Page {currentPage} of {serverTotalPages}
+          {searchTerm && <span> — searching "<strong>{searchTerm}</strong>"</span>}
+        </div>
+
         <div className="flex justify-end p-2">
-          <Button onClick={()=> setOpen(true)}>
+          <Button onClick={() => setOpen(true)}>
             Add Machines
           </Button>
         </div>
+
         {/* Cards */}
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <AnimatePresence>
             {loading ? (
               <p className="col-span-full text-center py-6">Loading machines...</p>
-            ) : paginatedMachines.length === 0 ? (
-              <p className="col-span-full text-center py-6">No machines found.</p>
+            ) : allMachines.length === 0 ? (
+              <p className="col-span-full text-center py-6">
+                {searchTerm ? "No machines match your search criteria." : "No machines found."}
+              </p>
             ) : (
-              paginatedMachines.map((machine) => (
+              allMachines.map((machine) => (
                 <motion.div
                   key={machine.id}
                   initial={{ opacity: 0, y: 20 }}
@@ -211,11 +213,11 @@ const Machines = () => {
           </AnimatePresence>
         </div>
 
-        {/* Fixed Pagination */}
-        {paginatedMachines.length > 0 && (
+        {/* Pagination */}
+        {allMachines.length > 0 && (
           <div className="flex items-center justify-between px-4 mt-6">
             <div className="text-muted-foreground hidden flex-1 text-sm lg:flex">
-              Showing {paginatedMachines.length} of {filteredMachines.length} machines
+              Page {currentPage} of {serverTotalPages}
             </div>
             <div className="flex w-full items-center gap-8 lg:w-fit">
               <div className="hidden items-center gap-2 lg:flex">
@@ -224,10 +226,7 @@ const Machines = () => {
                 </Label>
                 <Select
                   value={`${itemsPerPage}`}
-                  onValueChange={(value) => {
-                    setItemsPerPage(Number(value))
-                    setCurrentPage(1)
-                  }}
+                  onValueChange={(value) => setItemsPerPage(Number(value))}
                 >
                   <SelectTrigger size="sm" className="w-20" id="rows-per-page">
                     <SelectValue placeholder={itemsPerPage} />
@@ -242,13 +241,13 @@ const Machines = () => {
                 </Select>
               </div>
               <div className="flex w-fit items-center justify-center text-sm font-medium">
-                Page {currentPage} of {totalPages}
+                Page {currentPage} of {serverTotalPages}
               </div>
               <div className="ml-auto flex items-center gap-2 lg:ml-0">
                 <Button
                   variant="outline"
                   className="hidden h-8 w-8 p-0 lg:flex bg-transparent"
-                  onClick={() => setCurrentPage(1)}
+                  onClick={() => fetchMachines(1, activeCategory, debouncedSearch, itemsPerPage)}
                   disabled={currentPage === 1}
                 >
                   <span className="sr-only">Go to first page</span>
@@ -258,7 +257,7 @@ const Machines = () => {
                   variant="outline"
                   className="size-8 bg-transparent"
                   size="icon"
-                  onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                  onClick={() => fetchMachines(currentPage - 1, activeCategory, debouncedSearch, itemsPerPage)}
                   disabled={currentPage === 1}
                 >
                   <span className="sr-only">Go to previous page</span>
@@ -268,8 +267,8 @@ const Machines = () => {
                   variant="outline"
                   className="size-8 bg-transparent"
                   size="icon"
-                  onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
-                  disabled={currentPage === totalPages}
+                  onClick={() => fetchMachines(currentPage + 1, activeCategory, debouncedSearch, itemsPerPage)}
+                  disabled={currentPage === serverTotalPages}
                 >
                   <span className="sr-only">Go to next page</span>
                   <ChevronRight className="h-4 w-4" />
@@ -278,8 +277,8 @@ const Machines = () => {
                   variant="outline"
                   className="hidden size-8 lg:flex bg-transparent"
                   size="icon"
-                  onClick={() => setCurrentPage(totalPages)}
-                  disabled={currentPage === totalPages}
+                  onClick={() => fetchMachines(serverTotalPages, activeCategory, debouncedSearch, itemsPerPage)}
+                  disabled={currentPage === serverTotalPages}
                 >
                   <span className="sr-only">Go to last page</span>
                   <ChevronsRight className="h-4 w-4" />
@@ -320,7 +319,7 @@ const Machines = () => {
             </motion.div>
           )}
         </AnimatePresence>
-      </div> 
+      </div>
       <AddMachine open={open} setOpen={setOpen} />
     </div>
   )

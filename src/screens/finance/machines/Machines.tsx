@@ -10,7 +10,6 @@ import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardHeader, CardContent } from "@/components/ui/card"
 import type { ApiMachine, MachinesResponse } from "./Types"
-import moment from "moment-timezone"
 
 const categories = [
   { id: "Butterfly", label: "🦋 Butterfly" },
@@ -38,41 +37,32 @@ const FinanceMachines = () => {
   const [currentPage, setCurrentPage] = useState(1)
   const [machinesData, setMachinesData] = useState<{ [category: string]: ApiMachine[] } | null>(null)
   const [machineStockMap, setMachineStockMap] = useState<{ [code: string]: string }>({})
-  const [loading, setLoading] = useState(true);
-  const [isShowCleaningProducts, setIsShowCleaningProducts] = useState(false);
-  const [sortConfig, setSortConfig] = useState<{ field: SortField; direction: SortDirection }>({ 
-    field: 'machine_code', 
-    direction: 'asc' 
-  });
-  const [columnFilters, setColumnFilters] = useState<{
-    machine_code: string;
-    machine_name: string;
-    machine_type: string;
-    category: string;
-    lastActive: string;
-    stockStatus: string;
-    status: string;
-  }>({
-    machine_code: '',
-    machine_name: '',
-    machine_type: '',
-    category: '',
-    lastActive: '',
-    stockStatus: '',
-    status: ''
-  });
+  const [loading, setLoading] = useState(true)
+  const [isShowCleaningProducts, setIsShowCleaningProducts] = useState(false)
+  const [sortConfig, setSortConfig] = useState<{ field: SortField; direction: SortDirection }>({
+    field: 'machine_code',
+    direction: 'asc'
+  })
+  const [debouncedSearch, setDebouncedSearch] = useState("")
+  const [serverTotalPages, setServerTotalPages] = useState(1)
 
   const itemsPerPage = 10
 
   useEffect(() => {
-    fetchMachines()
-  }, [])
+    const t = setTimeout(() => setDebouncedSearch(searchTerm), 500)
+    return () => clearTimeout(t)
+  }, [searchTerm])
 
-  const fetchMachines = async () => {
+  useEffect(() => {
+    fetchMachines(1, activeCategory, debouncedSearch)
+  }, [activeCategory, debouncedSearch])
+
+  const fetchMachines = async (page: number, category: string, search: string) => {
     try {
       setLoading(true)
-      const res = await getRequest<MachinesResponse>(`/finance/getAllMachineStockAndStatus`)
-      const { machines, brands } = res.data
+      const params = new URLSearchParams({ page: String(page), limit: String(itemsPerPage), category, ...(search ? { search } : {}) })
+      const res = await getRequest<MachinesResponse>(`/finance/getAllMachineStockAndStatus?${params}`)
+      const { machines, brands, pagination } = res.data
 
       const stockMap: { [code: string]: string } = {}
       const allBrands = [...brands.vending, ...brands.dispensing]
@@ -91,8 +81,10 @@ const FinanceMachines = () => {
         else stockMap[code] = "In Stock"
       }
 
+      setCurrentPage(page)
       setMachinesData(machines)
       setMachineStockMap(stockMap)
+      setServerTotalPages(pagination?.totalPages ?? 1)
     } catch (error) {
       console.error("Error fetching machines:", error)
     } finally {
@@ -115,90 +107,39 @@ const FinanceMachines = () => {
   const handleSort = (field: SortField) => {
     setSortConfig(current => ({
       field,
-      direction: 
-        current.field === field 
-          ? current.direction === 'asc' 
-            ? 'desc' 
-            : current.direction === 'desc'
-            ? 'none'
-            : 'asc'
-          : 'asc'
-    }));
-    setCurrentPage(1);
-  };
-
-  const handleColumnFilter = (field: keyof typeof columnFilters, value: string) => {
-    setColumnFilters(prev => ({
-      ...prev,
-      [field]: value
-    }));
-    setCurrentPage(1);
-  };
-
-  const clearColumnFilter = (field: keyof typeof columnFilters) => {
-    setColumnFilters(prev => ({
-      ...prev,
-      [field]: ''
-    }));
-    setCurrentPage(1);
-  };
+      direction:
+        current.field === field
+          ? current.direction === 'asc' ? 'desc' : current.direction === 'desc' ? 'none' : 'asc'
+          : 'asc',
+    }))
+  }
 
   const getSortIcon = (field: SortField) => {
-    if (sortConfig.field !== field) return <ArrowUpDown className="h-3 w-3 ml-1" />;
+    if (sortConfig.field !== field) return <ArrowUpDown className="h-3 w-3 ml-1" />
     switch (sortConfig.direction) {
-      case 'asc': return <ArrowUp className="h-3 w-3 ml-1" />;
-      case 'desc': return <ArrowDown className="h-3 w-3 ml-1" />;
-      default: return <ArrowUpDown className="h-3 w-3 ml-1" />;
+      case 'asc': return <ArrowUp className="h-3 w-3 ml-1" />
+      case 'desc': return <ArrowDown className="h-3 w-3 ml-1" />
+      default: return <ArrowUpDown className="h-3 w-3 ml-1" />
     }
-  };
+  }
 
-  const filteredMachines = allMachines.filter((machine) => {
-    const searchLower = searchTerm.toLowerCase();
-    const matchesSearch =
-      machine.machine_name.toLowerCase().includes(searchLower) ||
-      machine.machine_code.toLowerCase().includes(searchLower) ||
-      machine.machine_type.toLowerCase().includes(searchLower) ||
-      machine.category.toLowerCase().includes(searchLower) ||
-      machine.lastActive.toLowerCase().includes(searchLower);
+  const sortedMachines = [...allMachines].sort((a, b) => {
+    if (sortConfig.direction === 'none') return 0
 
-    const matchesCategory = machine.category === activeCategory;
-
-    // Apply column filters
-    const matchesColumnFilters = 
-      (!columnFilters.machine_code || machine.machine_code.toLowerCase().includes(columnFilters.machine_code.toLowerCase())) &&
-      (!columnFilters.machine_name || machine.machine_name.toLowerCase().includes(columnFilters.machine_name.toLowerCase())) &&
-      (!columnFilters.machine_type || machine.machine_type.toLowerCase().includes(columnFilters.machine_type.toLowerCase())) &&
-      (!columnFilters.category || machine.category.toLowerCase().includes(columnFilters.category.toLowerCase())) &&
-      (!columnFilters.lastActive || machine.lastActive.toLowerCase().includes(columnFilters.lastActive.toLowerCase())) &&
-      (!columnFilters.stockStatus || machine.stockStatus.toLowerCase().includes(columnFilters.stockStatus.toLowerCase())) &&
-      (!columnFilters.status || machine.status.toLowerCase().includes(columnFilters.status.toLowerCase()));
-
-    return matchesSearch && matchesCategory && matchesColumnFilters;
-  });
-
-  // Apply sorting
-  const sortedMachines = [...filteredMachines].sort((a, b) => {
-    if (sortConfig.direction === 'none') return 0;
-
-    const { field, direction } = sortConfig;
-    const multiplier = direction === 'asc' ? 1 : -1;
+    const { field, direction } = sortConfig
+    const multiplier = direction === 'asc' ? 1 : -1
 
     if (field === 'lastActive') {
-      // For date sorting, convert back to timestamp for proper comparison
-      return multiplier * (new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+      return multiplier * (new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
     }
 
-    const aValue = a[field]?.toString().toLowerCase() || '';
-    const bValue = b[field]?.toString().toLowerCase() || '';
+    const aValue = a[field]?.toString().toLowerCase() || ''
+    const bValue = b[field]?.toString().toLowerCase() || ''
 
-    if (aValue < bValue) return -1 * multiplier;
-    if (aValue > bValue) return 1 * multiplier;
-    return 0;
-  });
-
-  const totalPages = Math.ceil(sortedMachines.length / itemsPerPage)
-  const startIndex = (currentPage - 1) * itemsPerPage
-  const paginatedMachines = sortedMachines.slice(startIndex, startIndex + itemsPerPage)
+    if (aValue < bValue) return -1 * multiplier
+    if (aValue > bValue) return 1 * multiplier
+    return 0
+  })
 
   const getStatusBadge = (status: string) => {
     const colorMap: Record<string, string> = {
@@ -219,25 +160,6 @@ const FinanceMachines = () => {
     return <Badge className={colorMap[status] || "bg-gray-100 text-gray-800"}>{status}</Badge>
   }
 
-  const FilterInput = ({ field, placeholder }: { field: keyof typeof columnFilters; placeholder: string }) => (
-    <div className="relative">
-      <Input
-        placeholder={placeholder}
-        value={columnFilters[field]}
-        onChange={(e) => handleColumnFilter(field, e.target.value)}
-        className="h-7 text-xs w-full"
-      />
-      {columnFilters[field] && (
-        <button
-          onClick={() => clearColumnFilter(field)}
-          className="absolute right-1 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
-        >
-          ×
-        </button>
-      )}
-    </div>
-  );
-
   return (
     <div>
       <SiteHeader title="Deployed Machines" />
@@ -247,12 +169,9 @@ const FinanceMachines = () => {
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Search by Machine ID, Name, Type, Category, or Last Active"
+              placeholder="Search by Machine ID or Name"
               value={searchTerm}
-              onChange={(e) => {
-                setSearchTerm(e.target.value)
-                setCurrentPage(1)
-              }}
+              onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10"
             />
           </div>
@@ -263,13 +182,12 @@ const FinanceMachines = () => {
                 variant={activeCategory === category.id ? "default" : "outline"}
                 size="sm"
                 onClick={() => {
-                  setActiveCategory(category.id)
-                  setCurrentPage(1)
                   if (category.id === "CleaningProducts") {
-                    setIsShowCleaningProducts(true);
-                    setActiveCategory(subCategories[0].id);
+                    setIsShowCleaningProducts(true)
+                    setActiveCategory(subCategories[0].id)
                   } else {
-                    setIsShowCleaningProducts(false);
+                    setIsShowCleaningProducts(false)
+                    setActiveCategory(category.id)
                   }
                 }}
                 className={activeCategory === category.id ? "bg-teal-600 hover:bg-teal-700 cursor-pointer" : "cursor-pointer"}
@@ -286,10 +204,7 @@ const FinanceMachines = () => {
                   key={subCategory.id}
                   variant={activeCategory === subCategory.id ? "default" : "outline"}
                   size="sm"
-                  onClick={() => {
-                    setActiveCategory(subCategory.id)
-                    setCurrentPage(1)
-                  }}
+                  onClick={() => setActiveCategory(subCategory.id)}
                   className={activeCategory === subCategory.id ? "bg-teal-600 hover:bg-teal-700 cursor-pointer" : "cursor-pointer"}
                 >
                   {subCategory.label}
@@ -301,10 +216,8 @@ const FinanceMachines = () => {
 
         {/* Results Count */}
         <div className="mb-4 text-sm text-gray-600">
-          Showing {sortedMachines.length} of {allMachines.length} machines
-          {searchTerm && (
-            <span> for "<strong>{searchTerm}</strong>"</span>
-          )}
+          Page {currentPage} of {serverTotalPages}
+          {searchTerm && <span> — searching "<strong>{searchTerm}</strong>"</span>}
         </div>
 
         {/* Table View */}
@@ -317,11 +230,9 @@ const FinanceMachines = () => {
           <CardContent className="overflow-x-auto">
             {loading ? (
               <p className="text-center py-6">Loading machines...</p>
-            ) : paginatedMachines.length === 0 ? (
+            ) : sortedMachines.length === 0 ? (
               <p className="text-center py-6">
-                {searchTerm || Object.values(columnFilters).some(filter => filter) 
-                  ? "No machines match your search criteria." 
-                  : "No machines found."}
+                {searchTerm ? "No machines match your search criteria." : "No machines found."}
               </p>
             ) : (
               <table className="min-w-full text-sm overflow-hidden rounded-xl border border-gray-200">
@@ -374,7 +285,7 @@ const FinanceMachines = () => {
                 </thead>
                 <tbody>
                   <AnimatePresence>
-                    {paginatedMachines.map((machine) => (
+                    {sortedMachines.map((machine) => (
                       <motion.tr
                         key={machine.id}
                         initial={{ opacity: 0, y: 10 }}
@@ -414,17 +325,17 @@ const FinanceMachines = () => {
           <Button
             variant="outline"
             size="sm"
-            onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+            onClick={() => fetchMachines(currentPage - 1, activeCategory, debouncedSearch)}
             disabled={currentPage === 1}
           >
             <ChevronLeft className="h-4 w-4" /> Previous
           </Button>
-          {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+          {Array.from({ length: serverTotalPages }, (_, i) => i + 1).map((page) => (
             <Button
               key={page}
               variant={currentPage === page ? "default" : "outline"}
               size="sm"
-              onClick={() => setCurrentPage(page)}
+              onClick={() => fetchMachines(page, activeCategory, debouncedSearch)}
               className={currentPage === page ? "bg-teal-600 hover:bg-teal-700" : ""}
             >
               {page}
@@ -433,8 +344,8 @@ const FinanceMachines = () => {
           <Button
             variant="outline"
             size="sm"
-            onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
-            disabled={currentPage === totalPages}
+            onClick={() => fetchMachines(currentPage + 1, activeCategory, debouncedSearch)}
+            disabled={currentPage === serverTotalPages}
           >
             Next <ChevronRight className="h-4 w-4" />
           </Button>

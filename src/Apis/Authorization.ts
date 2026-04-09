@@ -1,70 +1,51 @@
 // Authorization.ts
+// Tokens live exclusively in httpOnly cookies set by the backend.
+// The browser sends them automatically when withCredentials is true –
+// we never read, store, or inject them from JavaScript.
 import axios from "axios";
 import { BASE_URL } from "@/constants/Constant";
 
-let accessToken: string | null = null;
-
-export const setAccessToken = (token: string) => {
-  accessToken = token;
-};
-
-export const getAccessToken = () => accessToken;
-
-const getCookie = (name: string) => {
-  const match = document.cookie.match(new RegExp("(^| )" + name + "=([^;]+)"));
-  return match ? decodeURIComponent(match[2]) : null;
-};
-
 const api = axios.create({
   baseURL: BASE_URL,
-  withCredentials: true, // send HTTP-only cookies
+  withCredentials: true, // sends httpOnly auth cookies on every request
   headers: {
     "Content-Type": "application/json",
   },
 });
 
-api.interceptors.request.use(
-  (config) => {
-    // Read access token cookie
-    const cookieToken = getCookie("access_token");
-
-    if (cookieToken) {
-      config.headers["Authorization"] = cookieToken;
-    }
-
-    return config;
-  },
-  (error) => Promise.reject(error)
-);
-
-// Response Interceptor
+// Response interceptor: on 401 try a silent token refresh, then retry once.
 api.interceptors.response.use(
   (res) => res,
   async (error) => {
     const originalRequest = error.config;
 
+    const isAuthEndpoint =
+      originalRequest?.url?.includes("/auth/refresh") ||
+      originalRequest?.url?.includes("/auth/login") ||
+      originalRequest?.url?.includes("/auth/logout");
+
+    // Only refresh on 401 (unauthenticated / expired token).
+    // 403 means the user is authenticated but lacks the required role — refreshing won't help.
     if (
-      (error.response?.status === 401 || error.response?.status === 403) &&
-      !originalRequest._retry
+      error.response?.status === 401 &&
+      !originalRequest._retry &&
+      !isAuthEndpoint
     ) {
       originalRequest._retry = true;
 
       try {
-        const response = await axios.post(
+        // Backend rotates the refresh token and sets new httpOnly cookies.
+        await axios.post(
           `${BASE_URL}/auth/refresh`,
           {},
           { withCredentials: true }
         );
 
-        // const cookieToken = getCookie("access_token");
-        // console.log("two", cookieToken);
-
-        const { accessToken: newAccessToken } = response.data;
-        setAccessToken(newAccessToken);
-        originalRequest.headers["Authorization"] = `${newAccessToken}`;
+        // Retry the original request — cookies are now updated.
         return api(originalRequest);
-      } catch (refreshError) {
-        return Promise.reject(refreshError);
+      } catch {
+        // Refresh failed (e.g. refresh token expired) – let the caller handle it.
+        return Promise.reject(error);
       }
     }
 

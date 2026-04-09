@@ -40,6 +40,9 @@ const categories = [
   { id: "Unknown", label: "❓ Unknown" },
 ];
 
+type SortField = 'machine_code' | 'machine_name' | 'machine_type' | 'category' | 'lastActive' | 'stockStatus' | 'status';
+type SortDirection = 'asc' | 'desc' | 'none';
+
 const Machines = () => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
@@ -58,38 +61,30 @@ const Machines = () => {
   const [openDelete, setOpenDelete] = useState(false);
   const [openUpdate, setOpenUpdate] = useState(false);
   const [selectedMachine, setSelectedMachine] = useState<ApiMachine | null>(null);
-  const [columnFilters, setColumnFilters] = useState<{
-    machine_code: string;
-    machine_name: string;
-    machine_type: string;
-    category: string;
-    lastActive: string;
-    stockStatus: string;
-    status: string;
-  }>({
-    machine_code: "",
-    machine_name: "",
-    machine_type: "",
-    category: "",
-    lastActive: "",
-    stockStatus: "",
-    status: "",
+  const [sortConfig, setSortConfig] = useState<{ field: SortField; direction: SortDirection }>({
+    field: 'machine_code',
+    direction: 'asc'
   });
-  useEffect(() => {
-    fetchMachines();
-  }, []);
-  const [sortConfig, setSortConfig] = useState<{ field: SortField; direction: SortDirection }>({ 
-      field: 'machine_code', 
-      direction: 'asc' 
-    });
+  const [debouncedSearch, setDebouncedSearch] = useState("")
+  const [serverTotalPages, setServerTotalPages] = useState(1)
 
-  const fetchMachines = async () => {
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedSearch(searchTerm), 500)
+    return () => clearTimeout(t)
+  }, [searchTerm])
+
+  useEffect(() => {
+    fetchMachines(1, activeCategory, debouncedSearch, itemsPerPage)
+  }, [activeCategory, debouncedSearch, itemsPerPage])
+
+  const fetchMachines = async (page: number, category: string, search: string, limit: number) => {
     try {
       setLoading(true);
+      const params = new URLSearchParams({ page: String(page), limit: String(limit), category, ...(search ? { search } : {}) })
       const res = await getRequest<MachinesResponse>(
-        `/ops/getAllMachineStockAndStatus`,
+        `/ops/getAllMachineStockAndStatus?${params}`,
       );
-      const { machines, brands } = res.data;
+      const { machines, brands, pagination } = res.data;
 
       const stockMap: { [code: string]: string } = {};
       const allBrands = [...brands.vending, ...brands.dispensing];
@@ -108,8 +103,10 @@ const Machines = () => {
         else stockMap[code] = "In Stock";
       }
 
+      setCurrentPage(page)
       setMachinesData(machines);
       setMachineStockMap(stockMap);
+      setServerTotalPages(pagination?.totalPages ?? 1)
     } catch (error) {
       console.error("Error fetching machines:", error);
     } finally {
@@ -146,10 +143,7 @@ const Machines = () => {
               : "asc"
           : "asc",
     }));
-    setCurrentPage(1);
   };
-
-
 
   const getSortIcon = (field: SortField) => {
     if (sortConfig.field !== field)
@@ -163,39 +157,14 @@ const Machines = () => {
         return <ArrowUpDown className="h-3 w-3 ml-1" />;
     }
   };
-  const filteredMachines = allMachines.filter((machine) => {
-    const searchLower = searchTerm.toLowerCase();
-    const matchesSearch =
-      machine.machine_name.toLowerCase().includes(searchLower) ||
-      machine.machine_code.toLowerCase().includes(searchLower) ||
-      machine.machine_type.toLowerCase().includes(searchLower) ||
-      machine.category.toLowerCase().includes(searchLower) ||
-      machine.lastActive.toLowerCase().includes(searchLower);
 
-    const matchesCategory = machine.category === activeCategory;
-
-    // Apply column filters
-    const matchesColumnFilters = 
-      (!columnFilters.machine_code || machine.machine_code.toLowerCase().includes(columnFilters.machine_code.toLowerCase())) &&
-      (!columnFilters.machine_name || machine.machine_name.toLowerCase().includes(columnFilters.machine_name.toLowerCase())) &&
-      (!columnFilters.machine_type || machine.machine_type.toLowerCase().includes(columnFilters.machine_type.toLowerCase())) &&
-      (!columnFilters.category || machine.category.toLowerCase().includes(columnFilters.category.toLowerCase())) &&
-      (!columnFilters.lastActive || machine.lastActive.toLowerCase().includes(columnFilters.lastActive.toLowerCase())) &&
-      (!columnFilters.stockStatus || machine.stockStatus.toLowerCase().includes(columnFilters.stockStatus.toLowerCase())) &&
-      (!columnFilters.status || machine.status.toLowerCase().includes(columnFilters.status.toLowerCase()));
-
-    return matchesSearch && matchesCategory && matchesColumnFilters;
-  });
-
-  // Apply sorting
-  const sortedMachines = [...filteredMachines].sort((a, b) => {
+  const sortedMachines = [...allMachines].sort((a, b) => {
     if (sortConfig.direction === 'none') return 0;
 
     const { field, direction } = sortConfig;
     const multiplier = direction === 'asc' ? 1 : -1;
 
     if (field === 'lastActive') {
-      // For date sorting, convert back to timestamp for proper comparison
       return multiplier * (new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
     }
 
@@ -206,10 +175,6 @@ const Machines = () => {
     if (aValue > bValue) return 1 * multiplier;
     return 0;
   });
-
-  const totalPages = Math.ceil(sortedMachines.length / itemsPerPage)
-  const startIndex = (currentPage - 1) * itemsPerPage
-  const paginatedMachines = sortedMachines.slice(startIndex, startIndex + itemsPerPage)
 
   const getStatusBadge = (status: string) => {
     const colorMap: Record<string, string> = {
@@ -247,12 +212,9 @@ const Machines = () => {
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Search by Machine Id or Location"
+              placeholder="Search by Machine ID or Name"
               value={searchTerm}
-              onChange={(e) => {
-                setSearchTerm(e.target.value);
-                setCurrentPage(1);
-              }}
+              onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10"
             />
           </div>
@@ -262,14 +224,11 @@ const Machines = () => {
                 key={category.id}
                 variant={activeCategory === category.id ? "default" : "outline"}
                 size="sm"
-                onClick={() => {
-                  setActiveCategory(category.id);
-                  setCurrentPage(1);
-                }}
+                onClick={() => setActiveCategory(category.id)}
                 className={
                   activeCategory === category.id
-                    ? "bg-teal-600 hover:bg-teal-700"
-                    : ""
+                    ? "bg-teal-600 hover:bg-teal-700 cursor-pointer"
+                    : "cursor-pointer"
                 }
               >
                 {category.label}
@@ -277,6 +236,13 @@ const Machines = () => {
             ))}
           </div>
         </div>
+
+        {/* Results Count */}
+        <div className="mb-4 text-sm text-gray-600">
+          Page {currentPage} of {serverTotalPages}
+          {searchTerm && <span> — searching "<strong>{searchTerm}</strong>"</span>}
+        </div>
+
         <div className="flex justify-end p-2">
           <Button onClick={() => setOpen(true)}>Add Machines</Button>
         </div>
@@ -291,12 +257,9 @@ const Machines = () => {
           <CardContent className="overflow-x-auto">
             {loading ? (
               <p className="text-center py-6">Loading machines...</p>
-            ) : paginatedMachines.length === 0 ? (
+            ) : sortedMachines.length === 0 ? (
               <p className="text-center py-6">
-                {searchTerm ||
-                Object.values(columnFilters).some((filter) => filter)
-                  ? "No machines match your search criteria."
-                  : "No machines found."}
+                {searchTerm ? "No machines match your search criteria." : "No machines found."}
               </p>
             ) : (
               <table className="min-w-full text-sm overflow-hidden rounded-xl border border-gray-200">
@@ -371,7 +334,7 @@ const Machines = () => {
                 </thead>
                 <tbody>
                   <AnimatePresence>
-                    {paginatedMachines.map((machine) => (
+                    {sortedMachines.map((machine) => (
                       <motion.tr
                         key={machine.id}
                         initial={{ opacity: 0, y: 10 }}
@@ -441,12 +404,11 @@ const Machines = () => {
           </CardContent>
         </Card>
 
-        {/* Fixed Pagination */}
-        {paginatedMachines.length > 0 && (
+        {/* Pagination */}
+        {sortedMachines.length > 0 && (
           <div className="flex items-center justify-between px-4 mt-6">
             <div className="text-muted-foreground hidden flex-1 text-sm lg:flex">
-              Showing {paginatedMachines.length} of {filteredMachines.length}{" "}
-              machines
+              Page {currentPage} of {serverTotalPages}
             </div>
             <div className="flex w-full items-center gap-8 lg:w-fit">
               <div className="hidden items-center gap-2 lg:flex">
@@ -455,10 +417,7 @@ const Machines = () => {
                 </Label>
                 <Select
                   value={`${itemsPerPage}`}
-                  onValueChange={(value) => {
-                    setItemsPerPage(Number(value));
-                    setCurrentPage(1);
-                  }}
+                  onValueChange={(value) => setItemsPerPage(Number(value))}
                 >
                   <SelectTrigger size="sm" className="w-20" id="rows-per-page">
                     <SelectValue placeholder={itemsPerPage} />
@@ -473,13 +432,13 @@ const Machines = () => {
                 </Select>
               </div>
               <div className="flex w-fit items-center justify-center text-sm font-medium">
-                Page {currentPage} of {totalPages}
+                Page {currentPage} of {serverTotalPages}
               </div>
               <div className="ml-auto flex items-center gap-2 lg:ml-0">
                 <Button
                   variant="outline"
                   className="hidden h-8 w-8 p-0 lg:flex bg-transparent"
-                  onClick={() => setCurrentPage(1)}
+                  onClick={() => fetchMachines(1, activeCategory, debouncedSearch, itemsPerPage)}
                   disabled={currentPage === 1}
                 >
                   <span className="sr-only">Go to first page</span>
@@ -489,7 +448,7 @@ const Machines = () => {
                   variant="outline"
                   className="size-8 bg-transparent"
                   size="icon"
-                  onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                  onClick={() => fetchMachines(currentPage - 1, activeCategory, debouncedSearch, itemsPerPage)}
                   disabled={currentPage === 1}
                 >
                   <span className="sr-only">Go to previous page</span>
@@ -499,10 +458,8 @@ const Machines = () => {
                   variant="outline"
                   className="size-8 bg-transparent"
                   size="icon"
-                  onClick={() =>
-                    setCurrentPage(Math.min(totalPages, currentPage + 1))
-                  }
-                  disabled={currentPage === totalPages}
+                  onClick={() => fetchMachines(currentPage + 1, activeCategory, debouncedSearch, itemsPerPage)}
+                  disabled={currentPage === serverTotalPages}
                 >
                   <span className="sr-only">Go to next page</span>
                   <ChevronRight className="h-4 w-4" />
@@ -511,8 +468,8 @@ const Machines = () => {
                   variant="outline"
                   className="hidden size-8 lg:flex bg-transparent"
                   size="icon"
-                  onClick={() => setCurrentPage(totalPages)}
-                  disabled={currentPage === totalPages}
+                  onClick={() => fetchMachines(serverTotalPages, activeCategory, debouncedSearch, itemsPerPage)}
+                  disabled={currentPage === serverTotalPages}
                 >
                   <span className="sr-only">Go to last page</span>
                   <ChevronsRight className="h-4 w-4" />
@@ -564,13 +521,13 @@ const Machines = () => {
         open={openDelete}
         setOpen={setOpenDelete}
         machine={selectedMachine}
-        onSuccess={fetchMachines}
+        onSuccess={() => fetchMachines(currentPage, activeCategory, debouncedSearch, itemsPerPage)}
       />
       <UpdateMachine
         open={openUpdate}
         setOpen={setOpenUpdate}
         machine={selectedMachine}
-        onSuccess={fetchMachines}
+        onSuccess={() => fetchMachines(currentPage, activeCategory, debouncedSearch, itemsPerPage)}
       />
     </div>
   );

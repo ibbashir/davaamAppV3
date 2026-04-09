@@ -6,7 +6,7 @@ import {
 } from "@/components/ui/sidebar"
 import { Outlet } from 'react-router-dom'
 import { useAuth } from '@/contexts/AuthContext'
-import { ChatbotWidget } from '@/components/chatbot-widget'
+// import { ChatbotWidget } from '@/components/chatbot-widget'
 
 export default function Layout() {
   const { state } = useAuth()
@@ -25,7 +25,7 @@ export default function Layout() {
       <SidebarInset>
         <Outlet />
       </SidebarInset>
-      {isSuperAdmin && <ChatbotWidget />}
+      {/* {isSuperAdmin && <ChatbotWidget />} */}
     </SidebarProvider>
   )
 }

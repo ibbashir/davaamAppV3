@@ -1,182 +1,128 @@
-import { createContext, useContext, useReducer, useEffect } from "react"
-import axios from "axios"
-import { BASE_URL } from "@/constants/Constant"
-import { setAccessToken } from "../Apis/Authorization";
-import { useCookies } from 'react-cookie';
+import { createContext, useContext, useReducer, useEffect } from "react";
+import axios from "axios";
+import { BASE_URL } from "@/constants/Constant";
+
+type Machine = { machine_code: string };
 
 type User = {
-  id: number
-  email: string
-  user_role: string
-  first_name: string
-  last_name: string
-  machines: Array<machine_code>
-}
+  id: number;
+  email: string;
+  user_role: string;
+  first_name: string;
+  last_name: string;
+  machines?: Machine[];
+  role_code?: string;
+};
 
 type AuthState = {
-  user: User | null
-  token: string | null
-  loading: boolean
-}
+  user: User | null;
+  loading: boolean;
+};
 
 type AuthAction =
-  | { type: "LOGIN"; payload: { user: User; token: string } }
+  | { type: "LOGIN"; payload: User }
   | { type: "LOGOUT" }
-  | { type: "LOADED" }
+  | { type: "LOADED" };
 
 const initialState: AuthState = {
   user: null,
-  token: null,
   loading: true,
-}
+};
 
 const AuthContext = createContext<{
-  state: AuthState
-  login: (email: string, password: string) => Promise<string>
-  logout: () => Promise<void>
+  state: AuthState;
+  login: (email: string, password: string) => Promise<string>;
+  logout: () => Promise<void>;
 }>({
   state: initialState,
   login: async () => "",
-  logout: async () => { },
-})
+  logout: async () => {},
+});
 
 function authReducer(state: AuthState, action: AuthAction): AuthState {
   switch (action.type) {
     case "LOGIN":
-      return { user: action.payload.user, token: action.payload.token, loading: false }
+      return { user: action.payload, loading: false };
     case "LOGOUT":
-      return { user: null, token: null, loading: false }
+      return { user: null, loading: false };
     case "LOADED":
-      return { ...state, loading: false }
+      return { ...state, loading: false };
     default:
-      return state
+      return state;
   }
 }
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [state, dispatch] = useReducer(authReducer, initialState);
-  const [accessTokenTwo, setAccessTokenTwo, removeAccessToken] = useCookies(['access_token']);
-  const [refreshToken, setRefreshToken, removeRefreshToken] = useCookies(['refresh_token']);
 
-
-  const checkSession = async () => {
-    try {
-
-      const res = await axios.post(
-        `${BASE_URL}/auth/user`,
-        {
-          accessToken: accessTokenTwo?.access_token,
-          refreshToken: refreshToken?.refresh_token,
-        },
-        { withCredentials: true } // if backend sets httpOnly cookies
-      );
-
-      const { user, accessToken: newToken } = res.data;
-
-      dispatch({
-        type: "LOGIN",
-        payload: { user, token: newToken },
-      });
-
-    } catch (err) {
-      console.warn("User session expired.", err);
-      dispatch({ type: "LOADED" });
-    }
-  };
-
-  // Load user on refresh using cookies
+  // On mount: check if there is an active session via the httpOnly cookie.
+  // No tokens are sent in the body – the browser handles cookies automatically.
   useEffect(() => {
-    checkSession()
-  }, [])
-
-  const login = async (email: string, password: string) => {
-    try {
-      const res = await axios.post(
-        `${BASE_URL}/auth/login`,
-        { email, password },
-        { withCredentials: true }
-      )
-
-      const data = res.data
-      const role_code = data.user.role_code;
-
-
-      if (data.statusCode !== "200") {
-        throw new Error(data.message || "Login failed")
+    const checkSession = async () => {
+      try {
+        const res = await axios.post(
+          `${BASE_URL}/auth/user`,
+          {},
+          { withCredentials: true }
+        );
+        dispatch({ type: "LOGIN", payload: res.data.user });
+      } catch {
+        dispatch({ type: "LOADED" });
       }
+    };
 
-      if (role_code === "3") {
-        const machines: { machine_code: string }[] = data.user.machines;
-        const allMachineCodes = machines.map(machine => machine.machine_code)
-        localStorage.setItem("machines", JSON.stringify(allMachineCodes))
-      }
+    checkSession();
+  }, []);
 
-      const user = data.user
-      const accessToken = data.accessToken
+  const login = async (email: string, password: string): Promise<string> => {
+    // Credentials are sent; the backend sets httpOnly cookies on success.
+    // We never touch the tokens on the frontend.
+    const res = await axios.post(
+      `${BASE_URL}/auth/login`,
+      { email, password },
+      { withCredentials: true }
+    );
 
-      setAccessTokenTwo('access_token', accessToken, { path: '/' });
-      setRefreshToken('refresh_token', data.refreshToken, { path: '/' });
+    const data = res.data;
 
-
-      if (accessToken) {
-        setAccessToken(accessToken); // <── ADD THIS
-      }
-
-      dispatch({ type: "LOGIN", payload: { user, token: accessToken } })
-
-      return user.user_role.toLowerCase().replace(/\s/g, "")
-    } catch (error) {
-      console.error("Login error:", error)
-      if (axios.isAxiosError(error)) {
-        throw new Error(error.response?.data?.message || "Login failed")
-      }
-      throw new Error("Login failed")
+    if (data.statusCode !== "200") {
+      throw new Error(data.message || "Login failed");
     }
-  }
 
-  function deleteAllCookies() {
-    document.cookie.split(";").forEach(cookie => {
-      const eqPos = cookie.indexOf("=");
-      const name = eqPos > -1 ? cookie.substring(0, eqPos).trim() : cookie.trim();
-      document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/`;
-    });
-  }
+    const user: User = data.user;
+
+    // Store ops-role machine list locally (non-sensitive, display-only)
+    if (user.role_code === "3" && Array.isArray(user.machines)) {
+      const codes = user.machines.map((m) => m.machine_code);
+      localStorage.setItem("machines", JSON.stringify(codes));
+    }
+
+    dispatch({ type: "LOGIN", payload: user });
+
+    return user.user_role.toLowerCase().replace(/\s/g, "");
+  };
 
   const logout = async () => {
     try {
+      // Backend clears both httpOnly cookies server-side
       await axios.post(
         `${BASE_URL}/auth/logout`,
-        {
-          accessToken: accessTokenTwo?.access_token,
-          refreshToken: refreshToken?.refresh_token,
-        },
+        {},
         { withCredentials: true }
       );
-
-      // Clear localStorage
-      localStorage.clear();
-      deleteAllCookies();
-
-      // Remove cookies
-      removeAccessToken('access_token', { path: '/' });
-      removeRefreshToken('refresh_token', { path: '/' });
-
-    } catch (err) {
-      console.error("Logout failed:", err);
-      removeAccessToken('access_token', { path: '/' });
-      removeRefreshToken('refresh_token', { path: '/' });
+    } catch {
+      // Even if the request fails we still clear local state
     }
 
-    // Update state
+    localStorage.clear();
     dispatch({ type: "LOGOUT" });
-  }
-
+  };
 
   return (
     <AuthContext.Provider value={{ state, login, logout }}>
       {children}
     </AuthContext.Provider>
-  )
-}
+  );
+};
 
-export const useAuth = () => useContext(AuthContext)
+export const useAuth = () => useContext(AuthContext);

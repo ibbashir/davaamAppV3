@@ -162,9 +162,11 @@ const ResetPassword = () => {
 
     const resetPassword = async (newPassword: string) => {
         try {
+            // Send the raw token to the backend so it can verify the JWT
+            // signature server-side. Never trust client-side-only validation.
             await putRequest('/auth/reset', {
-                password: newPassword, 
-                email: decodedToken?.email
+                token,
+                password: newPassword,
             })
             
             setMessage({

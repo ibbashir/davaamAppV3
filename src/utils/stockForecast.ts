@@ -297,16 +297,17 @@ export function buildForecastMap(
 // Public API — background enrichment (transaction-based)
 // ---------------------------------------------------------------------------
 
-type DetailResponse = {
-  transactions: MachineTransaction[]
-  brands: { id: number; name: string }[]
-  fillings: unknown[]
+type BatchResponse = {
+  success: boolean
+  data: Record<string, { brands: { id: number; name: string }[]; transactions: MachineTransaction[] }>
 }
 
 /**
- * Fetches full transaction history for the given machine codes
- * and recomputes forecasts. Only fetches machines not already enriched.
- * Calls `onBatchReady` once with all updates.
+ * Fetches transaction history for all unenriched machine codes in a single
+ * batch request, then recomputes forecasts. Calls `onBatchReady` once with
+ * all updates.
+ *
+ * @param endpoint  Role-specific batch endpoint (e.g. "/superadmin/machineDetailsBatch")
  */
 export async function enrichForecastMap(
   machineCodes: string[],
@@ -314,63 +315,61 @@ export async function enrichForecastMap(
   stockMap: { [code: string]: string },
   brandQuantities: { [brandId: string]: number },
   onBatchReady: (updates: { [code: string]: StockForecast }) => void,
+  endpoint: string = "/superadmin/machineDetailsBatch",
 ): Promise<void> {
-  // Only fetch machines that haven't been enriched yet
   const toEnrich = machineCodes.filter(
     (code) => currentForecasts[code] && !currentForecasts[code].enriched,
   )
 
   if (toEnrich.length === 0) return
 
-  // Fetch one at a time to avoid exhausting DB connections
-  for (const code of toEnrich) {
-    try {
-      const res = await postRequest<DetailResponse>(
-        `/superadmin/machineDetailsWithMachineCode`,
-        { machine_code: code },
+  try {
+    // Single request for all machines — backend returns data keyed by machine_code
+    const res = await postRequest<BatchResponse>(endpoint, { machine_codes: toEnrich })
+
+    if (!res.success || !res.data) return
+
+    const updates: { [code: string]: StockForecast } = {}
+
+    for (const code of toEnrich) {
+      const machineData = res.data[code]
+      if (!machineData) continue
+
+      const { brands: rawBrands, transactions } = machineData
+
+      if (!transactions || transactions.length === 0) {
+        const existing = currentForecasts[code]
+        if (existing) updates[code] = { ...existing, enriched: true }
+        continue
+      }
+
+      const detailBrands: Brand[] = rawBrands.map((b) => ({
+        id: b.id,
+        name: b.name,
+        machine_code: code,
+        availableQuantity: brandQuantities[String(b.id)] ?? 0,
+        latestFilling: null,
+        brandType: "vending" as const,
+      }))
+
+      const forecast = computeTransactionForecast(
+        transactions,
+        detailBrands,
+        stockMap[code] || "Unknown",
       )
 
-      let update: StockForecast | null = null
-
-      if (!res.transactions || res.transactions.length === 0) {
-        // No transactions — keep refill-based forecast but mark as enriched
-        const existing = currentForecasts[code]
-        if (existing) {
-          update = { ...existing, enriched: true }
-        }
+      if (forecast.enriched) {
+        updates[code] = forecast
       } else {
-        // Build brand list with availableQuantity looked up by brand ID
-        const detailBrands: Brand[] = (res.brands || []).map((b) => ({
-          id: b.id,
-          name: b.name,
-          machine_code: code,
-          availableQuantity: brandQuantities[String(b.id)] ?? 0,
-          latestFilling: null,
-          brandType: "vending" as const,
-        }))
-
-        const forecast = computeTransactionForecast(
-          res.transactions,
-          detailBrands,
-          stockMap[code] || "Unknown",
-        )
-
-        // Use transaction forecast if it produced results, otherwise keep refill-based
-        if (forecast.enriched) {
-          update = forecast
-        } else {
-          const existing = currentForecasts[code]
-          if (existing) {
-            update = { ...existing, enriched: true }
-          }
-        }
+        const existing = currentForecasts[code]
+        if (existing) updates[code] = { ...existing, enriched: true }
       }
-
-      if (update) {
-        onBatchReady({ [code]: update })
-      }
-    } catch {
-      // Skip failed requests silently
     }
+
+    if (Object.keys(updates).length > 0) {
+      onBatchReady(updates)
+    }
+  } catch {
+    // Skip failed requests silently
   }
 }
