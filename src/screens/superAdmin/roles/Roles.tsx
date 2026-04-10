@@ -82,8 +82,8 @@ interface User {
   machine_type: string | null;
   update_at: string;
   superAdminRoles: number;
-  adminRoles:number;
-  opsRoles:number;
+  adminRoles: number;
+  opsRoles: number;
   companyRoles: number;
   machines: Machine[];
 }
@@ -127,9 +127,8 @@ const MACHINE_TYPE_OPTIONS = [
 const CustomOption = ({ innerProps, label, data, isSelected }: any) => (
   <div
     {...innerProps}
-    className={`p-2 cursor-pointer hover:bg-gray-100 ${
-      isSelected ? 'bg-teal-50' : ''
-    }`}
+    className={`p-2 cursor-pointer hover:bg-gray-100 ${isSelected ? 'bg-teal-50' : ''
+      }`}
   >
     <div className="flex items-center">
       <input
@@ -211,7 +210,7 @@ const Roles = () => {
     }
   };
 
-  const getAllMachineList = async (selectedType: string) => { 
+  const getAllMachineList = async (selectedType: string) => {
     try {
       const res = await getRequest(
         `/superadmin/getAllMachines?machine_type=${selectedType}`
@@ -257,17 +256,17 @@ const Roles = () => {
       setValue("lastName", currentUserForEdit.last_name);
       setValue("email", currentUserForEdit.email);
       setValue("password", currentUserForEdit.password);
-      
+
       // Set user role
       setUserRole(currentUserForEdit.user_role);
-      
+
       // Set machine type if exists
       if (currentUserForEdit.machine_type) {
         setMachineType(currentUserForEdit.machine_type);
       } else {
         setMachineType("");
       }
-      
+
       // Set selected machines for company role
       if (
         currentUserForEdit.user_role === "company" &&
@@ -315,7 +314,7 @@ const Roles = () => {
 
   const formatRoleDisplay = (role: string) => {
     if (!role) return "Unknown";
-    
+
     const roleLower = role.toLowerCase();
     const roleMap: { [key: string]: string } = {
       "super admin": "Super Admin",
@@ -325,7 +324,7 @@ const Roles = () => {
       "operations": "Ops",
       "company": "Company",
     };
-    
+
     return roleMap[roleLower] || role.charAt(0).toUpperCase() + role.slice(1);
   };
 
@@ -346,7 +345,7 @@ const Roles = () => {
 
     try {
       setCreating(true);
-      const newUser = { 
+      const newUser = {
         firstName: data.firstName,
         lastName: data.lastName,
         email: data.email,
@@ -385,7 +384,7 @@ const Roles = () => {
         firstName: data.firstName,
         lastName: data.lastName,
         email: data.email,
-        companyCode:0,
+        companyCode: 0,
         user_role: currentUserForEdit.user_role,
         roleCode: currentUserForEdit.role_code,
         machine_type: currentUserForEdit.user_role === "company" ? machineType || null : null,
@@ -440,7 +439,7 @@ const Roles = () => {
   };
 
   const handleMachineSelectionChange = (selectedOptions: any) => {
-    const selectedValues = selectedOptions 
+    const selectedValues = selectedOptions
       ? selectedOptions.map((option: MachineOption) => option.value)
       : [];
     setSelectedMachines(selectedValues);
@@ -472,7 +471,7 @@ const Roles = () => {
         <Select
           isMulti
           options={machineOptions}
-          value={machineOptions.filter(option => 
+          value={machineOptions.filter(option =>
             selectedMachines.includes(option.value)
           )}
           onChange={handleMachineSelectionChange}
@@ -558,7 +557,7 @@ const Roles = () => {
         <Select
           isMulti
           options={machineOptions}
-          value={machineOptions.filter(option => 
+          value={machineOptions.filter(option =>
             selectedMachines.includes(option.value)
           )}
           onChange={handleMachineSelectionChange}
@@ -628,7 +627,7 @@ const Roles = () => {
           <p className="text-muted-foreground">
             Create and manage user roles and permissions
           </p>
-          
+
           {/* Create User Dialog */}
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
@@ -673,7 +672,7 @@ const Roles = () => {
                   <Input
                     id="email"
                     type="email"
-                    {...register("email", { 
+                    {...register("email", {
                       required: "Email is required",
                       pattern: {
                         value: /^\S+@\S+$/i,
@@ -692,17 +691,21 @@ const Roles = () => {
                   <Input
                     id="password"
                     type="password"
-                    {...register("password", { 
+                    {...register("password", {
                       required: "Password is required",
-                      minLength: {
-                        value: 6,
-                        message: "Password must be at least 6 characters"
+                      pattern: {
+                        value: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).{8,}$/,
+                        message:
+                          "Password must be at least 8 characters, include uppercase, lowercase, number, and special character"
                       }
                     })}
                     placeholder="Enter password"
                   />
+
                   {errors.password && (
-                    <p className="text-red-500 text-sm">{errors.password.message}</p>
+                    <p className="text-red-500 text-sm">
+                      {errors.password.message}
+                    </p>
                   )}
                 </div>
 
@@ -789,7 +792,7 @@ const Roles = () => {
                   <Input
                     id="editEmail"
                     type="email"
-                    {...register("email", { 
+                    {...register("email", {
                       required: "Email is required",
                       pattern: {
                         value: /^\S+@\S+$/i,
@@ -808,7 +811,7 @@ const Roles = () => {
                   <Input
                     id="editPassword"
                     type="password"
-                    {...register("password", { 
+                    {...register("password", {
                       required: "Password is required",
                       minLength: {
                         value: 6,
@@ -934,17 +937,17 @@ const Roles = () => {
             ) : (
               <>
                 <Table>
-              <TableHeader className="bg-teal-600 rounded-t-2xl">
-                <TableRow>
-                  <TableHead className="text-center text-white font-semibold rounded-tl-2xl">Name</TableHead>
-                  <TableHead className="text-center text-white font-semibold">Email</TableHead>
-                  <TableHead className="text-center text-white font-semibold">Password</TableHead>
-                  <TableHead className="text-center text-white font-semibold">Role</TableHead>
-                  <TableHead className="text-center text-white font-semibold">Created</TableHead>
-                  <TableHead className="text-center text-white font-semibold">Machines</TableHead>
-                  <TableHead className="text-center text-white font-semibold rounded-tr-2xl">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
+                  <TableHeader className="bg-teal-600 rounded-t-2xl">
+                    <TableRow>
+                      <TableHead className="text-center text-white font-semibold rounded-tl-2xl">Name</TableHead>
+                      <TableHead className="text-center text-white font-semibold">Email</TableHead>
+                      <TableHead className="text-center text-white font-semibold">Password</TableHead>
+                      <TableHead className="text-center text-white font-semibold">Role</TableHead>
+                      <TableHead className="text-center text-white font-semibold">Created</TableHead>
+                      <TableHead className="text-center text-white font-semibold">Machines</TableHead>
+                      <TableHead className="text-center text-white font-semibold rounded-tr-2xl">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
                   <TableBody>
                     {users.map((user) => (
                       <TableRow key={user.id}>

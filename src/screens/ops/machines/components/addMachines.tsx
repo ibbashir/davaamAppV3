@@ -6,30 +6,37 @@ import { postRequest } from "@/Apis/Api";
 
 type Inputs = {
   machine_code: string;
-  machine_name: number;
-  machine_location: number;
+  machine_name: string;
+  image: string;
+  machine_location: string;
   machine_type: string;
-  variant_type:string;
+  variant_type: string;
   mapLocation: string;
   quantity: number;
-  batchNumber: number;
+  batchNumber: string;
   price: number;
-  expiry: Date;
+  expiry: string;
   lat: number;
   lng: number;
-  category:number;
+  category: string;
 };
+
+const GOOGLE_MAPS_PATTERNS = [
+  /^https:\/\/goo\.gl\/maps\//,
+  /^https:\/\/maps\.google\.com\//,
+  /^https:\/\/maps\.app\.goo\.gl\//,
+];
 
 export default function AddMachine({
   open,
   setOpen,
 }: {
   open: boolean;
-  setOpen: any;
+  setOpen: (val: boolean) => void;
 }) {
   const cancelButtonRef = useRef(null);
-
   const [enabled, setEnabled] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const {
     register,
@@ -39,41 +46,47 @@ export default function AddMachine({
     reset,
   } = useForm<Inputs>();
 
-  const onSubmit = async (data: any) => {
-    const bodyData = {
-      machineCode: data.machine_code,
-      name: data.machine_name,
-      price: data.price,
-      locationName: data.machine_location,
-      mapLocation: data.mapLocation,
-      machineType: data.machine_type,
-      variantType:data.variant_type,
-      quantity: data.quantity,
-      batchNumber: data.batchNumber,
-      expiryDate: data.expiry,
-      created_at: Date.now(),
-      is_active: enabled ? 1 : 0,
-      lat: data.lat,
-      lng: data.lng,
-      category:data.category
-    };
-    console.log(bodyData);
+  const machineCode = watch("machine_code") ?? "";
+  const isButterfly = machineCode.startsWith("3");
+
+  const onSubmit = async (data: Inputs) => {
+    setLoading(true);
     try {
-      const response = await postRequest(`/ops/addNewMachine`,bodyData)
-      console.log(response)
-      if (response.status===200) {
-        alert("Machine added successfully!");
-        reset();
-        setOpen(false);
-      } else {
-        const errorData = await response.json();
-        alert(`Error: ${errorData.message}`);
-      }
-    } catch (error) {
+      await postRequest(`/ops/addNewMachine`, {
+        machineCode: data.machine_code,
+        name: data.machine_name,
+        image: data.image,
+        price: data.price,
+        locationName: data.machine_location,
+        mapLocation: data.mapLocation,
+        machineType: data.machine_type,
+        variantType: data.variant_type,
+        quantity: data.quantity,
+        batchNumber: data.batchNumber,
+        expiryDate: data.expiry,
+        is_active: enabled ? 1 : 0,
+        lat: data.lat,
+        lng: data.lng,
+        category: data.category,
+      });
+      alert("Machine added successfully!");
+      reset();
+      setEnabled(false);
+      setOpen(false);
+    } catch (error: unknown) {
       console.error("API Error:", error);
-      alert("Failed to insert machine.");
+      const message =
+        error instanceof Error
+          ? (error as { response?: { data?: { message?: string } } }).response?.data?.message ?? error.message
+          : "An unexpected error occurred.";
+      alert(`Error: ${message}`);
+    } finally {
+      setLoading(false);
     }
   };
+
+  const inputClass =
+    "block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-teal-600 sm:text-sm/6";
 
   return (
     <Transition.Root show={open} as={Fragment}>
@@ -107,69 +120,92 @@ export default function AddMachine({
               leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
             >
               <Dialog.Panel className="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all dark:bg-gray-900 sm:my-8 sm:w-full sm:max-w-lg">
-                <form
-                  onSubmit={handleSubmit(onSubmit)}
-                  className="space-y-2 p-4"
-                >
+                <form onSubmit={handleSubmit(onSubmit)} className="space-y-2 p-4">
+                  {/* Machine Code */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                       Machine Code
                     </label>
                     <input
-                      type="text"
+                      type="number"
                       {...register("machine_code", {
                         required: "Machine Code is required.",
+                        validate: (v) =>
+                          /^\d/.test(v) || "Machine code must start with a digit.",
                       })}
-                      className="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-teal-600 sm:text-sm/6"
+                      className={inputClass}
                       placeholder="Enter Machine Code"
                     />
                     {errors.machine_code && (
-                      <span className="text-sm text-red-500">
-                        {errors.machine_code.message}
-                      </span>
+                      <span className="text-sm text-red-500">{errors.machine_code.message}</span>
                     )}
                   </div>
 
-                  {/* Conditionally Show Product Name */}
-                  {watch("machine_code") &&
-                    !watch("machine_code").startsWith("3") && (
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                          Product Name
-                        </label>
-                        <input
-                          type="text"
-                          {...register("machine_name", {
-                            required: "Machine Name is required.",
-                          })}
-                          className="block w-full rounded-md bg-white px-3 py-1 text-base text-gray-900 outline outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-teal-600 sm:text-sm/6"
-                          placeholder="Enter Machine Name"
-                        />
-                        {errors.machine_name && (
-                          <span className="text-sm text-red-500">
-                            {errors.machine_name.message}
-                          </span>
-                        )}
-                      </div>
-                    )}
+                  {/* Product Name — hidden for Butterfly (code starts with 3) */}
+                  {!isButterfly && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                        Product Name
+                      </label>
+                      <input
+                        type="text"
+                        {...register("machine_name", {
+                          required: "Product Name is required.",
+                        })}
+                        className={inputClass}
+                        placeholder="Enter Product Name"
+                      />
+                      {errors.machine_name && (
+                        <span className="text-sm text-red-500">{errors.machine_name.message}</span>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Image URL — hidden for Butterfly */}
+                  {!isButterfly && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                        Product Image URL
+                      </label>
+                      <input
+                        type="url"
+                        {...register("image", {
+                          required: "Product Image URL is required.",
+                          validate: (v) =>
+                            /^https?:\/\/.+/.test(v) || "Must be a valid URL starting with http(s)://",
+                        })}
+                        className={inputClass}
+                        placeholder="https://example.com/image.png"
+                      />
+                      {errors.image && (
+                        <span className="text-sm text-red-500">{errors.image.message}</span>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Price */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                       Product Price
                     </label>
                     <input
-                      type="text"
+                      type="number"
+                      step="0.01"
+                      min="0"
                       {...register("price", {
                         required: "Price is required.",
+                        min: { value: 0, message: "Price must be positive." },
+                        validate: (v) => !isNaN(Number(v)) || "Price must be a number.",
                       })}
-                      className="block w-full rounded-md bg-white px-3 py-1 text-base text-gray-900 outline outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-teal-600 sm:text-sm/6"
+                      className={inputClass}
                       placeholder="Enter Product Price"
                     />
                     {errors.price && (
-                      <span className="text-sm text-red-500">
-                        {errors.price.message}
-                      </span>
+                      <span className="text-sm text-red-500">{errors.price.message}</span>
                     )}
                   </div>
+
+                  {/* Location Name */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                       Location Name
@@ -177,159 +213,137 @@ export default function AddMachine({
                     <input
                       type="text"
                       {...register("machine_location", {
-                        required: "Machine Location is required.",
+                        required: "Location Name is required.",
                       })}
-                      className="block w-full rounded-md bg-white px-3 py-1 text-base text-gray-900 outline outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-teal-600 sm:text-sm/6"
+                      className={inputClass}
                       placeholder="Enter Location Name"
                     />
                     {errors.machine_location && (
-                      <span className="text-sm text-red-500">
-                        {errors.machine_location.message}
-                      </span>
+                      <span className="text-sm text-red-500">{errors.machine_location.message}</span>
                     )}
                   </div>
 
+                  {/* Map Location */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                      Map Location
+                      Map Location (Google Maps URL)
                     </label>
                     <input
                       type="text"
-                       {...register("mapLocation", {
-                            required: "Location is required.",
-                            validate: {
-                                validGoogleMaps: (value) => {
-                                const googleMapsPatterns = [
-                                    /^https:\/\/goo\.gl\/maps\//,
-                                    /^https:\/\/maps\.google\.com\//,
-                                    /^https:\/\/maps\.app\.goo\.gl\//
-                                ];
-                                
-                                const isValid = googleMapsPatterns.some(pattern => pattern.test(value));
-                                return isValid || "Please enter a valid Google Maps URL";
-                                }
-                            }
-                        })}
-                      className="block w-full rounded-md bg-white px-3 py-1 text-base text-gray-900 outline outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-teal-600 sm:text-sm/6"
-                      placeholder="Enter Location"
+                      {...register("mapLocation", {
+                        required: "Map Location is required.",
+                        validate: (v) =>
+                          GOOGLE_MAPS_PATTERNS.some((p) => p.test(v)) ||
+                          "Must be a valid Google Maps URL.",
+                      })}
+                      className={inputClass}
+                      placeholder="https://maps.app.goo.gl/..."
                     />
                     {errors.mapLocation && (
-                      <span className="text-sm text-red-500">
-                        {errors.mapLocation.message}
-                      </span>
+                      <span className="text-sm text-red-500">{errors.mapLocation.message}</span>
                     )}
                   </div>
-                  <div className="flex justify-between">
-                    <div>
+
+                  {/* Quantity & Batch Number */}
+                  <div className="flex gap-3">
+                    <div className="flex-1">
                       <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                         Quantity
                       </label>
                       <input
-                        type="text"
+                        type="number"
+                        min="1"
                         {...register("quantity", {
-                          required: "quantity is required.",
+                          required: "Quantity is required.",
+                          min: { value: 1, message: "Quantity must be at least 1." },
+                          validate: (v) => !isNaN(Number(v)) || "Must be a number.",
                         })}
-                        className="block w-full rounded-md bg-white px-3 py-1 text-base text-gray-900 outline outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-teal-600 sm:text-sm/6"
-                        placeholder="Enter Quantity (Note: Liquid must be in Litres)"
+                        className={inputClass}
+                        placeholder="Litres / Units"
                       />
                       {errors.quantity && (
-                        <span className="text-sm text-red-500">
-                          {errors.quantity.message}
-                        </span>
+                        <span className="text-sm text-red-500">{errors.quantity.message}</span>
                       )}
                     </div>
-                    <div>
+                    <div className="flex-1">
                       <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                         Batch Number
                       </label>
                       <input
                         type="text"
                         {...register("batchNumber", {
-                          required: "BatchNumber is required.",
+                          required: "Batch Number is required.",
                         })}
-                        className="block w-full rounded-md bg-white px-3 py-1 text-base text-gray-900 outline outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-teal-600 sm:text-sm/6"
+                        className={inputClass}
                         placeholder="Enter Batch Number"
                       />
                       {errors.batchNumber && (
-                        <span className="text-sm text-red-500">
-                          {errors.batchNumber.message}
-                        </span>
+                        <span className="text-sm text-red-500">{errors.batchNumber.message}</span>
                       )}
                     </div>
                   </div>
+
+                  {/* Machine Type */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                       Machine Type
                     </label>
                     <select
-                      {...register("machine_type", {
-                        required: "Machine Type is required.",
-                      })}
-                      className="block w-full rounded-md bg-white px-3 py-1 text-base text-gray-900 outline outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-teal-600 sm:text-sm"
+                      {...register("machine_type", { required: "Machine Type is required." })}
+                      className={inputClass}
                       defaultValue=""
                     >
-                      <option value="" disabled>
-                        Select Machine Type
-                      </option>
+                      <option value="" disabled>Select Machine Type</option>
                       <option value="product">Sanitary</option>
-                      <option value="liquid">Dispening</option>
+                      <option value="liquid">Dispensing</option>
                     </select>
                     {errors.machine_type && (
-                      <span className="text-sm text-red-500">
-                        {errors.machine_type.message}
-                      </span>
+                      <span className="text-sm text-red-500">{errors.machine_type.message}</span>
                     )}
                   </div>
+
+                  {/* Variant Type */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                       Variant Type
                     </label>
                     <select
-                      {...register("variant_type", {
-                        required: "Variant Type is required.",
-                      })}
-                      className="block w-full rounded-md bg-white px-3 py-1 text-base text-gray-900 outline outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-teal-600 sm:text-sm"
+                      {...register("variant_type", { required: "Variant Type is required." })}
+                      className={inputClass}
                       defaultValue=""
                     >
-                      <option value="" disabled>
-                        Select Variant Type
-                      </option>
+                      <option value="" disabled>Select Variant Type</option>
                       <option value="besties">Besties</option>
                       <option value="breathable">Breathable</option>
                       <option value="corporate">Corporate</option>
                       <option value="value">Value</option>
                     </select>
                     {errors.variant_type && (
-                      <span className="text-sm text-red-500">
-                        {errors.variant_type.message}
-                      </span>
+                      <span className="text-sm text-red-500">{errors.variant_type.message}</span>
                     )}
                   </div>
+
+                  {/* Machine Category */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                       Machine Category
                     </label>
                     <select
-                      {...register("category", {
-                        required: "Catogery Type is required.",
-                      })}
-                      className="block w-full rounded-md bg-white px-3 py-1 text-base text-gray-900 outline outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-teal-600 sm:text-sm"
+                      {...register("category", { required: "Category is required." })}
+                      className={inputClass}
                       defaultValue=""
                     >
-                      <option value="" disabled>
-                        Select Category Type
-                      </option>
+                      <option value="" disabled>Select Category</option>
                       <option value="online">Online</option>
                       <option value="offline">Offline</option>
                       <option value="hybrid">Hybrid</option>
                     </select>
                     {errors.category && (
-                      <span className="text-sm text-red-500">
-                        {errors.category.message}
-                      </span>
+                      <span className="text-sm text-red-500">{errors.category.message}</span>
                     )}
                   </div>
 
+                  {/* Expiry */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                       Expiry of Product
@@ -337,80 +351,69 @@ export default function AddMachine({
                     <input
                       type="date"
                       {...register("expiry", {
-                        required: "Date is required.",
+                        required: "Expiry date is required.",
+                        validate: (v) =>
+                          new Date(v) > new Date() || "Expiry date must be in the future.",
                       })}
-                      className="block w-full rounded-md bg-white px-3 py-1 text-base text-gray-900 outline outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-teal-600 sm:text-sm/6"
+                      className={inputClass}
                     />
                     {errors.expiry && (
-                      <span className="text-sm text-red-500">
-                        {errors.expiry.message}
-                      </span>
+                      <span className="text-sm text-red-500">{errors.expiry.message}</span>
                     )}
                   </div>
 
-                  <div className="flex justify-between">
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                            Latitude
-                        </label>
-                        <input
-                            type="number"
-                            step="0.0001"
-                            {...register("lat", {
-                            required: "Latitude is required.",
-                            min: { value: -90, message: "Latitude cannot be less than -90" },
-                            max: { value: 90, message: "Latitude cannot be greater than 90" },
-                            validate: {
-                                precision: (value) => {
-                                if (!value) return true;
-                                const decimalPart = value.toString().split('.')[1];
-                                return (!decimalPart || decimalPart.length >= 4) || 
-                                    "Must have at least 4 decimal places (e.g., 25.4435)";
-                                }
-                            }
-                            })}
-                            className="block w-full rounded-md bg-white px-3 py-1 text-base text-gray-900 outline outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-teal-600 sm:text-sm/6"
-                            placeholder="Enter Latitude (e.g., 25.443526)"
-                        />
-                        {errors.lat && (
-                            <span className="text-sm text-red-500">
-                            {errors.lat.message}
-                            </span>
-                        )}
+                  {/* Lat / Lng / Active */}
+                  <div className="flex gap-3">
+                    <div className="flex-1">
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                        Latitude
+                      </label>
+                      <input
+                        type="number"
+                        step="0.0001"
+                        {...register("lat", {
+                          required: "Latitude is required.",
+                          min: { value: -90, message: "Min -90" },
+                          max: { value: 90, message: "Max 90" },
+                          validate: (v) => {
+                            const dec = v?.toString().split(".")[1];
+                            return (!dec || dec.length >= 4) || "At least 4 decimal places required.";
+                          },
+                        })}
+                        className={inputClass}
+                        placeholder="e.g. 25.4435"
+                      />
+                      {errors.lat && (
+                        <span className="text-sm text-red-500">{errors.lat.message}</span>
+                      )}
                     </div>
 
-                    <div>
+                    <div className="flex-1">
                       <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                         Longitude
                       </label>
                       <input
                         type="number"
-                        step="any"
+                        step="0.0001"
                         {...register("lng", {
                           required: "Longitude is required.",
-                          min: { value: -90, message: "Longitude cannot be less than -90" },
-                          max: { value: 90, message: "Longitude cannot be greater than 90" },
-                          validate: {
-                                precision: (value) => {
-                                if (!value) return true;
-                                const decimalPart = value.toString().split('.')[1];
-                                return (!decimalPart || decimalPart.length >= 4) || 
-                                    "Must have at least 4 decimal places (e.g., 25.4435)";
-                                }
-                            }
+                          min: { value: -180, message: "Min -180" },
+                          max: { value: 180, message: "Max 180" },
+                          validate: (v) => {
+                            const dec = v?.toString().split(".")[1];
+                            return (!dec || dec.length >= 4) || "At least 4 decimal places required.";
+                          },
                         })}
-                        className="block w-full rounded-md bg-white px-3 py-1 text-base text-gray-900 outline outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-teal-600 sm:text-sm/6"
-                        placeholder="Enter Longitude"
+                        className={inputClass}
+                        placeholder="e.g. 55.3762"
                       />
                       {errors.lng && (
-                        <span className="text-sm text-red-500">
-                          {errors.lng.message}
-                        </span>
+                        <span className="text-sm text-red-500">{errors.lng.message}</span>
                       )}
                     </div>
 
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    <div className="flex flex-col justify-end pb-1">
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                         Active
                       </label>
                       <Switch
@@ -430,10 +433,11 @@ export default function AddMachine({
                     </div>
                   </div>
 
-                  <div className="flex justify-end space-x-4">
+                  <div className="flex justify-end space-x-4 pt-1">
                     <button
                       type="button"
-                      className="rounded-md bg-gray-200 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-300"
+                      disabled={loading}
+                      className="rounded-md bg-gray-200 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-300 disabled:opacity-50"
                       onClick={() => setOpen(false)}
                       ref={cancelButtonRef}
                     >
@@ -441,9 +445,10 @@ export default function AddMachine({
                     </button>
                     <button
                       type="submit"
-                      className="rounded-md bg-teal-500 px-4 py-2 text-sm font-medium text-white hover:bg-teal-600"
+                      disabled={loading}
+                      className="rounded-md bg-teal-500 px-4 py-2 text-sm font-medium text-white hover:bg-teal-600 disabled:opacity-50"
                     >
-                      Submit
+                      {loading ? "Submitting..." : "Submit"}
                     </button>
                   </div>
                 </form>
