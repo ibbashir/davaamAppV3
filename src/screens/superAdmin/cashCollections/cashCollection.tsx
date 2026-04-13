@@ -180,7 +180,7 @@ const SuperAdminCashCollectionPage: React.FC = () => {
       setLoading(true);
       setError(null);
 
-      const result = await getRequest(`/superadmin/getAllCashCollection`);
+      const result = await getRequest<{ success?: boolean; data?: CashCollection[] }>(`/superadmin/getAllCashCollection`);
 
       if (result && result.success && result.data) {
         setData(result.data);
@@ -199,7 +199,7 @@ const SuperAdminCashCollectionPage: React.FC = () => {
 
   const fetchMachines = async () => {
     try {
-      const result = await getRequest("/superadmin/getMachinesWithMachineCode");
+      const result = await getRequest<{ data?: MachineInfo[] }>("/superadmin/getMachinesWithMachineCode");
 
       if (result?.data && Array.isArray(result.data)) {
         setMachines(result.data);

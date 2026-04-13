@@ -12,7 +12,7 @@ export const getRequest = async <T>(endpoint: string): Promise<T> => {
 
 export const postRequest = async <T>(
   endpoint: string,
-  data: Record<string, unknown>
+  data: object
 ): Promise<T> => {
   try {
     const response = await api.post<T>(endpoint, data);
@@ -25,7 +25,7 @@ export const postRequest = async <T>(
 
 export const putRequest = async <T>(
   endpoint: string,
-  data: Record<string, unknown>
+  data: object
 ): Promise<T> => {
   try {
     const response = await api.put<T>(endpoint, data);

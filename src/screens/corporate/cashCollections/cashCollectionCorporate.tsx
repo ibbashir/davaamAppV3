@@ -25,7 +25,8 @@ interface MachineReport {
     user_id: number;
     created_at: string;
     cash_received?: string;
-    username?: string; // Add username to transactions
+    username?: string;
+    location?: string;
   }[];
 }
 
@@ -139,7 +140,7 @@ const CorporateCashCollectionPage: React.FC = () => {
       setLoading(true);
       setError(null);
 
-      const result = await getRequest(`/corporates/getAllCashCollection`);
+      const result = await getRequest<{ success?: boolean; data?: CashCollection[] }>(`/corporates/getAllCashCollection`);
 
       if (result && result.success && result.data) {
         setData(result.data);
@@ -158,7 +159,7 @@ const CorporateCashCollectionPage: React.FC = () => {
 
   const fetchMachines = async () => {
     try {
-      const result = await getRequest("/corporates/getMachinesWithMachineCode");
+      const result = await getRequest<{ data?: MachineInfo[] }>("/corporates/getMachinesWithMachineCode");
 
       if (result?.data && Array.isArray(result.data)) {
         setMachines(result.data);

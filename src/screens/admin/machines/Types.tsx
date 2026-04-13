@@ -13,6 +13,7 @@ type ApiMachine = {
     status: string
     statusCode: string
     lastUpdated: number | null
+    map_link?: string | null
 }
 
 // Brand types

@@ -1,4 +1,25 @@
 import React, { useState, useMemo } from "react";
+
+interface CashCollection {
+  id: number;
+  user_id: number;
+  username: string;
+  machine_code: string;
+  location: string;
+  cash_received: string;
+  created_at: string;
+  epoch_time: number;
+}
+
+interface Filters {
+  user_id?: number;
+  machine_code?: string;
+  location?: string;
+  date_from?: string;
+  date_to?: string;
+  min_amount?: number;
+  max_amount?: number;
+}
 import {
   Search,
   Filter,

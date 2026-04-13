@@ -9,8 +9,7 @@
     }
   ],
   "compilerOptions": {
-    "ignoreDeprecations": "6.0",
-    "baseUrl": "https://api.davaam.app",
+    "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"]
     }

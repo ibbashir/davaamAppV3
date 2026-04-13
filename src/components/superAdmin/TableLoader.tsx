@@ -1,4 +1,4 @@
-import { Card } from "./ui/card";
+import { Card } from "../ui/card";
 
 const TableLoader = (props: { tableLoaderData: { name: string }[] }) => {
 

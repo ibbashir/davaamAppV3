@@ -86,6 +86,14 @@ interface TopupEntry {
   purpose_of_payment?: string;
 }
 
+interface CorporateTopupResponse {
+  data: TopupEntry[];
+  total_sum?: number;
+  total_companies?: number;
+  total_topups?: number;
+  currentMonthlyTopups?: number;
+}
+
 interface CorporateClient {
   id: number;
   card_number: string;
@@ -138,7 +146,7 @@ const Corporate = () => {
   const [itemsPerPage, setItemsPerPage] = useState(20);
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const [allData,setAllData]=useState("")
+  const [allData, setAllData] = useState<CorporateTopupResponse | null>(null)
 
   // Add Topup form
   const addTopupForm = useForm<AddTopupFormData>({
@@ -232,7 +240,7 @@ const Corporate = () => {
   useEffect(() => {
     const fetchTopups = async () => {
       try {
-        const data = await getRequest<TopupEntry[]>(
+        const data = await getRequest<CorporateTopupResponse>(
           "/admin/getCorporateTopupHistory"
         );
         setAllData(data)
@@ -259,13 +267,13 @@ const Corporate = () => {
     }
   };
 
-  const totalTopupAmount = allData.total_sum || 0;
-  
-  const uniqueClients = allData.total_companies || 0;
+  const totalTopupAmount = allData?.total_sum || 0;
 
-  const totalTopups=allData.total_topups || 0;
+  const uniqueClients = allData?.total_companies || 0;
 
-  const monthlyTopups=allData.currentMonthlyTopups || 0;
+  const totalTopups = allData?.total_topups || 0;
+
+  const monthlyTopups = allData?.currentMonthlyTopups || 0;
 
   return (
     <div>

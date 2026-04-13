@@ -409,7 +409,7 @@ const OpsMachineMap: React.FC = () => {
         const stockedBy = brand?.latestFilling?.stockedby;
         
         if (!grouped[code]) {
-          grouped[code] = { quantities: [], stockedBy };
+          grouped[code] = { quantities: [], stockedBy: stockedBy ?? undefined };
         }
         
         // Add quantity

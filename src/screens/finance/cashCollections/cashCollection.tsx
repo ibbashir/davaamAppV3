@@ -180,7 +180,7 @@ const FinanceCashCollectionPage: React.FC = () => {
       setLoading(true);
       setError(null);
 
-      const result = await getRequest(`/finance/getAllCashCollection`);
+      const result = await getRequest<{ success?: boolean; data?: CashCollection[] }>(`/finance/getAllCashCollection`);
 
       if (result && result.success && result.data) {
         setData(result.data);
@@ -199,7 +199,7 @@ const FinanceCashCollectionPage: React.FC = () => {
 
   const fetchMachines = async () => {
     try {
-      const result = await getRequest("/finance/getMachinesWithMachineCode");
+      const result = await getRequest<{ data?: MachineInfo[] }>("/finance/getMachinesWithMachineCode");
 
       if (result?.data && Array.isArray(result.data)) {
         setMachines(result.data);

@@ -13,6 +13,7 @@ type ApiMachine = {
     status: string
     statusCode: string
     lastUpdated: number
+    map_link?: string | null
 }
 
 // Brand types
@@ -66,6 +67,13 @@ type StatusSummary = {
     idle: number
 }
 
+type Pagination = {
+    page: number
+    limit: number
+    total: number
+    totalPages: number
+}
+
 // Main API response type
 type MachinesResponse = {
     success: boolean
@@ -78,7 +86,8 @@ type MachinesResponse = {
             vending: VendingBrand[]
         }
         statusSummary: StatusSummary
+        pagination: Pagination
     }
 }
 
-export type { ApiMachine, MachinesResponse, DispensingBrand, VendingBrand, StatusSummary, LatestFilling }
+export type { ApiMachine, MachinesResponse, DispensingBrand, VendingBrand, StatusSummary, LatestFilling, Pagination }

@@ -92,6 +92,14 @@ interface TopupEntry {
   purpose_of_payment?: string;
 }
 
+interface CorporateTopupResponse {
+  data: TopupEntry[];
+  total_sum?: number;
+  total_companies?: number;
+  total_topups?: number;
+  totalEmployees?: number;
+}
+
 interface CorporateClient {
   id: number;
   card_number: string;
@@ -142,7 +150,7 @@ const Corporate = () => {
   const [itemsPerPage, setItemsPerPage] = useState(20);
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const [allData, setAllData] = useState("");
+  const [allData, setAllData] = useState<CorporateTopupResponse | null>(null);
 
   // --- Form ---
   const addTopupForm = useForm<AddTopupFormData>({

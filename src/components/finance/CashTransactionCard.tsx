@@ -1,7 +1,7 @@
 import React from "react";
 import StatCard from "./StatCard";
 import { formatCurrency, formatNumber, toNumber } from "./utils";
-// import { CashTransaction } from "./types";
+import type { CashTransaction } from "./types";
 
 interface Props {
   data: CashTransaction;

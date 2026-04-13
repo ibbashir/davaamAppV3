@@ -1,6 +1,7 @@
 import React from "react";
 import StatCard from "./StatCard";
 import { formatCurrency, toNumber } from "./utils";
+import type { NeemTransaction } from "./types";
 
 interface NeemTopups {
   total_topup: number | string | null;

@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -41,7 +41,7 @@ function PointsShareTable({ tableData }: PointsShareTableProps) {
     const [itemsPerPage, setItemsPerPage] = useState(10)
 
     // Reset to first page when search term changes
-    useState(() => {
+    useEffect(() => {
         setCurrentPage(1)
     }, [searchTerm])
 

@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, useCallback } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { CHATBOT_API_URL } from "@/constants/Constant"
-import { getAccessToken } from "@/Apis/Authorization"
+
 import { IconMessageChatbot, IconX, IconSend2, IconLoader2 } from "@tabler/icons-react"
 
 type Message = {
@@ -46,7 +46,7 @@ export function ChatbotWidget() {
     setMessages((prev) => [...prev, { role: "assistant", content: "" }])
 
     try {
-      const token = getAccessToken() || document.cookie.match(/(?:^| )access_token=([^;]+)/)?.[1]
+      const token = document.cookie.match(/(?:^| )access_token=([^;]+)/)?.[1]
       const res = await fetch(`${CHATBOT_API_URL}/chat/stream`, {
         method: "POST",
         headers: {

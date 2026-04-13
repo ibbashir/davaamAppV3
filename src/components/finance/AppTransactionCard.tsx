@@ -1,7 +1,7 @@
 import React from "react";
 import StatCard from "./StatCard";
 import { formatCurrency, formatNumber, toNumber } from "./utils";
-// import { AppTransaction } from "./types";
+import type { AppTransaction } from "./types";
 
 interface Props {
   transactions: AppTransaction[];
