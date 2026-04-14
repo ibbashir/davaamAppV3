@@ -22,6 +22,10 @@ export const BASE_URL_TWO = "https://api.davaam.app/";
 
 // export const BASE_URL = "http://localhost:4000/api/dashboard";
 export const BASE_URL = "https://api.davaam.app/api/dashboard";
+
+// Socket.IO server root (strip /api/dashboard from BASE_URL)
+// export const SOCKET_URL = "http://localhost:4000";
+export const SOCKET_URL = "https://api.davaam.app";
 export const BASE_URL_STOCK = "https://api.davaam.app/api/smsPortal/stockApp";
 export const BASE_URL_STOCK_AUTH = "https://api.davaam.app/api/smsPortal/stockAuth";
 // export const LOCAL_STOCK_URL = "http://localhost:4000/api/smsPortal/stockApp";
