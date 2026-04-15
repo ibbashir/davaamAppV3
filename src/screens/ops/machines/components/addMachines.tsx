@@ -9,6 +9,7 @@ type Inputs = {
   machine_name: string;
   image: string;
   machine_location: string;
+  machine_city:string;
   machine_type: string;
   variant_type: string;
   mapLocation: string;
@@ -58,6 +59,7 @@ export default function AddMachine({
         image: data.image,
         price: data.price,
         locationName: data.machine_location,
+        machine_city:data.machine_city,
         mapLocation: data.mapLocation,
         machineType: data.machine_type,
         variantType: data.variant_type,
@@ -69,6 +71,7 @@ export default function AddMachine({
         lng: data.lng,
         category: data.category,
       });
+      
       alert("Machine added successfully!");
       reset();
       setEnabled(false);
@@ -220,6 +223,27 @@ export default function AddMachine({
                     />
                     {errors.machine_location && (
                       <span className="text-sm text-red-500">{errors.machine_location.message}</span>
+                    )}
+                  </div>
+
+                  {/* Location Name */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                      Location City
+                    </label>
+                    <select 
+                      {...register("machine_city", {
+                        required: "Location City is required.",
+                      })}
+                      className={inputClass}>
+                      <option value="" disabled >Select City</option>
+                      <option value="karachi">Karachi</option>
+                      <option value="lahore">Lahore</option>
+                      <option value="islamabad">Islamabad</option>
+                      <option value="multan">Multan</option>
+                    </select>
+                    {errors.machine_city && (
+                      <span className="text-sm text-red-500">{errors.machine_city.message}</span>
                     )}
                   </div>
 
