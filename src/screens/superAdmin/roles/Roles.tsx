@@ -37,8 +37,6 @@ import {
   IconUsers,
   IconShield,
   IconLoader2,
-  IconEyeOff,
-  IconEye,
   IconChevronLeft,
   IconChevronRight,
   IconChevronsLeft,
@@ -73,7 +71,6 @@ interface User {
   id: number;
   email: string;
   user_role: string;
-  password: string;
   created_at: string;
   first_name: string;
   last_name: string;
@@ -100,22 +97,27 @@ interface ApiResponse {
   adminRoles?: number;
   opsRoles?: number;
   companyRoles?: number;
+  fulfillRoles?: number;
+  financeRoles?: number;
 }
 
 interface UserFormData {
   firstName: string;
   lastName: string;
   email: string;
-  password: string;
+  password?: string;
 }
 
 // Constants
 const DEFAULT_PAGE_SIZE = 10;
 
 const ROLE_OPTIONS = [
-  { value: "ops", label: "Ops" },
+  { value: "super admin", label: "Super Admin" },
   { value: "admin", label: "Admin" },
-  { value: "company", label: "Company" },
+  { value: "ops", label: "Ops" },
+  { value: "fulfillment", label: "Fulfillment / Operations" },
+  { value: "company", label: "Corporate" },
+  { value: "finance", label: "Finance" },
 ];
 
 const MACHINE_TYPE_OPTIONS = [
@@ -168,11 +170,9 @@ const Roles = () => {
   const [editing, setEditing] = useState(false);
   const [userRole, setUserRole] = useState<string>("");
   const [machineType, setMachineType] = useState<string>("");
-  const [machineData, setMachineData] = useState<Machine[]>([]);
   const [machineOptions, setMachineOptions] = useState<MachineOption[]>([]);
   const [currentUserForEdit, setCurrentUserForEdit] = useState<User | null>(null);
   const [selectedMachines, setSelectedMachines] = useState<string[]>([]);
-  const [visiblePasswords, setVisiblePasswords] = useState<{ [key: number]: boolean }>({});
   const [currentPage, setCurrentPage] = useState(1);
   const [totalRecords, setTotalRecords] = useState(0);
   const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
@@ -216,7 +216,6 @@ const Roles = () => {
         `/superadmin/getAllMachines?machine_type=${selectedType}`
       );
       if (res.data) {
-        setMachineData(res.data);
         // Transform machine data to React Select options
         const options: MachineOption[] = res.data.map((machine: Machine) => ({
           value: machine.machine_code,
@@ -295,19 +294,28 @@ const Roles = () => {
 
   const getRoleCode = (role: string): string => {
     const roleMap: { [key: string]: string } = {
-      admin: "1",
-      ops: "2",
-      company: "3"
+      "super admin": "0",
+      "superadmin": "0",
+      "admin": "1",
+      "ops": "2",
+      "company": "3",
+      "corporate": "3",
+      "fulfillment": "4",
+      "finance": "5",
     };
-    return roleMap[role] || "3";
+    return roleMap[role.toLowerCase()] || "3";
   };
 
   const getRoleBadgeVariant = (role: string) => {
     const roleVariants: { [key: string]: "default" | "secondary" | "destructive" | "outline" } = {
       "super admin": "destructive",
+      "superadmin": "destructive",
       "admin": "default",
       "ops": "secondary",
       "company": "outline",
+      "corporate": "outline",
+      "fulfillment": "secondary",
+      "finance": "default",
     };
     return roleVariants[role.toLowerCase()] || "secondary";
   };
@@ -322,7 +330,10 @@ const Roles = () => {
       "admin": "Admin",
       "ops": "Ops",
       "operations": "Ops",
-      "company": "Company",
+      "company": "Corporate",
+      "corporate": "Corporate",
+      "fulfillment": "Fulfillment",
+      "finance": "Finance",
     };
 
     return roleMap[roleLower] || role.charAt(0).toUpperCase() + role.slice(1);
@@ -345,15 +356,16 @@ const Roles = () => {
 
     try {
       setCreating(true);
+      const isCorporate = userRole === "company";
       const newUser = {
         firstName: data.firstName,
         lastName: data.lastName,
         email: data.email,
         password: data.password,
         userRole: userRole,
-        machine_type: userRole === "company" ? machineType || null : null,
+        machine_type: isCorporate ? machineType || null : null,
         roleCode: getRoleCode(userRole),
-        machine_code: userRole === "company"
+        machine_code: isCorporate
           ? selectedMachines.map(m => ({ machine_code: m }))
           : [],
       };
@@ -422,13 +434,6 @@ const Roles = () => {
       console.error("Error deleting user:", error);
       toast.error("Failed to delete user");
     }
-  };
-
-  const togglePasswordVisibility = (userId: number) => {
-    setVisiblePasswords(prev => ({
-      ...prev,
-      [userId]: !prev[userId]
-    }));
   };
 
   const handlePageSizeChange = (size: string) => {
@@ -874,48 +879,70 @@ const Roles = () => {
         </div>
 
         {/* Statistics Cards */}
-        <div className="grid gap-4 md:grid-cols-4">
-          <Card className="bg-green-400">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-white">Total Users</CardTitle>
-              <IconUsers className="h-4 w-4 text-white" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-white">{totalRoleList?.total || 0}</div>
-              <p className="text-xs text-black">Registered users</p>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-red-400">
+        <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-6">
+          <Card className="bg-red-500">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium text-white">Super Admins</CardTitle>
               <IconShield className="h-4 w-4 text-white" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-white">{totalRoleList?.superAdminRoles || 0}</div>
-              <p className="text-xs text-black">System administrators</p>
+              <p className="text-xs text-white/80">System administrators</p>
             </CardContent>
           </Card>
 
-          <Card className="bg-cyan-400">
+          <Card className="bg-blue-500">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-white">Companies</CardTitle>
-              <IconUsers className="h-4 w-4 text-white" />
+              <CardTitle className="text-sm font-medium text-white">Admins</CardTitle>
+              <IconShield className="h-4 w-4 text-white" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-white">{totalRoleList?.companyRoles || 0}</div>
-              <p className="text-xs text-black">Company accounts</p>
+              <div className="text-2xl font-bold text-white">{totalRoleList?.adminRoles || 0}</div>
+              <p className="text-xs text-white/80">Business development</p>
             </CardContent>
           </Card>
 
-          <Card className="bg-orange-400">
+          <Card className="bg-orange-500">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-white">Operators</CardTitle>
+              <CardTitle className="text-sm font-medium text-white">Ops</CardTitle>
               <IconUsers className="h-4 w-4 text-white" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-white">{totalRoleList?.opsRoles || 0}</div>
-              <p className="text-xs text-black">Operations staff</p>
+              <p className="text-xs text-white/80">Operations staff</p>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-purple-500">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium text-white">Fulfillment</CardTitle>
+              <IconUsers className="h-4 w-4 text-white" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-white">{totalRoleList?.fulfillRoles || 0}</div>
+              <p className="text-xs text-white/80">Fulfillment team</p>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-cyan-500">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium text-white">Corporate</CardTitle>
+              <IconUsers className="h-4 w-4 text-white" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-white">{totalRoleList?.companyRoles || 0}</div>
+              <p className="text-xs text-white/80">Corporate accounts</p>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-green-500">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium text-white">Finance</CardTitle>
+              <IconUsers className="h-4 w-4 text-white" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-white">{totalRoleList?.financeRoles || 0}</div>
+              <p className="text-xs text-white/80">Finance team</p>
             </CardContent>
           </Card>
         </div>
@@ -941,7 +968,6 @@ const Roles = () => {
                     <TableRow>
                       <TableHead className="text-center text-white font-semibold rounded-tl-2xl">Name</TableHead>
                       <TableHead className="text-center text-white font-semibold">Email</TableHead>
-                      <TableHead className="text-center text-white font-semibold">Password</TableHead>
                       <TableHead className="text-center text-white font-semibold">Role</TableHead>
                       <TableHead className="text-center text-white font-semibold">Created</TableHead>
                       <TableHead className="text-center text-white font-semibold">Machines</TableHead>
@@ -955,22 +981,6 @@ const Roles = () => {
                           {user.first_name} {user.last_name}
                         </TableCell>
                         <TableCell>{user.email}</TableCell>
-                        <TableCell className="flex items-center gap-2">
-                          <span className="text-sm">
-                            {visiblePasswords[user.id] ? user.password : "••••••••"}
-                          </span>
-                          <button
-                            onClick={() => togglePasswordVisibility(user.id)}
-                            className="focus:outline-none"
-                            title={visiblePasswords[user.id] ? "Hide Password" : "Show Password"}
-                          >
-                            {visiblePasswords[user.id] ? (
-                              <IconEyeOff className="w-4 h-4 text-muted-foreground" />
-                            ) : (
-                              <IconEye className="w-4 h-4 text-muted-foreground" />
-                            )}
-                          </button>
-                        </TableCell>
                         <TableCell>
                           <Badge variant={getRoleBadgeVariant(user.user_role)}>
                             {formatRoleDisplay(user.user_role)}
