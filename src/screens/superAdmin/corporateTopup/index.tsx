@@ -73,11 +73,11 @@ const CorporateTopup = () => {
     total_pages: 0,
   });
 
-  const fetchCorporates = async (page: number = 1, limit: number = 10) => {
+  const fetchCorporates = async (page: number = 1, limit: number = 10, search="") => {
     try {
       setLoading(true);
       const response = await getRequest(
-        `/superadmin/getCorporateTopupHistory?page=${page}&limit=${limit}`
+        `/superadmin/getCorporateTopupHistory?page=${page}&limit=${limit}&search=${search.trim()}`
       ) as TopupHistoryResponse;
 
       if (response && response.data) {

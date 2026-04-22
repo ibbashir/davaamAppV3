@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
-import Select from 'react-select';
+import Select from "react-select";
 import { SiteHeader } from "@/components/superAdmin/site-header";
 import { Button } from "@/components/ui/button";
 import {
@@ -53,6 +53,7 @@ import {
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { deleteRequest, getRequest, postRequest, putRequest } from "@/Apis/Api";
+import { Search } from "lucide-react";
 
 // Interfaces
 interface Machine {
@@ -129,8 +130,9 @@ const MACHINE_TYPE_OPTIONS = [
 const CustomOption = ({ innerProps, label, data, isSelected }: any) => (
   <div
     {...innerProps}
-    className={`p-2 cursor-pointer hover:bg-gray-100 ${isSelected ? 'bg-teal-50' : ''
-      }`}
+    className={`p-2 cursor-pointer hover:bg-gray-100 ${
+      isSelected ? "bg-teal-50" : ""
+    }`}
   >
     <div className="flex items-center">
       <input
@@ -171,12 +173,15 @@ const Roles = () => {
   const [userRole, setUserRole] = useState<string>("");
   const [machineType, setMachineType] = useState<string>("");
   const [machineOptions, setMachineOptions] = useState<MachineOption[]>([]);
-  const [currentUserForEdit, setCurrentUserForEdit] = useState<User | null>(null);
+  const [currentUserForEdit, setCurrentUserForEdit] = useState<User | null>(
+    null,
+  );
   const [selectedMachines, setSelectedMachines] = useState<string[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalRecords, setTotalRecords] = useState(0);
   const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
-
+const [searchTerm, setSearchTerm]       = useState("");
+const [debouncedSearch, setDebouncedSearch] = useState("");
   const totalPages = Math.ceil(totalRecords / pageSize);
 
   // Form handling
@@ -188,32 +193,47 @@ const Roles = () => {
     setValue,
   } = useForm<UserFormData>();
 
-  // Data fetching
-  const fetchRoles = async (page: number = 1, limit: number = pageSize) => {
-    try {
-      setLoading(true);
-      const res: ApiResponse = await getRequest(
-        `/superadmin/getAllRoleLists?page=${page}&limit=${limit}`
-      );
+  // Debounce search input — wait 500ms after user stops typing
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchTerm);
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
 
-      if (res) {
-        setTotalRolesList(res);
-        setUsers(res.data);
-        setTotalRecords(res.total || res.data.length);
-        setCurrentPage(page);
-      }
-    } catch (error) {
-      console.error("Error fetching roles:", error);
-      toast.error("Failed to fetch roles data");
-    } finally {
-      setLoading(false);
+  // Fire API when debounced value changes — always reset to page 1
+  useEffect(() => {
+    fetchRoles(1, pageSize, debouncedSearch);
+  }, [debouncedSearch]);
+  // Data fetching
+  const fetchRoles = async (
+  page: number = 1,
+  limit: number = pageSize,
+  search: string = debouncedSearch,   // ✅ default to current search
+) => {
+  try {
+    setLoading(true);
+    const res: ApiResponse = await getRequest(
+      `/superadmin/getAllRoleLists?page=${page}&limit=${limit}&search=${encodeURIComponent(search)}`,
+    );
+    if (res) {
+      setTotalRolesList(res);
+      setUsers(res.data);
+      setTotalRecords(res.total || res.data.length);
+      setCurrentPage(page);
     }
-  };
+  } catch (error) {
+    console.error("Error fetching roles:", error);
+    toast.error("Failed to fetch roles data");
+  } finally {
+    setLoading(false);
+  }
+};
 
   const getAllMachineList = async (selectedType: string) => {
     try {
       const res = await getRequest(
-        `/superadmin/getAllMachines?machine_type=${selectedType}`
+        `/superadmin/getAllMachines?machine_type=${selectedType}`,
       );
       if (res.data) {
         // Transform machine data to React Select options
@@ -221,7 +241,7 @@ const Roles = () => {
           value: machine.machine_code,
           label: `${machine.machine_name} | ${machine.machine_code}`,
           machine_name: machine.machine_name,
-          machine_code: machine.machine_code
+          machine_code: machine.machine_code,
         }));
         setMachineOptions(options);
       }
@@ -271,7 +291,9 @@ const Roles = () => {
         currentUserForEdit.user_role === "company" &&
         currentUserForEdit.machines.length > 0
       ) {
-        const machineCodes = currentUserForEdit.machines.map(machine => machine.machine_code);
+        const machineCodes = currentUserForEdit.machines.map(
+          (machine) => machine.machine_code,
+        );
         setSelectedMachines(machineCodes);
       } else {
         setSelectedMachines([]);
@@ -295,27 +317,29 @@ const Roles = () => {
   const getRoleCode = (role: string): string => {
     const roleMap: { [key: string]: string } = {
       "super admin": "0",
-      "superadmin": "0",
-      "admin": "1",
-      "ops": "2",
-      "company": "3",
-      "corporate": "3",
-      "fulfillment": "4",
-      "finance": "5",
+      superadmin: "0",
+      admin: "1",
+      ops: "2",
+      company: "3",
+      corporate: "3",
+      fulfillment: "4",
+      finance: "5",
     };
     return roleMap[role.toLowerCase()] || "3";
   };
 
   const getRoleBadgeVariant = (role: string) => {
-    const roleVariants: { [key: string]: "default" | "secondary" | "destructive" | "outline" } = {
+    const roleVariants: {
+      [key: string]: "default" | "secondary" | "destructive" | "outline";
+    } = {
       "super admin": "destructive",
-      "superadmin": "destructive",
-      "admin": "default",
-      "ops": "secondary",
-      "company": "outline",
-      "corporate": "outline",
-      "fulfillment": "secondary",
-      "finance": "default",
+      superadmin: "destructive",
+      admin: "default",
+      ops: "secondary",
+      company: "outline",
+      corporate: "outline",
+      fulfillment: "secondary",
+      finance: "default",
     };
     return roleVariants[role.toLowerCase()] || "secondary";
   };
@@ -326,14 +350,14 @@ const Roles = () => {
     const roleLower = role.toLowerCase();
     const roleMap: { [key: string]: string } = {
       "super admin": "Super Admin",
-      "superadmin": "Super Admin",
-      "admin": "Admin",
-      "ops": "Ops",
-      "operations": "Ops",
-      "company": "Corporate",
-      "corporate": "Corporate",
-      "fulfillment": "Fulfillment",
-      "finance": "Finance",
+      superadmin: "Super Admin",
+      admin: "Admin",
+      ops: "Ops",
+      operations: "Ops",
+      company: "Corporate",
+      corporate: "Corporate",
+      fulfillment: "Fulfillment",
+      finance: "Finance",
     };
 
     return roleMap[roleLower] || role.charAt(0).toUpperCase() + role.slice(1);
@@ -366,7 +390,7 @@ const Roles = () => {
         machine_type: isCorporate ? machineType || null : null,
         roleCode: getRoleCode(userRole),
         machine_code: isCorporate
-          ? selectedMachines.map(m => ({ machine_code: m }))
+          ? selectedMachines.map((m) => ({ machine_code: m }))
           : [],
       };
 
@@ -399,15 +423,19 @@ const Roles = () => {
         companyCode: 0,
         user_role: currentUserForEdit.user_role,
         roleCode: currentUserForEdit.role_code,
-        machine_type: currentUserForEdit.user_role === "company" ? machineType || null : null,
-        machine_code: userRole === "company"
-          ? selectedMachines.map(m => ({ machine_code: m }))
-          : [],
+        machine_type:
+          currentUserForEdit.user_role === "company"
+            ? machineType || null
+            : null,
+        machine_code:
+          userRole === "company"
+            ? selectedMachines.map((m) => ({ machine_code: m }))
+            : [],
       };
 
       await putRequest(
         `/superadmin/updateRole/${currentUserForEdit.id}`,
-        updatedUser
+        updatedUser,
       );
 
       toast.success("User updated successfully");
@@ -437,11 +465,11 @@ const Roles = () => {
   };
 
   const handlePageSizeChange = (size: string) => {
-    const newSize = Number(size);
-    setPageSize(newSize);
-    setCurrentPage(1);
-    fetchRoles(1, newSize);
-  };
+  const newSize = Number(size);
+  setPageSize(newSize);
+  setCurrentPage(1);
+  fetchRoles(1, newSize, debouncedSearch);  // ✅ preserve search
+};
 
   const handleMachineSelectionChange = (selectedOptions: any) => {
     const selectedValues = selectedOptions
@@ -476,51 +504,53 @@ const Roles = () => {
         <Select
           isMulti
           options={machineOptions}
-          value={machineOptions.filter(option =>
-            selectedMachines.includes(option.value)
+          value={machineOptions.filter((option) =>
+            selectedMachines.includes(option.value),
           )}
           onChange={handleMachineSelectionChange}
           isDisabled={!machineType}
-          placeholder={machineType ? "Select machines..." : "Select machine type first"}
+          placeholder={
+            machineType ? "Select machines..." : "Select machine type first"
+          }
           className="react-select-container"
           classNamePrefix="react-select"
           closeMenuOnSelect={false}
           hideSelectedOptions={false}
           components={{
             Option: CustomOption,
-            MultiValue: CustomMultiValue
+            MultiValue: CustomMultiValue,
           }}
           styles={{
             control: (base) => ({
               ...base,
-              borderColor: '#d1d5db',
-              '&:hover': {
-                borderColor: '#9ca3af'
+              borderColor: "#d1d5db",
+              "&:hover": {
+                borderColor: "#9ca3af",
               },
-              minHeight: '42px'
+              minHeight: "42px",
             }),
             menu: (base) => ({
               ...base,
-              zIndex: 50
+              zIndex: 50,
             }),
             multiValue: (base) => ({
               ...base,
-              backgroundColor: '#0d9488',
-              color: 'white'
+              backgroundColor: "#0d9488",
+              color: "white",
             }),
             multiValueLabel: (base) => ({
               ...base,
-              color: 'white',
-              fontWeight: '500'
+              color: "white",
+              fontWeight: "500",
             }),
             multiValueRemove: (base) => ({
               ...base,
-              color: 'white',
-              ':hover': {
-                backgroundColor: '#0f766e',
-                color: 'white'
-              }
-            })
+              color: "white",
+              ":hover": {
+                backgroundColor: "#0f766e",
+                color: "white",
+              },
+            }),
           }}
         />
         {!machineType && (
@@ -562,51 +592,53 @@ const Roles = () => {
         <Select
           isMulti
           options={machineOptions}
-          value={machineOptions.filter(option =>
-            selectedMachines.includes(option.value)
+          value={machineOptions.filter((option) =>
+            selectedMachines.includes(option.value),
           )}
           onChange={handleMachineSelectionChange}
           isDisabled={!machineType}
-          placeholder={machineType ? "Select machines..." : "Select machine type first"}
+          placeholder={
+            machineType ? "Select machines..." : "Select machine type first"
+          }
           className="react-select-container"
           classNamePrefix="react-select"
           closeMenuOnSelect={false}
           hideSelectedOptions={false}
           components={{
             Option: CustomOption,
-            MultiValue: CustomMultiValue
+            MultiValue: CustomMultiValue,
           }}
           styles={{
             control: (base) => ({
               ...base,
-              borderColor: '#d1d5db',
-              '&:hover': {
-                borderColor: '#9ca3af'
+              borderColor: "#d1d5db",
+              "&:hover": {
+                borderColor: "#9ca3af",
               },
-              minHeight: '42px'
+              minHeight: "42px",
             }),
             menu: (base) => ({
               ...base,
-              zIndex: 50
+              zIndex: 50,
             }),
             multiValue: (base) => ({
               ...base,
-              backgroundColor: '#0d9488',
-              color: 'white'
+              backgroundColor: "#0d9488",
+              color: "white",
             }),
             multiValueLabel: (base) => ({
               ...base,
-              color: 'white',
-              fontWeight: '500'
+              color: "white",
+              fontWeight: "500",
             }),
             multiValueRemove: (base) => ({
               ...base,
-              color: 'white',
-              ':hover': {
-                backgroundColor: '#0f766e',
-                color: 'white'
-              }
-            })
+              color: "white",
+              ":hover": {
+                backgroundColor: "#0f766e",
+                color: "white",
+              },
+            }),
           }}
         />
         {!machineType && (
@@ -647,16 +679,23 @@ const Roles = () => {
                   Fill in the user's details and assign a role.
                 </DialogDescription>
               </DialogHeader>
-              <form onSubmit={handleSubmit(onSubmit)} className="grid gap-4 py-4">
+              <form
+                onSubmit={handleSubmit(onSubmit)}
+                className="grid gap-4 py-4"
+              >
                 <div className="grid gap-2">
                   <Label htmlFor="firstName">First Name</Label>
                   <Input
                     id="firstName"
-                    {...register("firstName", { required: "First name is required" })}
+                    {...register("firstName", {
+                      required: "First name is required",
+                    })}
                     placeholder="Enter first name"
                   />
                   {errors.firstName && (
-                    <p className="text-red-500 text-sm">{errors.firstName.message}</p>
+                    <p className="text-red-500 text-sm">
+                      {errors.firstName.message}
+                    </p>
                   )}
                 </div>
 
@@ -664,11 +703,15 @@ const Roles = () => {
                   <Label htmlFor="lastName">Last Name</Label>
                   <Input
                     id="lastName"
-                    {...register("lastName", { required: "Last name is required" })}
+                    {...register("lastName", {
+                      required: "Last name is required",
+                    })}
                     placeholder="Enter last name"
                   />
                   {errors.lastName && (
-                    <p className="text-red-500 text-sm">{errors.lastName.message}</p>
+                    <p className="text-red-500 text-sm">
+                      {errors.lastName.message}
+                    </p>
                   )}
                 </div>
 
@@ -681,13 +724,15 @@ const Roles = () => {
                       required: "Email is required",
                       pattern: {
                         value: /^\S+@\S+$/i,
-                        message: "Invalid email address"
-                      }
+                        message: "Invalid email address",
+                      },
                     })}
                     placeholder="Enter email"
                   />
                   {errors.email && (
-                    <p className="text-red-500 text-sm">{errors.email.message}</p>
+                    <p className="text-red-500 text-sm">
+                      {errors.email.message}
+                    </p>
                   )}
                 </div>
 
@@ -699,10 +744,11 @@ const Roles = () => {
                     {...register("password", {
                       required: "Password is required",
                       pattern: {
-                        value: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).{8,}$/,
+                        value:
+                          /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).{8,}$/,
                         message:
-                          "Password must be at least 8 characters, include uppercase, lowercase, number, and special character"
-                      }
+                          "Password must be at least 8 characters, include uppercase, lowercase, number, and special character",
+                      },
                     })}
                     placeholder="Enter password"
                   />
@@ -720,7 +766,10 @@ const Roles = () => {
                       <Label htmlFor="userRole" className="mb-2 block">
                         User Role
                       </Label>
-                      <ShadcnSelect value={userRole} onValueChange={setUserRole}>
+                      <ShadcnSelect
+                        value={userRole}
+                        onValueChange={setUserRole}
+                      >
                         <SelectTrigger>
                           <SelectValue placeholder="Select role" />
                         </SelectTrigger>
@@ -750,7 +799,9 @@ const Roles = () => {
                     className="bg-teal-600 hover:bg-teal-700"
                     disabled={creating}
                   >
-                    {creating && <IconLoader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    {creating && (
+                      <IconLoader2 className="mr-2 h-4 w-4 animate-spin" />
+                    )}
                     Create User
                   </Button>
                 </DialogFooter>
@@ -767,16 +818,23 @@ const Roles = () => {
                   Change the user's information
                 </DialogDescription>
               </DialogHeader>
-              <form onSubmit={handleSubmit(onEditSubmit)} className="grid gap-4 py-4">
+              <form
+                onSubmit={handleSubmit(onEditSubmit)}
+                className="grid gap-4 py-4"
+              >
                 <div className="grid gap-2">
                   <Label htmlFor="editFirstName">First Name</Label>
                   <Input
                     id="editFirstName"
-                    {...register("firstName", { required: "First name is required" })}
+                    {...register("firstName", {
+                      required: "First name is required",
+                    })}
                     placeholder="Enter first name"
                   />
                   {errors.firstName && (
-                    <p className="text-red-500 text-sm">{errors.firstName.message}</p>
+                    <p className="text-red-500 text-sm">
+                      {errors.firstName.message}
+                    </p>
                   )}
                 </div>
 
@@ -784,11 +842,15 @@ const Roles = () => {
                   <Label htmlFor="editLastName">Last Name</Label>
                   <Input
                     id="editLastName"
-                    {...register("lastName", { required: "Last name is required" })}
+                    {...register("lastName", {
+                      required: "Last name is required",
+                    })}
                     placeholder="Enter last name"
                   />
                   {errors.lastName && (
-                    <p className="text-red-500 text-sm">{errors.lastName.message}</p>
+                    <p className="text-red-500 text-sm">
+                      {errors.lastName.message}
+                    </p>
                   )}
                 </div>
 
@@ -801,13 +863,15 @@ const Roles = () => {
                       required: "Email is required",
                       pattern: {
                         value: /^\S+@\S+$/i,
-                        message: "Invalid email address"
-                      }
+                        message: "Invalid email address",
+                      },
                     })}
                     placeholder="Enter email"
                   />
                   {errors.email && (
-                    <p className="text-red-500 text-sm">{errors.email.message}</p>
+                    <p className="text-red-500 text-sm">
+                      {errors.email.message}
+                    </p>
                   )}
                 </div>
 
@@ -820,13 +884,15 @@ const Roles = () => {
                       required: "Password is required",
                       minLength: {
                         value: 6,
-                        message: "Password must be at least 6 characters"
-                      }
+                        message: "Password must be at least 6 characters",
+                      },
                     })}
                     placeholder="Enter password"
                   />
                   {errors.password && (
-                    <p className="text-red-500 text-sm">{errors.password.message}</p>
+                    <p className="text-red-500 text-sm">
+                      {errors.password.message}
+                    </p>
                   )}
                 </div>
 
@@ -836,7 +902,11 @@ const Roles = () => {
                       <Label htmlFor="editUserRole" className="mb-2 block">
                         User Role
                       </Label>
-                      <ShadcnSelect value={userRole} onValueChange={setUserRole} disabled>
+                      <ShadcnSelect
+                        value={userRole}
+                        onValueChange={setUserRole}
+                        disabled
+                      >
                         <SelectTrigger>
                           <SelectValue placeholder="Select role" />
                         </SelectTrigger>
@@ -869,7 +939,9 @@ const Roles = () => {
                     className="bg-teal-600 hover:bg-teal-700"
                     disabled={editing}
                   >
-                    {editing && <IconLoader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    {editing && (
+                      <IconLoader2 className="mr-2 h-4 w-4 animate-spin" />
+                    )}
                     Save Changes
                   </Button>
                 </DialogFooter>
@@ -882,66 +954,90 @@ const Roles = () => {
         <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-6">
           <Card className="bg-red-500">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-white">Super Admins</CardTitle>
+              <CardTitle className="text-sm font-medium text-white">
+                Super Admins
+              </CardTitle>
               <IconShield className="h-4 w-4 text-white" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-white">{totalRoleList?.superAdminRoles || 0}</div>
+              <div className="text-2xl font-bold text-white">
+                {totalRoleList?.superAdminRoles || 0}
+              </div>
               <p className="text-xs text-white/80">System administrators</p>
             </CardContent>
           </Card>
 
           <Card className="bg-blue-500">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-white">Admins</CardTitle>
+              <CardTitle className="text-sm font-medium text-white">
+                Admins
+              </CardTitle>
               <IconShield className="h-4 w-4 text-white" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-white">{totalRoleList?.adminRoles || 0}</div>
+              <div className="text-2xl font-bold text-white">
+                {totalRoleList?.adminRoles || 0}
+              </div>
               <p className="text-xs text-white/80">Business development</p>
             </CardContent>
           </Card>
 
           <Card className="bg-orange-500">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-white">Ops</CardTitle>
+              <CardTitle className="text-sm font-medium text-white">
+                Ops
+              </CardTitle>
               <IconUsers className="h-4 w-4 text-white" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-white">{totalRoleList?.opsRoles || 0}</div>
+              <div className="text-2xl font-bold text-white">
+                {totalRoleList?.opsRoles || 0}
+              </div>
               <p className="text-xs text-white/80">Operations staff</p>
             </CardContent>
           </Card>
 
           <Card className="bg-purple-500">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-white">Fulfillment</CardTitle>
+              <CardTitle className="text-sm font-medium text-white">
+                Fulfillment
+              </CardTitle>
               <IconUsers className="h-4 w-4 text-white" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-white">{totalRoleList?.fulfillRoles || 0}</div>
+              <div className="text-2xl font-bold text-white">
+                {totalRoleList?.fulfillRoles || 0}
+              </div>
               <p className="text-xs text-white/80">Fulfillment team</p>
             </CardContent>
           </Card>
 
           <Card className="bg-cyan-500">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-white">Corporate</CardTitle>
+              <CardTitle className="text-sm font-medium text-white">
+                Corporate
+              </CardTitle>
               <IconUsers className="h-4 w-4 text-white" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-white">{totalRoleList?.companyRoles || 0}</div>
+              <div className="text-2xl font-bold text-white">
+                {totalRoleList?.companyRoles || 0}
+              </div>
               <p className="text-xs text-white/80">Corporate accounts</p>
             </CardContent>
           </Card>
 
           <Card className="bg-green-500">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-white">Finance</CardTitle>
+              <CardTitle className="text-sm font-medium text-white">
+                Finance
+              </CardTitle>
               <IconUsers className="h-4 w-4 text-white" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-white">{totalRoleList?.financeRoles || 0}</div>
+              <div className="text-2xl font-bold text-white">
+                {totalRoleList?.financeRoles || 0}
+              </div>
               <p className="text-xs text-white/80">Finance team</p>
             </CardContent>
           </Card>
@@ -955,6 +1051,16 @@ const Roles = () => {
               Manage users and their assigned roles
             </CardDescription>
           </CardHeader>
+          {/* ✅ Search input wired up correctly */}
+          <div className="relative p-3 border-b">
+            <Search className="absolute left-6 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search by Name / Email"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10"
+            />
+          </div>
           <CardContent>
             {loading ? (
               <div className="flex items-center justify-center py-8">
@@ -966,12 +1072,24 @@ const Roles = () => {
                 <Table>
                   <TableHeader className="bg-teal-600 rounded-t-2xl">
                     <TableRow>
-                      <TableHead className="text-center text-white font-semibold rounded-tl-2xl">Name</TableHead>
-                      <TableHead className="text-center text-white font-semibold">Email</TableHead>
-                      <TableHead className="text-center text-white font-semibold">Role</TableHead>
-                      <TableHead className="text-center text-white font-semibold">Created</TableHead>
-                      <TableHead className="text-center text-white font-semibold">Machines</TableHead>
-                      <TableHead className="text-center text-white font-semibold rounded-tr-2xl">Actions</TableHead>
+                      <TableHead className="text-center text-white font-semibold rounded-tl-2xl">
+                        Name
+                      </TableHead>
+                      <TableHead className="text-center text-white font-semibold">
+                        Email
+                      </TableHead>
+                      <TableHead className="text-center text-white font-semibold">
+                        Role
+                      </TableHead>
+                      <TableHead className="text-center text-white font-semibold">
+                        Created
+                      </TableHead>
+                      <TableHead className="text-center text-white font-semibold">
+                        Machines
+                      </TableHead>
+                      <TableHead className="text-center text-white font-semibold rounded-tr-2xl">
+                        Actions
+                      </TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -991,11 +1109,17 @@ const Roles = () => {
                           <div className="flex flex-wrap gap-1">
                             {user.machines.length > 0 ? (
                               <>
-                                {user.machines.slice(0, 2).map((machine, index) => (
-                                  <Badge key={index} variant="outline" className="text-xs">
-                                    {machine.machine_code}
-                                  </Badge>
-                                ))}
+                                {user.machines
+                                  .slice(0, 2)
+                                  .map((machine, index) => (
+                                    <Badge
+                                      key={index}
+                                      variant="outline"
+                                      className="text-xs"
+                                    >
+                                      {machine.machine_code}
+                                    </Badge>
+                                  ))}
                                 {user.machines.length > 2 && (
                                   <Badge variant="outline" className="text-xs">
                                     +{user.machines.length - 2} more
@@ -1003,7 +1127,9 @@ const Roles = () => {
                                 )}
                               </>
                             ) : (
-                              <span className="text-muted-foreground text-sm">-</span>
+                              <span className="text-muted-foreground text-sm">
+                                -
+                              </span>
                             )}
                           </div>
                         </TableCell>
@@ -1041,14 +1167,21 @@ const Roles = () => {
                     </div>
                     <div className="flex w-full items-center gap-8 lg:w-fit">
                       <div className="hidden items-center gap-2 lg:flex">
-                        <Label htmlFor="rows-per-page" className="text-sm font-medium">
+                        <Label
+                          htmlFor="rows-per-page"
+                          className="text-sm font-medium"
+                        >
                           Rows per page
                         </Label>
                         <ShadcnSelect
                           value={`${pageSize}`}
                           onValueChange={handlePageSizeChange}
                         >
-                          <SelectTrigger size="sm" className="w-20" id="rows-per-page">
+                          <SelectTrigger
+                            size="sm"
+                            className="w-20"
+                            id="rows-per-page"
+                          >
                             <SelectValue placeholder={pageSize} />
                           </SelectTrigger>
                           <SelectContent side="top">

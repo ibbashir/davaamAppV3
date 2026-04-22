@@ -34,6 +34,8 @@ import {
   IconChevronsRight,
 } from "@tabler/icons-react";
 import { FaPlus } from "react-icons/fa";
+import { Search } from "lucide-react";
+import { Input } from "@/components/ui/input";
 
 interface CorporateTopupsData {
   corporate_name: string;
@@ -53,7 +55,7 @@ interface ApiResponse {
   message: string;
   success?: boolean;
   status?: number;
-  totalRecords?:number
+  totalRecords?: number;
 }
 
 interface PostTopupBody {
@@ -64,33 +66,51 @@ interface PostTopupBody {
 interface RegisteredCorporatesListProps {
   setShowModal: (show: boolean) => void;
   fetchCorporatesAll: (page: number, limit: number) => Promise<void>;
-
 }
 
-
-
-const RegisteredCorporatesList = ({ setShowModal, fetchCorporatesAll }: RegisteredCorporatesListProps) => {
-
+const RegisteredCorporatesList = ({
+  setShowModal,
+  fetchCorporatesAll,
+}: RegisteredCorporatesListProps) => {
   const [corporates, setCorporates] = useState<CorporateTopupsData[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10);
-  const [selectedCorporate, setSelectedCorporate] = useState<CorporateTopupsData | null>(null);
+  const [selectedCorporate, setSelectedCorporate] =
+    useState<CorporateTopupsData | null>(null);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [totalRecords, setTotalRecords] = useState(0);
 
- useEffect(() => {
-  const fetchCorporates = async () => {
+  // ✅ Declare missing state
+  const [searchTerm, setSearchTerm] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+
+  // ✅ Debounce: wait 500ms after user stops typing before hitting the backend
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchTerm);
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
+
+  // Replace the entire useEffect that fetches corporates with this:
+
+  const fetchCorporates = async (
+    page: number = currentPage,
+    limit: number = itemsPerPage,
+    search: string = debouncedSearch,
+  ) => {
     try {
       setLoading(true);
-      const response = await getRequest(
-        `/superadmin/getAllCorporateClients?page=${currentPage}&limit=${itemsPerPage}`
-      ) as ApiResponse;
+      const response = (await getRequest(
+        `/superadmin/getAllCorporateClients?page=${page}&limit=${limit}&search=${encodeURIComponent(search)}`,
+      )) as ApiResponse;
 
       setCorporates(response.data);
-      setTotalRecords(response.totalRecords);
+      setTotalRecords(response.totalRecords ?? 0);
+      setCurrentPage(page);
     } catch {
       setError("Failed to load corporate data");
     } finally {
@@ -98,32 +118,51 @@ const RegisteredCorporatesList = ({ setShowModal, fetchCorporatesAll }: Register
     }
   };
 
-  fetchCorporates();
-}, [currentPage, itemsPerPage]);
+  // Fetch on page change (preserve current search)
+  useEffect(() => {
+    fetchCorporates(currentPage, itemsPerPage, debouncedSearch);
+  }, [currentPage, itemsPerPage]);
 
+  // Fetch on search change — reset to page 1
+  useEffect(() => {
+    setCurrentPage(1);
+    fetchCorporates(1, itemsPerPage, debouncedSearch);
+  }, [debouncedSearch]);
 
   // Pagination logic
   const totalPages = Math.ceil(totalRecords / itemsPerPage);
 
-  console.log(totalRecords)
+  console.log(totalRecords);
   // Parse machine codes from various formats
-  const parseMachineCodes = (machineCodes: CorporateTopupsData['machine_codes']): string[] => {
+  const parseMachineCodes = (
+    machineCodes: CorporateTopupsData["machine_codes"],
+  ): string[] => {
     if (!machineCodes) return [];
 
     if (Array.isArray(machineCodes)) {
-      return machineCodes.filter((code): code is string => typeof code === 'string');
+      return machineCodes.filter(
+        (code): code is string => typeof code === "string",
+      );
     }
 
-    if (typeof machineCodes === 'string') {
+    if (typeof machineCodes === "string") {
       try {
         const parsed = JSON.parse(machineCodes);
         if (Array.isArray(parsed)) {
-          return parsed.filter((code): code is string => typeof code === 'string');
-        } else if (typeof parsed === 'string') {
-          return parsed.split(',').map((c) => c.trim()).filter(Boolean);
+          return parsed.filter(
+            (code): code is string => typeof code === "string",
+          );
+        } else if (typeof parsed === "string") {
+          return parsed
+            .split(",")
+            .map((c) => c.trim())
+            .filter(Boolean);
         }
       } catch {
-        return machineCodes.split(',').map((c) => c.trim()).filter(Boolean);
+        return machineCodes
+          .split(",")
+          .map((c) => c.trim())
+          .filter(Boolean);
       }
     }
 
@@ -131,7 +170,9 @@ const RegisteredCorporatesList = ({ setShowModal, fetchCorporatesAll }: Register
   };
 
   // Render machine codes properly
-  const renderMachineCodes = (machineCodes: CorporateTopupsData['machine_codes']) => {
+  const renderMachineCodes = (
+    machineCodes: CorporateTopupsData["machine_codes"],
+  ) => {
     const codesArray = parseMachineCodes(machineCodes);
 
     if (codesArray.length === 0) {
@@ -163,17 +204,15 @@ const RegisteredCorporatesList = ({ setShowModal, fetchCorporatesAll }: Register
         purposeOfPayment: `Monthly Topup for ${selectedCorporate.corporate_name || "Unknown Company"} amount of ${selectedCorporate.topuplimit || 0}`,
       };
 
-      const res = await postRequest(
+      const res = (await postRequest(
         "/superadmin/addCorporateRegisterationwithMachines",
-        body
-      ) as ApiResponse;
+        body,
+      )) as ApiResponse;
 
-        //here we need to call
-        toast.success(res.message);
-        console.log("done.................")
-        fetchCorporatesAll(1, 10);
-
-      
+      //here we need to call
+      toast.success(res.message);
+      console.log("done.................");
+      fetchCorporatesAll(1, 10);
     } catch (err) {
       console.error(err);
       toast.error("Something went wrong during topup!");
@@ -209,7 +248,6 @@ const RegisteredCorporatesList = ({ setShowModal, fetchCorporatesAll }: Register
                 </CardDescription>
               </CardHeader>
             </div>
-
             <div className="pr-6">
               <button
                 onClick={() => setShowModal(true)}
@@ -227,6 +265,16 @@ const RegisteredCorporatesList = ({ setShowModal, fetchCorporatesAll }: Register
               </div>
             )}
 
+            {/* ✅ Search input wired up correctly */}
+            <div className="relative p-3 border-b">
+              <Search className="absolute left-6 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search by company name or location..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10"
+              />
+            </div>
             {/* Table */}
             <div className="rounded-2xl border overflow-hidden">
               <Table className="rounded-2xl overflow-hidden">
@@ -260,9 +308,7 @@ const RegisteredCorporatesList = ({ setShowModal, fetchCorporatesAll }: Register
                         <TableCell className="font-medium">
                           {corporate.corporate_name || corporate.name || "N/A"}
                         </TableCell>
-                        <TableCell>
-                          {corporate.location || "N/A"}
-                        </TableCell>
+                        <TableCell>{corporate.location || "N/A"}</TableCell>
                         <TableCell className="text-left">
                           {renderMachineCodes(corporate.machine_codes)}
                         </TableCell>
@@ -272,8 +318,8 @@ const RegisteredCorporatesList = ({ setShowModal, fetchCorporatesAll }: Register
                         <TableCell className="text-muted-foreground">
                           {corporate.created_at
                             ? moment
-                              .utc(corporate.created_at)
-                              .format("DD-MM-YYYY")
+                                .utc(corporate.created_at)
+                                .format("DD-MM-YYYY")
                             : "N/A"}
                         </TableCell>
                         <TableCell>
@@ -306,7 +352,7 @@ const RegisteredCorporatesList = ({ setShowModal, fetchCorporatesAll }: Register
             </div>
 
             {/* Pagination */}
-            {corporates.length > 0 && (
+            {totalPages > 1 && (
               <div className="flex items-center justify-between px-4 mt-4">
                 <div className="hidden text-sm text-muted-foreground lg:flex">
                   Showing {corporates.length} of {totalRecords} corporates
@@ -318,7 +364,9 @@ const RegisteredCorporatesList = ({ setShowModal, fetchCorporatesAll }: Register
                     size="icon"
                     className="hidden lg:flex bg-transparent"
                     disabled={currentPage === 1}
-                    onClick={() => setCurrentPage(1)}
+                    onClick={() =>
+                      fetchCorporates(1, itemsPerPage, debouncedSearch)
+                    }
                   >
                     <IconChevronsLeft className="h-4 w-4" />
                   </Button>
@@ -328,7 +376,11 @@ const RegisteredCorporatesList = ({ setShowModal, fetchCorporatesAll }: Register
                     className="bg-transparent"
                     disabled={currentPage === 1}
                     onClick={() =>
-                      setCurrentPage((prev) => Math.max(1, prev - 1))
+                      fetchCorporates(
+                        currentPage - 1,
+                        itemsPerPage,
+                        debouncedSearch,
+                      )
                     }
                   >
                     <IconChevronLeft className="h-4 w-4" />
@@ -342,7 +394,11 @@ const RegisteredCorporatesList = ({ setShowModal, fetchCorporatesAll }: Register
                     className="bg-transparent"
                     disabled={currentPage === totalPages}
                     onClick={() =>
-                      setCurrentPage((prev) => Math.min(totalPages, prev + 1))
+                      fetchCorporates(
+                        currentPage + 1,
+                        itemsPerPage,
+                        debouncedSearch,
+                      )
                     }
                   >
                     <IconChevronRight className="h-4 w-4" />
@@ -352,7 +408,9 @@ const RegisteredCorporatesList = ({ setShowModal, fetchCorporatesAll }: Register
                     size="icon"
                     className="hidden lg:flex bg-transparent"
                     disabled={currentPage === totalPages}
-                    onClick={() => setCurrentPage(totalPages)}
+                    onClick={() =>
+                      fetchCorporates(totalPages, itemsPerPage, debouncedSearch)
+                    }
                   >
                     <IconChevronsRight className="h-4 w-4" />
                   </Button>

@@ -1,3 +1,4 @@
+import { useState, useEffect, useCallback } from "react";
 import {
   IconChevronLeft,
   IconChevronsLeft,
@@ -11,10 +12,18 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-
+import { Input } from "@/components/ui/input"; // ✅ use shadcn Input, not headlessui
 import moment from "moment";
+import { Search } from "lucide-react";
 
 interface TopupHistoryData {
   amount: string;
@@ -47,23 +56,43 @@ interface CorporateHistoryProps {
   corporates: CorporateStats;
   error: string | null;
   pagination: PaginationState;
-  fetchCorporates: (page: number, limit: number) => Promise<void>;
+  // ✅ search param added to match backend query ?search=
+  fetchCorporates: (page: number, limit: number, search?: string) => Promise<void>;
 }
 
 const CorporateHistory = ({
-  loading, 
-  corporates, 
-  error, 
-  pagination, 
-  fetchCorporates
+  loading,
+  corporates,
+  error,
+  pagination,
+  fetchCorporates,
 }: CorporateHistoryProps) => {
 
-  // Handle page change
-  const handlePageChange = (newPage: number) => {
-    if (newPage >= 1 && newPage <= pagination.total_pages) {
-      fetchCorporates(newPage, pagination.limit);
-    }
-  };
+  // ✅ Declare missing state
+  const [searchTerm, setSearchTerm] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+
+  // ✅ Debounce: wait 500ms after user stops typing before hitting the backend
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchTerm);
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
+
+  // ✅ Fire API call when debounced value changes — reset to page 1 on new search
+  useEffect(() => {
+    fetchCorporates(1, pagination.limit, debouncedSearch);
+  }, [debouncedSearch]);
+
+  const handlePageChange = useCallback(
+    (newPage: number) => {
+      if (newPage >= 1 && newPage <= pagination.total_pages) {
+        fetchCorporates(newPage, pagination.limit, debouncedSearch);
+      }
+    },
+    [pagination, debouncedSearch, fetchCorporates]
+  );
 
   if (loading) {
     return (
@@ -77,61 +106,48 @@ const CorporateHistory = ({
 
   return (
     <div className="flex flex-col gap-4 p-4 lg:gap-6 lg:p-6">
+
       {/* Stats Summary */}
       <div className="grid gap-4 md:grid-cols-5">
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-gray-500">
-              Total Amount
-            </CardTitle>
+            <CardTitle className="text-sm font-medium text-gray-500">Total Amount</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-semibold text-teal-700">
               {corporates.total_sum.toLocaleString()}
             </div>
-            <p className="text-xs text-muted-foreground">
-              Total topup amount
-            </p>
+            <p className="text-xs text-muted-foreground">Total topup amount</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-gray-500">
-              Total Employees
-            </CardTitle>
+            <CardTitle className="text-sm font-medium text-gray-500">Total Employees</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-semibold text-gray-800">
               {corporates.totalEmployees.toLocaleString()}
             </div>
-            <p className="text-xs text-muted-foreground">
-              Across all companies
-            </p>
+            <p className="text-xs text-muted-foreground">Across all companies</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-gray-500">
-              Overall Monthly Topup
-            </CardTitle>
+            <CardTitle className="text-sm font-medium text-gray-500">Overall Monthly Topup</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-semibold text-gray-800">
               {corporates.overall_topups.toLocaleString()}
             </div>
-            <p className="text-xs text-muted-foreground">
-              Across all companies
-            </p>
+            <p className="text-xs text-muted-foreground">Across all companies</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-gray-500">
-              Total Companies
-            </CardTitle>
+            <CardTitle className="text-sm font-medium text-gray-500">Total Companies</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-semibold text-gray-800">
@@ -143,9 +159,7 @@ const CorporateHistory = ({
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-gray-500">
-              Total Topups
-            </CardTitle>
+            <CardTitle className="text-sm font-medium text-gray-500">Total Topups</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-semibold text-gray-800">
@@ -167,13 +181,23 @@ const CorporateHistory = ({
       <Card>
         <CardHeader>
           <CardTitle>Corporate Topup History</CardTitle>
-          <CardDescription>
-            List of all corporate top-up transactions
-          </CardDescription>
+          <CardDescription>List of all corporate top-up transactions</CardDescription>
         </CardHeader>
 
         <CardContent>
           <div className="rounded-2xl border overflow-hidden">
+
+            {/* ✅ Search input wired up correctly */}
+            <div className="relative p-3 border-b">
+              <Search className="absolute left-6 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search by company name or location..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+
             <Table className="rounded-2xl overflow-hidden">
               <TableHeader>
                 <TableRow className="bg-teal-600 text-white hover:bg-teal-600">
@@ -202,25 +226,20 @@ const CorporateHistory = ({
                       <TableCell className="font-semibold text-teal-700">
                         Rs: {corporate.amount || "0.00"}
                       </TableCell>
-                      <TableCell>
-                        {corporate.purpose_of_payment || "N/A"}
-                      </TableCell>
+                      <TableCell>{corporate.purpose_of_payment || "N/A"}</TableCell>
                       <TableCell className="text-muted-foreground">
                         {corporate.created_at
-                          ? moment
-                            .utc(corporate.created_at)
-                            .format("DD-MM-YYYY")
+                          ? moment.utc(corporate.created_at).format("DD-MM-YYYY")
                           : "N/A"}
                       </TableCell>
                     </TableRow>
                   ))
                 ) : (
                   <TableRow>
-                    <TableCell
-                      colSpan={4}
-                      className="text-center py-8 text-gray-500"
-                    >
-                      No corporate records found
+                    <TableCell colSpan={4} className="text-center py-8 text-gray-500">
+                      {searchTerm
+                        ? `No results found for "${searchTerm}"`
+                        : "No corporate records found"}
                     </TableCell>
                   </TableRow>
                 )}
@@ -236,8 +255,7 @@ const CorporateHistory = ({
               </div>
               <div className="flex items-center gap-2">
                 <Button
-                  variant="outline"
-                  size="icon"
+                  variant="outline" size="icon"
                   className="hidden lg:flex bg-transparent"
                   disabled={pagination.current_page === 1}
                   onClick={() => handlePageChange(1)}
@@ -245,39 +263,26 @@ const CorporateHistory = ({
                   <IconChevronsLeft className="h-4 w-4" />
                 </Button>
                 <Button
-                  variant="outline"
-                  size="icon"
+                  variant="outline" size="icon"
                   className="bg-transparent"
                   disabled={pagination.current_page === 1}
-                  onClick={() =>
-                    handlePageChange(Math.max(1, pagination.current_page - 1))
-                  }
+                  onClick={() => handlePageChange(pagination.current_page - 1)}
                 >
                   <IconChevronLeft className="h-4 w-4" />
                 </Button>
                 <span className="text-sm font-medium">
-                  Page {pagination.current_page} of{" "}
-                  {pagination.total_pages || 1}
+                  Page {pagination.current_page} of {pagination.total_pages || 1}
                 </span>
                 <Button
-                  variant="outline"
-                  size="icon"
+                  variant="outline" size="icon"
                   className="bg-transparent"
                   disabled={pagination.current_page === pagination.total_pages}
-                  onClick={() =>
-                    handlePageChange(
-                      Math.min(
-                        pagination.total_pages,
-                        pagination.current_page + 1
-                      )
-                    )
-                  }
+                  onClick={() => handlePageChange(pagination.current_page + 1)}
                 >
                   <IconChevronRight className="h-4 w-4" />
                 </Button>
                 <Button
-                  variant="outline"
-                  size="icon"
+                  variant="outline" size="icon"
                   className="hidden lg:flex bg-transparent"
                   disabled={pagination.current_page === pagination.total_pages}
                   onClick={() => handlePageChange(pagination.total_pages)}
