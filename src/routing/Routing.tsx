@@ -46,6 +46,8 @@ import FulfillLocations from "@/screens/fulfillment/locations/Locations";
 import FinanceDashboard from "@/screens/finance/dashboard/Dashboard"
 import FinanceMachines from "@/screens/finance/machines/Machines";
 import FinanceMachineVisit from "@/screens/finance/machines/MachineVisit"
+import UserWalletActivity from '@/screens/finance/UserWalletActivity/UserWalletActivity'
+
 
 //corporate (company) screens
 import CorporateDashboard from '@/screens/corporate/dashboard/Dashboard'
@@ -122,6 +124,7 @@ import {
   SUPERADMIN_TOPUP,
   USERS,
   FINANCE_LOCATIONS,
+  FINANCE_USER_WALLET_ACTIVITY,
 } from '@/constants/Constant'
 import OpsMachineVisit from '@/screens/ops/machines/MachineVisit'
 import Reports from '@/screens/corporate/reports/reports'
@@ -239,6 +242,7 @@ const Routing = () => {
       <Route element={<PrivateRouting allowedRoles={["finance"]} />}>
         <Route element={<Layout />}>
           <Route path={FINANCE_DASHBOARD} element={< FinanceDashboard />} />
+          <Route path={FINANCE_USER_WALLET_ACTIVITY} element={<UserWalletActivity />} />
           <Route path={FINANCE_MACHINES} element={<FinanceMachines />} />
           <Route path={FINANCE_LOCATIONS} element={<FinanceLocations />} />
           <Route path={FINANCE_TOPUP} element={<FinanceTopup />} />

@@ -103,6 +103,7 @@ export const FULFill_MACHINE_MAP = "/fulfill/machine-map";
 
 // Finance Path
 export const FINANCE_DASHBOARD = "/finance/dashboard";
+export const FINANCE_USER_WALLET_ACTIVITY = "/finance/userWalletActivity";
 export const FINANCE_MACHINES = "/finance/machines";
 export const FINANCE_LOCATIONS = "/finance/locations";
 export const FINANCE_TOPUP = "/finance/topup";
@@ -268,6 +269,11 @@ export const FINANCE_SIDEBAR_ROUTES = () => {
     {
       title: "Finance Report",
       url: FINANCE_REPORT,
+      icon: IconReport,
+    },
+     {
+      title: "User Wallet Activity",
+      url: FINANCE_USER_WALLET_ACTIVITY,
       icon: IconReport,
     },
   ];
