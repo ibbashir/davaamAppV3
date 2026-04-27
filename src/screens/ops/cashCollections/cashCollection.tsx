@@ -130,7 +130,7 @@ interface MonthlyReportResponse {
   };
 }
 
-const SuperAdminCashCollectionPage: React.FC = () => {
+const OpsCashCollectionPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState("table");
   const [data, setData] = useState<CashCollection[]>([]);
   const [loading, setLoading] = useState(true);
@@ -183,7 +183,7 @@ const SuperAdminCashCollectionPage: React.FC = () => {
       setLoading(true);
       setError(null);
 
-      const result = await getRequest<{ success?: boolean; data?: CashCollection[] }>(`/admin/getAllCashCollection`);
+      const result = await getRequest<{ success?: boolean; data?: CashCollection[] }>(`/ops/getAllCashCollection`);
 
       if (result && result.success && result.data) {
         setData(result.data);
@@ -202,7 +202,7 @@ const SuperAdminCashCollectionPage: React.FC = () => {
 
   const fetchMachines = async () => {
     try {
-      const result = await getRequest<{ data?: MachineInfo[] }>("/admin/getMachinesWithMachineCode");
+      const result = await getRequest<{ data?: MachineInfo[] }>("/ops/getMachinesWithMachineCode");
 
       if (result?.data && Array.isArray(result.data)) {
         setMachines(result.data);
@@ -227,7 +227,7 @@ const SuperAdminCashCollectionPage: React.FC = () => {
       });
 
       const result = await postRequest<MonthlyReportResponse>(
-        "/admin/monthlyCashCollectionReport",
+        "/ops/monthlyCashCollectionReport",
         {
           month: selectedMonth,
           year: selectedYear,
@@ -1157,4 +1157,4 @@ const SuperAdminCashCollectionPage: React.FC = () => {
   );
 };
 
-export default SuperAdminCashCollectionPage;
+export default OpsCashCollectionPage;

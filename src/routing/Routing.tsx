@@ -122,6 +122,7 @@ import {
   SUPERADMIN_TOPUP,
   USERS,
   FINANCE_LOCATIONS,
+  OPS_CASH_COLLECTION,
 } from '@/constants/Constant'
 import OpsMachineVisit from '@/screens/ops/machines/MachineVisit'
 import Reports from '@/screens/corporate/reports/reports'
@@ -152,6 +153,7 @@ import FinanceMachineMap from '@/screens/finance/MachinesMap/MachineMap'
 import FinanceReport from '@/screens/finance/Reports/Reports'
 import FulfillMachineVisit from '../screens/fulfillment/machines/MachineVisit'
 import FinanceLocations from '@/screens/finance/locations/Locations'
+import OpsCashCollectionPage from '@/screens/ops/cashCollections/cashCollection'
 
 const Routing = () => {
   return (
@@ -219,6 +221,7 @@ const Routing = () => {
           {/* <Route path={OPS_CORPORATE} element={<OpsCorporate />} /> */}
           <Route path={OPS_MACHINE_VISIT} element={<OpsMachineVisit />} />
           <Route path={OPS_MACHINE_MAP} element={<OpsMachineMap />} />
+          <Route path={OPS_CASH_COLLECTION} element={<OpsCashCollectionPage />} />
         </Route>
       </Route>
 

@@ -130,7 +130,7 @@ export function LoginForm({ className }: React.ComponentProps<"form">) {
 
       <div className="text-center pt-2 border-gray-100">
         <p className="text-sm text-gray-500">
-          ©2026 Davaam Life. All Rights Reserved.{" "}
+          © 2026 Davaam Life. All Rights Reserved.{" "}
           <button
             type="button"
             onClick={() => navigate("/company-info")}

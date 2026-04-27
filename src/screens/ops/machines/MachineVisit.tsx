@@ -9,7 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Download, Plus, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react"
-import { SiteHeader } from "@/components/superAdmin/site-header"
+import { SiteHeader } from "@/components/admin/site-header"
 import { useLocation } from "react-router-dom"
 import { postRequest } from "@/Apis/Api"
 import { ResponsiveBar } from "@nivo/bar"
@@ -80,7 +80,7 @@ export default function AdminMachineVisit() {
         transactionArr = res.data.weekly.Transaction
       } else {
         revenueArr = res.data.monthly.Revenue
-        transactionArr = res.data.monthly.Transaction
+        transactionArr = res.data.monthly.Transaction 
       }
 
       const transformed: NivoBarData[] = revenueArr.map((revObj, i) => {

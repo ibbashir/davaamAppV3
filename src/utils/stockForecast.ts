@@ -309,13 +309,23 @@ type BatchResponse = {
  *
  * @param endpoint  Role-specific batch endpoint (e.g. "/superadmin/machineDetailsBatch")
  */
+type UserRole = "superadmin" | "admin" | "ops" | "fulfillment" | "finance"
+
+const ROLE_ENDPOINTS: Record<UserRole, string> = {
+  superadmin: "/superadmin/machineDetailsBatch",
+  admin: "/admin/machineDetailsBatch",
+  ops: "/ops/machineDetailsBatch",
+  fulfillment: "/fulfillment/machineDetailsBatch",
+  finance: "/finance/machineDetailsBatch",
+}
+
 export async function enrichForecastMap(
   machineCodes: string[],
   currentForecasts: { [code: string]: StockForecast },
   stockMap: { [code: string]: string },
   brandQuantities: { [brandId: string]: number },
   onBatchReady: (updates: { [code: string]: StockForecast }) => void,
-  endpoint: string = "/superadmin/machineDetailsBatch",
+  role: UserRole = "superadmin",
 ): Promise<void> {
   const toEnrich = machineCodes.filter(
     (code) => currentForecasts[code] && !currentForecasts[code].enriched,
@@ -323,9 +333,11 @@ export async function enrichForecastMap(
 
   if (toEnrich.length === 0) return
 
+  const endpoint = ROLE_ENDPOINTS[role]
+
   try {
-    // Single request for all machines — backend returns data keyed by machine_code
     const res = await postRequest<BatchResponse>(endpoint, { machine_codes: toEnrich })
+   
 
     if (!res.success || !res.data) return
 

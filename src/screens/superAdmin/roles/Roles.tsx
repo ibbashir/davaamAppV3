@@ -180,8 +180,8 @@ const Roles = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalRecords, setTotalRecords] = useState(0);
   const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
-const [searchTerm, setSearchTerm]       = useState("");
-const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [searchTerm, setSearchTerm]       = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const totalPages = Math.ceil(totalRecords / pageSize);
 
   // Form handling
@@ -205,6 +205,7 @@ const [debouncedSearch, setDebouncedSearch] = useState("");
   useEffect(() => {
     fetchRoles(1, pageSize, debouncedSearch);
   }, [debouncedSearch]);
+
   // Data fetching
   const fetchRoles = async (
   page: number = 1,

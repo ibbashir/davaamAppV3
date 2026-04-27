@@ -88,7 +88,8 @@ export const OPS_FEEDBACK = "/ops/feedback";
 export const OPS_CORPORATE = "/ops/corporate";
 export const OPS_MACHINE_VISIT = "/ops/machine-details/:id";
 export const OPS_MACHINE_MAP = "/ops/machine-map";
-export const OPS_RIDER_LOCATION = "/superadmin/riderLocation";
+export const OPS_CASH_COLLECTION = "/ops/cashCollection";
+export const OPS_RIDER_LOCATION = "/ops/riderLocation";
 
 // Fulfillment PATH
 export const FULFill_DASHBOARD = "/fulfill/dashboard";
@@ -218,6 +219,11 @@ export const OPS_SIDEBAR_ROUTES = () => {
       url: OPS_MACHINE_MAP,
       icon: IconMapPin,
     },
+    {
+      title: "Cash Collection",
+      url: OPS_CASH_COLLECTION,
+      icon: IconCashBanknote,
+    }
   ];
 };
 
