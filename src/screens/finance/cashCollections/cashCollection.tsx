@@ -46,6 +46,9 @@ interface MachineReport {
     type: string;
     percentage: string;
   };
+  CashToBeReceived?:{
+    CashToBeCollected:string
+  }
 }
 
 interface DailyData {
@@ -936,6 +939,9 @@ const FinanceCashCollectionPage: React.FC = () => {
                             Difference
                           </th>
                           <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Cash In Machine
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             Status
                           </th>
                           <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -984,6 +990,8 @@ const FinanceCashCollectionPage: React.FC = () => {
                                   if (foundMachine) {
                                     setSelectedMachineReport(foundMachine);
                                   }
+                                  
+                                  console.log(selectedMachineReport)
                                 }}
                               >
                                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
@@ -1022,6 +1030,12 @@ const FinanceCashCollectionPage: React.FC = () => {
                                     </p>
                                   )}
                                 </td>
+                                
+                                <td className="px-6 py-4 whitespace-nowrap text-sm">
+                                  <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium`}>
+                                    Rs: {machine.CashToBeReceived?.CashToBeCollected || 0}
+                                  </span>
+                                </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm">
                                   <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium ${diffBgColor} ${diffColor}`}>
                                     <DiffIcon className="h-3 w-3" />
@@ -1038,6 +1052,7 @@ const FinanceCashCollectionPage: React.FC = () => {
                                       if (foundMachine) {
                                         setSelectedMachineReport(foundMachine);
                                       }
+                                      
                                     }}
                                     className="text-blue-600 hover:text-blue-800 flex items-center gap-1"
                                   >
@@ -1089,7 +1104,7 @@ const FinanceCashCollectionPage: React.FC = () => {
                         </thead>
 
                         <tbody>
-                          {selectedMachineReport.transactions.length === 0 ? (
+                          {selectedMachineReport.transactions_count.length === 0 ? (
                             <tr>
                               <td colSpan={4} className="text-center py-4 text-gray-500">
                                 No transactions found

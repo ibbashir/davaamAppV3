@@ -36,6 +36,7 @@ import {
   ExternalLink,
 } from "lucide-react";
 import { format, parseISO } from "date-fns";
+import moment from "moment-timezone";
 
 interface CashCollectionTableProps {
   data: CashCollection[];
@@ -165,13 +166,13 @@ const CashCollectionTable: React.FC<CashCollectionTableProps> = ({
   };
 
   // Format date
-  const formatDate = (dateString: string) => {
-    try {
-      return format(parseISO(dateString), "dd MMM yyyy, hh:mm a");
-    } catch {
-      return dateString;
-    }
-  };
+ const formatDate = (dateString: string) => {
+     try {
+       return moment.utc(dateString).format("DD-MM-YYYY - HH:mm:ss");
+     } catch {
+       return dateString;
+     }
+   };
 
   // Format currency
   const formatCurrency = (amount: string) => {

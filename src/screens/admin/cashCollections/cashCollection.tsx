@@ -980,13 +980,16 @@ const SuperAdminCashCollectionPage: React.FC = () => {
                             }
 
                             return (
-                              <tr 
-                                key={machine.machine_code} 
+                              <tr
+                                key={machine.machine_code}
                                 className="hover:bg-gray-50 cursor-pointer"
                                 onClick={() => {
-                                  const foundMachine = rawApiResponse.raw_data.grouped_by_machine.find(
-                                    m => m.machine_code === machine.machine_code
-                                  );
+                                  const foundMachine =
+                                    rawApiResponse.detailed_breakdown.all_machines.find(
+                                      // ← was raw_data.grouped_by_machine
+                                      (m) =>
+                                        m.machine_code === machine.machine_code,
+                                    );
                                   if (foundMachine) {
                                     setSelectedMachineReport(foundMachine);
                                   }
