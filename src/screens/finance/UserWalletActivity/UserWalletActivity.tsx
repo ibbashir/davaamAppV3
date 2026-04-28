@@ -362,7 +362,7 @@ const UserWalletActivity: React.FC = () => {
               />
               <ProductCard
                 emoji="⛽"
-                name="Oil / Refill Stations"
+                name="Liquid / Refill Stations"
                 quantity={summary.totalOilQuantity}
                 amount={summary.totalOilAmount}
                 share={oilShare}
@@ -519,7 +519,7 @@ const UserWalletActivity: React.FC = () => {
                   </th>
                   {/* Oil group */}
                   <th colSpan={2} className="px-4 py-2.5 text-center text-xs font-bold text-amber-700 bg-amber-50 border-b border-amber-100 whitespace-nowrap">
-                    ⛽ Oil / Refill
+                    ⛽ Liquid Products
                   </th>
                   <th
                     rowSpan={2}
