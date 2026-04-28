@@ -12,6 +12,9 @@ export interface RiderLocation {
   startTime: number;
   total_distance: number;
   status: string | null;
+  dest_lat: number | null;
+  dest_lng: number | null;
+  dest_name: string | null;
 }
 
 export interface RideHistory {

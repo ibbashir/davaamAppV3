@@ -34,8 +34,8 @@ const RideRouteMap: React.FC<Props> = ({ ride }) => {
   return (
     <MapContainer center={center} zoom={14} style={{ height: "100%", width: "100%" }}>
       <TileLayer
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        attribution='&copy; <a href="https://locationiq.com">LocationIQ</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+        url="https://tiles.locationiq.com/v3/streets/r/{z}/{x}/{y}.png?key=pk.b32f17b2ac79ace43426c2a0d2fefedd"
       />
 
       {positions.length === 2 && (
