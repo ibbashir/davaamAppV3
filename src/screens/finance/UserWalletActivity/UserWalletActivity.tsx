@@ -53,14 +53,6 @@ interface BrandBreak {
   brand_quantity: number;
 }
 
-interface BrandSummaryItem {
-  brand_id: number;
-  brand_name: string;
-  product_type: 'butterfly' | 'oil';
-  total_amount: string;
-  total_quantity: number;
-  total_txn_count: number;
-}
 
 interface Pagination {
   currentPage: number;
@@ -79,14 +71,22 @@ interface Summary {
   totalOilAmount: string;
   totalButterflyQuantity: number;
   totalOilQuantity: number;
+  totalOilTxnCount: number;
   totalRemainingBalance: string;
+}
+
+interface LiquidBrand {
+  brand_name: string;
+  total_amount: string;
+  total_quantity: number;
+  total_txn_count: number;
 }
 
 interface ApiResponse {
   data: AppUserRow[];
   pagination: Pagination;
   summary: Summary;
-  brandSummary: BrandSummaryItem[];
+  liquidBrands: LiquidBrand[];
 }
 
 interface UserTransaction {
@@ -159,7 +159,7 @@ const UserWalletActivity: React.FC = () => {
 
   const [sortKey, setSortKey]   = useState<keyof AppUserRow>('total_topup_amount');
   const [sortDir, setSortDir]   = useState<'asc' | 'desc'>('desc');
-  const [brandSummary, setBrandSummary] = useState<BrandSummaryItem[]>([]);
+  const [liquidBrands, setLiquidBrands] = useState<LiquidBrand[]>([]);
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
 
   const [modalUser, setModalUser] = useState<ModalUser | null>(null);
@@ -177,7 +177,7 @@ const UserWalletActivity: React.FC = () => {
       setData(res.data ?? []);
       setPagination(res.pagination);
       setSummary(res.summary);
-      setBrandSummary(res.brandSummary ?? []);
+      setLiquidBrands(res.liquidBrands ?? []);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Failed to fetch data');
     } finally {
@@ -371,31 +371,46 @@ const UserWalletActivity: React.FC = () => {
               />
             </div>
 
-            {/* Row 3: Per-brand totals */}
-           {/* {brandSummary.length > 0 && (
-              <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
-                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide flex items-center gap-2 mb-4">
-                  <Package size={12} /> Product Brand Totals
-                </p>
-                <div className="flex flex-wrap gap-3">
-                  {brandSummary.map((brand, i) => {
-                    const c = BRAND_PALETTE[i % BRAND_PALETTE.length];
-                    return (
-                      <div key={`${brand.product_type}-${brand.brand_id}`} className={`flex items-center gap-3 ${c.bg} ${c.border} border rounded-xl px-4 py-3`}>
-                        <div className={`p-2 ${c.iconBg} rounded-lg`}>
-                          <span className="text-base leading-none">{brand.product_type === 'butterfly' ? '🦋' : '⛽'}</span>
-                        </div>
-                        <div>
-                          <p className={`font-bold text-sm ${c.name}`}>{brand.brand_name}</p>
-                          <p className={`text-xs ${c.val} mt-0.5`}>{fmtInt(brand.total_quantity)} {brand.product_type === 'butterfly' ? 'units' : 'ml'} · Rs {fmt(brand.total_amount)}</p>
-                          <p className="text-xs text-gray-400">{fmtInt(brand.total_txn_count)} transactions</p>
-                        </div>
-                      </div>
-                    );
-                  })}
+            {/* Row 3: Liquid products per-brand breakdown */}
+            {liquidBrands.length > 0 && (
+              <div className="bg-white border border-amber-100 rounded-2xl overflow-hidden shadow-sm">
+                <div className="px-5 py-3.5 border-b border-amber-100 flex items-center gap-2">
+                  <Droplets size={14} className="text-amber-500" />
+                  <span className="text-xs font-semibold text-amber-700 uppercase tracking-wide">Liquid Products Breakdown</span>
                 </div>
+                <table className="min-w-full text-sm">
+                  <thead className="bg-amber-50">
+                    <tr>
+                      <th className="px-5 py-2.5 text-left text-xs font-semibold text-amber-700 uppercase tracking-wider">Product</th>
+                      <th className="px-5 py-2.5 text-right text-xs font-semibold text-amber-700 uppercase tracking-wider">ml Dispensed</th>
+                      <th className="px-5 py-2.5 text-right text-xs font-semibold text-amber-700 uppercase tracking-wider">Revenue (Rs)</th>
+                      <th className="px-5 py-2.5 text-right text-xs font-semibold text-amber-700 uppercase tracking-wider">Transactions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-amber-50">
+                    {liquidBrands.map((b) => (
+                      <tr key={b.brand_name} className="hover:bg-amber-50/40 transition-colors">
+                        <td className="px-5 py-3 font-medium text-gray-800 flex items-center gap-2">
+                          <Droplets size={12} className="text-amber-400 shrink-0" />
+                          {b.brand_name}
+                        </td>
+                        <td className="px-5 py-3 text-right font-semibold text-amber-800">{fmtInt(b.total_quantity)} <span className="text-xs font-normal text-amber-500">ml</span></td>
+                        <td className="px-5 py-3 text-right font-semibold text-gray-800">Rs {fmt(b.total_amount)}</td>
+                        <td className="px-5 py-3 text-right text-gray-600">{fmtInt(b.total_txn_count)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                  <tfoot className="bg-amber-100/60 border-t-2 border-amber-200">
+                    <tr>
+                      <td className="px-5 py-3 font-bold text-amber-900">Total</td>
+                      <td className="px-5 py-3 text-right font-bold text-amber-900">{fmtInt(summary.totalOilQuantity)} <span className="text-xs font-normal">ml</span></td>
+                      <td className="px-5 py-3 text-right font-bold text-amber-900">Rs {fmt(summary.totalOilAmount)}</td>
+                      <td className="px-5 py-3 text-right font-bold text-amber-900">{fmtInt(summary.totalOilTxnCount)}</td>
+                    </tr>
+                  </tfoot>
+                </table>
               </div>
-            )} */}
+            )}
           </div>
         )}
 
