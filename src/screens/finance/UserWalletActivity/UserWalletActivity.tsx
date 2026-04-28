@@ -18,6 +18,10 @@ import {
   Info,
   Package,
   Banknote,
+  Eye,
+  X,
+  Droplets,
+  ShoppingBag,
 } from 'lucide-react';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -43,6 +47,7 @@ interface AppUserRow {
 interface BrandBreak {
   brand_id: number;
   brand_name: string;
+  product_type: 'butterfly' | 'oil';
   brand_amount: string;
   brand_txn_count: number;
   brand_quantity: number;
@@ -51,6 +56,7 @@ interface BrandBreak {
 interface BrandSummaryItem {
   brand_id: number;
   brand_name: string;
+  product_type: 'butterfly' | 'oil';
   total_amount: string;
   total_quantity: number;
   total_txn_count: number;
@@ -81,6 +87,34 @@ interface ApiResponse {
   pagination: Pagination;
   summary: Summary;
   brandSummary: BrandSummaryItem[];
+}
+
+interface UserTransaction {
+  id: number;
+  type: 'butterfly' | 'oil';
+  brand_name: string;
+  quantity: number;
+  amount: string;
+  machine_code: string;
+  transaction_number: string;
+  created_at: string;
+}
+
+interface TxnPagination {
+  currentPage: number;
+  totalPages: number;
+  total: number;
+  limit: number;
+}
+
+interface TxnApiResponse {
+  transactions: UserTransaction[];
+  pagination: TxnPagination;
+}
+
+interface ModalUser {
+  mobile_number: string;
+  full_name: string;
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -128,6 +162,8 @@ const UserWalletActivity: React.FC = () => {
   const [brandSummary, setBrandSummary] = useState<BrandSummaryItem[]>([]);
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
 
+  const [modalUser, setModalUser] = useState<ModalUser | null>(null);
+
   const fetchData = useCallback(async () => {
     setLoading(true);
     setError(null);
@@ -137,7 +173,7 @@ const UserWalletActivity: React.FC = () => {
         page: String(page), limit: String(pageSize),
         ...(search ? { search } : {}),
       });
-      const res = await getRequest<ApiResponse>(`/finance/getAppUserCollection?${params}`);
+      const res = await getRequest<ApiResponse>(`/finance/userWalletActivity?${params}`);
       setData(res.data ?? []);
       setPagination(res.pagination);
       setSummary(res.summary);
@@ -189,13 +225,13 @@ const UserWalletActivity: React.FC = () => {
         startDate, endDate, page: '1', limit: String(total),
         ...(search ? { search } : {}),
       });
-      const res = await getRequest<ApiResponse>(`/finance/getAppUserCollection?${params}`);
+      const res = await getRequest<ApiResponse>(`/finance/userWalletActivity?${params}`);
       const allRows = res.data ?? [];
       const headers = [
         'Mobile Number', 'User ID', 'Full Name',
         'Total Top-up (Rs)', 'Top-up Count',
         'Butterfly Units', 'Butterfly Revenue (Rs)', 'Butterfly Txn Count',
-        'Oil Units', 'Oil Revenue (Rs)', 'Oil Txn Count',
+        'Oil ml', 'Oil Revenue (Rs)', 'Oil Txn Count',
         'Total Spent (Rs)', 'Remaining Balance (Rs)', 'Status',
       ];
       const rows = allRows.map((r) => [
@@ -234,6 +270,7 @@ const UserWalletActivity: React.FC = () => {
   // ─── Render ───────────────────────────────────────────────────────────────
 
   return (
+    <>
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-gray-50 to-teal-50/20">
       <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
 
@@ -330,11 +367,12 @@ const UserWalletActivity: React.FC = () => {
                 amount={summary.totalOilAmount}
                 share={oilShare}
                 accent="amber"
+                unit="ml"
               />
             </div>
 
             {/* Row 3: Per-brand totals */}
-            {brandSummary.length > 0 && (
+           {/* {brandSummary.length > 0 && (
               <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
                 <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide flex items-center gap-2 mb-4">
                   <Package size={12} /> Product Brand Totals
@@ -343,13 +381,13 @@ const UserWalletActivity: React.FC = () => {
                   {brandSummary.map((brand, i) => {
                     const c = BRAND_PALETTE[i % BRAND_PALETTE.length];
                     return (
-                      <div key={brand.brand_id} className={`flex items-center gap-3 ${c.bg} ${c.border} border rounded-xl px-4 py-3`}>
+                      <div key={`${brand.product_type}-${brand.brand_id}`} className={`flex items-center gap-3 ${c.bg} ${c.border} border rounded-xl px-4 py-3`}>
                         <div className={`p-2 ${c.iconBg} rounded-lg`}>
-                          <Package size={14} className={c.iconText} />
+                          <span className="text-base leading-none">{brand.product_type === 'butterfly' ? '🦋' : '⛽'}</span>
                         </div>
                         <div>
                           <p className={`font-bold text-sm ${c.name}`}>{brand.brand_name}</p>
-                          <p className={`text-xs ${c.val} mt-0.5`}>{fmtInt(brand.total_quantity)} units · Rs {fmt(brand.total_amount)}</p>
+                          <p className={`text-xs ${c.val} mt-0.5`}>{fmtInt(brand.total_quantity)} {brand.product_type === 'butterfly' ? 'units' : 'ml'} · Rs {fmt(brand.total_amount)}</p>
                           <p className="text-xs text-gray-400">{fmtInt(brand.total_txn_count)} transactions</p>
                         </div>
                       </div>
@@ -357,7 +395,7 @@ const UserWalletActivity: React.FC = () => {
                   })}
                 </div>
               </div>
-            )}
+            )} */}
           </div>
         )}
 
@@ -519,7 +557,7 @@ const UserWalletActivity: React.FC = () => {
                     onClick={() => toggleSort('oil_quantity')}
                     className="px-4 py-2 text-right text-xs font-semibold text-amber-600 uppercase tracking-wider cursor-pointer select-none bg-amber-50 hover:bg-amber-100 transition-colors whitespace-nowrap"
                   >
-                    Units (Kitna){sortIcon('oil_quantity')}
+                    ml (Kitna){sortIcon('oil_quantity')}
                   </th>
                   <th
                     onClick={() => toggleSort('user_txn_amount')}
@@ -650,17 +688,25 @@ const UserWalletActivity: React.FC = () => {
                           Rs {fmt(row.remaining_balance)}
                         </td>
 
-                        {/* Status */}
+                        {/* Status + View */}
                         <td className="px-4 py-3.5">
-                          {isInactive ? (
-                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-700 whitespace-nowrap">
-                              <XCircle size={10} /> No Txns
-                            </span>
-                          ) : (
-                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-700">
-                              <CheckCircle size={10} /> Active
-                            </span>
-                          )}
+                          <div className="flex flex-col gap-1.5 items-start">
+                            {isInactive ? (
+                              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-700 whitespace-nowrap">
+                                <XCircle size={10} /> No Txns
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-700">
+                                <CheckCircle size={10} /> Active
+                              </span>
+                            )}
+                            <button
+                              onClick={() => setModalUser({ mobile_number: row.mobile_number, full_name: row.full_name })}
+                              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-teal-50 text-teal-700 hover:bg-teal-100 transition-colors whitespace-nowrap"
+                            >
+                              <Eye size={10} /> Transactions
+                            </button>
+                          </div>
                         </td>
                       </tr>
                       {isExpanded && (
@@ -676,10 +722,15 @@ const UserWalletActivity: React.FC = () => {
                                     {row.brand_breakdown.map((brand, bi) => {
                                       const c = BRAND_PALETTE[bi % BRAND_PALETTE.length];
                                       return (
-                                        <div key={brand.brand_id} className={`${c.bg} ${c.border} border rounded-lg px-3 py-2.5 min-w-[130px]`}>
-                                          <p className={`text-xs font-bold ${c.name} truncate`}>{brand.brand_name}</p>
-                                          <p className={`text-sm font-bold ${c.val} mt-1`}>
-                                            {fmtInt(brand.brand_quantity)} <span className="text-xs font-normal">units</span>
+                                        <div key={`${brand.product_type}-${brand.brand_id}`} className={`${c.bg} ${c.border} border rounded-lg px-3 py-2.5 min-w-[130px]`}>
+                                          <div className="flex items-center justify-between gap-1 mb-1">
+                                            <p className={`text-xs font-bold ${c.name} truncate`}>{brand.brand_name}</p>
+                                            <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full shrink-0 ${brand.product_type === 'butterfly' ? 'bg-purple-100 text-purple-600' : 'bg-amber-100 text-amber-600'}`}>
+                                              {brand.product_type === 'butterfly' ? '🦋' : '⛽'}
+                                            </span>
+                                          </div>
+                                          <p className={`text-sm font-bold ${c.val}`}>
+                                            {fmtInt(brand.brand_quantity)} <span className="text-xs font-normal">{brand.product_type === 'butterfly' ? 'units' : 'ml'}</span>
                                           </p>
                                           <p className={`text-xs ${c.val} font-semibold`}>Rs {fmt(brand.brand_amount)}</p>
                                           <p className="text-xs text-gray-400 mt-0.5">{brand.brand_txn_count} txn{brand.brand_txn_count !== 1 ? 's' : ''}</p>
@@ -760,6 +811,16 @@ const UserWalletActivity: React.FC = () => {
 
       </div>
     </div>
+
+    {modalUser && (
+      <UserTransactionsModal
+        user={modalUser}
+        startDate={startDate}
+        endDate={endDate}
+        onClose={() => setModalUser(null)}
+      />
+    )}
+  </>
   );
 };
 
@@ -798,7 +859,8 @@ const ProductCard: React.FC<{
   amount: string;
   share: number;
   accent: 'purple' | 'amber';
-}> = ({ emoji, name, quantity, amount, share, accent }) => {
+  unit?: string;
+}> = ({ emoji, name, quantity, amount, share, accent, unit = 'units' }) => {
   const C = {
     purple: {
       wrap: 'from-purple-50 to-purple-100/30 border-purple-100',
@@ -837,7 +899,7 @@ const ProductCard: React.FC<{
           <p className={`text-2xl font-bold ${C.qtyText} leading-none`}>
             {quantity.toLocaleString('en-PK')}
           </p>
-          <p className={`text-xs ${C.label} mt-1`}>units sold</p>
+          <p className={`text-xs ${C.label} mt-1`}>{unit} sold</p>
         </div>
         <div className={`border ${C.amtBg} rounded-xl p-3.5`}>
           <p className={`text-xs font-semibold ${C.label} mb-1.5`}>Kitnay Ka Bika</p>
@@ -858,6 +920,180 @@ const ProductCard: React.FC<{
         <p className={`text-xs ${C.label} mt-1.5 text-right`}>
           {share.toFixed(1)}% of total product sales
         </p>
+      </div>
+    </div>
+  );
+};
+
+// ─── User Transactions Modal ──────────────────────────────────────────────────
+
+const UserTransactionsModal: React.FC<{
+  user: ModalUser;
+  startDate: string;
+  endDate: string;
+  onClose: () => void;
+}> = ({ user, startDate, endDate, onClose }) => {
+  const [transactions, setTransactions] = useState<UserTransaction[]>([]);
+  const [pagination, setPagination]     = useState<TxnPagination>({ currentPage: 1, totalPages: 1, total: 0, limit: 20 });
+  const [loading, setLoading]           = useState(false);
+  const [page, setPage]                 = useState(1);
+
+  const fetchTxns = useCallback(async (p: number) => {
+    setLoading(true);
+    try {
+      const params = new URLSearchParams({
+        msisdn: user.mobile_number,
+        startDate,
+        endDate,
+        page: String(p),
+        limit: '20',
+      });
+      const res = await getRequest<TxnApiResponse>(`/finance/userWalletActivity/transactions?${params}`);
+      setTransactions(res.transactions ?? []);
+      setPagination(res.pagination);
+    } finally {
+      setLoading(false);
+    }
+  }, [user.mobile_number, startDate, endDate]);
+
+  useEffect(() => { fetchTxns(page); }, [fetchTxns, page]);
+
+  // Close on backdrop click
+  const handleBackdrop = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (e.target === e.currentTarget) onClose();
+  };
+
+  // Close on Escape
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [onClose]);
+
+  const fmtDateTime = (raw: string) => {
+    const d = new Date(raw);
+    if (isNaN(d.getTime())) return raw;
+    const pad = (n: number) => String(n).padStart(2, '0');
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}  ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  };
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4"
+      onClick={handleBackdrop}
+    >
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] flex flex-col overflow-hidden">
+
+        {/* Header */}
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-teal-600 rounded-xl">
+              <Eye size={16} className="text-white" />
+            </div>
+            <div>
+              <p className="font-bold text-gray-900 text-sm">Individual Transactions</p>
+              <p className="text-xs text-gray-500 font-mono mt-0.5">{user.mobile_number}{user.full_name ? ` · ${user.full_name}` : ''}</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-3">
+            <span className="text-xs text-gray-400">{startDate} — {endDate}</span>
+            <button
+              onClick={onClose}
+              className="p-1.5 rounded-xl text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors"
+            >
+              <X size={16} />
+            </button>
+          </div>
+        </div>
+
+        {/* Body */}
+        <div className="flex-1 overflow-y-auto">
+          {loading ? (
+            <div className="p-8 flex flex-col items-center gap-3 text-gray-400">
+              <RefreshCw size={24} className="animate-spin text-teal-500" />
+              <p className="text-sm">Loading transactions…</p>
+            </div>
+          ) : transactions.length === 0 ? (
+            <div className="p-12 flex flex-col items-center gap-3 text-gray-400">
+              <Package size={40} className="opacity-25" />
+              <p className="font-semibold text-gray-500">No transactions found</p>
+              <p className="text-sm">Try a wider date range</p>
+            </div>
+          ) : (
+            <table className="min-w-full text-sm">
+              <thead className="sticky top-0 bg-gray-50 border-b border-gray-100">
+                <tr>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">#</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Date & Time</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Type</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Brand</th>
+                  <th className="px-4 py-3 text-right text-xs font-semibold text-gray-400 uppercase tracking-wider">Qty</th>
+                  <th className="px-4 py-3 text-right text-xs font-semibold text-gray-400 uppercase tracking-wider">Amount</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Machine</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-50">
+                {transactions.map((txn, idx) => {
+                  const isButterfly = txn.type === 'butterfly';
+                  const rowNum = (pagination.currentPage - 1) * pagination.limit + idx + 1;
+                  return (
+                    <tr key={`${txn.type}-${txn.id}`} className="hover:bg-gray-50/60 transition-colors">
+                      <td className="px-4 py-3 text-gray-400 text-xs">{rowNum}</td>
+                      <td className="px-4 py-3 text-xs text-gray-600 font-mono whitespace-nowrap">{fmtDateTime(txn.created_at)}</td>
+                      <td className="px-4 py-3">
+                        {isButterfly ? (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-purple-100 text-purple-700">
+                            <ShoppingBag size={9} /> Butterfly
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-700">
+                            <Droplets size={9} /> Oil / Refill
+                          </span>
+                        )}
+                      </td>
+                      <td className="px-4 py-3 text-xs text-gray-700 font-medium">{txn.brand_name || '—'}</td>
+                      <td className="px-4 py-3 text-right">
+                        <span className="font-bold text-gray-800">{fmtInt(txn.quantity)}</span>
+                        <span className="text-xs text-gray-400 ml-1">{isButterfly ? 'units' : 'ml'}</span>
+                      </td>
+                      <td className="px-4 py-3 text-right font-semibold text-gray-900">Rs {fmt(txn.amount)}</td>
+                      <td className="px-4 py-3 text-xs text-gray-500 font-mono">{txn.machine_code || '—'}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          )}
+        </div>
+
+        {/* Footer — pagination + total */}
+        <div className="px-6 py-3 border-t border-gray-100 flex items-center justify-between gap-3 bg-gray-50/50">
+          <p className="text-xs text-gray-500">
+            <span className="font-semibold text-gray-700">{pagination.total.toLocaleString()}</span> total transactions
+            {pagination.totalPages > 1 && (
+              <> · page <span className="font-semibold text-gray-700">{pagination.currentPage}</span> of {pagination.totalPages}</>
+            )}
+          </p>
+          {pagination.totalPages > 1 && (
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                disabled={pagination.currentPage === 1 || loading}
+                className="p-1.5 rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              >
+                <ChevronLeft size={13} />
+              </button>
+              <button
+                onClick={() => setPage((p) => Math.min(pagination.totalPages, p + 1))}
+                disabled={pagination.currentPage === pagination.totalPages || loading}
+                className="p-1.5 rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              >
+                <ChevronRight size={13} />
+              </button>
+            </div>
+          )}
+        </div>
+
       </div>
     </div>
   );
