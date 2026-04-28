@@ -75,6 +75,25 @@ export const createStartIcon = () =>
     popupAnchor: [0, -14],
   });
 
+/** Amber flag pin for the ride destination, labelled with a truncated name. */
+export const createDestinationIcon = (name: string | null) =>
+  L.divIcon({
+    html: `
+      <div style="display:flex;flex-direction:column;align-items:center;">
+        <div style="width:14px;height:14px;background-color:#f59e0b;border:2px solid white;
+          border-radius:50%;box-shadow:0 1px 4px rgba(0,0,0,0.4);"></div>
+        <div style="margin-top:2px;background-color:#f59e0b;color:white;font-size:9px;
+          font-weight:600;padding:1px 5px;border-radius:999px;white-space:nowrap;
+          box-shadow:0 1px 3px rgba(0,0,0,0.3);max-width:80px;overflow:hidden;text-overflow:ellipsis;">
+          ${name ? name.slice(0, 14) : "Dest"}
+        </div>
+      </div>`,
+    className: "",
+    iconSize: [14, 28],
+    iconAnchor: [7, 7],
+    popupAnchor: [0, -14],
+  });
+
 /** Small red dot labelled "End". */
 export const createEndIcon = () =>
   L.divIcon({

@@ -24,11 +24,11 @@ const RideDetailPanel: React.FC<Props> = ({ ride, onClose }) => {
       {/* Panel */}
       <div className="w-full max-w-2xl bg-white shadow-2xl flex flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b bg-indigo-600 text-white">
+        <div className="flex items-center justify-between px-5 py-4 border-b bg-teal-600 text-white">
           <div className="flex items-center space-x-2">
             <span className="text-lg">🗺️</span>
             <h3 className="font-bold text-base">Ride #{ride.id} — Route Map</h3>
-            <span className="text-indigo-200 text-sm">· User #{ride.user_id}</span>
+            <span className="text-teal-200 text-sm">· User #{ride.user_id}</span>
           </div>
           <button
             onClick={onClose}

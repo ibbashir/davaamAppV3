@@ -124,7 +124,7 @@ const PanelHeader: React.FC<{
     <div className="flex items-center space-x-2">
       <span className="text-xl">🏍️</span>
       <h2 className="text-lg font-bold text-gray-800">Ride History</h2>
-      <span className="ml-2 px-2 py-0.5 bg-blue-100 text-blue-700 text-xs rounded-full font-medium">
+      <span className="ml-2 px-2 py-0.5 bg-teal-100 text-teal-700 text-xs rounded-full font-medium">
         {filteredCount} / {totalCount} rides
       </span>
     </div>
@@ -159,12 +159,12 @@ const RideFilters: React.FC<FilterProps> = ({
       placeholder="Filter by User ID..."
       value={filterUserId}
       onChange={(e) => onUserIdChange(e.target.value)}
-      className="border rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+      className="border rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400"
     />
     <select
       value={filterStatus}
       onChange={(e) => onStatusChange(e.target.value)}
-      className="border rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+      className="border rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400"
     >
       <option value="all">All Statuses</option>
       <option value="ongoing">Ongoing</option>
@@ -174,13 +174,13 @@ const RideFilters: React.FC<FilterProps> = ({
       type="date"
       value={startDate}
       onChange={(e) => onStartDateChange(e.target.value)}
-      className="border rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+      className="border rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400"
     />
     <input
       type="date"
       value={endDate}
       onChange={(e) => onEndDateChange(e.target.value)}
-      className="border rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+      className="border rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400"
     />
   </div>
 );
@@ -238,7 +238,7 @@ const RideTableRow: React.FC<{
       <td className="px-4 py-3">
         <button
           onClick={() => onViewMap(ride)}
-          className="flex items-center space-x-1 px-2.5 py-1 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 rounded-lg text-xs font-medium transition"
+          className="flex items-center space-x-1 px-2.5 py-1 bg-teal-50 text-teal-600 hover:bg-teal-100 rounded-lg text-xs font-medium transition"
         >
           <MapIcon />
           <span>View Map</span>
