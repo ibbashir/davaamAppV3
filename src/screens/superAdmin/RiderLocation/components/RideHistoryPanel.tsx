@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
-import { BASE_URL_STOCK } from "@/constants/Constant";
+import { BASE_URL } from "@/constants/Constant";
+import { getRequest } from "@/Apis/Api";
 import type { RideHistory, RideHistoryPagination, RideHistoryResponse } from "../../../../Types/SuperAdmin/rider";
 import { formatDuration, formatDateTime, formatDistance } from "../../../../utils/formatters";
 import RideStatusBadge from "./RideStatusBadge";
@@ -31,9 +31,11 @@ const RideHistoryPanel: React.FC<Props> = ({ onClose }) => {
     const fetchHistory = async () => {
       try {
         setLoading(true);
-        const response = await axios.get<RideHistoryResponse>(`${BASE_URL_STOCK}/rideHistory`);
-        setHistory(response.data.data);
-        setPagination(response.data.pagination);
+        const response = await getRequest<RideHistoryResponse>(
+          `${BASE_URL}/superadmin/getRideHistory`,
+        );
+        setHistory(response.data);
+        setPagination(response.pagination);
         setError(null);
       } catch {
         setError("Failed to fetch ride history");
@@ -60,8 +62,15 @@ const RideHistoryPanel: React.FC<Props> = ({ onClose }) => {
         <RideDetailPanel ride={selectedRide} onClose={() => setSelectedRide(null)} />
       )}
 
-      <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50">
-        <div className="bg-white rounded-2xl shadow-2xl w-full max-w-5xl mx-4 flex flex-col max-h-[90vh]">
+      <div className="fixed inset-0 z-[9998] flex">
+        {/* Backdrop — click to close */}
+        <div
+          className="flex-1 bg-black/40 backdrop-blur-sm"
+          onClick={onClose}
+        />
+
+        {/* Drawer panel */}
+        <div className="w-full max-w-4xl bg-white shadow-2xl flex flex-col animate-in slide-in-from-right duration-300">
 
           {/* Header */}
           <PanelHeader
@@ -85,7 +94,12 @@ const RideHistoryPanel: React.FC<Props> = ({ onClose }) => {
           {/* Table */}
           <div className="overflow-y-auto flex-1">
             {loading ? (
-              <CenteredMessage>Loading...</CenteredMessage>
+              <CenteredMessage>
+                <div className="flex flex-col items-center space-y-2">
+                  <div className="w-6 h-6 border-2 border-teal-600 border-t-transparent rounded-full animate-spin" />
+                  <span>Loading rides…</span>
+                </div>
+              </CenteredMessage>
             ) : error ? (
               <CenteredMessage className="text-red-500">{error}</CenteredMessage>
             ) : filtered.length === 0 ? (
@@ -96,13 +110,13 @@ const RideHistoryPanel: React.FC<Props> = ({ onClose }) => {
           </div>
 
           {/* Footer */}
-          <div className="px-6 py-3 border-t bg-gray-50 flex items-center justify-between">
+          <div className="px-6 py-3 border-t bg-gray-50 flex items-center justify-between flex-shrink-0">
             <p className="text-xs text-gray-400">
               Showing {filtered.length} of {pagination?.total ?? 0} total rides
             </p>
             <button
               onClick={onClose}
-              className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg text-sm hover:bg-gray-300 transition"
+              className="px-4 py-2 bg-gray-100 text-gray-600 rounded-lg text-sm hover:bg-gray-200 transition font-medium"
             >
               Close
             </button>
@@ -120,17 +134,17 @@ const PanelHeader: React.FC<{
   totalCount: number;
   onClose: () => void;
 }> = ({ filteredCount, totalCount, onClose }) => (
-  <div className="flex items-center justify-between px-6 py-4 border-b">
+  <div className="flex items-center justify-between px-6 py-4 bg-teal-600 text-white flex-shrink-0">
     <div className="flex items-center space-x-2">
       <span className="text-xl">🏍️</span>
-      <h2 className="text-lg font-bold text-gray-800">Ride History</h2>
-      <span className="ml-2 px-2 py-0.5 bg-teal-100 text-teal-700 text-xs rounded-full font-medium">
+      <h2 className="text-lg font-bold">Ride History</h2>
+      <span className="ml-2 px-2 py-0.5 bg-teal-500/60 text-white text-xs rounded-full font-medium">
         {filteredCount} / {totalCount} rides
       </span>
     </div>
     <button
       onClick={onClose}
-      className="text-gray-400 hover:text-gray-600 transition text-2xl leading-none"
+      className="text-white/70 hover:text-white transition text-2xl leading-none"
       aria-label="Close"
     >
       ×
