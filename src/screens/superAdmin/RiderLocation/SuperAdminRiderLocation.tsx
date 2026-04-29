@@ -151,11 +151,11 @@ const SuperAdminRiderLocation: React.FC = () => {
           )}
 
           {/* "Click marker to view" hint when no rider selected */}
-          {!loading && !error && riders.length > 0 && !selectedRiderId && (
+          {/* {!loading && !error && riders.length > 0 && !selectedRiderId && (
             <div className="absolute top-3 left-1/2 -translate-x-1/2 z-[9999] bg-white/90 backdrop-blur-sm rounded-xl shadow px-3 py-1.5 text-xs text-gray-500 border border-gray-100">
-              Select a rider from the panel or click a map marker
+              <span>Click a marker to view details</span>
             </div>
-          )}
+          )} */}
         </div>
       </div>
     </div>
@@ -284,9 +284,10 @@ const RiderCard: React.FC<{
       )}
     </div>
 
-    <div className="grid grid-cols-2 gap-1 text-xs text-gray-500">
+    <div className="grid grid-cols-3 gap-1 text-xs text-gray-500">
       <span>⚡ {rider.speed.toFixed(1)} km/h</span>
       <span>📏 {rider.total_distance ? `${rider.total_distance.toFixed(1)} km` : "—"}</span>
+      <span>⏱ {rider.status === "ongoing" && rider.startTime ? fmtElapsed(Math.floor((Date.now() - rider.startTime) / 1000)) : "—"}</span>
     </div>
 
     {rider.dest_name && (
@@ -366,6 +367,10 @@ const RiderMapLayer: React.FC<{
   rider:    RiderLocation;
   onSelect: (rider: RiderLocation) => void;
 }> = ({ rider, onSelect }) => {
+  const [startRouteCoords, setStartRouteCoords] = useState<[number, number][]>([]);
+  const [destRouteCoords,  setDestRouteCoords]  = useState<[number, number][]>([]);
+  const lastFetchedPosRef = useRef<{ lat: number; lng: number } | null>(null);
+
   const hasStartPin =
     rider.status === "ongoing" &&
     rider.start_lat !== 0 &&
@@ -375,32 +380,52 @@ const RiderMapLayer: React.FC<{
     rider.dest_lat != null &&
     rider.dest_lng != null;
 
+  useEffect(() => {
+    const last = lastFetchedPosRef.current;
+    if (last && geoDistMeters(last.lat, last.lng, rider.lat, rider.lng) < 100) return;
+    lastFetchedPosRef.current = { lat: rider.lat, lng: rider.lng };
+
+    if (hasStartPin) {
+      fetchOSRMRoute(rider.start_lat, rider.start_lng, rider.lat, rider.lng)
+        .then((d) => { if (d) setStartRouteCoords(d.coords); });
+    }
+    if (hasDestination && rider.status === "ongoing") {
+      fetchOSRMRoute(rider.lat, rider.lng, rider.dest_lat!, rider.dest_lng!)
+        .then((d) => { if (d) setDestRouteCoords(d.coords); });
+    }
+  }, [rider.lat, rider.lng, rider.start_lat, rider.start_lng, rider.dest_lat, rider.dest_lng, hasStartPin, hasDestination, rider.status]);
+
   const displayName = rider.riderName || rider.riderId;
 
   return (
     <React.Fragment>
-      {/* Route so-far: start → current position */}
+      {/* Route so-far: start → current position (street-based via OSRM) */}
       {hasStartPin && (
         <Polyline
-          positions={[[rider.start_lat, rider.start_lng], [rider.lat, rider.lng]]}
+          positions={
+            startRouteCoords.length > 1
+              ? startRouteCoords
+              : [[rider.start_lat, rider.start_lng], [rider.lat, rider.lng]]
+          }
           pathOptions={{
             color:     rider.active ? "#0d9488" : "#9ca3af",
             weight:    3,
             opacity:   0.7,
-            dashArray: "6 4",
+            dashArray: startRouteCoords.length > 1 ? undefined : "6 4",
           }}
         />
       )}
 
-      {/* Dashed projection line: current position → destination */}
+      {/* Remaining route: current position → destination (street-based via OSRM) */}
       {hasDestination && rider.status === "ongoing" && (
         <Polyline
-          positions={[[rider.lat, rider.lng], [rider.dest_lat!, rider.dest_lng!]]}
+          positions={
+            destRouteCoords.length > 1
+              ? destRouteCoords
+              : [[rider.lat, rider.lng], [rider.dest_lat!, rider.dest_lng!]]
+          }
           pathOptions={{
-            color:     "#f59e0b",
-            weight:    2,
-            opacity:   0.6,
-            dashArray: "4 6",
+            color: "#f59e0b", weight: 4, opacity: 0.85, lineJoin: "round"
           }}
         />
       )}
@@ -490,5 +515,44 @@ const ClockIcon: React.FC = () => (
       d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
   </svg>
 );
+
+const fmtElapsed = (secs: number) => {
+  const h = Math.floor(secs / 3600);
+  const m = Math.floor((secs % 3600) / 60);
+  if (h > 0) return `${h}h ${m}m`;
+  if (m > 0) return `${m}m`;
+  return "<1m";
+};
+
+const fetchOSRMRoute = async (
+  startLat: number, startLng: number,
+  endLat: number,   endLng: number,
+): Promise<{ coords: [number, number][] } | null> => {
+  try {
+    const res = await fetch(
+      `https://router.project-osrm.org/route/v1/driving/${startLng},${startLat};${endLng},${endLat}?overview=full&geometries=geojson`,
+    );
+    const data = await res.json();
+    if (data.code !== "Ok" || !data.routes?.[0]) return null;
+    return {
+      coords: data.routes[0].geometry.coordinates.map(
+        ([lng, lat]: [number, number]) => [lat, lng] as [number, number],
+      ),
+    };
+  } catch {
+    return null;
+  }
+};
+
+const geoDistMeters = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
+  const R = 6_371_000;
+  const toRad = (v: number) => (v * Math.PI) / 180;
+  const dLat = toRad(lat2 - lat1);
+  const dLon = toRad(lon2 - lon1);
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) ** 2;
+  return 2 * R * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+};
 
 export default SuperAdminRiderLocation;
