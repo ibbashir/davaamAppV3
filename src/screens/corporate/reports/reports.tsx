@@ -15,6 +15,7 @@ interface Transaction {
   brand_name?: string;
   transaction_number?: string;
   quantity?: string;
+  machine_name?: string;
   // Add other fields as needed
 }
 
@@ -35,7 +36,7 @@ export default function Report() {
     overalltotal?: number;
     cashTotal?: number;
     onlineTotal?: number;
-    cashTransactions?: any[];
+    cashTransactions?: Transaction[];
     onlineTransactions?: Transaction[];
   }>({});
 
@@ -60,7 +61,7 @@ export default function Report() {
         overalltotal?: number;
         cashTotal?: number;
         onlineTotal?: number;
-        cashTransactions?: any[];
+        cashTransactions?: Transaction[];
         onlineTransactions?: Transaction[];
       }>("/corporates/reports", {
         machineCode: machineCodes, // Changed from machineCodes to machineCode to match backend
@@ -110,7 +111,18 @@ export default function Report() {
 
       // Add cash transactions sheet if data exists
       if (data.cashTransactions && data.cashTransactions.length > 0) {
-        const cashWS = XLSX.utils.json_to_sheet(data.cashTransactions);
+        const mapCashTransactions = data.cashTransactions.map((txn) => ({
+          ID: txn.id,
+          "Employee ID": txn.user_id,
+          Amount: txn.amount,
+          Date: new Date(txn.created_at).toLocaleString(),
+          "Machine Code": txn.machine_code,
+          "Machine Name": txn.machine_name ?? "",
+          Merchant: txn.merchant,
+          "Transaction Number": txn.transaction_number ?? "",
+          Quantity: txn.quantity ?? "",
+        }));
+        const cashWS = XLSX.utils.json_to_sheet(mapCashTransactions);
         XLSX.utils.book_append_sheet(wb, cashWS, "Cash Transactions");
       }
 
@@ -122,6 +134,7 @@ export default function Report() {
           Amount: txn.amount,
           Date: new Date(txn.created_at).toLocaleString(),
           "Machine Code": txn.machine_code,
+          "Machine Name": txn.machine_name,
           Merchant: txn.merchant,
           "Brand ID": txn.brand_id ?? "",
           "Brand Name": txn.brand_name ?? "",
@@ -266,7 +279,10 @@ function TransactionTable({ transactions }: { transactions: Transaction[] }) {
               Date
             </th>
             <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-              Machine
+              Machine Code
+            </th>
+            <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+              Machine Name
             </th>
             <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
               Merchant
@@ -290,6 +306,9 @@ function TransactionTable({ transactions }: { transactions: Transaction[] }) {
               </td>
               <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
                 {transaction.machine_code}
+              </td>
+              <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
+                {transaction.machine_name ?? "-"}
               </td>
               <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
                 {transaction.merchant}

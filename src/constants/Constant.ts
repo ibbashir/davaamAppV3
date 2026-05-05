@@ -311,13 +311,13 @@ export const MACHINES_SIDEBAR_ROUTES = (firstName: string) => {
       },
     );
   }
-  if (firstName === "Butterfly") {
-    routes.push({
-      title: "Cash Collection",
-      url: CORPORATE_CASH_COLLECTION,
-      icon: IconCashBanknote,
-    });
-  }
+  // if (firstName === "Butterfly") {
+  //   routes.push({
+  //     title: "Cash Collection",
+  //     url: CORPORATE_CASH_COLLECTION,
+  //     icon: IconCashBanknote,
+  //   });
+  // }
   return routes;
 };
 
