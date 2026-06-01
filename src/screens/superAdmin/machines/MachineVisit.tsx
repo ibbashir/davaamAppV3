@@ -1,5 +1,3 @@
-"use client"
-
 import { useEffect, useMemo, useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { Button } from "@/components/ui/button"
@@ -63,8 +61,13 @@ export default function SuperAdminMachineVisit() {
 
   const fetchMachineDetails = async () => {
     const res = await postRequest(`/superadmin/machineDetailsWithMachineCode`, { machine_code: machine.machine_code })
-    setUserTransactions(res.transactions)
-    setFilteredTransactions(res.transactions) // Initialize filtered transactions with all data
+    console.log("hekki",res);
+    const changeBrandsNames = res.transactions.map((transaction: any) => {
+      const brand = res.brands.find((b: any) => b.id === transaction.brand_id)
+      return { ...transaction, brand_id: brand ? brand.name : transaction.brand_id }
+    });
+    setUserTransactions(changeBrandsNames)
+    setFilteredTransactions(changeBrandsNames) // Initialize filtered transactions with all data
     setBrandFillings(res.fillings)
     setBrands(res.brands)
   }

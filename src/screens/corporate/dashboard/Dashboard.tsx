@@ -40,23 +40,23 @@ const Dashboard = () => {
       <div
         className="flex flex-1 flex-col"
       >
-        <div className="@container/main flex flex-1 flex-col gap-2">
-          <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
+        <div className="@container/main flex flex-1 flex-col gap-2 h-full overflow-hidden">
+          <div className="flex flex-col gap-3 py-4 sm:gap-4 md:gap-6 md:py-6 overflow-y-auto flex-1">
 
 
-            <div className="p-4 flex flex-col gap-4">
+            <div className="px-3 sm:px-4 flex flex-col gap-3 sm:gap-4">
               {/* Cards sections (always visible) */}
               <SanitaryTransactionTable />
               <AllCorporatesUsers />
             </div>
 
-            <hr />
+            <hr className="my-2" />
 
-            <div className="px-4 flex flex-col gap-2">
+            <div className="px-3 sm:px-4 flex flex-col gap-2 sm:gap-3">
               {/* Graph placeholders: only shown when toggled */}
               <div className="px-0">
                 {activeGraph !== "none" && (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 mb-4">
                     {(activeGraph === "dispensing" || activeGraph === "both") && (
                       <div className="rounded-2xl bg-white/90">
                         <BarCorporateDashboardSanitary machineCodes={machineCodes} />
