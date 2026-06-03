@@ -142,28 +142,24 @@ const getRoleCode = (role: string): string => {
     company: "3",
     corporate: "3",
     fulfillment: "4",
+    "Fulfill":"4",
     finance: "5",
   };
   return roleMap[role.toLowerCase()] ?? "3";
 };
 
-const getRoleBadgeVariant = (
-  role: string,
-): "default" | "secondary" | "destructive" | "outline" => {
-  const roleVariants: Record<
-    string,
-    "default" | "secondary" | "destructive" | "outline"
-  > = {
-    "super admin": "destructive",
-    superadmin: "destructive",
-    admin: "default",
-    ops: "secondary",
-    company: "outline",
-    corporate: "outline",
-    fulfillment: "secondary",
-    finance: "default",
+const getRoleBadgeColor = (role: string): string => {
+  const roleColors: Record<string, string> = {
+    "super admin": "bg-red-500 text-white border-transparent hover:bg-red-500",
+    superadmin: "bg-red-500 text-white border-transparent hover:bg-red-500",
+    admin: "bg-blue-500 text-white border-transparent hover:bg-blue-500",
+    ops: "bg-orange-500 text-white border-transparent hover:bg-orange-500",
+    company: "bg-cyan-500 text-white border-transparent hover:bg-cyan-500",
+    corporate: "bg-cyan-500 text-white border-transparent hover:bg-cyan-500",
+    fulfillment: "bg-purple-500 text-white border-transparent hover:bg-purple-500",
+    finance: "bg-green-500 text-white border-transparent hover:bg-green-500",
   };
-  return roleVariants[role.toLowerCase()] ?? "secondary";
+  return roleColors[role.toLowerCase()] ?? "bg-gray-500 text-white border-transparent";
 };
 
 const formatRoleDisplay = (role: string): string => {
@@ -184,6 +180,20 @@ const formatRoleDisplay = (role: string): string => {
     role.charAt(0).toUpperCase() + role.slice(1)
   );
 };
+
+// const getRowBgColor = (role: string): string => {
+//   const roleColors: Record<string, string> = {
+//     "super admin": "bg-red-50",
+//     superadmin: "bg-red-50",
+//     admin: "bg-blue-50",
+//     ops: "bg-orange-50",
+//     company: "bg-cyan-50",
+//     corporate: "bg-cyan-50",
+//     fulfillment: "bg-purple-50",
+//     finance: "bg-green-50",
+//   };
+//   return roleColors[role.toLowerCase()] ?? "";
+// };
 
 const formatDate = (dateString: string): string =>
   new Date(dateString).toLocaleDateString("en-US", {
@@ -250,7 +260,7 @@ function MobileUserCard({
           <User className="size-3.5 text-teal-600 shrink-0" />
           {user.first_name} {user.last_name}
         </p>
-        <Badge variant={getRoleBadgeVariant(user.user_role)} className="shrink-0">
+        <Badge className={`shrink-0 ${getRoleBadgeColor(user.user_role)}`}>
           {formatRoleDisplay(user.user_role)}
         </Badge>
       </div>
@@ -778,7 +788,13 @@ const Roles = () => {
                           ))}
                         </SelectContent>
                       </ShadcnSelect>
-                      <p className="text-sm text-teal-600 mt-1">Cannot change user role</p>
+                      
+                      <div className="flex items-center gap-1.5 mt-2 px-2.5 py-1.5 rounded-md bg-yellow-50 border border-yellow-200">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="size-3.5 text-yellow-500 shrink-0" viewBox="0 0 24 24" fill="currentColor">
+                          <path fillRule="evenodd" d="M9.401 3.003c1.155-2 4.043-2 5.197 0l7.355 12.748c1.154 2-.29 4.5-2.599 4.5H4.645c-2.309 0-3.752-2.5-2.598-4.5L9.4 3.003ZM12 8.25a.75.75 0 0 1 .75.75v3.75a.75.75 0 0 1-1.5 0V9a.75.75 0 0 1 .75-.75Zm0 8.25a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Z" clipRule="evenodd" />
+                        </svg>
+                        <p className="text-xs font-medium text-yellow-700">Cannot change user role</p>
+                      </div>
                     </div>
                     {renderEditMachineSelection()}
                   </div>
@@ -945,7 +961,7 @@ const Roles = () => {
                         </TableRow>
                       ) : (
                         users.map((user) => (
-                          <TableRow key={user.id}>
+                          <TableRow key={user.id} >
                             <TableCell className="font-medium">
                               <span className="flex items-center gap-1.5">
                                 <User className="size-3.5 text-teal-600 shrink-0" />
@@ -959,7 +975,7 @@ const Roles = () => {
                               </span>
                             </TableCell>
                             <TableCell>
-                              <Badge variant={getRoleBadgeVariant(user.user_role)}>
+                              <Badge className={getRoleBadgeColor(user.user_role)}>
                                 {formatRoleDisplay(user.user_role)}
                               </Badge>
                             </TableCell>

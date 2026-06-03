@@ -435,7 +435,7 @@ const RecentTransactions = () => {
                     "Phone Number / RFID",
                     "Machine Code",
                     "Amount",
-                    "Quantity",
+                    // "Quantity",
                     "Brand Name",
                     "Date",
                   ].map((head) => (
@@ -498,12 +498,12 @@ const RecentTransactions = () => {
                           Rs. {transaction.amount}
                         </Badge>
                       </TableCell>
-                      <TableCell>
+                      {/* <TableCell>
                         <span className="flex items-center gap-1.5">
                           <Package className="size-3.5 text-teal-600 shrink-0" />
                           {transaction.quantity}
                         </span>
-                      </TableCell>
+                      </TableCell> */}
                       <TableCell className="font-medium">
                         <span className="flex items-center gap-1.5">
                           <Tag className="size-3.5 text-teal-600 shrink-0" />
