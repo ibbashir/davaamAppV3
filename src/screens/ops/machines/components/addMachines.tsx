@@ -341,6 +341,7 @@ export default function AddMachine({
                       <option value="breathable">Breathable</option>
                       <option value="corporate">Corporate</option>
                       <option value="value">Value</option>
+                      <option value="UN_Corporate">UN Corporates</option>
                     </select>
                     {errors.variant_type && (
                       <span className="text-sm text-red-500">{errors.variant_type.message}</span>

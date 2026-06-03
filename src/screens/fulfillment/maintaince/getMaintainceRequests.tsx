@@ -1,16 +1,14 @@
 import React, { useEffect, useState } from "react";
 import { BASE_URL } from "@/constants/Constant";
 import { getRequest } from "@/Apis/Api";
-import { 
-  CheckCircle, 
-  Clock, 
-  AlertCircle, 
-  Wrench, 
-  User, 
+import {
+  CheckCircle,
+  Clock,
+  AlertCircle,
+  Wrench,
+  User,
   Calendar,
-  ChevronRight,
-  Filter,
-  RefreshCw
+  RefreshCw,
 } from "lucide-react";
 
 const AdminMaintenanceRequests = () => {
@@ -34,14 +32,13 @@ const AdminMaintenanceRequests = () => {
           : `${BASE_URL}/fulfillment/getFullfilledRequestForAdmin`;
 
       const res = await getRequest(apiURL);
-      
-      // Update stats based on fetched data
+
       if (type === "pending") {
-        setStats(prev => ({ ...prev, pending: res?.data?.length || 0 }));
+        setStats((prev) => ({ ...prev, pending: res?.data?.length || 0 }));
       } else {
-        setStats(prev => ({ ...prev, fulfilled: res?.data?.length || 0 }));
+        setStats((prev) => ({ ...prev, fulfilled: res?.data?.length || 0 }));
       }
-      console.log(data)
+
       setData(res?.data || []);
     } catch (err) {
       console.log(err);
@@ -57,25 +54,39 @@ const AdminMaintenanceRequests = () => {
       pending: "bg-yellow-100 text-yellow-800 border-yellow-200",
       in_progress: "bg-blue-100 text-blue-800 border-blue-200",
       completed: "bg-green-100 text-green-800 border-green-200",
-      cancelled: "bg-red-100 text-red-800 border-red-200"
+      cancelled: "bg-red-100 text-red-800 border-red-200",
     };
-    return statusMap[status.toLowerCase()] || "bg-gray-100 text-gray-800 border-gray-200";
+    return (
+      statusMap[status.toLowerCase()] ||
+      "bg-gray-100 text-gray-800 border-gray-200"
+    );
   };
 
   const getStatusIcon = (status) => {
-    switch(status.toLowerCase()) {
-      case 'pending': return <Clock className="w-4 h-4" />;
-      case 'in_progress': return <Wrench className="w-4 h-4" />;
-      case 'completed': return <CheckCircle className="w-4 h-4" />;
-      default: return <AlertCircle className="w-4 h-4" />;
+    switch (status.toLowerCase()) {
+      case "pending":
+        return <Clock className="w-4 h-4" />;
+      case "in_progress":
+        return <Wrench className="w-4 h-4" />;
+      case "completed":
+        return <CheckCircle className="w-4 h-4" />;
+      default:
+        return <AlertCircle className="w-4 h-4" />;
     }
   };
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
     return {
-      date: date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
-      time: date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
+      date: date.toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+      }),
+      time: date.toLocaleTimeString("en-US", {
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
     };
   };
 
@@ -90,15 +101,21 @@ const AdminMaintenanceRequests = () => {
         <div className="mb-8">
           <div className="flex flex-col md:flex-row md:items-center justify-between mb-6">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">Maintenance Dashboard</h1>
-              <p className="text-gray-600 mt-2">Manage and track maintenance requests</p>
+              <h1 className="text-3xl font-bold text-gray-900">
+                Maintenance Dashboard
+              </h1>
+              <p className="text-gray-600 mt-2">
+                Manage and track maintenance requests
+              </p>
             </div>
             <button
               onClick={handleRefresh}
               disabled={loading}
               className="mt-4 md:mt-0 flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
             >
-              <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+              <RefreshCw
+                className={`w-4 h-4 ${loading ? "animate-spin" : ""}`}
+              />
               Refresh
             </button>
           </div>
@@ -108,7 +125,9 @@ const AdminMaintenanceRequests = () => {
             <div className="bg-white rounded-2xl shadow-lg p-6 border-l-4 border-blue-500">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-gray-500 text-sm font-medium">Total Requests</p>
+                  <p className="text-gray-500 text-sm font-medium">
+                    Total Requests
+                  </p>
                   <p className="text-3xl font-bold text-gray-900 mt-2">
                     {stats.pending + stats.fulfilled}
                   </p>
@@ -119,7 +138,7 @@ const AdminMaintenanceRequests = () => {
               </div>
             </div>
 
-            <div 
+            <div
               onClick={() => setActiveTab("pending")}
               className={`bg-white rounded-2xl shadow-lg p-6 border-l-4 border-yellow-500 cursor-pointer transition-transform hover:scale-[1.02] ${
                 activeTab === "pending" ? "ring-2 ring-yellow-300" : ""
@@ -138,7 +157,7 @@ const AdminMaintenanceRequests = () => {
               </div>
             </div>
 
-            <div 
+            <div
               onClick={() => setActiveTab("fulfilled")}
               className={`bg-white rounded-2xl shadow-lg p-6 border-l-4 border-green-500 cursor-pointer transition-transform hover:scale-[1.02] ${
                 activeTab === "fulfilled" ? "ring-2 ring-green-300" : ""
@@ -176,9 +195,6 @@ const AdminMaintenanceRequests = () => {
                   >
                     <Clock className="w-4 h-4" />
                     Pending Requests
-                    <span className="ml-1 px-2 py-0.5 text-xs bg-white/20 rounded-full">
-                      {stats.pending}
-                    </span>
                   </button>
 
                   <button
@@ -191,9 +207,6 @@ const AdminMaintenanceRequests = () => {
                   >
                     <CheckCircle className="w-4 h-4" />
                     Fulfilled Requests
-                    <span className="ml-1 px-2 py-0.5 text-xs bg-white/20 rounded-full">
-                      {stats.fulfilled}
-                    </span>
                   </button>
                 </div>
               </div>
@@ -219,13 +232,15 @@ const AdminMaintenanceRequests = () => {
             )}
           </div>
 
-          {/* Data Cards/Table */}
+          {/* Data Cards */}
           {!loading && data.length > 0 && (
             <div className="px-6 pb-6">
               <div className="grid gap-4">
                 {data.map((req) => {
                   const { date, time } = formatDate(req.request_date);
-                  const {date:completeDate,time:completeTime}=formatDate(req.completion_time);
+                  const completionFormatted =
+                    req.completion_time ? formatDate(req.completion_time) : null;
+
                   return (
                     <div
                       key={req.id}
@@ -236,60 +251,75 @@ const AdminMaintenanceRequests = () => {
                           <div className="flex items-center gap-4 mb-3">
                             <div className="flex items-center gap-2">
                               <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
-                                <span className="font-bold text-blue-600">#{req.id}</span>
+                                <span className="font-bold text-blue-600">
+                                  #{req.id}
+                                </span>
                               </div>
                               <h3 className="font-semibold text-lg text-gray-900">
                                 {req.machine_code}
                               </h3>
                             </div>
-                            <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full border ${getStatusColor(req.request_status)}`}>
+                            <div
+                              className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full border ${getStatusColor(req.request_status)}`}
+                            >
                               {getStatusIcon(req.request_status)}
                               <span className="text-sm font-medium capitalize">
-                                {req.request_status.replace('_', ' ')}
+                                {req.request_status.replace("_", " ")}
                               </span>
                             </div>
                           </div>
 
                           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            {/* Assigned To */}
                             <div className="flex items-center gap-3">
                               <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
                                 <User className="w-5 h-5 text-gray-600" />
                               </div>
                               <div>
-                                <p className="text-sm text-gray-500">Assigned To</p>
-                                <p className="font-medium text-gray-900 uppercase">{req.username}</p>
+                                <p className="text-sm text-gray-500">
+                                  Assigned To
+                                </p>
+                                <p className="font-medium text-gray-900 uppercase">
+                                  {req.username}
+                                </p>
                               </div>
                             </div>
 
+                            {/* Requested At */}
                             <div className="flex items-center gap-3">
                               <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
                                 <Calendar className="w-5 h-5 text-gray-600" />
                               </div>
                               <div>
-                                <p className="text-sm text-gray-500">Requested At</p>
-                                <p className="font-medium text-gray-900">{date}</p>
+                                <p className="text-sm text-gray-500">
+                                  Requested At
+                                </p>
+                                <p className="font-medium text-gray-900">
+                                  {date}
+                                </p>
                                 <p className="text-xs text-gray-500">{time}</p>
                               </div>
                             </div>
-                            <div className="flex items-center gap-3">
-                              <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
-                                <Calendar className="w-5 h-5 text-gray-600" />
+
+                            {/* Completed At — only shown on fulfilled tab */}
+                            {activeTab === "fulfilled" && completionFormatted && (
+                              <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
+                                  <Calendar className="w-5 h-5 text-gray-600" />
+                                </div>
+                                <div>
+                                  <p className="text-sm text-gray-500">
+                                    Completed At
+                                  </p>
+                                  <p className="font-medium text-gray-900">
+                                    {completionFormatted.date}
+                                  </p>
+                                  <p className="text-xs text-gray-500">
+                                    {completionFormatted.time}
+                                  </p>
+                                </div>
                               </div>
-                              <div>
-                                <p className="text-sm text-gray-500">Completed At</p>
-                                <p className="font-medium text-gray-900">{completeDate}</p>
-                                <p className="text-xs text-gray-500">{completeTime}</p>
-                              </div>
-                            </div>
-                            {/* <div className="flex items-center gap-3">
-                              <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
-                                <Calendar className="w-5 h-5 text-gray-600" />
-                              </div>
-                              <div>
-                                <p className="text-sm text-gray-500">Complete Status</p>
-                                <p className="font-medium text-gray-900">ON TIME</p>
-                              </div>
-                            </div> */}
+                            )}
                           </div>
                         </div>
                       </div>
@@ -310,7 +340,7 @@ const AdminMaintenanceRequests = () => {
                 No {activeTab === "pending" ? "Pending" : "Fulfilled"} Requests
               </h3>
               <p className="text-gray-500 text-center max-w-md">
-                {activeTab === "pending" 
+                {activeTab === "pending"
                   ? "All maintenance requests have been addressed. Great work!"
                   : "No fulfilled requests found. Complete pending requests to see them here."}
               </p>
@@ -321,7 +351,11 @@ const AdminMaintenanceRequests = () => {
         {/* Footer Note */}
         <div className="mt-6 text-center">
           <p className="text-sm text-gray-500">
-            Last updated: {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+            Last updated:{" "}
+            {new Date().toLocaleTimeString([], {
+              hour: "2-digit",
+              minute: "2-digit",
+            })}
           </p>
         </div>
       </div>

@@ -12,6 +12,7 @@ type UpdateInputs = {
   lat: number;
   lng: number;
   price: number;
+  variant_type: string;
 };
 
 export default function UpdateMachine({
@@ -58,6 +59,7 @@ export default function UpdateMachine({
         lat: data.lat,
         lng: data.lng,
         price: data.price,
+        variant_type:data.variant_type,
         isActive: isActive ? 1 : 0,
       });
       alert("Machine updated successfully!");
@@ -68,6 +70,9 @@ export default function UpdateMachine({
       alert(error?.response?.data?.message || "Failed to update machine.");
     }
   };
+
+  const inputClass =
+    "block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-teal-600 sm:text-sm/6";
 
   return (
     <Transition.Root show={open} as={Fragment}>
@@ -119,7 +124,7 @@ export default function UpdateMachine({
                       {...register("locationName", {
                         required: "Location name is required.",
                       })}
-                      className="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-teal-600 sm:text-sm/6"
+                      className={inputClass}
                       placeholder="Enter Location Name"
                     />
                     {errors.locationName && (
@@ -151,7 +156,7 @@ export default function UpdateMachine({
                           },
                         },
                       })}
-                      className="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-teal-600 sm:text-sm/6"
+                      className={inputClass}
                       placeholder="https://maps.app.goo.gl/..."
                     />
                     {errors.mapLocation && (
@@ -192,9 +197,31 @@ export default function UpdateMachine({
                       type="number"
                       step="0.01"
                       {...register("price")}
-                      className="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-teal-600 sm:text-sm/6"
+                      className={inputClass}
                       placeholder="Enter Price"
                     />
+                  </div>
+
+                  {/* Variant Type */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                      Variant Type
+                    </label>
+                    <select
+                      {...register("variant_type", { required: "Variant Type is required." })}
+                      className={inputClass}
+                      defaultValue=""
+                    >
+                      <option value="" disabled>Select Variant Type</option>
+                      <option value="besties">Besties</option>
+                      <option value="breathable">Breathable</option>
+                      <option value="corporate">Corporate</option>
+                      <option value="value">Value</option>
+                      <option value="UN_Corporate">UN Corporates</option>
+                    </select>
+                    {errors.variant_type && (
+                      <span className="text-sm text-red-500">{errors.variant_type.message}</span>
+                    )}
                   </div>
 
                   <div className="flex gap-4">
@@ -209,7 +236,7 @@ export default function UpdateMachine({
                           min: { value: -90, message: "Min -90" },
                           max: { value: 90, message: "Max 90" },
                         })}
-                        className="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-teal-600 sm:text-sm/6"
+                        className={inputClass}
                         placeholder="e.g. 25.4435"
                       />
                       {errors.lat && (
@@ -230,7 +257,7 @@ export default function UpdateMachine({
                           min: { value: -180, message: "Min -180" },
                           max: { value: 180, message: "Max 180" },
                         })}
-                        className="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-teal-600 sm:text-sm/6"
+                        className={inputClass}
                         placeholder="e.g. 55.3762"
                       />
                       {errors.lng && (

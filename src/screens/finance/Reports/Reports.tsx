@@ -25,8 +25,8 @@ interface RefillAppTransaction {
 }
 
 interface NeemTopups {
-  total_topup: string;
-  total_remaining_balance: string;
+  total_topup: number;
+  total_remaining_balance: number;
 }
 
 interface CashCollection {
@@ -34,19 +34,26 @@ interface CashCollection {
 }
 
 interface CashTransactionToBeCollect {
-  machine_code: string;
   total_cash_transaction: number;
   total_cash_quantity: string;
+}
+
+interface RemainingStock {
+  total_inserted_quantity: number;
+  total_dispensed_quantity: number;
+  current_stock: number;
 }
 
 interface FinanceReportData {
   sanitaryCashTransactions: SanitaryCashTransactions;
   refillCashTransactions: RefillCashTransactions;
-  sanitaryAppTransactions: SanitaryAppTransaction[];
-  RefillAppTransactions: RefillAppTransaction[];
+  sanitaryAppTransactions: SanitaryAppTransaction;
+  refillAppTransactions: RefillAppTransaction;
   neemTopups: NeemTopups;
   cashCollection: CashCollection;
   cashTransactionToBeCollect: CashTransactionToBeCollect[];
+  cashToBeCollected: number;
+  remainingStock: RemainingStock;
 }
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
@@ -54,7 +61,9 @@ interface FinanceReportData {
 const StatRow = ({ label, value }: { label: string; value: string | number }) => (
   <div className="flex justify-between items-center py-1 border-b border-gray-100 last:border-0">
     <span className="text-sm text-gray-500">{label}</span>
-    <span className="text-sm font-semibold text-gray-800">{value}</span>
+    <span className="text-sm font-semibold text-gray-800">
+      {typeof value === 'number' ? value.toLocaleString() : value}
+    </span>
   </div>
 );
 
@@ -101,6 +110,17 @@ const FinanceReport: React.FC = () => {
     }
   };
 
+  const formatCurrency = (value: number | undefined | null) => {
+    return `Rs. ${(value || 0).toLocaleString()}`;
+  };
+
+  const formatNumber = (value: number | string | undefined | null) => {
+    if (typeof value === 'string') {
+      return parseFloat(value).toLocaleString();
+    }
+    return (value || 0).toLocaleString();
+  };
+
   return (
     <div className="max-w-7xl mx-auto p-6 font-sans">
       <h2 className="text-3xl font-semibold text-gray-800 mb-6">Finance Report</h2>
@@ -133,39 +153,59 @@ const FinanceReport: React.FC = () => {
           {/* ── Row 1: Cash Transactions ── */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <Card title="Sanitary Cash Transactions" color="bg-blue-500">
-              <StatRow label="Total Amount"   value={`Rs. ${report.sanitaryCashTransactions.total_cash_transaction}`} />
-              <StatRow label="Total Quantity" value={report.sanitaryCashTransactions.total_cash_quantity} />
+              <StatRow 
+                label="Total Amount"   
+                value={formatCurrency(report.sanitaryCashTransactions?.total_cash_transaction)} 
+              />
+              <StatRow 
+                label="Total Quantity" 
+                value={formatNumber(report.sanitaryCashTransactions?.total_cash_quantity)} 
+              />
             </Card>
 
             <Card title="Refill Cash Transactions" color="bg-indigo-500">
-              <StatRow label="Total Amount"   value={`Rs. ${report.refillCashTransactions.total_cash_transaction}`} />
-              <StatRow label="Total Quantity" value={report.refillCashTransactions.total_cash_quantity} />
+              <StatRow 
+                label="Total Amount"   
+                value={formatCurrency(report.refillCashTransactions?.total_cash_transaction)} 
+              />
+              <StatRow 
+                label="Total Quantity" 
+                value={formatNumber(report.refillCashTransactions?.total_cash_quantity)} 
+              />
             </Card>
           </div>
 
           {/* ── Row 2: App Transactions ── */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <Card title="Sanitary App Transactions" color="bg-emerald-500">
-              {report.sanitaryAppTransactions.length > 0 ? (
-                report.sanitaryAppTransactions.map((t, i) => (
-                  <div key={i}>
-                    <StatRow label="Total Amount"   value={`Rs. ${t.total_sanitary_amount}`} />
-                    <StatRow label="Total Quantity" value={t.total_sanitary_quantity} />
-                  </div>
-                ))
+              {report.sanitaryAppTransactions ? (
+                <>
+                  <StatRow 
+                    label="Total Amount"   
+                    value={formatCurrency(report.sanitaryAppTransactions.total_sanitary_amount)} 
+                  />
+                  <StatRow 
+                    label="Total Quantity" 
+                    value={formatNumber(report.sanitaryAppTransactions.total_sanitary_quantity)} 
+                  />
+                </>
               ) : (
                 <p className="text-sm text-gray-400">No transactions found.</p>
               )}
             </Card>
 
             <Card title="Refill App Transactions" color="bg-teal-500">
-              {report.RefillAppTransactions.length > 0 ? (
-                report.RefillAppTransactions.map((t, i) => (
-                  <div key={i}>
-                    <StatRow label="Total Amount"   value={`Rs. ${t.total_dispensing_amount}`} />
-                    <StatRow label="Total Quantity" value={t.total_dispensing_quantity} />
-                  </div>
-                ))
+              {report.refillAppTransactions ? (
+                <>
+                  <StatRow 
+                    label="Total Amount"   
+                    value={formatCurrency(report.refillAppTransactions.total_dispensing_amount)} 
+                  />
+                  <StatRow 
+                    label="Total Quantity" 
+                    value={formatNumber(report.refillAppTransactions.total_dispensing_quantity)} 
+                  />
+                </>
               ) : (
                 <p className="text-sm text-gray-400">No transactions found.</p>
               )}
@@ -175,42 +215,80 @@ const FinanceReport: React.FC = () => {
           {/* ── Row 3: Neem Topups & Cash Collection ── */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <Card title="Neem Topups" color="bg-violet-500">
-              <StatRow label="Total Topup"            value={`Rs. ${report.neemTopups.total_topup}`} />
-              <StatRow label="Remaining Balance"      value={`Rs. ${report.neemTopups.total_remaining_balance}`} />
+              <StatRow 
+                label="Total Topup"            
+                value={formatCurrency(report.neemTopups?.total_topup)} 
+              />
+              <StatRow 
+                label="Remaining Balance"      
+                value={formatCurrency(report.neemTopups?.total_remaining_balance)} 
+              />
             </Card>
 
             <Card title="Cash Collection" color="bg-rose-500">
-              <StatRow label="Cash Received" value={`Rs. ${report.cashCollection.cash_received}`} />
+              <StatRow 
+                label="Cash Received" 
+                value={formatCurrency(report.cashCollection?.cash_received)} 
+              />
             </Card>
           </div>
 
-          {/* ── Row 4: Cash Transactions To Be Collected (per machine) ── */}
-          <Card title="Cash Transactions To Be Collected" color="bg-amber-500">
-            {report.cashTransactionToBeCollect.length > 0 ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                <table className="w-full text-sm mt-1">
-                  <thead>
-                    <tr className="text-left text-gray-400 border-b border-gray-100">
-                      <th></th>
-                      <th className="pb-2 font-medium">Amount (Rs.)</th>
-                      <th className="pb-2 font-medium">Quantity</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {report.cashTransactionToBeCollect.map((item, i) => (
-                      <tr key={i} className="border-b border-gray-50 hover:bg-gray-50">
-                      <td className="pt-3">Total</td>
-                        <td className="py-2 text-gray-600">{item.total_cash_transaction}</td>
-                        <td className="py-2 text-gray-600">{item.total_cash_quantity}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+          {/* ── Row 4: Cash To Be Collected ── */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <Card title="Cash To Be Collected" color="bg-amber-500">
+              <StatRow 
+                label="Total Amount" 
+                value={formatCurrency(report.cashToBeCollected)} 
+              />
+            </Card>
+
+            <Card title="Cash Transactions To Be Collected (Details)" color="bg-orange-500">
+              {report.cashTransactionToBeCollect && report.cashTransactionToBeCollect.length > 0 ? (
+                <div className="space-y-2">
+                  {report.cashTransactionToBeCollect.map((item, i) => (
+                    <div key={i} className="bg-gray-50 rounded-lg p-2">
+                      <StatRow 
+                        label="Amount" 
+                        value={formatCurrency(item.total_cash_transaction)} 
+                      />
+                      <StatRow 
+                        label="Quantity" 
+                        value={formatNumber(item.total_cash_quantity)} 
+                      />
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-gray-400">No pending collections.</p>
+              )}
+            </Card>
+          </div>
+
+          {/* ── Row 5: Remaining Stock ── */}
+          <div className="grid grid-cols-1 gap-6">
+            <Card title="Remaining Stock" color="bg-cyan-500">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="bg-blue-50 rounded-lg p-3">
+                  <StatRow 
+                    label="Total Inserted" 
+                    value={formatNumber(report.remainingStock?.total_inserted_quantity)} 
+                  />
+                </div>
+                <div className="bg-red-50 rounded-lg p-3">
+                  <StatRow 
+                    label="Total Dispensed" 
+                    value={formatNumber(report.remainingStock?.total_dispensed_quantity)} 
+                  />
+                </div>
+                <div className="bg-green-50 rounded-lg p-3">
+                  <StatRow 
+                    label="Current Stock" 
+                    value={formatNumber(report.remainingStock?.current_stock)} 
+                  />
+                </div>
               </div>
-            ) : (
-              <p className="text-sm text-gray-400">No pending collections.</p>
-            )}
-          </Card>
+            </Card>
+          </div>
 
         </div>
       )}

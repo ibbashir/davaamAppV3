@@ -18,6 +18,13 @@ import Notifications from '@/screens/superAdmin/notification/Notifications'
 import Feedback from '@/screens/superAdmin/feedback/Feedback'
 import Corporate from '@/screens/superAdmin/corporate/Corporate'
 import SuperAdminMachineVisit from '@/screens/superAdmin/machines/MachineVisit'
+import SuperAdminCashCollectionPage from '@/screens/superAdmin/cashCollections/cashCollection'
+import SuperAdminAddEmployees from '@/Corporate/superadmin/addEmployees/AddEmployees'
+import SuperAdminBulkDelete from '@/Corporate/superadmin/deleteEmployees/BulkDelete'
+import SuperAdminMachineMap from '@/screens/superAdmin/MachinesMap/MachineMap'
+import SuperAdminRiderLocation from '@/screens/superAdmin/RiderLocation/SuperAdminRiderLocation'
+import KnowledgeBase from '@/screens/superAdmin/knowledgeBase/KnowledgeBase'
+import CorporateTopup from '@/screens/superAdmin/corporateTopup'
 
 //admin screens
 import AdminDashboard from '@/screens/admin/dashboard/Dashboard'
@@ -28,6 +35,9 @@ import { AdminTopup } from '@/screens/admin/topup/Topup'
 import AdminNotifications from '@/screens/admin/notification/Notifications'
 import AdminFeedback from '@/screens/admin/feedback/Feedback'
 import AdminMachineVisit from '@/screens/admin/machines/MachineVisit'
+import AdminCashCollectionPage from '@/screens/admin/cashCollections/cashCollection'
+import AdminMachineMap from '@/screens/admin/MachinesMap/MachineMap'
+import AdminCorporateTopup from '@/screens/admin/corporateTopup'
 
 //ops screens
 import OpsDashboard from '@/screens/ops/dashboard/Dashboard'
@@ -36,23 +46,38 @@ import OpsMachines from '@/screens/ops/machines/Machines'
 import OpsLocations from '@/screens/ops/locations/Locations'
 import { OpsTopup } from '@/screens/ops/topup/Topup'
 import OpsFeedback from '@/screens/ops/feedback/Feedback'
+import OpsMachineVisit from '@/screens/ops/machines/MachineVisit'
+import OpsCashCollectionPage from '@/screens/ops/cashCollections/cashCollection'
+import OpsMachineMap from '@/screens/ops/MachinesMap/MachineMap'
 
 // FulFillMENT Screens
 import FulfillDashboard from "@/screens/fulfillment/dashboard/Dashboard";
 import FulfillMachines from "@/screens/fulfillment/machines/Machines";
 import FulfillLocations from "@/screens/fulfillment/locations/Locations";
+import FulfillMachineVisit from '../screens/fulfillment/machines/MachineVisit'
+import FulfillMachineMap from '@/screens/fulfillment/MachinesMap/MachineMap'
+import CashCollectionPage from '@/screens/fulfillment/cashCollections/cashCollection'
+import { FulfillmentTopup } from '@/screens/fulfillment/topup/Topup'
+import AddMaintenanceSchedule from '@/screens/fulfillment/maintaince/AddMaintainceSchedule'
+import AdminMaintenanceRequests from '@/screens/fulfillment/maintaince/getMaintainceRequests'
 
-// Finane Screens
+// Finance Screens
 import FinanceDashboard from "@/screens/finance/dashboard/Dashboard"
 import FinanceMachines from "@/screens/finance/machines/Machines";
 import FinanceMachineVisit from "@/screens/finance/machines/MachineVisit"
 import UserWalletActivity from '@/screens/finance/UserWalletActivity/UserWalletActivity'
-
+import FinanceCashCollectionPage from '@/screens/finance/cashCollections/cashCollection'
+import FinanceMachineMap from '@/screens/finance/MachinesMap/MachineMap'
+import FinanceReport from '@/screens/finance/Reports/Reports'
+import FinanceLocations from '@/screens/finance/locations/Locations'
+import { FinanceTopup } from '@/screens/finance/topup/Topup'
 
 //corporate (company) screens
 import CorporateDashboard from '@/screens/corporate/dashboard/Dashboard'
 import CorporateMachines from '@/screens/corporate/machines/Machines'
 import CorporateMachineVisit from '@/screens/corporate/machines/MachineVisit'
+import Reports from '@/screens/corporate/reports/reports'
+import CorporateCashCollectionPage from '@/screens/corporate/cashCollections/cashCollectionCorporate'
 
 //404 not found
 import NotFound from '@/screens/NotFound/NotFound'
@@ -127,36 +152,11 @@ import {
   OPS_CASH_COLLECTION,
   FINANCE_USER_WALLET_ACTIVITY,
 } from '@/constants/Constant'
-import OpsMachineVisit from '@/screens/ops/machines/MachineVisit'
-import Reports from '@/screens/corporate/reports/reports'
+
 import ResetPassword from '@/screens/forgetPassword/ResetPassword'
-import CorporateTopup from '@/screens/superAdmin/corporateTopup'
-import { FulfillmentTopup } from '@/screens/fulfillment/topup/Topup'
-import AddMaintenanceSchedule from '@/screens/fulfillment/maintaince/AddMaintainceSchedule'
-import AdminMaintenanceRequests from '@/screens/fulfillment/maintaince/getMaintainceRequests'
-import AdminCorporateTopup from '@/screens/admin/corporateTopup'
 import AllUsers from '@/Corporate/Mobilink/allUsers/allUsers'
 import AddEmployees from '@/Corporate/Mobilink/addEmployees/AddEmployees'
 import BulkDelete from '@/Corporate/Mobilink/deleteEmployees/BulkDelete'
-import CashCollectionPage from '@/screens/fulfillment/cashCollections/cashCollection'
-import SuperAdminCashCollectionPage from '@/screens/superAdmin/cashCollections/cashCollection'
-import SuperAdminAddEmployees from '@/Corporate/superadmin/addEmployees/AddEmployees'
-import SuperAdminBulkDelete from '@/Corporate/superadmin/deleteEmployees/BulkDelete'
-import SuperAdminMachineMap from '@/screens/superAdmin/MachinesMap/MachineMap'
-import AdminMachineMap from '@/screens/admin/MachinesMap/MachineMap'
-import FulfillMachineMap from '@/screens/fulfillment/MachinesMap/MachineMap'
-import OpsMachineMap from '@/screens/ops/MachinesMap/MachineMap'
-import AdminCashCollectionPage from '@/screens/admin/cashCollections/cashCollection'
-import CorporateCashCollectionPage from '@/screens/corporate/cashCollections/cashCollectionCorporate'
-import SuperAdminRiderLocation from '@/screens/superAdmin/RiderLocation/SuperAdminRiderLocation'
-import KnowledgeBase from '@/screens/superAdmin/knowledgeBase/KnowledgeBase'
-import { FinanceTopup } from '@/screens/finance/topup/Topup'
-import FinanceCashCollectionPage from '@/screens/finance/cashCollections/cashCollection'
-import FinanceMachineMap from '@/screens/finance/MachinesMap/MachineMap'
-import FinanceReport from '@/screens/finance/Reports/Reports'
-import FulfillMachineVisit from '../screens/fulfillment/machines/MachineVisit'
-import FinanceLocations from '@/screens/finance/locations/Locations'
-import OpsCashCollectionPage from '@/screens/ops/cashCollections/cashCollection'
 
 const Routing = () => {
   return (

@@ -1095,7 +1095,7 @@ const Roles = () => {
                   </TableHeader>
                   <TableBody>
                     {users.map((user) => (
-                      <TableRow key={user.id}>
+                      <TableRow className="text-center" key={user.id}>
                         <TableCell className="font-medium">
                           {user.first_name} {user.last_name}
                         </TableCell>
