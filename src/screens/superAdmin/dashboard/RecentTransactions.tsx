@@ -1,5 +1,6 @@
 import type React from "react";
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -20,14 +21,15 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
+import { Search, User, Phone, Cpu, Banknote, Package, Tag, Calendar, Link } from "lucide-react";
 import {
-  Search,
-  ChevronLeft,
-  ChevronRight,
-  ChevronsLeft,
-  ChevronsRight,
-} from "lucide-react";
+  IconChevronLeft,
+  IconChevronRight,
+  IconChevronsLeft,
+  IconChevronsRight,
+} from "@tabler/icons-react";
 
+import { Skeleton } from "@/components/ui/skeleton";
 import { getRequest } from "@/Apis/Api";
 import type {
   ApiTransaction,
@@ -36,9 +38,92 @@ import type {
   Transactions,
 } from "@/Types/SuperAdmin/RecentTransactions";
 import { categories, paymentTypes } from "@/constants/Constant";
-import moment from "moment-timezone";
+import { formatDateTime } from "@/utils/formatters";
+import { useIsMobile } from "@/hooks/use-mobile";
+
+function MobileTransactionCard({ transaction, onMachineCodeClick }: { transaction: ApiTransaction; onMachineCodeClick: (code: string) => void }) {
+  const t = transaction as Transactions;
+  return (
+    <div className="rounded-xl border bg-card p-4 shadow-sm space-y-3">
+      <div className="flex items-start justify-between gap-2">
+        <p className="font-semibold text-sm truncate flex items-center gap-1.5">
+          <User className="size-3.5 shrink-0 text-teal-600" />
+          {transaction.user_name || transaction.merchant || "N/A"}
+        </p>
+        <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200 shrink-0 flex items-center gap-1">
+          <Banknote className="size-3.5 shrink-0" />
+          Rs. {transaction.amount}
+        </Badge>
+      </div>
+      <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+        <div>
+          <p className="text-xs text-teal-600 flex items-center gap-1">
+            <Phone className="size-3 shrink-0" />
+            Phone / RFID
+          </p>
+          <p className="font-mono text-xs truncate">{transaction.msisdn}</p>
+        </div>
+        <div>
+          <p className="text-xs text-teal-600 flex items-center gap-1">
+            <Cpu className="size-3 shrink-0" />
+            Machine Code
+          </p>
+          <p className="font-medium text-teal-600 text-xs cursor-pointer hover:underline" onClick={() => onMachineCodeClick(transaction.machine_code)}>{transaction.machine_code}</p>
+        </div>
+        <div>
+          <p className="text-xs text-teal-600 flex items-center gap-1">
+            <Package className="size-3 shrink-0" />
+            Quantity
+          </p>
+          <p className="text-xs font-medium">{transaction.quantity}</p>
+        </div>
+        <div>
+          <p className="text-xs text-teal-600 flex items-center gap-1">
+            <Tag className="size-3 shrink-0" />
+            Brand
+          </p>
+          <p className="text-xs font-medium truncate">{transaction.brand_name}</p>
+        </div>
+      </div>
+      <div className="flex items-center justify-between text-xs text-teal-600 pt-1 border-t">
+        <span className="tabular-nums flex items-center gap-1">
+          <Calendar className="size-3 shrink-0" />
+          {formatDateTime(transaction.created_at)}
+        </span>
+        {t.paymentType && (
+          <Badge variant="secondary" className="text-xs capitalize">
+            {t.paymentType}
+          </Badge>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function MobileTransactionSkeleton() {
+  return (
+    <div className="rounded-xl border bg-card p-4 shadow-sm space-y-3">
+      <div className="flex items-start justify-between gap-2">
+        <Skeleton className="h-4 w-32" />
+        <Skeleton className="h-5 w-16" />
+      </div>
+      <div className="grid grid-cols-2 gap-x-4 gap-y-2">
+        <Skeleton className="h-8 w-full" />
+        <Skeleton className="h-8 w-full" />
+        <Skeleton className="h-8 w-full" />
+        <Skeleton className="h-8 w-full" />
+      </div>
+      <div className="flex items-center justify-between pt-1 border-t">
+        <Skeleton className="h-3 w-24" />
+        <Skeleton className="h-4 w-12" />
+      </div>
+    </div>
+  );
+}
 
 const RecentTransactions = () => {
+  const isMobile = useIsMobile();
+  const navigate = useNavigate();
   const [activeCategory, setActiveCategory] = useState("butterfly");
   const [activePaymentType, setActivePaymentType] = useState("online");
   const [recentTransactions, setRecentTransactions] = useState<
@@ -50,7 +135,12 @@ const RecentTransactions = () => {
   const [totalPages, setTotalPages] = useState(0);
   const [searchTerm, setSearchTerm] = useState("");
   const [isSearching, setIsSearching] = useState(false);
-  const [pageSize, setPageSize] = useState(10);
+  const [pageSize, setPageSize] = useState(isMobile ? 5 : 10);
+
+  useEffect(() => {
+    setPageSize(isMobile ? 5 : 10);
+    setCurrentPage(1);
+  }, [isMobile]);
 
   const fetchLatestTransactions = async (page = 1, size = pageSize) => {
     try {
@@ -94,7 +184,7 @@ const RecentTransactions = () => {
         setTotalCount(res.totalCount);
         setTotalPages(res.totalPages);
       }
-    } catch (error) {
+    } catch (error: unknown) {
       console.error("Error fetching transactions:", error);
       setRecentTransactions([]);
       setTotalCount(0);
@@ -155,7 +245,7 @@ const RecentTransactions = () => {
         setTotalCount(res.totalCount);
         setTotalPages(res.totalPages);
       }
-    } catch (error) {
+    } catch (error: unknown) {
       console.error("Error searching transactions:", error);
       setRecentTransactions([]);
       setTotalCount(0);
@@ -242,19 +332,21 @@ const RecentTransactions = () => {
   };
 
   return (
-    <div className="space-y-6 p-4">
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">
-          Recent Transactions ({totalCount})
-        </h1>
-      </div>
+    <div className="space-y-4 px-3 sm:px-4 md:px-6 pb-6">
+      {/* <div className="flex items-baseline gap-3">
+        <h2 className="text-lg font-semibold">Recent Transactions</h2>
+        {totalCount > 0 && (
+          <span className="rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-teal-600 tabular-nums">
+            {totalCount.toLocaleString()}
+          </span>
+        )}
+      </div> */}
 
       <Card>
         <CardHeader>
           <div className="space-y-4">
-            {/* Search Bar */}
             <form onSubmit={handleSearch} className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-teal-600" />
               <Input
                 placeholder="Search by phone number, user name, or machine code..."
                 value={searchTerm}
@@ -312,7 +404,29 @@ const RecentTransactions = () => {
         </CardHeader>
 
         <CardContent>
-          <div className="overflow-hidden rounded-t-lg border border-gray-200 shadow-sm">
+          {/* Mobile card view */}
+          <div className="sm:hidden space-y-3">
+            {loading ? (
+              Array.from<null>({ length: 5 }).map((_, i) => (
+                <MobileTransactionSkeleton key={i} />
+              ))
+            ) : filteredTransactions.length === 0 ? (
+              <div className="py-8 text-center text-sm text-teal-600">
+                {isSearching
+                  ? "No transactions found for your search."
+                  : "No transactions found for the selected filters."}
+              </div>
+            ) : (
+              filteredTransactions.map((transaction) => (
+                <MobileTransactionCard key={transaction.id} transaction={transaction} onMachineCodeClick={() => navigate(`/superadmin/machine-details/${transaction.machineNavigate}`, {
+                  state: { machine: { machine_code: transaction.machineNavigate } }
+                })} />
+              ))
+            )}
+          </div>
+
+          {/* Desktop table view */}
+          <div className="hidden sm:block overflow-hidden rounded-t-lg border border-gray-200 shadow-sm">
             <Table>
               <TableHeader className="bg-teal-600">
                 <TableRow>
@@ -351,30 +465,56 @@ const RecentTransactions = () => {
                   filteredTransactions.map((transaction) => (
                     <TableRow key={transaction.id}>
                       <TableCell className="font-medium">
-                        {transaction.user_name || transaction.merchant || "N/A"}
+                        <span className="flex items-center gap-1.5">
+                          <User className="size-3.5 text-teal-600 shrink-0" />
+                          {transaction.user_name || transaction.merchant || "N/A"}
+                        </span>
                       </TableCell>
                       <TableCell className="font-mono text-sm">
-                        {transaction.msisdn}
+                        <span className="flex items-center gap-1.5">
+                          <Phone className="size-3.5 text-teal-600 shrink-0" />
+                          {transaction.msisdn}
+                        </span>
                       </TableCell>
-                      <TableCell className="font-medium text-blue-600">
-                        {transaction.machine_code}
+                      <TableCell
+                        className="font-medium text-teal-600 cursor-pointer hover:underline"
+                        onClick={() =>
+                          navigate(`/superadmin/machine-details/${transaction.machineNavigate}`, {
+                            state: { machine: { machine_code: transaction.machineNavigate } }
+                          })
+                        }
+                      >
+                        <span className="flex items-center gap-1.5">
+                          <Link className="size-3.5 shrink-0" />
+                          <span>{transaction.machine_code}</span>
+                        </span>
                       </TableCell>
                       <TableCell>
                         <Badge
                           variant="outline"
-                          className="bg-green-50 text-green-700 border-green-200"
+                          className="bg-green-50 text-green-700 border-green-200 flex items-center gap-1 w-fit"
                         >
+                          <Banknote className="size-3.5 shrink-0" />
                           Rs. {transaction.amount}
                         </Badge>
                       </TableCell>
-                      <TableCell>{transaction.quantity}</TableCell>
-                      <TableCell className="font-medium">
-                        {transaction.brand_name}
-                      </TableCell>
                       <TableCell>
-                        {moment
-                          .utc(transaction.created_at)
-                          .format("DD-MM-YYYY - HH:mm:ss")}
+                        <span className="flex items-center gap-1.5">
+                          <Package className="size-3.5 text-teal-600 shrink-0" />
+                          {transaction.quantity}
+                        </span>
+                      </TableCell>
+                      <TableCell className="font-medium">
+                        <span className="flex items-center gap-1.5">
+                          <Tag className="size-3.5 text-teal-600 shrink-0" />
+                          {transaction.brand_name}
+                        </span>
+                      </TableCell>
+                      <TableCell className="text-sm tabular-nums">
+                        <span className="flex items-center gap-1.5">
+                          <Calendar className="size-3.5 text-teal-600 shrink-0" />
+                          {formatDateTime(transaction.created_at)}
+                        </span>
                       </TableCell>
                     </TableRow>
                   ))
@@ -383,99 +523,92 @@ const RecentTransactions = () => {
             </Table>
           </div>
 
-          {/* Pagination */}
-          {totalPages > 1 && (
-            <div className="flex items-center justify-between px-4 mt-4">
-              <div className="text-muted-foreground hidden flex-1 text-sm lg:flex">
-                Showing {filteredTransactions.length} of {totalCount}{" "}
-                transaction(s)
-              </div>
-              <div className="flex w-full items-center gap-8 lg:w-fit">
-                <div className="hidden items-center gap-2 lg:flex">
-                  <Label
-                    htmlFor="rows-per-page"
-                    className="text-sm font-medium"
-                  >
-                    Rows per page
-                  </Label>
-                  <Select
-                    value={`${pageSize}`}
-                    onValueChange={handlePageSizeChange}
-                  >
-                    <SelectTrigger
-                      size="sm"
-                      className="w-20"
-                      id="rows-per-page"
-                    >
-                      <SelectValue placeholder={pageSize} />
-                    </SelectTrigger>
-                    <SelectContent side="top">
-                      {[10, 20, 30, 40, 50].map((pageSize) => (
-                        <SelectItem key={pageSize} value={`${pageSize}`}>
-                          {pageSize}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="flex w-fit items-center justify-center text-sm font-medium">
-                  Page {currentPage} of {totalPages}
-                </div>
-                <div className="ml-auto flex items-center gap-2 lg:ml-0">
-                  <Button
-                    variant="outline"
-                    className="hidden h-8 w-8 p-0 lg:flex bg-transparent"
-                    onClick={() => handlePageChange(1)}
-                    disabled={currentPage === 1 || loading}
-                  >
-                    <span className="sr-only">Go to first page</span>
-                    <ChevronsLeft className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="outline"
-                    className="size-8 bg-transparent"
-                    size="icon"
-                    onClick={() => handlePageChange(currentPage - 1)}
-                    disabled={currentPage === 1 || loading}
-                  >
-                    <span className="sr-only">Go to previous page</span>
-                    <ChevronLeft className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="outline"
-                    className="size-8 bg-transparent"
-                    size="icon"
-                    onClick={() => handlePageChange(currentPage + 1)}
-                    disabled={currentPage === totalPages || loading}
-                  >
-                    <span className="sr-only">Go to next page</span>
-                    <ChevronRight className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="outline"
-                    className="hidden size-8 lg:flex bg-transparent"
-                    size="icon"
-                    onClick={() => handlePageChange(totalPages)}
-                    disabled={currentPage === totalPages || loading}
-                  >
-                    <span className="sr-only">Go to last page</span>
-                    <ChevronsRight className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-            </div>
-          )}
+          {/* Pagination starts */}
+          
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mt-3">
 
-          {/* Summary */}
-          {filteredTransactions.length > 0 && (
-            <div className="mt-4 text-sm text-muted-foreground">
-              {isSearching && `Search results for "${searchTerm}" - `}
-              Showing {filteredTransactions.length} transactions for{" "}
-              {categories.find((c) => c.id === activeCategory)?.label}
-              {activeCategory === "butterfly" &&
-                ` - ${paymentTypes.find((p) => p.id === activePaymentType)?.label}`}
+            <div className="flex flex-wrap items-center justify-between gap-2 px-2 sm:justify-start sm:gap-6">
+
+              <p className="text-sm text-muted-foreground tabular-nums">
+                {totalCount.toLocaleString()} trans..
+                {isSearching && (
+                  <span className="ml-1 italic">— "{searchTerm}"</span>
+                )}
+              </p>
+
+              <div className="flex items-center gap-2">
+                <Label
+                  htmlFor="rows-per-page-txn"
+                  className="text-sm font-medium whitespace-nowrap"
+                >
+                  Rows per page
+                </Label>
+                <Select value={`${pageSize}`} onValueChange={handlePageSizeChange}>
+                  <SelectTrigger size="sm" className="w-16" id="rows-per-page-txn">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent side="top">
+                    {[5, 10, 20, 30, 40, 50].map((ps) => (
+                      <SelectItem key={ps} value={`${ps}`}>
+                        {ps}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
             </div>
-          )}
+
+
+            <div className="flex items-center gap-1">
+              <Button
+                variant="outline"
+                size="icon"
+                className="size-8 border-violet-200 hover:bg-violet-50 hover:border-violet-300"
+                onClick={() => handlePageChange(1)}
+                disabled={currentPage === 1 || loading}
+              >
+                <span className="sr-only">First page</span>
+                <IconChevronsLeft className="size-4 text-violet-500" />
+              </Button>
+              <Button
+                variant="outline"
+                size="icon"
+                className="size-8 border-blue-200 hover:bg-blue-50 hover:border-blue-300"
+                onClick={() => handlePageChange(currentPage - 1)}
+                disabled={currentPage === 1 || loading}
+              >
+                <span className="sr-only">Previous page</span>
+                <IconChevronLeft className="size-4 text-blue-500" />
+              </Button>
+              <span className="px-2 text-sm font-medium tabular-nums">
+                {currentPage} / {totalPages}
+              </span>
+              <Button
+                variant="outline"
+                size="icon"
+                className="size-8 border-teal-200 hover:bg-teal-50 hover:border-teal-300"
+                onClick={() => handlePageChange(currentPage + 1)}
+                disabled={currentPage === totalPages || loading}
+              >
+                <span className="sr-only">Next page</span>
+                <IconChevronRight className="size-4 text-teal-500" />
+              </Button>
+              <Button
+                variant="outline"
+                size="icon"
+                className="size-8 border-emerald-200 hover:bg-emerald-50 hover:border-emerald-300"
+                onClick={() => handlePageChange(totalPages)}
+                disabled={currentPage === totalPages || loading}
+              >
+                <span className="sr-only">Last page</span>
+                <IconChevronsRight className="size-4 text-emerald-500" />
+              </Button>
+            </div>
+          </div>
+
+          {/* Pagination ends */}
+
         </CardContent>
       </Card>
     </div>

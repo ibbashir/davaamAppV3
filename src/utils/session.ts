@@ -1,21 +1,17 @@
-// utils/session.ts
-
 import axios from "axios";
+import { BASE_URL } from "@/constants/Constant";
 
-export const showSessionExpiredModal = () => {
-  // E.g., use Redux, Zustand or direct state:
-  // dispatch(openModal("SessionExpired"))
-  // alert("Session expired. Please log in again."); // TEMP fallback
-  // logoutUser();
-};
-
-export const logoutUser = async () => {
+/**
+ * Hard logout: clears local storage, calls the backend logout endpoint,
+ * then redirects to /login. Call this from the 401 interceptor or when
+ * a session-expired state is detected.
+ */
+export const logoutUser = async (): Promise<void> => {
   try {
-    await axios.post("/auth/logout", {}, { withCredentials: true });
-  } catch (err) {
-    console.error("Logout failed", err);
+    await axios.post(`${BASE_URL}/auth/logout`, {}, { withCredentials: true });
+  } catch {
+    // Best-effort — clear local state regardless of network result.
   }
-
-  // Clear memory token
-  window.location.href = "/login";
+  localStorage.clear();
+  window.location.replace("/login");
 };

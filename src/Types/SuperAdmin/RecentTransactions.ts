@@ -1,4 +1,4 @@
-export type ApiTransaction = {
+export interface ApiTransaction {
   user_name: string;
   id: number;
   msisdn: string;
@@ -11,9 +11,10 @@ export type ApiTransaction = {
   user_id?: string;
   brand_name: string;
   merchantCheck?: string;
-};
+  machineNavigate?: string;
+}
 
-export type ButterflyApiResponse = {
+export interface ButterflyApiResponse {
   data: {
     cashTransactions: ApiTransaction[];
     onlineTransactions: ApiTransaction[];
@@ -23,28 +24,16 @@ export type ButterflyApiResponse = {
   totalCashPages: number;
   totalOnlinePages: number;
   totalCount: number;
-};
+}
 
-export type OtherApiResponse = {
+export interface OtherApiResponse {
   data: ApiTransaction[];
   page: number;
   pagelimit: number;
   totalPages: number;
   totalCount: number;
-};
+}
 
-export type Transactions = {
-  user_name: string;
-  id: number;
-  msisdn: string;
-  quantity: number;
-  amount: string;
-  created_at: string;
-  merchant: string;
-  machine_code: string;
-  brand_id: number;
-  user_id?: string;
-  brand_name: string;
-  merchantCheck?: string;
-  paymentType?: string;
-};
+export interface Transactions extends ApiTransaction {
+  paymentType?: "cash" | "online";
+}
