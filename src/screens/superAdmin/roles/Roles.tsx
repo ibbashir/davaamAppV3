@@ -901,109 +901,11 @@ const Roles = () => {
               </div>
             ) : (
               <>
-<<<<<<< HEAD
-                <Table>
-                  <TableHeader className="bg-teal-600 rounded-t-2xl">
-                    <TableRow>
-                      <TableHead className="text-center text-white font-semibold rounded-tl-2xl">
-                        Name
-                      </TableHead>
-                      <TableHead className="text-center text-white font-semibold">
-                        Email
-                      </TableHead>
-                      <TableHead className="text-center text-white font-semibold">
-                        Role
-                      </TableHead>
-                      <TableHead className="text-center text-white font-semibold">
-                        Created
-                      </TableHead>
-                      <TableHead className="text-center text-white font-semibold">
-                        Machines
-                      </TableHead>
-                      <TableHead className="text-center text-white font-semibold rounded-tr-2xl">
-                        Actions
-                      </TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {users.map((user) => (
-                      <TableRow className="text-center" key={user.id}>
-                        <TableCell className="font-medium">
-                          {user.first_name} {user.last_name}
-                        </TableCell>
-                        <TableCell>{user.email}</TableCell>
-                        <TableCell>
-                          <Badge variant={getRoleBadgeVariant(user.user_role)}>
-                            {formatRoleDisplay(user.user_role)}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>{formatDate(user.created_at)}</TableCell>
-                        <TableCell>
-                          <div className="flex flex-wrap gap-1">
-                            {user.machines.length > 0 ? (
-                              <>
-                                {user.machines
-                                  .slice(0, 2)
-                                  .map((machine, index) => (
-                                    <Badge
-                                      key={index}
-                                      variant="outline"
-                                      className="text-xs"
-                                    >
-                                      {machine.machine_code}
-                                    </Badge>
-                                  ))}
-                                {user.machines.length > 2 && (
-                                  <Badge variant="outline" className="text-xs">
-                                    +{user.machines.length - 2} more
-                                  </Badge>
-                                )}
-                              </>
-                            ) : (
-                              <span className="text-muted-foreground text-sm">
-                                -
-                              </span>
-                            )}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex gap-2">
-                            <Button
-                              onClick={() => {
-                                setCurrentUserForEdit(user);
-                                setEditDialogOpen(true);
-                              }}
-                              variant="ghost"
-                              size="sm"
-                            >
-                              <IconEdit className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              onClick={() => handleDeleteUser(user.id)}
-                              variant="ghost"
-                              size="sm"
-                            >
-                              <IconTrash className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-
-                {/* Updated Pagination */}
-                {totalPages > 1 && (
-                  <div className="flex items-center justify-between px-4 mt-4">
-                    <div className="text-muted-foreground hidden flex-1 text-sm lg:flex">
-                      Showing {users.length} of {totalRecords} user(s)
-=======
                 {/* Mobile card view */}
                 <div className="sm:hidden space-y-3">
                   {users.length === 0 ? (
                     <div className="py-8 text-center text-sm text-muted-foreground">
                       No users found.
->>>>>>> d7585f87ec0e5d5c5dc4d87127177f7997fe94f2
                     </div>
                   ) : (
                     users.map((user) => (

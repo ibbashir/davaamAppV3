@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
@@ -49,22 +48,6 @@ import { useLocation } from "react-router-dom";
 import { postRequest } from "@/Apis/Api";
 import { ResponsiveBar } from "@nivo/bar";
 import moment from "moment-timezone";
-=======
-import { useEffect, useMemo, useState } from "react"
-import { motion, AnimatePresence } from "framer-motion"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
-import { Label } from "@/components/ui/label"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Download, Plus, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Users, UserCheck, Repeat, BarChart3, Clock, CalendarDays, TrendingUp, Activity } from "lucide-react"
-import { SiteHeader } from "@/components/superAdmin/site-header"
-import { useLocation } from "react-router-dom"
-import { postRequest } from "@/Apis/Api"
-import { ResponsiveBar } from "@nivo/bar"
-import moment from "moment-timezone"
->>>>>>> d7585f87ec0e5d5c5dc4d87127177f7997fe94f2
 
 type ApiResponse = {
   data: {
@@ -100,12 +83,7 @@ type TransactionResponse = {
 
 export default function SuperAdminMachineVisit() {
   const { state } = useLocation();
-<<<<<<< HEAD
   const machine = state?.machine;
-=======
-  console.log("test",state);
-  const machine = state?.machine
->>>>>>> d7585f87ec0e5d5c5dc4d87127177f7997fe94f2
 
   const [stockView, setStockView] = useState("batch");
   const [activeTab, setActiveTab] = useState("stock-levels");
@@ -121,7 +99,6 @@ export default function SuperAdminMachineVisit() {
   const [hasPreviousPage, setHasPreviousPage] = useState(false);
   const [isLoadingTransactions, setIsLoadingTransactions] = useState(false);
 
-<<<<<<< HEAD
   const [chartData, setChartData] = useState<NivoBarData[]>([]);
   const [totalRevenue, setTotalRevenue] = useState(0);
   const [totalChartTransactions, setTotalChartTransactions] = useState(0);
@@ -131,90 +108,6 @@ export default function SuperAdminMachineVisit() {
   const [metric, setMetric] = useState<"revenue" | "transactions">(
     "transactions",
   );
-=======
-  const [chartData, setChartData] = useState<NivoBarData[]>([])
-  const [totalRevenue, setTotalRevenue] = useState(0)
-  const [totalTransactions, setTotalTransactions] = useState(0)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [view, setView] = useState<"monthly" | "weekly">("monthly")
-  const [metric, setMetric] = useState<"revenue" | "transactions">("transactions")
-
-  useEffect(() => {
-    fetchMachineDetails()
-  }, [])
-
-  const fetchMachineDetails = async () => {
-    const res = await postRequest(`/superadmin/machineDetailsWithMachineCode`, { machine_code: machine.machine_code })
-    console.log("hekki",res);
-    const changeBrandsNames = res.transactions.map((transaction: any) => {
-      const brand = res.brands.find((b: any) => b.id === transaction.brand_id)
-      return { ...transaction, brand_id: brand ? brand.name : transaction.brand_id }
-    });
-    setUserTransactions(changeBrandsNames)
-    setFilteredTransactions(changeBrandsNames) // Initialize filtered transactions with all data
-    setBrandFillings(res.fillings)
-    setBrands(res.brands)
-  }
-
-  const fetchChartData = async (type: "monthly" | "weekly") => {
-    setLoading(true)
-    try {
-      const res = await postRequest<ApiResponse>("/superadmin/BarChartMainDashboardSanitaryByMachineCode", { machine_code: machine.machine_code })
-      let revenueArr: Record<string, number>[] = []
-      let transactionArr: Record<string, number>[] = []
-
-      if (type === "weekly") {
-        revenueArr = res.data.weekly.Revenue
-        transactionArr = res.data.weekly.Transaction
-      } else {
-        revenueArr = res.data.monthly.Revenue
-        transactionArr = res.data.monthly.Transaction
-      }
-
-      const transformed: NivoBarData[] = revenueArr.map((revObj, i) => {
-        const label = Object.keys(revObj)[0]
-        const revenue = Object.values(revObj)[0]
-        const transactions = Object.values(transactionArr[i])[0]
-        return { id: label, label, revenue, transactions }
-      })
-
-      setChartData(transformed)
-      setTotalRevenue(transformed.reduce((sum, d) => sum + d.revenue, 0))
-      setTotalTransactions(transformed.reduce((sum, d) => sum + d.transactions, 0))
-      setError(null)
-    } catch (err) {
-      console.error("Error fetching bar chart data:", err)
-      setError("⚠️ Failed to load bar chart.")
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  useEffect(() => {
-    fetchChartData(view)
-  }, [view])
-
-  // Filter transactions by month
-  const filterTransactionsByMonth = (month: string) => {
-    setSelectedMonth(month)
-    
-    if (!month) {
-      setFilteredTransactions(userTransactions)
-      setCurrentPage(1)
-      return
-    }
-
-    const filtered = userTransactions.filter(transaction => {
-      const transactionDate = new Date(transaction.created_at)
-      const transactionMonth = transactionDate.toISOString().slice(0, 7) // YYYY-MM format
-      return transactionMonth === month
-    })
-
-    setFilteredTransactions(filtered)
-    setCurrentPage(1)
-  }
->>>>>>> d7585f87ec0e5d5c5dc4d87127177f7997fe94f2
 
   // Generate month options (last 12 months)
   const getMonthOptions = () => {
