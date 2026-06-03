@@ -31,8 +31,7 @@ export const BASE_URL_STOCK_AUTH = "https://api.davaam.app/api/smsPortal/stockAu
 // export const LOCAL_STOCK_URL = "http://localhost:4000/api/smsPortal/stockApp";
 // export const BASE_URL_STOCK = "https://davaam-backend-nodejs-4199d6d4d449.herokuapp.com/api/stockApp";
 
-export const CHATBOT_API_URL = "http://localhost:4000/api/chatbot";
-// export const CHATBOT_API_URL = "https://davaam-backend-nodejs-4199d6d4d449.herokuapp.com/api/chatbot";
+export const CHATBOT_API_URL = "https://api.davaam.app/api/chatbot";
 //PUBLIC PATHS
 export const LOGIN = "/login";
 export const FORGET_PASSWORD = "/forgetPassword";
@@ -192,7 +191,7 @@ export const ADMIN_SIDEBAR_ROUTES = () => {
     {
       title: "Corporate Topup",
       url: ADMIN_CORPORATE_TOPUP,
-      icon: IconMessage2Exclamation,
+      icon: IconCircleArrowUpRight,
     },
     {
       title: "Map Machines",
@@ -321,88 +320,24 @@ export const MACHINES_SIDEBAR_ROUTES = (firstName: string) => {
   return routes;
 };
 
-// TIME STAMP CONVERTER
-export function unixTimestampToCustomString(
-  unixTimestamp: number,
-  format: string,
-  timeZoneOffset: number,
-): string {
-  const date = new Date(unixTimestamp * 1000);
+// TIME STAMP CONVERTERS — all output in Pakistan Standard Time (Asia/Karachi).
+// These are thin wrappers kept for call-site compatibility; prefer importing
+// formatUnixTimestamp / formatDateTime from @/utils/formatters directly.
 
-  const months: string[] = [
-    "Jan",
-    "Feb",
-    "Mar",
-    "Apr",
-    "May",
-    "Jun",
-    "Jul",
-    "Aug",
-    "Sep",
-    "Oct",
-    "Nov",
-    "Dec",
-  ];
+import { formatUnixTimestamp, formatDateTime as _formatDateTime } from "@/utils/formatters";
 
-  const year: number = date.getFullYear();
-  const month: string = months[date.getMonth()];
-  const day: number = date.getDate();
-  const hours: number = date.getHours();
-  const minutes: number = date.getMinutes();
-  const seconds: number = date.getSeconds();
-
-  const offsetHours: number = Math.floor(Math.abs(timeZoneOffset / 60));
-  const offsetMinutes: number = Math.abs(timeZoneOffset % 60);
-  const offsetSign: string = timeZoneOffset >= 0 ? "+" : "-";
-
-  // Define placeholders for various date and time components
-  const placeholders: { [key: string]: string | number } = {
-    YYYY: year,
-    MM: (date.getMonth() + 1).toString().padStart(2, "0"),
-    DD: day.toString().padStart(2, "0"),
-    HH: hours.toString().padStart(2, "0"),
-    mm: minutes.toString().padStart(2, "0"),
-    ss: seconds.toString().padStart(2, "0"),
-    MMM: month,
-    TZHH: offsetSign + offsetHours.toString().padStart(2, "0"),
-    TZmm: offsetMinutes.toString().padStart(2, "0"),
-  };
-
-  // Replace format placeholders with actual values
-  const formattedDate: string = format.replace(
-    /YYYY|MM|DD|HH|mm|ss|MMM|TZHH|TZmm/g,
-    (match) => String(placeholders[match]) || match,
-  );
-
-  return formattedDate;
+/** @deprecated Use formatUnixTimestamp from @/utils/formatters */
+export function timeConverter(UNIX_timestamp: number): string {
+  return formatUnixTimestamp(UNIX_timestamp);
 }
 
-export function timeConverter(UNIX_timestamp: number): string {
-  const dateObj = new Date(UNIX_timestamp * 1000);
-
-  const months = [
-    "Jan",
-    "Feb",
-    "Mar",
-    "Apr",
-    "May",
-    "Jun",
-    "Jul",
-    "Aug",
-    "Sep",
-    "Oct",
-    "Nov",
-    "Dec",
-  ];
-
-  const year = dateObj.getFullYear();
-  const month = months[dateObj.getMonth()];
-  const date = dateObj.getDate().toString().padStart(2, "0");
-  const hour = dateObj.getHours().toString().padStart(2, "0");
-  const min = dateObj.getMinutes().toString().padStart(2, "0");
-  const sec = dateObj.getSeconds().toString().padStart(2, "0");
-
-  return `${date} ${month} ${year} ${hour}:${min}:${sec}`;
+/** @deprecated Use formatDateTime from @/utils/formatters */
+export function unixTimestampToCustomString(
+  unixTimestamp: number,
+  _format?: string,
+  _timeZoneOffset?: number,
+): string {
+  return formatUnixTimestamp(unixTimestamp);
 }
 
 export const categories = [

@@ -1,10 +1,15 @@
-"use client"
-
 import * as React from "react"
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+} from "@/components/ui/card"
+import { Skeleton } from "@/components/ui/skeleton"
 import { postRequest } from "@/Apis/Api"
 import { ResponsiveBar } from "@nivo/bar"
+import { cn } from "@/lib/utils"
 
 type ApiResponse = {
   data: {
@@ -26,6 +31,42 @@ type NivoBarData = {
   transactions: number
 }
 
+const MONTH_SHORT: Record<string, string> = {
+  JANUARY: "Jan", FEBRUARY: "Feb", MARCH: "Mar", APRIL: "Apr",
+  MAY: "May", JUNE: "Jun", JULY: "Jul", AUGUST: "Aug",
+  SEPTEMBER: "Sep", OCTOBER: "Oct", NOVEMBER: "Nov", DECEMBER: "Dec",
+}
+
+function SegmentedControl<T extends string>({
+  options,
+  value,
+  onChange,
+}: {
+  options: { label: string; value: T }[]
+  value: T
+  onChange: (v: T) => void
+}) {
+  return (
+    <div className="flex rounded-md border bg-muted p-0.5 text-xs">
+      {options.map((opt) => (
+        <button
+          key={opt.value}
+          type="button"
+          onClick={() => onChange(opt.value)}
+          className={cn(
+            "rounded px-2.5 py-1 font-medium transition-all",
+            value === opt.value
+              ? "bg-background text-foreground shadow-sm"
+              : "text-muted-foreground hover:text-foreground",
+          )}
+        >
+          {opt.label}
+        </button>
+      ))}
+    </div>
+  )
+}
+
 export default function SuperAdminSanitaryBarChart() {
   const [data, setData] = React.useState<NivoBarData[]>([])
   const [totalRevenue, setTotalRevenue] = React.useState(0)
@@ -33,46 +74,37 @@ export default function SuperAdminSanitaryBarChart() {
   const [loading, setLoading] = React.useState(true)
   const [error, setError] = React.useState<string | null>(null)
   const [view, setView] = React.useState<"monthly" | "weekly">("monthly")
-  const [metric, setMetric] = React.useState<"revenue" | "transactions">("transactions")
+  const [metric, setMetric] = React.useState<"revenue" | "transactions">(
+    "transactions",
+  )
 
   const fetchData = async (type: "monthly" | "weekly") => {
     setLoading(true)
     try {
-      const res = await postRequest<ApiResponse>("/superadmin/BarchartMainDashboardSanitary", {})
-
-      let revenueArr: Record<string, number>[] = []
-      let transactionArr: Record<string, number>[] = []
-
-      if (type === "weekly") {
-        revenueArr = res.data.weekly.Revenue
-        transactionArr = res.data.weekly.Transaction
-      } else {
-        revenueArr = res.data.monthly.Revenue
-        transactionArr = res.data.monthly.Transaction
-      }
+      const res = await postRequest<ApiResponse>(
+        "/superadmin/BarchartMainDashboardSanitary",
+        {},
+      )
+      const { Revenue: revenueArr, Transaction: transactionArr } =
+        type === "weekly" ? res.data.weekly : res.data.monthly
 
       const transformed: NivoBarData[] = revenueArr.map((revObj, i) => {
         const label = Object.keys(revObj)[0]
-        const revenue = Object.values(revObj)[0]
-        const transactions = Object.values(transactionArr[i])[0]
         return {
           id: label,
-          label: label,
-          revenue,
-          transactions,
+          label,
+          revenue: Object.values(revObj)[0],
+          transactions: Object.values(transactionArr[i])[0],
         }
       })
 
-      const totalRev = transformed.reduce((sum, d) => sum + d.revenue, 0)
-      const totalTrans = transformed.reduce((sum, d) => sum + d.transactions, 0)
-
       setData(transformed)
-      setTotalRevenue(totalRev)
-      setTotalTransactions(totalTrans)
+      setTotalRevenue(transformed.reduce((s, d) => s + d.revenue, 0))
+      setTotalTransactions(transformed.reduce((s, d) => s + d.transactions, 0))
       setError(null)
     } catch (err) {
       console.error("Error fetching bar chart data:", err)
-      setError("Failed to load bar chart.")
+      setError("Failed to load chart.")
     } finally {
       setLoading(false)
     }
@@ -83,112 +115,108 @@ export default function SuperAdminSanitaryBarChart() {
   }, [view])
 
   return (
-    <Card>
-      <CardHeader>
-        <div className="flex justify-between items-center">
+    <Card className="flex flex-col">
+      <CardHeader className="pb-2">
+        <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
-            <CardTitle>Sanitary Revenue & Transactions Breakdown</CardTitle>
+            <CardTitle className="text-base font-semibold">
+              Sanitary Breakdown
+            </CardTitle>
             <CardDescription>
-              {view === "monthly" ? "Monthly" : "Weekly"} {metric === "transactions" ? "Transactions" : "Revenue"}
+              {view === "monthly" ? "Monthly" : "Weekly"}{" "}
+              {metric === "transactions" ? "transactions" : "revenue"}
             </CardDescription>
-            <div className="mt-3 text-sm space-y-1">
-              <div>
-                📦 <strong>Total Revenue:</strong> Rs{" "}
-                {totalRevenue.toLocaleString(undefined, { maximumFractionDigits: 2 })}
-              </div>
-              <div>
-                🧾 <strong>Total Transactions:</strong>{" "}
-                {totalTransactions.toLocaleString()}
-              </div>
-            </div>
-
-            <div className="flex p-2 space-x-2">
-              <Button
-                variant={metric === "transactions" ? "default" : "outline"}
-                onClick={() => setMetric("transactions")}
-              >
-                Transactions
-              </Button>
-              <Button
-                variant={metric === "revenue" ? "default" : "outline"}
-                onClick={() => setMetric("revenue")}
-              >
-                Revenue
-              </Button>
+            <div className="mt-3 flex gap-3 text-sm">
+              <span className="text-muted-foreground">
+                Revenue:{" "}
+                <span className="font-semibold text-foreground tabular-nums">
+                  ₨{" "}
+                  {totalRevenue.toLocaleString(undefined, {
+                    maximumFractionDigits: 2,
+                  })}
+                </span>
+              </span>
+              <span className="text-muted-foreground">
+                Txns:{" "}
+                <span className="font-semibold text-foreground tabular-nums">
+                  {totalTransactions.toLocaleString()}
+                </span>
+              </span>
             </div>
           </div>
-
-          <div className="space-x-2 space-y-1">
-            <Button
-              variant={view === "weekly" ? "default" : "outline"}
-              onClick={() => setView("weekly")}
-            >
-              Weekly
-            </Button>
-            <Button
-              variant={view === "monthly" ? "default" : "outline"}
-              onClick={() => setView("monthly")}
-            >
-              Monthly
-            </Button>
-
+          <div className="flex flex-col items-end gap-2">
+            <SegmentedControl
+              options={[
+                { label: "Monthly", value: "monthly" },
+                { label: "Weekly", value: "weekly" },
+              ]}
+              value={view}
+              onChange={setView}
+            />
+            <SegmentedControl
+              options={[
+                { label: "Transactions", value: "transactions" },
+                { label: "Revenue", value: "revenue" },
+              ]}
+              value={metric}
+              onChange={setMetric}
+            />
           </div>
         </div>
       </CardHeader>
 
-      <CardContent className="h-[400px]">
+      <CardContent className="h-[360px]">
         {loading ? (
-          <div className="flex justify-center items-center h-full">Loading...</div>
+          <div className="flex h-full flex-col justify-end gap-1 px-4 pb-4">
+            {[60, 85, 45, 70, 55, 90, 40, 75, 50, 65, 80, 35].map((h, i) => (
+              <div key={i} className="flex flex-1 items-end" style={{ maxHeight: `${h}%` }}>
+                <Skeleton className="w-full" style={{ height: `${h}%` }} />
+              </div>
+            ))}
+          </div>
         ) : error ? (
-          <div className="flex justify-center items-center h-full text-destructive">
+          <div className="flex h-full items-center justify-center text-sm text-destructive">
             {error}
           </div>
         ) : (
           <ResponsiveBar
             data={data}
-            keys={[metric]} // 👈 dynamic key
+            keys={[metric]}
             indexBy="label"
-            margin={{ top: 50, right: 130, bottom: 70, left: 60 }}
-            padding={0.3}
+            margin={{ top: 20, right: 20, bottom: 60, left: 55}}
+            padding={0.35}
             indexScale={{ type: "band", round: true }}
             axisBottom={{
-              tickRotation: -90, // rotate labels
-              legend: view === "weekly" ? "Date" : "",
-              legendPosition: "middle",
-              legendOffset: 50,
-              format: (value) => {
-                // Shorten month names
-                const monthMap: Record<string, string> = {
-                  JANUARY: "Jan",
-                  FEBRUARY: "Feb",
-                  MARCH: "Mar",
-                  APRIL: "Apr",
-                  MAY: "May",
-                  JUNE: "Jun",
-                  JULY: "Jul",
-                  AUGUST: "Aug",
-                  SEPTEMBER: "Sep",
-                  OCTOBER: "Oct",
-                  NOVEMBER: "Nov",
-                  DECEMBER: "Dec",
-                };
-                const key = String(value);
-                return monthMap[key] || key; // if not a month, return as is
-              },
+              tickRotation: -45,
+              format: (v) => MONTH_SHORT[String(v)] ?? String(v),
             }}
             axisLeft={{
-              legend: metric === "revenue" ? "Revenue (Rs)" : "Transactions",
+              legend: metric === "revenue" ? "Revenue (₨)" : "Transactions",
               legendPosition: "middle",
-              legendOffset: -40,
+              legendOffset: -45,
             }}
-            labelSkipWidth={12}
-            labelSkipHeight={12}
-            colors={metric === "revenue" ? "#3b82f680" : "#10b98180"}
-            borderRadius={15}
+            labelSkipWidth={14}
+            labelSkipHeight={14}
+            labelTextColor="#ffffff"
+            colors={metric === "revenue" ? "#0d9488" : "#14b8a6"}
+            borderRadius={6}
+            enableGridY
+            gridYValues={5}
             role="application"
-            enableGridY={false}
+            tooltip={({ data: d, value }) => (
+              <div className="rounded-lg border bg-background px-3 py-2 text-sm shadow-lg">
+                <p className="font-semibold">{d.label}</p>
+                <p className="text-muted-foreground">
+                  {metric === "revenue" ? "Revenue" : "Transactions"}:{" "}
+                  <span className="font-medium text-foreground">
+                    {metric === "revenue"
+                      ? `₨ ${value.toLocaleString()}`
+                      : value.toLocaleString()}
+                  </span>
+                </p>
+              </div>
+            )}
           />
-
         )}
       </CardContent>
     </Card>

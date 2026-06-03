@@ -1,20 +1,8 @@
-import {
-  IconCreditCard,
-  IconDotsVertical,
-  IconLogout,
-  IconNotification,
-  IconUserCircle,
-} from "@tabler/icons-react"
-
-import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-} from "@/components/ui/avatar"
+import { IconDotsVertical, IconLogout } from "@tabler/icons-react"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
@@ -26,15 +14,41 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar"
+import { Badge } from "@/components/ui/badge"
 import { useNavigate } from "react-router-dom"
 import { useAuth } from "@/contexts/AuthContext"
 
-export function NavUser({ user }: {
-  user: { name: string, email: string, avatar: string },
-}) {
+interface NavUserProps {
+  user: { name: string; email: string; avatar: string }
+}
+
+const ROLE_LABELS: Record<string, string> = {
+  superadmin: "Super Admin",
+  admin: "Admin",
+  ops: "Ops",
+  fulfill: "Fulfillment",
+  finance: "Finance",
+  company: "Corporate",
+}
+
+export function NavUser({ user }: NavUserProps) {
   const { isMobile } = useSidebar()
-  const navigate = useNavigate();
-  const { logout } = useAuth();
+  const navigate = useNavigate()
+  const { logout, state } = useAuth()
+
+  const role = state.role ?? ""
+  const roleLabel = ROLE_LABELS[role] ?? role
+  const initials = user.name
+    .split(" ")
+    .map((n) => n[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2)
+
+  const handleLogout = async () => {
+    await logout()
+    navigate("/login", { replace: true })
+  }
 
   return (
     <SidebarMenu>
@@ -45,19 +59,22 @@ export function NavUser({ user }: {
               size="lg"
               className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
             >
-              <Avatar className="h-8 w-8 rounded-lg grayscale">
+              <Avatar className="h-8 w-8 rounded-lg">
                 <AvatarImage src={user.avatar} alt={user.name} />
-                <AvatarFallback className="rounded-lg">{user?.name[0]}</AvatarFallback>
+                <AvatarFallback className="rounded-lg bg-teal-100 text-teal-700 text-xs font-semibold">
+                  {initials}
+                </AvatarFallback>
               </Avatar>
               <div className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-medium">{user?.name}</span>
+                <span className="truncate font-medium">{user.name}</span>
                 <span className="text-muted-foreground truncate text-xs">
-                  {user?.email}
+                  {user.email}
                 </span>
               </div>
-              <IconDotsVertical className="ml-auto size-4" />
+              <IconDotsVertical className="ml-auto size-4 text-muted-foreground" />
             </SidebarMenuButton>
           </DropdownMenuTrigger>
+
           <DropdownMenuContent
             className="w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg"
             side={isMobile ? "bottom" : "right"}
@@ -65,41 +82,39 @@ export function NavUser({ user }: {
             sideOffset={4}
           >
             <DropdownMenuLabel className="p-0 font-normal">
-              <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
-                <Avatar className="h-8 w-8 rounded-lg">
+              <div className="flex items-center gap-2 px-2 py-2">
+                <Avatar className="h-9 w-9 rounded-lg">
                   <AvatarImage src={user.avatar} alt={user.name} />
-                  <AvatarFallback className="rounded-lg">{user?.name[0]}</AvatarFallback>
+                  <AvatarFallback className="rounded-lg bg-teal-100 text-teal-700 text-xs font-semibold">
+                    {initials}
+                  </AvatarFallback>
                 </Avatar>
                 <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-medium">{user?.name}</span>
+                  <span className="truncate font-semibold">{user.name}</span>
                   <span className="text-muted-foreground truncate text-xs">
-                    {user?.email}
+                    {user.email}
                   </span>
                 </div>
               </div>
+              {roleLabel && (
+                <div className="px-2 pb-2">
+                  <Badge
+                    variant="secondary"
+                    className="text-xs bg-teal-50 text-teal-700 border border-teal-100 hover:bg-teal-50"
+                  >
+                    {roleLabel}
+                  </Badge>
+                </div>
+              )}
             </DropdownMenuLabel>
+
             <DropdownMenuSeparator />
-            {/* <DropdownMenuGroup>
-              <DropdownMenuItem>
-                <IconUserCircle />
-                Account
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <IconCreditCard />
-                Billing
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <IconNotification />
-                Notifications
-              </DropdownMenuItem>
-            </DropdownMenuGroup> */}
-            <DropdownMenuSeparator />
-            <DropdownMenuItem className="cursor-pointer"
-              onClick={() => {
-                logout();
-                navigate("/login")
-              }}>
-              <IconLogout />
+
+            <DropdownMenuItem
+              className="cursor-pointer text-destructive focus:text-destructive focus:bg-destructive/10"
+              onClick={handleLogout}
+            >
+              <IconLogout className="size-4" />
               Log out
             </DropdownMenuItem>
           </DropdownMenuContent>

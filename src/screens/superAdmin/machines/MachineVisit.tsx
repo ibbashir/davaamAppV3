@@ -34,7 +34,8 @@ type NivoBarData = {
 }
 
 export default function SuperAdminMachineVisit() {
-  const { state } = useLocation()
+  const { state } = useLocation();
+  console.log("test",state);
   const machine = state?.machine
 
   const [stockView, setStockView] = useState("batch")

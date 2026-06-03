@@ -1,109 +1,129 @@
-import { IconTrendingUp } from "@tabler/icons-react"
 import { useEffect, useState } from "react"
-import {
-  Card,
-  CardAction,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
+import { Skeleton } from "@/components/ui/skeleton"
 import { getRequest } from "@/Apis/Api"
+import { cn } from "@/lib/utils"
+import {
+  IconCash,
+  IconMapPin,
+  IconCpu,
+  IconRecycle,
+  IconStack2,
+  IconDroplets,
+} from "@tabler/icons-react"
 
 interface DashboardStatistics {
-  activeLocations: number;
-  activeMachines: number;
-  bottleDispensed: number;
-  handwashWithDishwash: number;
-  napkins: number;
-  oil: number;
-  plasticSaved: number;
-  grossSales:number;
+  activeLocations: number
+  activeMachines: number
+  bottleDispensed: number
+  handwashWithDishwash: number
+  napkins: number
+  oil: number
+  plasticSaved: number
+  grossSales: number
 }
 
+const STAT_CARDS = [
+  {
+    key: "grossSales" as const,
+    label: "Total Revenue",
+    icon: IconCash,
+    iconBg: "bg-teal-50",
+    iconFg: "text-teal-600",
+    format: (v: number) => `₨ ${v.toLocaleString()}`,
+  },
+  {
+    key: "activeLocations" as const,
+    label: "Active Locations",
+    icon: IconMapPin,
+    iconBg: "bg-blue-50",
+    iconFg: "text-blue-600",
+    format: (v: number) => v.toLocaleString(),
+  },
+  {
+    key: "activeMachines" as const,
+    label: "Active Machines",
+    icon: IconCpu,
+    iconBg: "bg-violet-50",
+    iconFg: "text-violet-600",
+    format: (v: number) => v.toLocaleString(),
+  },
+  {
+    key: "plasticSaved" as const,
+    label: "Plastic Saved",
+    icon: IconRecycle,
+    iconBg: "bg-emerald-50",
+    iconFg: "text-emerald-600",
+    format: (v: number) => `${Math.round(v).toLocaleString()} g`,
+  },
+  {
+    key: "napkins" as const,
+    label: "Napkins Dispensed",
+    icon: IconStack2,
+    iconBg: "bg-amber-50",
+    iconFg: "text-amber-600",
+    format: (v: number) => v.toLocaleString(),
+  },
+  {
+    key: "bottleDispensed" as const,
+    label: "Bottles Dispensed",
+    icon: IconDroplets,
+    iconBg: "bg-cyan-50",
+    iconFg: "text-cyan-600",
+    format: (v: number) => v.toLocaleString(),
+  },
+]
+
 export function SectionCards() {
-  const [cardsData, setCardsData] = useState<DashboardStatistics | null>(null);
+  const [data, setData] = useState<DashboardStatistics | null>(null)
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const res = await getRequest("/superadmin/dashboardStatistics") as { data: DashboardStatistics };
-        setCardsData(res.data);
+        const res = await getRequest("/superadmin/dashboardStatistics") as { data: DashboardStatistics }
+        setData(res.data)
       } catch (error) {
-        console.error("Error fetching dashboard statistics:", error);
-        setCardsData(null);
+        console.error("Error fetching dashboard statistics:", error)
+      } finally {
+        setLoading(false)
       }
-    };
-    fetchData();
-  }, []);
-
-const formatCurrency = (amount: number) => {
-        return new Intl.NumberFormat("en-US").format(amount)
     }
+    fetchData()
+  }, [])
+
   return (
-    <div className="*:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card grid grid-cols-1 gap-3 px-3 sm:gap-4 sm:px-4 *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:shadow-xs md:gap-4 md:px-6 lg:px-6 @sm/main:grid-cols-2 @lg/main:grid-cols-3 @5xl/main:grid-cols-4">
-      <Card className="@container/card">
-        <CardHeader>
-          <CardDescription className="text-xs sm:text-sm">Total Revenue</CardDescription>
-          <CardTitle className="text-xl sm:text-2xl font-semibold tabular-nums @[250px]/card:text-2xl sm:@[250px]/card:text-3xl">
-            {formatCurrency(cardsData?.grossSales || 0)}
-          </CardTitle>
-          <CardAction>
-          </CardAction>
-        </CardHeader>
-        <CardFooter className="flex-col items-start gap-1.5 text-xs sm:text-sm">
-          <div className="line-clamp-1 flex gap-2 font-medium">
-            Trending up this month <IconTrendingUp className="size-3 sm:size-4" />
-          </div>
-          <div className="text-muted-foreground">
-            Visitors for the last 6 months
-          </div>
-        </CardFooter>
-      </Card>
-      <Card className="@container/card">
-        <CardHeader>
-          <CardDescription className="text-xs sm:text-sm">Active Locations</CardDescription>
-          <CardTitle className="text-xl sm:text-2xl font-semibold tabular-nums @[250px]/card:text-2xl sm:@[250px]/card:text-3xl">
-            {cardsData?.activeLocations}
-          </CardTitle>
-        </CardHeader>
-        <CardFooter className="flex-col items-start gap-1.5 text-xs sm:text-sm">
-          <div className="line-clamp-1 flex gap-2 font-medium">
-            Expansion continues <IconTrendingUp className="size-3 sm:size-4" />
-          </div>
-          <div className="text-muted-foreground">
-            Locations over 6 months
-          </div>
-        </CardFooter>
-      </Card>
-      <Card className="@container/card">
-        <CardHeader>
-          <CardDescription className="text-xs sm:text-sm">Plastic Saved</CardDescription>
-          <CardTitle className="text-xl sm:text-2xl font-semibold tabular-nums @[250px]/card:text-2xl sm:@[250px]/card:text-3xl">
-            {Math.round(cardsData?.plasticSaved ?? 0).toLocaleString()}
-          </CardTitle>
-        </CardHeader>
-        <CardFooter className="flex-col items-start gap-1.5 text-xs sm:text-sm">
-          <div className="line-clamp-1 flex gap-2 font-medium">
-            Sustainability improving <IconTrendingUp className="size-3 sm:size-4" />
-          </div>
-          <div className="text-muted-foreground">Waste reduction progress</div>
-        </CardFooter>
-      </Card>
-      <Card className="@container/card">
-        <CardHeader>
-          <CardDescription className="text-xs sm:text-sm">Napkins Dispensed</CardDescription>
-          <CardTitle className="text-xl sm:text-2xl font-semibold tabular-nums @[250px]/card:text-2xl sm:@[250px]/card:text-3xl">
-            {cardsData?.napkins}
-          </CardTitle>  
-        </CardHeader>
-        <CardFooter className="flex-col items-start gap-1.5 text-xs sm:text-sm">
-          <div className="line-clamp-1 flex gap-2 font-medium">
-            Strong user retention <IconTrendingUp className="size-3 sm:size-4" />
-          </div>
-          <div className="text-muted-foreground">Meets growth projections</div>
-        </CardFooter>
-      </Card>
+    <div className="grid grid-cols-2 gap-3 px-3 sm:px-4 md:gap-4 md:px-6 lg:grid-cols-3 xl:grid-cols-3">
+      {STAT_CARDS.map((card) => {
+        const Icon = card.icon
+        const value = data ? card.format(data[card.key] ?? 0) : null
+
+        return (
+          <Card key={card.key} className="border shadow-sm">
+            <CardContent className="p-4 sm:p-5">
+              {loading ? (
+                <div className="space-y-3">
+                  <Skeleton className="h-9 w-9 rounded-lg" />
+                  <Skeleton className="h-7 w-4/5" />
+                  <Skeleton className="h-3.5 w-3/5" />
+                </div>
+              ) : (
+                <div className="flex flex-col gap-3">
+                  <div className={cn("flex h-9 w-9 items-center justify-center rounded-lg", card.iconBg)}>
+                    <Icon className={cn("size-5", card.iconFg)} />
+                  </div>
+                  <div>
+                    <p className="text-xl font-bold tabular-nums tracking-tight sm:text-2xl leading-none">
+                      {value}
+                    </p>
+                    <p className="mt-1 text-xs text-muted-foreground">{card.label}</p>
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )
+      })}
     </div>
   )
 }
