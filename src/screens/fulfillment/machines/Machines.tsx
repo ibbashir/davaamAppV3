@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { getRequest } from "@/Apis/Api";
 import { timeConverter } from "@/constants/Constant";
-import { SiteHeader } from "@/components/superAdmin/site-header";
+import { SiteHeader } from "@/components/fulfillment/site-header";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -95,7 +95,7 @@ function FilterPill<T>({
   );
 }
 
-const Machines = () => {
+const FulfillMachines = () => {
   const navigate = useNavigate();
 
   const [searchTerm, setSearchTerm] = useState("");
@@ -659,7 +659,7 @@ const Machines = () => {
                             className="bg-teal-600 hover:bg-teal-700"
                             onClick={() =>
                               navigate(
-                                `/fulfillment/machine-details/${machine.machine_code}`,
+                                `/fulfill/machine-details/${machine.machine_code}`,
                                 { state: { machine } },
                               )
                             }
@@ -717,4 +717,4 @@ const Machines = () => {
   );
 };
 
-export default Machines;
+export default FulfillMachines;

@@ -21,22 +21,34 @@ import moment from "moment-timezone"
 type ApiResponse = {
   data: {
     weekly: {
-      Revenue: Record<string, number>[]
-      Transaction: Record<string, number>[]
-    }
+      Revenue: Record<string, number>[];
+      Transaction: Record<string, number>[];
+    };
     monthly: {
-      Revenue: Record<string, number>[]
-      Transaction: Record<string, number>[]
-    }
-  }
-}
+      Revenue: Record<string, number>[];
+      Transaction: Record<string, number>[];
+    };
+  };
+};
 
 type NivoBarData = {
-  id: string
-  label: string
-  revenue: number
-  transactions: number
-}
+  id: string;
+  label: string;
+  revenue: number;
+  transactions: number;
+};
+
+type TransactionResponse = {
+  success: boolean;
+  machine_code: string;
+  transactions: any[];
+  total: number;
+  page: number;
+  perPage: number;
+  totalPages: number;
+  hasNextPage: boolean;
+  hasPreviousPage: boolean;
+};
 
 type MachineDetailsResponse = {
   transactions: Record<string, unknown>[]
@@ -210,10 +222,6 @@ export default function SuperAdminMachineVisit() {
     return months
   }, [])
 
-  const totalPages = Math.ceil(filteredTransactions.length / itemsPerPage)
-  const startIndex = (currentPage - 1) * itemsPerPage
-  const paginatedTransactions = filteredTransactions.slice(startIndex, startIndex + itemsPerPage)
-
   // ── CSV export ───────────────────────────────────────────────────────────────
   const exportToCSV = () => {
     if (filteredTransactions.length === 0) {
@@ -250,7 +258,7 @@ export default function SuperAdminMachineVisit() {
 
   // ── Stats computation ─────────────────────────────────────────────────────────
   const stats = useMemo(() => {
-    if (!userTransactions || userTransactions.length === 0) return null
+    if (!userTransactions || userTransactions.length === 0) return null;
 
     const userFreq: Record<string, number> = {}
     const hourCounts = new Array(24).fill(0)
@@ -268,17 +276,18 @@ export default function SuperAdminMachineVisit() {
       dailyTxMap[dateKey].add(phone)
     }
 
-    const totalUsers = Object.keys(userFreq).length
-    const returningUsers = Object.values(userFreq).filter((c) => c > 1).length
-    const newUsers = totalUsers - returningUsers
-    const repeatRate = totalUsers > 0 ? Math.round((returningUsers / totalUsers) * 100) : 0
+    const totalUsers = Object.keys(userFreq).length;
+    const returningUsers = Object.values(userFreq).filter((c) => c > 1).length;
+    const newUsers = totalUsers - returningUsers;
+    const repeatRate =
+      totalUsers > 0 ? Math.round((returningUsers / totalUsers) * 100) : 0;
 
     const freq = { once: 0, low: 0, mid: 0, high: 0 }
     for (const count of Object.values(userFreq)) {
-      if (count === 1) freq.once++
-      else if (count <= 3) freq.low++
-      else if (count <= 10) freq.mid++
-      else freq.high++
+      if (count === 1) freq.once++;
+      else if (count <= 3) freq.low++;
+      else if (count <= 10) freq.mid++;
+      else freq.high++;
     }
 
     const topUsers = Object.entries(userFreq).sort((a, b) => b[1] - a[1]).slice(0, 5)
@@ -303,7 +312,7 @@ export default function SuperAdminMachineVisit() {
       { id: "2-3x", label: "2-3 times", users: freq.low },
       { id: "4-10x", label: "4-10 times", users: freq.mid },
       { id: "10x+", label: "10+ times", users: freq.high },
-    ]
+    ];
 
     return { totalUsers, newUsers, returningUsers, repeatRate, topUsers, avgTxPerDay, peakHour, peakDay, hourlyData, dailyData, freqData, totalDays }
   }, [userTransactions])
@@ -412,7 +421,9 @@ export default function SuperAdminMachineVisit() {
               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }}>
                 <Card className="rounded-2xl shadow-lg">
                   <CardHeader>
-                    <CardTitle className="text-emerald-700">📊 Sales & Usage Analytics</CardTitle>
+                    <CardTitle className="text-emerald-700">
+                      📊 Sales & Usage Analytics
+                    </CardTitle>
                   </CardHeader>
                   <CardContent>
                     <Card>
@@ -421,7 +432,11 @@ export default function SuperAdminMachineVisit() {
                           <div className="space-y-2">
                             <CardTitle className="text-base sm:text-lg">📈 Revenue & Transactions</CardTitle>
                             <CardDescription>
-                              {view === "monthly" ? "📅 Monthly" : "📆 Weekly"} — {metric === "transactions" ? "Transactions" : "Revenue"}
+                              {view === "monthly" ? "📅 Monthly" : "📆 Weekly"}{" "}
+                              —{" "}
+                              {metric === "transactions"
+                                ? "Transactions"
+                                : "Revenue"}
                             </CardDescription>
                             <div className="text-sm text-muted-foreground space-y-1">
                               <div><strong>💰 Total Revenue:</strong> Rs {totalRevenue.toLocaleString()}</div>
@@ -462,13 +477,18 @@ export default function SuperAdminMachineVisit() {
                               tickRotation: -30,
                             }}
                             axisLeft={{
-                              legend: metric === "revenue" ? "Revenue (Rs)" : "Transactions",
+                              legend:
+                                metric === "revenue"
+                                  ? "Revenue (Rs)"
+                                  : "Transactions",
                               legendPosition: "middle",
                               legendOffset: -40,
                             }}
                             labelSkipWidth={12}
                             labelSkipHeight={12}
-                            colors={metric === "revenue" ? "#34d399" : "#60a5fa"}
+                            colors={
+                              metric === "revenue" ? "#34d399" : "#60a5fa"
+                            }
                             borderRadius={12}
                             enableGridY={false}
                           />
@@ -521,7 +541,7 @@ export default function SuperAdminMachineVisit() {
                   <Button
                     className="bg-teal-600 hover:bg-teal-700 text-white rounded-lg"
                     onClick={exportToCSV}
-                    disabled={filteredTransactions.length === 0}
+                    disabled={isExporting}
                   >
                     <Download className="w-4 h-4 mr-2" /> Export CSV
                   </Button>
@@ -757,9 +777,15 @@ export default function SuperAdminMachineVisit() {
                             <TableBody>
                               {stats.topUsers.map(([phone, count], i) => (
                                 <TableRow key={phone}>
-                                  <TableCell className="font-medium">{i + 1}</TableCell>
-                                  <TableCell className="text-blue-600">{phone}</TableCell>
-                                  <TableCell className="font-bold text-emerald-700">{count}</TableCell>
+                                  <TableCell className="font-medium">
+                                    {i + 1}
+                                  </TableCell>
+                                  <TableCell className="text-blue-600">
+                                    {phone}
+                                  </TableCell>
+                                  <TableCell className="font-bold text-emerald-700">
+                                    {count}
+                                  </TableCell>
                                 </TableRow>
                               ))}
                             </TableBody>
