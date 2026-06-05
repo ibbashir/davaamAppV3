@@ -32,6 +32,7 @@ export const BASE_URL_STOCK_AUTH = "https://api.davaam.app/api/smsPortal/stockAu
 // export const BASE_URL_STOCK = "https://davaam-backend-nodejs-4199d6d4d449.herokuapp.com/api/stockApp";
 
 export const CHATBOT_API_URL = "https://api.davaam.app/api/chatbot";
+
 //PUBLIC PATHS
 export const LOGIN = "/login";
 export const FORGET_PASSWORD = "/forgetPassword";
@@ -59,6 +60,7 @@ export const SUPERADMIN_KNOWLEDGE_BASE = "/superadmin/knowledge-base";
 export const SUPERADMIN_RIDER_LOCATION = "/superadmin/riderLocation";
 export const SUPERADMIN_ADD_EMPLOYEES = "/superadmin/add-employees";
 export const SUPERADMIN_DELETE_EMPLOYEES = "/superadmin/delete-employees";
+export const SUPERADMIN_USER_ANALYSIS="/superadmin/userAnalysis"
 
 // ADMIN PATHS
 export const ADMIN_DASHBOARD = "/admin/dashboard";
@@ -162,6 +164,11 @@ export const SUPER_ADMIN_SIDEBAR_ROUTES = () => {
       title: "Cash Collection",
       url: SUPERADMIN_CASH_COLLECTION,
       icon: IconCashBanknote,
+    },
+    {
+      title: "User Analysis Report",
+      url: SUPERADMIN_USER_ANALYSIS,
+      icon: IconReport,
     },
     {
       title: "Rider Locations", url: SUPERADMIN_RIDER_LOCATION, icon: IconHexagonPlus
