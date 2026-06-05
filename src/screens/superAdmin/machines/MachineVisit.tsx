@@ -38,17 +38,17 @@ type NivoBarData = {
   transactions: number;
 };
 
-type TransactionResponse = {
-  success: boolean;
-  machine_code: string;
-  transactions: any[];
-  total: number;
-  page: number;
-  perPage: number;
-  totalPages: number;
-  hasNextPage: boolean;
-  hasPreviousPage: boolean;
-};
+// type TransactionResponse = {
+//   success: boolean;
+//   machine_code: string;
+//   transactions: any[];
+//   total: number;
+//   page: number;
+//   perPage: number;
+//   totalPages: number;
+//   hasNextPage: boolean;
+//   hasPreviousPage: boolean;
+// };
 
 type MachineDetailsResponse = {
   transactions: Record<string, unknown>[]
@@ -317,11 +317,17 @@ export default function SuperAdminMachineVisit() {
     return { totalUsers, newUsers, returningUsers, repeatRate, topUsers, avgTxPerDay, peakHour, peakDay, hourlyData, dailyData, freqData, totalDays }
   }, [userTransactions])
 
+
+  // Add these lines here
+  const totalPages = Math.ceil(filteredTransactions.length / itemsPerPage)
+  const startIndex = (currentPage - 1) * itemsPerPage
+  const paginatedTransactions = filteredTransactions.slice(startIndex, startIndex + itemsPerPage)
+
   if (!machine) return null
 
   return (
     <div>
-      <SiteHeader title="🌍 Super Admin Machine Dashboard" />
+      <SiteHeader title={`🌍 ${machine && machine.machine_name}`} />
       <div className="min-h-screen bg-gradient-to-b from-green-50 to-teal-50 p-3 sm:p-6">
         <div className="mx-auto max-w-7xl">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
@@ -541,7 +547,7 @@ export default function SuperAdminMachineVisit() {
                   <Button
                     className="bg-teal-600 hover:bg-teal-700 text-white rounded-lg"
                     onClick={exportToCSV}
-                    disabled={isExporting}
+                  // disabled={isExporting}
                   >
                     <Download className="w-4 h-4 mr-2" /> Export CSV
                   </Button>

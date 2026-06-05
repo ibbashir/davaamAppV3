@@ -57,37 +57,50 @@ function MobileTransactionCard({ transaction, onMachineCodeClick }: { transactio
       </div>
       <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
         <div>
-          <p className="text-xs text-teal-600 flex items-center gap-1">
-            <Phone className="size-3 shrink-0" />
+          <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
             Phone / RFID
           </p>
-          <p className="font-mono text-xs truncate">{transaction.msisdn}</p>
+          <div className="flex items-center gap-1.5">
+            <Phone className="size-3.5 shrink-0 text-teal-600" />
+            <p className="font-mono text-xs">{transaction.msisdn}</p>
+          </div>
         </div>
+
         <div>
-          <p className="text-xs text-teal-600 flex items-center gap-1">
-            <Cpu className="size-3 shrink-0" />
+          <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
             Machine Code
           </p>
-          <p className="font-medium text-teal-600 text-xs cursor-pointer hover:underline" onClick={() => onMachineCodeClick(transaction.machine_code)}>{transaction.machine_code}</p>
+          <div className="flex items-start gap-1.5">
+            <Cpu className="size-3 shrink-0 text-teal-600" />
+            <p className="font-medium text-teal-600 text-xs cursor-pointer hover:underline" onClick={() => onMachineCodeClick(transaction.machine_code)}>{transaction.machine_code}</p>
+          </div>
         </div>
+
         <div>
-          <p className="text-xs text-teal-600 flex items-center gap-1">
-            <Package className="size-3 shrink-0" />
+          <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
             Quantity
           </p>
-          <p className="text-xs font-medium">{transaction.quantity}</p>
+
+          <div className="flex items-center gap-1.5">
+            <Package className="size-3 shrink-0 text-teal-600" />
+            <p className="text-xs font-medium">{transaction.quantity}</p>
+          </div>
         </div>
+
         <div>
-          <p className="text-xs text-teal-600 flex items-center gap-1">
-            <Tag className="size-3 shrink-0" />
+          <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
             Brand
           </p>
-          <p className="text-xs font-medium truncate">{transaction.brand_name}</p>
+          <div className="flex items-center gap-1.5">
+            <Tag className="size-3 shrink-0 text-teal-600" />
+            <p className="text-xs font-medium truncate">{transaction.brand_name}</p>
+          </div>
         </div>
+
       </div>
-      <div className="flex items-center justify-between text-xs text-teal-600 pt-1 border-t">
+      <div className="flex items-center justify-between text-xs  pt-1 border-t">
         <span className="tabular-nums flex items-center gap-1">
-          <Calendar className="size-3 shrink-0" />
+          <Calendar className="size-3 shrink-0 text-teal-600" />
           {formatDateTime(transaction.created_at)}
         </span>
         {t.paymentType && (
@@ -524,7 +537,7 @@ const RecentTransactions = () => {
           </div>
 
           {/* Pagination starts */}
-          
+
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mt-3">
 
             <div className="flex flex-wrap items-center justify-between gap-2 px-2 sm:justify-start sm:gap-6">

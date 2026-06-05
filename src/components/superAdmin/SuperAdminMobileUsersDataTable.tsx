@@ -312,7 +312,7 @@ function CardSkeleton() {
   )
 }
 
-export function SuperAdminMobileUsersDataTable() {
+function SuperAdminMobileUsersDataTable() {
   const isMobile = useIsMobile()
   const [data, setData] = React.useState<MobileUser[]>([])
   const [loading, setLoading] = React.useState(true)

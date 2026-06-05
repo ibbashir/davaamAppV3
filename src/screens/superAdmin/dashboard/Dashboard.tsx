@@ -1,12 +1,12 @@
-import { SuperAdminMobileUsersDataTable } from "@/components/superAdmin/data-table"
-import { SectionCards } from "@/components/superAdmin/section-cards"
-import { SiteHeader } from "@/components/superAdmin/site-header"
+import SuperAdminMobileUsersDataTable from "../../../components/superAdmin/SuperAdminMobileUsersDataTable";
 import RecentTransactions from "./RecentTransactions"
-import SuperAdminDashboardSanitary from "@/components/superAdmin/PieMainDashboardSanitary"
-import SuperAdminDashboardDispensing from "@/components/superAdmin/PieMainDashboardDispensing"
-import SuperAdminSanitaryBarChart from "@/components/superAdmin/superAdminSanitaryBarChart"
-import SuperAdminDispensingBarChart from "@/components/superAdmin/superAdminBarChartDispensing"
-import { Separator } from "@/components/ui/separator"
+import SuperAdminDashboardSanitary from "../../../components/superAdmin/PieMainDashboardSanitary"
+import SuperAdminDashboardDispensing from "../../../components/superAdmin/PieMainDashboardDispensing"
+import SuperAdminSanitaryBarChart from "../../../components/superAdmin/superAdminSanitaryBarChart"
+import SuperAdminDispensingBarChart from "../../../components/superAdmin/superAdminBarChartDispensing"
+import { Separator } from "../../../components/ui/separator"
+import { SectionCards } from "../../../components/superAdmin/section-cards"
+import { SiteHeader } from "../../../components/superAdmin/site-header"
 
 const Dashboard = () => {
     return (

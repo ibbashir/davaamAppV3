@@ -1,4 +1,3 @@
-"use client"
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -7,6 +6,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Label } from "@/components/ui/label"
+import { getRequest } from "@/Apis/Api"
+import { SiteHeader } from "@/components/superAdmin/site-header"
+
 import {
     IconSearch,
     IconDownload,
@@ -23,8 +25,6 @@ import {
     IconMessage,
 } from "@tabler/icons-react"
 import moment from "moment"
-import { getRequest } from "@/Apis/Api"
-import { SiteHeader } from "@/components/superAdmin/site-header"
 
 // Types
 type AppFeedback = {

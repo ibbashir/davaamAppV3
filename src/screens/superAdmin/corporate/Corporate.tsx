@@ -1,5 +1,3 @@
-"use client";
-
 import { SiteHeader } from "@/components/superAdmin/site-header";
 import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -23,8 +21,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Badge } from "@/components/ui/badge";
-import { Checkbox } from "@/components/ui/checkbox";
 import {
   Form,
   FormControl,
@@ -43,25 +39,13 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Label } from "@/components/ui/label";
+
 import {
   IconPlus,
-  IconDownload,
   IconBuilding,
   IconWallet,
   IconCalendar,
   IconLoader2,
-  IconChevronLeft,
-  IconChevronRight,
-  IconChevronsLeft,
-  IconChevronsRight,
   IconSearch,
   IconX,
 } from "@tabler/icons-react";
