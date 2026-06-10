@@ -154,13 +154,10 @@ import {
   OPS_CASH_COLLECTION,
   FINANCE_USER_WALLET_ACTIVITY,
   SUPERADMIN_USER_ANALYSIS,
-<<<<<<< HEAD
   ADMIN_RIDER_LOCATION,
   OPS_RIDER_LOCATION,
   Fulfill_RIDER_LOCATION,
-=======
   SUPERADMIN_SURVEY_FORM,
->>>>>>> 8a6d88999c582cb70c1a5f63305a5470a21d8dd0
 } from '@/constants/Constant'
 
 import ResetPassword from '@/screens/forgetPassword/ResetPassword'
