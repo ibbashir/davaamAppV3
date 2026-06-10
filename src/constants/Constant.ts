@@ -14,6 +14,7 @@ import {
   IconMapPin,
   IconCashBanknote,
   IconReport,
+  IconClipboardList,
 } from "@tabler/icons-react";
 
 export const BASE_URL_TWO = "https://api.davaam.app/";
@@ -61,6 +62,7 @@ export const SUPERADMIN_RIDER_LOCATION = "/superadmin/riderLocation";
 export const SUPERADMIN_ADD_EMPLOYEES = "/superadmin/add-employees";
 export const SUPERADMIN_DELETE_EMPLOYEES = "/superadmin/delete-employees";
 export const SUPERADMIN_USER_ANALYSIS="/superadmin/userAnalysis"
+export const SUPERADMIN_SURVEY_FORM = "/superadmin/survey-form"
 
 // ADMIN PATHS
 export const ADMIN_DASHBOARD = "/admin/dashboard";
@@ -175,6 +177,9 @@ export const SUPER_ADMIN_SIDEBAR_ROUTES = () => {
     },
     {
       title: "Knowledge Base", url: SUPERADMIN_KNOWLEDGE_BASE, icon: IconFileDescription
+    },
+    {
+      title: "Survey Forms", url: SUPERADMIN_SURVEY_FORM, icon: IconClipboardList
     },
     // {
     //   title: "Delete Corporate Employees", url: SUPERADMIN_DELETE_EMPLOYEES, icon: IconHexagonMinus

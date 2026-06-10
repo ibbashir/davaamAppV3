@@ -26,6 +26,7 @@ import SuperAdminRiderLocation from '@/screens/superAdmin/RiderLocation/SuperAdm
 import KnowledgeBase from '@/screens/superAdmin/knowledgeBase/KnowledgeBase'
 import CorporateTopup from '@/screens/superAdmin/corporateTopup'
 import {SuperAdminUserAnalysis} from '@/screens/superAdmin/usersAnalysis/UserAnalysis'
+import SurveyForm from '@/screens/superAdmin/SurveyForm/SurveyForm'
 
 //admin screens
 import AdminDashboard from '@/screens/admin/dashboard/Dashboard'
@@ -153,6 +154,7 @@ import {
   OPS_CASH_COLLECTION,
   FINANCE_USER_WALLET_ACTIVITY,
   SUPERADMIN_USER_ANALYSIS,
+  SUPERADMIN_SURVEY_FORM,
 } from '@/constants/Constant'
 
 import ResetPassword from '@/screens/forgetPassword/ResetPassword'
@@ -194,6 +196,7 @@ const Routing = () => {
           <Route path={SUPERADMIN_DELETE_EMPLOYEES} element={<SuperAdminBulkDelete />} />
           <Route path={SUPERADMIN_KNOWLEDGE_BASE} element={<KnowledgeBase />} />
           <Route path={SUPERADMIN_USER_ANALYSIS} element={<SuperAdminUserAnalysis />} />
+          <Route path={SUPERADMIN_SURVEY_FORM} element={<SurveyForm />} />
         </Route>
       </Route>
 
