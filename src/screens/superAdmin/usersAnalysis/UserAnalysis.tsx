@@ -44,11 +44,10 @@ const MONTH_NAMES = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct"
 const MONTH_FULL  = ["January","February","March","April","May","June","July","August","September","October","November","December"];
 
 const CARD_CONFIGS = [
-  { key: "totalAppUsers",       label: "App Users",     icon: UsersIcon,      accent: "#6366F1", bg: "#EEF2FF" },
-  { key: "totalCorporateUsers", label: "Corporate",     icon: BuildingIcon,   accent: "#8B5CF6", bg: "#F5F3FF" },
-  { key: "totalCashUsers",      label: "Cash Users",    icon: Banknote,       accent: "#059669", bg: "#ECFDF5" },
-  { key: "totalOfflineUsers",   label: "Offline Users", icon: Banknote,       accent: "#F97316", bg: "#FFF7ED" },
-  { key: "totalTransactions",   label: "Transactions",  icon: CreditCardIcon, accent: "#0EA5E9", bg: "#F0F9FF" },
+  { key: "totalCorporateUsers", label: "Unique Corporate Users",     icon: BuildingIcon,   accent: "#8B5CF6", bg: "#F5F3FF" },
+  { key: "totalCashUsers",      label: "Unique Cash Users",    icon: Banknote,       accent: "#059669", bg: "#ECFDF5" },
+  { key: "overallUsers",   label: "Total Unique Users", icon: Banknote,       accent: "#F97316", bg: "#FFF7ED" },
+  { key: "overAllTransactions",   label: "Total Transactions",  icon: CreditCardIcon, accent: "#0EA5E9", bg: "#F0F9FF" },
 ];
 
 // ─── Responsive hook ──────────────────────────────────────────────────────────
@@ -677,14 +676,12 @@ export function SuperAdminUserAnalysis() {
     "App Users":       getMap(analysis?.appUsers)[key]            || 0,
     "Corporate Users": getMap(analysis?.corporateUsers)[key]      || 0,
     "Cash Users":      getMap(analysis?.cashCollectionUsers)[key] || 0,
-    "Offline Users":   getMap(analysis?.offlineTransactions)[key] || 0,
   }));
 
   const txData = labels.map(({ key, label }: any) => ({
     label,
     App:       getMap(analysis?.appTransactions)[key]       || 0,
-    Cash:      getMap(analysis?.cashTransactions)[key]      || 0,
-    Offline:   getMap(analysis?.offlineTransactions)[key]   || 0,
+    Cash:      getMap(analysis?.cashCollectionUsers)[key]      || 0,
     Corporate: getMap(analysis?.corporateTransactions)[key] || 0,
   }));
 
@@ -692,13 +689,11 @@ export function SuperAdminUserAnalysis() {
     { key: "App Users",       label: "App",       color: "#6366F1" },
     { key: "Corporate Users", label: "Corporate", color: "#8B5CF6" },
     { key: "Cash Users",      label: "Cash",      color: "#059669" },
-    { key: "Offline Users",   label: "Offline",   color: "#F97316" },
   ];
   const txSeries = [
     { key: "App",       label: "App",       color: "#3B82F6" },
     { key: "Cash",      label: "Cash",      color: "#F59E0B" },
     { key: "Corporate", label: "Corporate", color: "#EC4899" },
-    { key: "Offline",   label: "Offline",   color: "#EF4444" },
   ];
 
   const sum = (arr: any[]) => {
@@ -708,14 +703,11 @@ export function SuperAdminUserAnalysis() {
   };
 
   const stats = analysis ? {
-    totalAppUsers:       sum(analysis.appUsers),
-    totalCorporateUsers: sum(analysis.corporateUsers),
-    totalCashUsers:      sum(analysis.cashCollectionUsers),
-    totalOfflineUsers:   sum(analysis.offlineTransactions),
-    totalTransactions:
-      sum(analysis.appTransactions) + sum(analysis.cashTransactions) +
-      sum(analysis.offlineTransactions) + sum(analysis.corporateTransactions),
-  } : {};
+    overallUsers:       analysis.overAllUsers,
+    totalCorporateUsers: analysis.totalCorporateUsers,
+    totalCashUsers:      analysis.totalCashUsers,
+    overAllTransactions:  analysis.overAllTransactions
+  } : {}
 
   // ─── Export ────────────────────────────────────────────────────────────────
   const downloadData = () => {
@@ -733,7 +725,7 @@ export function SuperAdminUserAnalysis() {
   // ─── Layout tokens ─────────────────────────────────────────────────────────
   const px           = isMobile ? 12 : 20;
   const gap          = isMobile ? 8 : 10;
-  const cardCols     = isMobile ? "repeat(2, 1fr)" : "repeat(5, 1fr)";
+  const cardCols     = isMobile ? "repeat(2, 1fr)" : "repeat(4, 1fr)";
   const overviewCols = isMobile ? "1fr" : "1fr 1fr";
   const sectionCols  = isMobile || isTablet ? "1fr" : "1fr 1fr";
   const overviewH    = isMobile ? 180 : 200;
@@ -926,7 +918,7 @@ export function SuperAdminUserAnalysis() {
         {!loading && analysis && (
           <>
             {/* ── Stat Cards ── */}
-            <div style={{ display: "grid", gridTemplateColumns: cardCols, gap, marginBottom: gap + 5 }}>
+            <div style={{ display: "grid", gridTemplateColumns: cardCols, gap, marginBottom: gap + 4 }}>
               {CARD_CONFIGS.map((cfg) => (
                 <StatCard key={cfg.key} label={cfg.label} value={((stats as any)[cfg.key] || 0).toLocaleString()} icon={cfg.icon} accent={cfg.accent} bg={cfg.bg} isMobile={isMobile} />
               ))}
@@ -936,13 +928,13 @@ export function SuperAdminUserAnalysis() {
             <div style={{ display: "grid", gridTemplateColumns: overviewCols, gap, marginBottom: gap + 4 }}>
               <OverviewChart
                 title="Overall Users"
-                subtitle="App · Corporate · Cash · Offline"
+                subtitle="App · Corporate · Cash"
                 data={usersData} series={usersSeries}
                 chartType={chartType} chartH={overviewH}
               />
               <OverviewChart
                 title="Overall Transactions"
-                subtitle="App · Cash · Corporate · Offline"
+                subtitle="App · Cash · Corporate"
                 data={txData} series={txSeries}
                 chartType={chartType} chartH={overviewH}
               />
@@ -950,13 +942,13 @@ export function SuperAdminUserAnalysis() {
 
             {/* ── Section Panels ── */}
             <div style={{ display: "grid", gridTemplateColumns: sectionCols, gap, marginBottom: gap + 4 }}>
-              <SectionPanel label="App Users"              data={analysis.appUsers}              accent="#6366F1" gradId="g-au"  chartType={chartType} isMobile={isMobile} timeKey={timeKey} />
-              <SectionPanel label="App Transactions"       data={analysis.appTransactions}       accent="#3B82F6" gradId="g-at"  chartType={chartType} isMobile={isMobile} timeKey={timeKey} />
+              
               <SectionPanel label="Corporate Users"        data={analysis.corporateUsers}        accent="#8B5CF6" gradId="g-cu"  chartType={chartType} isMobile={isMobile} timeKey={timeKey} />
               <SectionPanel label="Corporate Transactions" data={analysis.corporateTransactions} accent="#EC4899" gradId="g-ct"  chartType={chartType} isMobile={isMobile} timeKey={timeKey} />
               <SectionPanel label="Cash Users"             data={analysis.cashCollectionUsers}   accent="#059669" gradId="g-cc"  chartType={chartType} isMobile={isMobile} timeKey={timeKey} />
-              <SectionPanel label="Cash Transactions"      data={analysis.cashTransactions}      accent="#F59E0B" gradId="g-cst" chartType={chartType} isMobile={isMobile} timeKey={timeKey} />
-              <SectionPanel label="Offline Transactions"   data={analysis.offlineTransactions}   accent="#EF4444" gradId="g-off" chartType={chartType} isMobile={isMobile} timeKey={timeKey} />
+              <SectionPanel label="Cash Transactions"      data={analysis.cashCollectionUsers}      accent="#F59E0B" gradId="g-cst" chartType={chartType} isMobile={isMobile} timeKey={timeKey} />
+              <SectionPanel label="App Users"              data={analysis.appUsers}              accent="#6366F1" gradId="g-au"  chartType={chartType} isMobile={isMobile} timeKey={timeKey} />
+              <SectionPanel label="App Transactions"       data={analysis.appTransactions}       accent="#3B82F6" gradId="g-at"  chartType={chartType} isMobile={isMobile} timeKey={timeKey} />
             </div>
 
             {/* ── Top 5 Tables ── */}

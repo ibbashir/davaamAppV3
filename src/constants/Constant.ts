@@ -76,7 +76,7 @@ export const ADMIN_MACHINE_VISIT = "/admin/machine-details/:id";
 export const ADMIN_CORPORATE_TOPUP = "/admin/corporate-topup";
 export const ADMIN_MACHINE_MAP = "/admin/machine-map";
 export const ADMIN_CASH_COLLECTION = "/admin/cashCollection";
-export const ADMIN_RIDER_LOCATION = "/superadmin/riderLocation";
+export const ADMIN_RIDER_LOCATION = "/admin/riderLocation";
 
 //OPS PATHS
 export const OPS_DASHBOARD = "/ops/dashboard";
@@ -102,6 +102,7 @@ export const FULFill_MACHINE_VISIT = "/fulfill/machine-details/:id";
 export const MAINTAINCE_REQUESTS = "/fulfill/maintaince-requests";
 export const CASH_COLLECTIONS = "/fulfill/cashCollection";
 export const FULFill_MACHINE_MAP = "/fulfill/machine-map";
+export const Fulfill_RIDER_LOCATION = "/fulfill/riderLocation";
 
 // Finance Path
 export const FINANCE_DASHBOARD = "/finance/dashboard";
@@ -206,6 +207,9 @@ export const ADMIN_SIDEBAR_ROUTES = () => {
       icon: IconMapPin,
     },
     {
+      title: "Rider Locations", url: ADMIN_RIDER_LOCATION, icon: IconHexagonPlus
+    },
+    {
       title: "Cash Collection",
       url: ADMIN_CASH_COLLECTION,
       icon: IconCashBanknote,
@@ -225,6 +229,9 @@ export const OPS_SIDEBAR_ROUTES = () => {
       title: "Map Machines",
       url: OPS_MACHINE_MAP,
       icon: IconMapPin,
+    },
+    {
+      title: "Rider Locations", url: OPS_RIDER_LOCATION, icon: IconHexagonPlus
     },
     {
       title: "Cash Collection",
@@ -251,14 +258,17 @@ export const FULFILL_SIDEBAR_ROUTES = () => {
       icon: IconCircleArrowUpRight,
     },
     {
-      title: "Cash Collections",
-      url: CASH_COLLECTIONS,
-      icon: IconCashBanknote,
-    },
-    {
       title: "Map Machines",
       url: FULFill_MACHINE_MAP,
       icon: IconMapPin,
+    },
+    {
+      title: "Rider Locations", url: Fulfill_RIDER_LOCATION, icon: IconHexagonPlus
+    },
+    {
+      title: "Cash Collections",
+      url: CASH_COLLECTIONS,
+      icon: IconCashBanknote,
     },
   ];
 };

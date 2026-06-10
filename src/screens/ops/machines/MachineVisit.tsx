@@ -309,7 +309,7 @@ export default function OpsMachineVisit() {
       const phone = tx.msisdn || "unknown";
       userFreq[phone] = (userFreq[phone] || 0) + 1;
 
-      const d = moment(tx.created_at).tz("Asia/Karachi");
+      const d = moment(tx.created_at);
       hourCounts[d.hour()]++;
       dayCounts[d.day()]++;
 
@@ -788,9 +788,7 @@ export default function OpsMachineVisit() {
                                 <TableCell>{transaction.quantity}</TableCell>
                                 <TableCell>{transaction.machine_code}</TableCell>
                                 <TableCell className="text-sm text-slate-500">
-                                  {moment(transaction.created_at)
-                                    .tz("Asia/Karachi")
-                                    .format("MMMM Do YYYY, h:mm:ss a")}
+                                  {moment.utc(tx.created_at as string).format("MMMM Do YYYY, h:mm a")}
                                 </TableCell>
                               </TableRow>
                             ))

@@ -543,7 +543,7 @@ const RecentTransactions = () => {
             <div className="flex flex-wrap items-center justify-between gap-2 px-2 sm:justify-start sm:gap-6">
 
               <p className="text-sm text-muted-foreground tabular-nums">
-                {totalCount.toLocaleString()} trans..
+                {totalCount} trans..
                 {isSearching && (
                   <span className="ml-1 italic">— "{searchTerm}"</span>
                 )}

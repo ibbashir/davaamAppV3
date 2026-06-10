@@ -10,7 +10,7 @@ import { getRequest } from "@/Apis/Api";
 const POLLING_INTERVAL_MS = 5_000;
 const DEFAULT_CENTER: [number, number] = [24.8607, 67.0011]; // Karachi
 
-const SuperAdminRiderLocation: React.FC = () => {
+const AdminRiderLocation: React.FC = () => {
   const [riders,          setRiders]          = useState<RiderLocation[]>([]);
   const [loading,         setLoading]         = useState(true);
   const [error,           setError]           = useState<string | null>(null);
@@ -24,7 +24,7 @@ const SuperAdminRiderLocation: React.FC = () => {
   const fetchLocations = async () => {
     try {
       const data = await getRequest<RiderLocation[]>(
-        `${BASE_URL}/superadmin/getliveLocationTrack/dashboard`
+        `${BASE_URL}/admin/getliveLocationTrack/dashboard`
       );
       setRiders(data);
       setLastUpdate(new Date());
@@ -663,4 +663,4 @@ const geoDistMeters = (lat1: number, lon1: number, lat2: number, lon2: number): 
   return 2 * R * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 };
 
-export default SuperAdminRiderLocation;
+export default AdminRiderLocation;

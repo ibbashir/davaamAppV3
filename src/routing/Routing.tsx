@@ -153,12 +153,18 @@ import {
   OPS_CASH_COLLECTION,
   FINANCE_USER_WALLET_ACTIVITY,
   SUPERADMIN_USER_ANALYSIS,
+  ADMIN_RIDER_LOCATION,
+  OPS_RIDER_LOCATION,
+  Fulfill_RIDER_LOCATION,
 } from '@/constants/Constant'
 
 import ResetPassword from '@/screens/forgetPassword/ResetPassword'
 import AllUsers from '@/Corporate/Mobilink/allUsers/allUsers'
 import AddEmployees from '@/Corporate/Mobilink/addEmployees/AddEmployees'
 import BulkDelete from '@/Corporate/Mobilink/deleteEmployees/BulkDelete'
+import AdminRiderLocation from '@/screens/admin/RiderLocation/AdminRiderLocation'
+import OpsRiderLocation from '@/screens/ops/RiderLocation/OpsRiderLocation'
+import FulfillmentRiderLocation from '@/screens/fulfillment/RiderLocation/FulfilmentRiderLocation'
 
 const Routing = () => {
   return (
@@ -212,6 +218,7 @@ const Routing = () => {
           <Route path={ADMIN_CORPORATE_TOPUP} element={<AdminCorporateTopup />} />
           <Route path={ADMIN_MACHINE_MAP} element={<AdminMachineMap />} />
           <Route path={ADMIN_CASH_COLLECTION} element={<AdminCashCollectionPage />} />
+          <Route path={ADMIN_RIDER_LOCATION} element={<AdminRiderLocation />}/>
         </Route>
       </Route>
 
@@ -228,6 +235,7 @@ const Routing = () => {
           <Route path={OPS_MACHINE_VISIT} element={<OpsMachineVisit />} />
           <Route path={OPS_MACHINE_MAP} element={<OpsMachineMap />} />
           <Route path={OPS_CASH_COLLECTION} element={<OpsCashCollectionPage />} />
+          <Route path={OPS_RIDER_LOCATION} element={<OpsRiderLocation />}/>
         </Route>
       </Route>
 
@@ -242,6 +250,7 @@ const Routing = () => {
           <Route path={MAINTAINCE_REQUESTS} element={<AdminMaintenanceRequests />} />
           <Route path={CASH_COLLECTIONS} element={<CashCollectionPage />} />
           <Route path={FULFill_MACHINE_MAP} element={<FulfillMachineMap />} />
+          <Route path={Fulfill_RIDER_LOCATION} element={<FulfillmentRiderLocation />}/>
         </Route>
       </Route>
 
