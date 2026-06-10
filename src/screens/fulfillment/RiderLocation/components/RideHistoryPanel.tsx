@@ -32,7 +32,7 @@ const RideHistoryPanel: React.FC<Props> = ({ onClose }) => {
       try {
         setLoading(true);
         const response = await getRequest<RideHistoryResponse>(
-          `${BASE_URL}/superadmin/getRideHistory`,
+          `${BASE_URL}/fulfillment/getRideHistory`,
         );
         setHistory(response.data);
         setPagination(response.pagination);

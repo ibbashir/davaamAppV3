@@ -13,6 +13,7 @@ interface NavItem {
   title: string
   url: string
   icon?: Icon
+  badge?: React.ReactNode  // ← new: optional badge slot
 }
 
 export function NavMain({ items }: { items: NavItem[] }) {
@@ -24,7 +25,6 @@ export function NavMain({ items }: { items: NavItem[] }) {
       <SidebarGroupContent className="flex flex-col gap-1">
         <SidebarMenu>
           {items.map((item) => {
-            // Exact match OR child path match (e.g. machine-details/:id under /superadmin/machines)
             const isActive =
               location.pathname === item.url ||
               (item.url !== "/" &&
@@ -51,7 +51,12 @@ export function NavMain({ items }: { items: NavItem[] }) {
                       )}
                     />
                   )}
-                  <span className="truncate">{item.title}</span>
+                  <span className="truncate flex-1">{item.title}</span>
+
+                  {/* Badge — e.g. live rider count pill */}
+                  {item.badge && (
+                    <span className="ml-auto shrink-0">{item.badge}</span>
+                  )}
                 </SidebarMenuButton>
               </SidebarMenuItem>
             )

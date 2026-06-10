@@ -58,7 +58,7 @@ const SuperAdminRiderLocation: React.FC = () => {
     setSelectedRiderId(newId);
     if (newId) {
       setMapCenter([rider.lat, rider.lng]);
-      setShowMobileSheet(false); // close sheet to reveal map on mobile
+      setShowMobileSheet(false);
     }
   };
 
@@ -80,14 +80,25 @@ const SuperAdminRiderLocation: React.FC = () => {
       {/* ── Main content area ── */}
       <div className="flex-1 flex overflow-hidden relative">
 
-        {/* ── Desktop sidebar (hidden on mobile) ── */}
+        {/* ── Desktop sidebar ── */}
         <aside className="hidden md:flex w-72 bg-white border-r border-gray-100 flex-col shadow-sm overflow-hidden flex-shrink-0">
           <div className="px-4 py-3 border-b border-gray-100 bg-slate-50 flex items-center justify-between">
             <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
               Live Riders
             </h2>
             {!loading && (
-              <span className="text-xs text-gray-400">{riders.length} total</span>
+              <div className="flex items-center gap-1.5">
+                {activeRiders.length > 0 && (
+                  <span className="flex items-center gap-1 text-xs font-semibold text-teal-700 bg-teal-100 px-1.5 py-0.5 rounded-full">
+                    <span className="relative flex h-1.5 w-1.5">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-teal-500 opacity-75" />
+                      <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-teal-600" />
+                    </span>
+                    {activeRiders.length} live
+                  </span>
+                )}
+                <span className="text-xs text-gray-400">{riders.length} total</span>
+              </div>
             )}
           </div>
           <div className="flex-1 overflow-y-auto">
@@ -145,7 +156,7 @@ const SuperAdminRiderLocation: React.FC = () => {
             </MapContainer>
           )}
 
-          {/* Live pulse badge — raised on mobile to clear the floating button */}
+          {/* Live pulse badge */}
           {!error && !loading && (
             <div className="absolute bottom-20 right-3 md:bottom-4 md:right-4 z-[9999] bg-white rounded-xl shadow-lg px-3 py-2 flex items-center space-x-2 text-xs text-gray-600 border border-gray-100">
               <span className="relative flex h-2 w-2">
@@ -181,21 +192,17 @@ const SuperAdminRiderLocation: React.FC = () => {
         {/* ── Mobile bottom sheet ── */}
         {showMobileSheet && (
           <>
-            {/* Backdrop */}
             <div
               className="md:hidden fixed inset-0 bg-black/30 z-[10000] backdrop-blur-[1px]"
               onClick={() => setShowMobileSheet(false)}
             />
-            {/* Sheet */}
             <div
               className="md:hidden fixed bottom-0 left-0 right-0 z-[10001] bg-white rounded-t-2xl shadow-2xl flex flex-col"
               style={{ maxHeight: "72vh" }}
             >
-              {/* Drag handle */}
               <div className="flex justify-center pt-3 pb-1 flex-shrink-0">
                 <div className="w-10 h-1 rounded-full bg-gray-300" />
               </div>
-              {/* Sheet header */}
               <div className="px-4 py-2 flex items-center justify-between border-b border-gray-100 flex-shrink-0">
                 <div className="flex items-center space-x-2">
                   <h2 className="text-sm font-semibold text-gray-800">Live Riders</h2>
@@ -211,7 +218,6 @@ const SuperAdminRiderLocation: React.FC = () => {
                   <XIcon />
                 </button>
               </div>
-              {/* Scrollable list */}
               <div className="flex-1 overflow-y-auto overscroll-contain">
                 <RiderListPanel
                   activeRiders={activeRiders}
@@ -296,12 +302,19 @@ const RiderSectionHeader: React.FC<{ label: string; count: number; active: boole
   label, count, active,
 }) =>
   active ? (
-    <div className="px-4 py-2 flex items-center justify-between bg-teal-50">
-      <span className="text-xs font-semibold uppercase tracking-wider text-teal-700">{label}</span>
-      <span className="text-xs px-1.5 py-0.5 rounded-full font-medium bg-teal-100 text-teal-700">{count}</span>
+    <div className="px-4 py-2 flex items-center justify-between bg-teal-50 border-b border-teal-100">
+      <div className="flex items-center gap-1.5">
+        {/* Pulsing dot on the section header itself */}
+        <span className="relative flex h-2 w-2">
+          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-teal-400 opacity-75" />
+          <span className="relative inline-flex rounded-full h-2 w-2 bg-teal-500" />
+        </span>
+        <span className="text-xs font-semibold uppercase tracking-wider text-teal-700">{label}</span>
+      </div>
+      <span className="text-xs px-1.5 py-0.5 rounded-full font-medium bg-teal-500 text-white">{count}</span>
     </div>
   ) : (
-    <div className="px-4 py-2 flex items-center justify-between bg-gray-50">
+    <div className="px-4 py-2 flex items-center justify-between bg-gray-50 border-b border-gray-100">
       <span className="text-xs font-semibold uppercase tracking-wider text-gray-400">{label}</span>
       <span className="text-xs px-1.5 py-0.5 rounded-full font-medium bg-gray-200 text-gray-500">{count}</span>
     </div>
@@ -311,71 +324,109 @@ const RiderCard: React.FC<{
   rider:    RiderLocation;
   selected: boolean;
   onSelect: (rider: RiderLocation) => void;
-}> = ({ rider, selected, onSelect }) => (
-  <button
-    onClick={() => onSelect(rider)}
-    className={`w-full text-left px-4 py-3 border-b border-gray-50 transition-all relative ${
-      selected ? "bg-teal-50" : "hover:bg-gray-50 active:bg-gray-100"
-    }`}
-  >
-    {selected && (
-      <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-teal-600 rounded-r" />
-    )}
+}> = ({ rider, selected, onSelect }) => {
+  const isOngoingRide = rider.active && rider.status === "ongoing";
 
-    <div className="flex items-center justify-between mb-1.5">
-      <div className="flex items-center space-x-2 min-w-0">
-        <span className="relative flex h-2 w-2 flex-shrink-0">
+  return (
+    <button
+      onClick={() => onSelect(rider)}
+      className={`
+        w-full text-left px-4 py-3 border-b transition-all relative
+        ${rider.active
+          // Active: teal left border glow + light teal wash
+          ? selected
+            ? "bg-teal-100 border-b-teal-100"
+            : "bg-teal-50/60 border-b-teal-50 hover:bg-teal-50 active:bg-teal-100"
+          // Inactive: plain
+          : selected
+            ? "bg-teal-50 border-b-gray-50"
+            : "hover:bg-gray-50 active:bg-gray-100 border-b-gray-50"
+        }
+      `}
+    >
+      {/* Left accent bar — thicker & brighter for active riders */}
+      <div
+        className={`absolute left-0 top-0 bottom-0 rounded-r transition-all ${
+          rider.active
+            ? "w-1 bg-teal-500"        // thick vivid bar for active
+            : selected
+              ? "w-0.5 bg-teal-400"    // thin bar only when selected+inactive
+              : "w-0 bg-transparent"
+        }`}
+      />
+
+      {/* ── Top row: name + status badges ── */}
+      <div className="flex items-center justify-between mb-2 pl-1">
+        <div className="flex items-center space-x-2 min-w-0">
+          {/* Animated pulse dot — larger for active */}
+          <span className="relative flex flex-shrink-0 h-2.5 w-2.5">
+            {rider.active && (
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-teal-400 opacity-75" />
+            )}
+            <span
+              className={`relative inline-flex rounded-full h-2.5 w-2.5 ${
+                rider.active ? "bg-teal-500" : "bg-gray-300"
+              }`}
+            />
+          </span>
+          <span className="text-sm font-semibold text-gray-800 truncate">
+            {rider.riderName ?? rider.riderId}
+          </span>
+        </div>
+
+        {/* Badges: LIVE pill for active + ride status */}
+        <div className="flex items-center gap-1.5 flex-shrink-0 ml-2">
           {rider.active && (
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-teal-400 opacity-75" />
+            <span className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded-full bg-teal-500 text-white shadow-sm">
+              <span className="relative flex h-1.5 w-1.5">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-60" />
+                <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-white" />
+              </span>
+              Live
+            </span>
           )}
-          <span
-            className={`relative inline-flex rounded-full h-2 w-2 ${
-              rider.active ? "bg-teal-500" : "bg-gray-300"
-            }`}
-          />
-        </span>
-        <span className="text-sm font-semibold text-gray-800 truncate">
-          {rider.riderName ?? rider.riderId}
+          {rider.status && (
+            <span
+              className={`text-xs px-1.5 py-0.5 rounded-full font-medium ${
+                isOngoingRide
+                  ? "bg-blue-100 text-blue-700"
+                  : "bg-green-100 text-green-700"
+              }`}
+            >
+              {isOngoingRide ? "Ongoing" : "Done"}
+            </span>
+          )}
+        </div>
+      </div>
+
+      {/* ── Stats row ── */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-1 text-xs text-gray-500 pl-1">
+        <span>⚡ {rider.speed.toFixed(1)} km/h</span>
+        <span>📏 {rider.total_distance ? `${rider.total_distance.toFixed(1)} km` : "—"}</span>
+        <span className="col-span-2 sm:col-span-1">
+          ⏱ {isOngoingRide && rider.startTime
+            ? fmtElapsed(Math.floor((Date.now() - rider.startTime) / 1000))
+            : "—"}
         </span>
       </div>
-      {rider.status && (
-        <span
-          className={`flex-shrink-0 text-xs px-1.5 py-0.5 rounded-full font-medium ml-2 ${
-            rider.status === "ongoing"
-              ? "bg-blue-100 text-blue-700"
-              : "bg-green-100 text-green-700"
-          }`}
-        >
-          {rider.status === "ongoing" ? "Ongoing" : "Done"}
-        </span>
+
+      {/* ── Destination chip ── */}
+      {rider.dest_name && (
+        <div className="mt-1.5 pl-1 flex items-center space-x-1 text-xs text-teal-700 bg-teal-50 border border-teal-100 rounded px-1.5 py-0.5 min-w-0">
+          <span className="flex-shrink-0">→</span>
+          <span className="truncate font-medium">{rider.dest_name}</span>
+        </div>
       )}
-    </div>
 
-    {/* Stats: 2-col on mobile to avoid cramping, 3-col on sm+ */}
-    <div className="grid grid-cols-2 sm:grid-cols-3 gap-1 text-xs text-gray-500">
-      <span>⚡ {rider.speed.toFixed(1)} km/h</span>
-      <span>📏 {rider.total_distance ? `${rider.total_distance.toFixed(1)} km` : "—"}</span>
-      <span className="col-span-2 sm:col-span-1">
-        ⏱ {rider.status === "ongoing" && rider.startTime
-          ? fmtElapsed(Math.floor((Date.now() - rider.startTime) / 1000))
-          : "—"}
-      </span>
-    </div>
-
-    {rider.dest_name && (
-      <div className="mt-1.5 flex items-center space-x-1 text-xs text-teal-700 bg-teal-50 rounded px-1.5 py-0.5 min-w-0">
-        <span className="flex-shrink-0">→</span>
-        <span className="truncate font-medium">{rider.dest_name}</span>
-      </div>
-    )}
-
-    {rider.updatedAt && (
-      <p className="mt-1 text-xs text-gray-400">
-        {new Date(rider.updatedAt).toLocaleTimeString()}
-      </p>
-    )}
-  </button>
-);
+      {/* ── Last seen ── */}
+      {rider.updatedAt && (
+        <p className="mt-1 pl-1 text-xs text-gray-400">
+          {new Date(rider.updatedAt).toLocaleTimeString()}
+        </p>
+      )}
+    </button>
+  );
+};
 
 // ─── Header ───────────────────────────────────────────────────────────────────
 
@@ -391,7 +442,6 @@ const LiveMapHeader: React.FC<HeaderProps> = ({
   activeCount, totalCount, lastUpdate, onRefresh, onShowHistory,
 }) => (
   <header className="bg-white border-b border-gray-100 px-3 md:px-5 py-2.5 md:py-3 flex items-center justify-between shadow-sm flex-shrink-0 gap-2">
-    {/* Left: icon + title */}
     <div className="flex items-center space-x-2.5 min-w-0">
       <div className="p-1.5 md:p-2 bg-teal-600 rounded-xl flex-shrink-0">
         <LocationPinIcon />
@@ -400,23 +450,22 @@ const LiveMapHeader: React.FC<HeaderProps> = ({
         <h1 className="text-sm md:text-base font-bold text-gray-900 leading-tight truncate">
           Rider Live Locations
         </h1>
-        {/* Desktop subtitle */}
         <p className="hidden md:block text-xs text-gray-400 mt-0.5">
           Real-time tracking · auto-refreshes every 5s
         </p>
-        {/* Mobile: compact counts */}
         <p className="md:hidden text-xs text-gray-400 mt-0.5">
           {activeCount} active · {totalCount} total
         </p>
       </div>
     </div>
 
-    {/* Right: stats + actions */}
     <div className="flex items-center gap-2 flex-shrink-0">
-      {/* Desktop-only stat badges */}
       <div className="hidden md:flex items-center space-x-2">
         <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-teal-100 text-teal-700 text-xs font-semibold">
-          <span className="w-1.5 h-1.5 rounded-full bg-teal-500" />
+          <span className="relative flex h-1.5 w-1.5">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-teal-500 opacity-75" />
+            <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-teal-500" />
+          </span>
           {activeCount} Active
         </span>
         <span className="text-gray-300">·</span>
@@ -427,7 +476,6 @@ const LiveMapHeader: React.FC<HeaderProps> = ({
         Updated {lastUpdate ? lastUpdate.toLocaleTimeString() : "never"}
       </span>
 
-      {/* History button: icon-only on mobile, icon + label on sm+ */}
       <button
         onClick={onShowHistory}
         className="flex items-center space-x-1.5 px-2.5 md:px-3 py-1.5 bg-teal-600 text-white text-xs font-medium rounded-lg hover:bg-teal-700 active:bg-teal-800 transition"
@@ -437,7 +485,6 @@ const LiveMapHeader: React.FC<HeaderProps> = ({
         <span className="hidden sm:inline">Ride History</span>
       </button>
 
-      {/* Refresh button: icon-only on mobile */}
       <button
         onClick={onRefresh}
         className="flex items-center justify-center px-2.5 md:px-3 py-1.5 border border-gray-200 text-gray-600 text-xs font-medium rounded-lg hover:bg-gray-50 active:bg-gray-100 transition"
@@ -488,7 +535,6 @@ const RiderMapLayer: React.FC<{
 
   return (
     <React.Fragment>
-      {/* Route so-far: start → current position */}
       {hasStartPin && (
         <Polyline
           positions={
@@ -505,7 +551,6 @@ const RiderMapLayer: React.FC<{
         />
       )}
 
-      {/* Remaining route: current position → destination */}
       {hasDestination && rider.status === "ongoing" && (
         <Polyline
           positions={
@@ -519,7 +564,6 @@ const RiderMapLayer: React.FC<{
         />
       )}
 
-      {/* Start pin */}
       {hasStartPin && (
         <Marker position={[rider.start_lat, rider.start_lng]} icon={createStartIcon()}>
           <Popup>
@@ -536,7 +580,6 @@ const RiderMapLayer: React.FC<{
         </Marker>
       )}
 
-      {/* Destination pin */}
       {hasDestination && (
         <Marker
           position={[rider.dest_lat!, rider.dest_lng!]}
@@ -552,7 +595,6 @@ const RiderMapLayer: React.FC<{
         </Marker>
       )}
 
-      {/* Rider current position */}
       <Marker
         position={[rider.lat, rider.lng]}
         icon={createRiderIcon(rider.active, rider.bearing, rider.riderName)}

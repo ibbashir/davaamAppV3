@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { MapContainer, TileLayer, Marker, Popup, Polyline } from "react-leaflet";
 import type { RideHistory } from "@/Types/SuperAdmin/rider";
 import { createStartIcon, createEndIcon } from "@/constants/mapIcons";
@@ -9,8 +9,27 @@ interface Props {
   ride: RideHistory;
 }
 
+const fetchOSRMRoute = async (
+  startLat: number, startLng: number,
+  endLat: number,   endLng: number,
+): Promise<[number, number][] | null> => {
+  try {
+    const res = await fetch(
+      `https://router.project-osrm.org/route/v1/driving/${startLng},${startLat};${endLng},${endLat}?overview=full&geometries=geojson`,
+    );
+    const data = await res.json();
+    if (data.code !== "Ok" || !data.routes?.[0]) return null;
+    return data.routes[0].geometry.coordinates.map(
+      ([lng, lat]: [number, number]) => [lat, lng] as [number, number],
+    );
+  } catch {
+    return null;
+  }
+};
+
 /**
  * Renders a small embedded map showing the start → end route for a single ride.
+ * Uses OSRM to draw the real road path instead of a straight line.
  * Gracefully handles rides with missing or zeroed-out coordinates.
  */
 const RideRouteMap: React.FC<Props> = ({ ride }) => {
@@ -22,7 +41,7 @@ const RideRouteMap: React.FC<Props> = ({ ride }) => {
   const hasStart = isValidCoord(ride.start_lat, ride.start_lng);
   const hasEnd   = isValidCoord(ride.end_lat,   ride.end_lng);
 
-  const positions: [number, number][] = [
+  const fallbackPositions: [number, number][] = [
     ...(hasStart ? [[startLat, startLng] as [number, number]] : []),
     ...(hasEnd   ? [[endLat,   endLng  ] as [number, number]] : []),
   ];
@@ -31,6 +50,24 @@ const RideRouteMap: React.FC<Props> = ({ ride }) => {
     ? [startLat, startLng]
     : [24.8607, 67.0011]; // fallback: Karachi
 
+  const [routeCoords, setRouteCoords] = useState<[number, number][] | null>(null);
+  const [routeLoading, setRouteLoading] = useState(false);
+
+  useEffect(() => {
+    if (!hasStart || !hasEnd) return;
+
+    setRouteLoading(true);
+    setRouteCoords(null);
+
+    fetchOSRMRoute(startLat, startLng, endLat, endLng)
+      .then((coords) => setRouteCoords(coords))
+      .finally(() => setRouteLoading(false));
+  }, [ride.id, startLat, startLng, endLat, endLng, hasStart, hasEnd]);
+
+  // Use OSRM route if available, otherwise fall back to straight dashed line
+  const polylinePositions = routeCoords ?? (fallbackPositions.length === 2 ? fallbackPositions : null);
+  const isRoutedPath      = !!routeCoords;
+
   return (
     <MapContainer center={center} zoom={14} style={{ height: "100%", width: "100%" }}>
       <TileLayer
@@ -38,10 +75,17 @@ const RideRouteMap: React.FC<Props> = ({ ride }) => {
         url="https://tiles.locationiq.com/v3/streets/r/{z}/{x}/{y}.png?key=pk.b32f17b2ac79ace43426c2a0d2fefedd"
       />
 
-      {positions.length === 2 && (
+      {polylinePositions && (
         <Polyline
-          positions={positions}
-          pathOptions={{ color: "#6366f1", weight: 4, opacity: 0.8, dashArray: "8 4" }}
+          positions={polylinePositions}
+          pathOptions={{
+            color:     "#6366f1",
+            weight:    isRoutedPath ? 5 : 4,
+            opacity:   0.85,
+            // Dashed only for fallback straight line; solid for real road route
+            dashArray: isRoutedPath ? undefined : "8 4",
+            lineJoin:  "round",
+          }}
         />
       )}
 
@@ -69,7 +113,24 @@ const RideRouteMap: React.FC<Props> = ({ ride }) => {
         </Marker>
       )}
 
-      {positions.length >= 2 && <FitBounds positions={positions} />}
+      {fallbackPositions.length >= 2 && <FitBounds positions={fallbackPositions} />}
+
+      {/* Loading indicator while fetching route */}
+      {routeLoading && (
+        <div style={{
+          position: "absolute", bottom: 48, left: "50%", transform: "translateX(-50%)",
+          zIndex: 9999, background: "white", borderRadius: 8, padding: "6px 12px",
+          boxShadow: "0 2px 8px rgba(0,0,0,0.15)", fontSize: 12, color: "#6b7280",
+          display: "flex", alignItems: "center", gap: 6,
+        }}>
+          <span style={{
+            display: "inline-block", width: 10, height: 10, borderRadius: "50%",
+            border: "2px solid #6366f1", borderTopColor: "transparent",
+            animation: "spin 0.7s linear infinite",
+          }} />
+          Fetching road route…
+        </div>
+      )}
 
       {!hasStart && !hasEnd && (
         <div style={{
@@ -80,6 +141,8 @@ const RideRouteMap: React.FC<Props> = ({ ride }) => {
           📍 No valid location data for this ride
         </div>
       )}
+
+      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </MapContainer>
   );
 };

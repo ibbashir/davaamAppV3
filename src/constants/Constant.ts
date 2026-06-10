@@ -16,22 +16,13 @@ import {
   IconReport,
   IconClipboardList,
 } from "@tabler/icons-react";
+import React from "react";
 
 export const BASE_URL_TWO = "https://api.davaam.app/";
-// export const BASE_URL_TWO =
-//   "https://davaam-backend-nodejs-4199d6d4d449.herokuapp.com/";
-
-// export const BASE_URL = "http://localhost:4000/api/dashboard";
 export const BASE_URL = "https://api.davaam.app/api/dashboard";
-
-// Socket.IO server root (strip /api/dashboard from BASE_URL)
-// export const SOCKET_URL = "http://localhost:4000";
 export const SOCKET_URL = "https://api.davaam.app";
 export const BASE_URL_STOCK = "https://api.davaam.app/api/smsPortal/stockApp";
 export const BASE_URL_STOCK_AUTH = "https://api.davaam.app/api/smsPortal/stockAuth";
-// export const LOCAL_STOCK_URL = "http://localhost:4000/api/smsPortal/stockApp";
-// export const BASE_URL_STOCK = "https://davaam-backend-nodejs-4199d6d4d449.herokuapp.com/api/stockApp";
-
 export const CHATBOT_API_URL = "https://api.davaam.app/api/chatbot";
 
 //PUBLIC PATHS
@@ -61,8 +52,8 @@ export const SUPERADMIN_KNOWLEDGE_BASE = "/superadmin/knowledge-base";
 export const SUPERADMIN_RIDER_LOCATION = "/superadmin/riderLocation";
 export const SUPERADMIN_ADD_EMPLOYEES = "/superadmin/add-employees";
 export const SUPERADMIN_DELETE_EMPLOYEES = "/superadmin/delete-employees";
-export const SUPERADMIN_USER_ANALYSIS="/superadmin/userAnalysis"
-export const SUPERADMIN_SURVEY_FORM = "/superadmin/survey-form"
+export const SUPERADMIN_USER_ANALYSIS = "/superadmin/userAnalysis";
+export const SUPERADMIN_SURVEY_FORM = "/superadmin/survey-form";
 
 // ADMIN PATHS
 export const ADMIN_DASHBOARD = "/admin/dashboard";
@@ -128,63 +119,62 @@ export const DELETE_EMPLOYEES = "/company/delete-employees";
 export const USERS = "/company/users";
 export const CORPORATE_CASH_COLLECTION = "/company/cashCollection";
 
+// ─── Live rider badge helper ──────────────────────────────────────────────────
+// Renders a teal pulsing pill showing the active rider count.
+// Returns null when count is 0 so no badge appears for inactive state.
+const LiveRiderBadge = (count: number): React.ReactNode => {
+  if (count <= 0) return null;
+  return React.createElement(
+    "span",
+    {
+      className:
+        "flex items-center gap-1 text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-teal-500 text-white shadow-sm",
+    },
+    React.createElement(
+      "span",
+      { className: "relative flex h-1.5 w-1.5" },
+      React.createElement("span", {
+        className:
+          "animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-60",
+      }),
+      React.createElement("span", {
+        className: "relative inline-flex rounded-full h-1.5 w-1.5 bg-white",
+      })
+    ),
+    String(count)
+  );
+};
 
 // navigation const
-export const SUPER_ADMIN_SIDEBAR_ROUTES = () => {
+
+/**
+ * Pass `activeRiderCount` (from a polling hook in AppSidebar) to show a live
+ * pulsing badge on the "Rider Locations" entry. Defaults to 0 (no badge).
+ */
+export const SUPER_ADMIN_SIDEBAR_ROUTES = (activeRiderCount = 0) => {
   return [
     { title: "Dashboard", url: SUPERADMIN_DASHBOARD, icon: IconHome },
     { title: "Create Roles", url: SUPERADMIN_ROLES, icon: IconUserPlus },
-    // {
-    //   title: "Corporate Clients",
-    //   url: SUPERADMIN_CORPORATE,
-    //   icon: IconUserStar,
-    // },
-    {
-      title: "Send Notifications",
-      url: SUPERADMIN_NOTIFICATIONS,
-      icon: IconBell,
-    },
+    // { title: "Corporate Clients", url: SUPERADMIN_CORPORATE, icon: IconUserStar },
+    { title: "Send Notifications", url: SUPERADMIN_NOTIFICATIONS, icon: IconBell },
     { title: "Machines", url: SUPERADMIN_MACHINES, icon: IconChartBar },
     { title: "Points Share", url: SUPERADMIN_POINTS, icon: IconShare3 },
     { title: "Locations", url: SUPERADMIN_LOCATIONS, icon: IconLocation },
     { title: "Topup", url: SUPERADMIN_TOPUP, icon: IconCircleArrowUpRight },
+    { title: "App Feedback", url: SUPERADMIN_FEEDBACK, icon: IconMessage2Exclamation },
+    { title: "Corporate Topup", url: SUPERADMIN_CORPORATE_TOPUP, icon: IconCashBanknote },
+    { title: "Map Machines", url: SUPERADMIN_MACHINE_MAP, icon: IconMapPin },
+    { title: "Cash Collection", url: SUPERADMIN_CASH_COLLECTION, icon: IconCashBanknote },
+    { title: "User Analysis Report", url: SUPERADMIN_USER_ANALYSIS, icon: IconReport },
     {
-      title: "App Feedback",
-      url: SUPERADMIN_FEEDBACK,
-      icon: IconMessage2Exclamation,
+      title: "Rider Locations",
+      url: SUPERADMIN_RIDER_LOCATION,
+      icon: IconHexagonPlus,
+      badge: LiveRiderBadge(activeRiderCount), // ← pulsing pill when riders are live
     },
-    {
-      title: "Corporate Topup",
-      url: SUPERADMIN_CORPORATE_TOPUP,
-      icon: IconCashBanknote,
-    },
-    {
-      title: "Map Machines",
-      url: SUPERADMIN_MACHINE_MAP,
-      icon: IconMapPin,
-    },
-    {
-      title: "Cash Collection",
-      url: SUPERADMIN_CASH_COLLECTION,
-      icon: IconCashBanknote,
-    },
-    {
-      title: "User Analysis Report",
-      url: SUPERADMIN_USER_ANALYSIS,
-      icon: IconReport,
-    },
-    {
-      title: "Rider Locations", url: SUPERADMIN_RIDER_LOCATION, icon: IconHexagonPlus
-    },
-    {
-      title: "Knowledge Base", url: SUPERADMIN_KNOWLEDGE_BASE, icon: IconFileDescription
-    },
-    {
-      title: "Survey Forms", url: SUPERADMIN_SURVEY_FORM, icon: IconClipboardList
-    },
-    // {
-    //   title: "Delete Corporate Employees", url: SUPERADMIN_DELETE_EMPLOYEES, icon: IconHexagonMinus
-    // },
+    { title: "Knowledge Base", url: SUPERADMIN_KNOWLEDGE_BASE, icon: IconFileDescription },
+    { title: "Survey Forms", url: SUPERADMIN_SURVEY_FORM, icon: IconClipboardList },
+    // { title: "Delete Corporate Employees", url: SUPERADMIN_DELETE_EMPLOYEES, icon: IconHexagonMinus },
   ];
 };
 
@@ -196,29 +186,11 @@ export const ADMIN_SIDEBAR_ROUTES = () => {
     { title: "Points Share", url: ADMIN_POINTS, icon: IconShare3 },
     { title: "Locations", url: ADMIN_LOCATIONS, icon: IconLocation },
     { title: "Topup", url: ADMIN_TOPUP, icon: IconCircleArrowUpRight },
-    {
-      title: "App Feedback",
-      url: ADMIN_FEEDBACK,
-      icon: IconMessage2Exclamation,
-    },
-    {
-      title: "Corporate Topup",
-      url: ADMIN_CORPORATE_TOPUP,
-      icon: IconCircleArrowUpRight,
-    },
-    {
-      title: "Map Machines",
-      url: ADMIN_MACHINE_MAP,
-      icon: IconMapPin,
-    },
-    {
-      title: "Rider Locations", url: ADMIN_RIDER_LOCATION, icon: IconHexagonPlus
-    },
-    {
-      title: "Cash Collection",
-      url: ADMIN_CASH_COLLECTION,
-      icon: IconCashBanknote,
-    }
+    { title: "App Feedback", url: ADMIN_FEEDBACK, icon: IconMessage2Exclamation },
+    { title: "Corporate Topup", url: ADMIN_CORPORATE_TOPUP, icon: IconCircleArrowUpRight },
+    { title: "Map Machines", url: ADMIN_MACHINE_MAP, icon: IconMapPin },
+    { title: "Rider Locations", url: ADMIN_RIDER_LOCATION, icon: IconHexagonPlus },
+    { title: "Cash Collection", url: ADMIN_CASH_COLLECTION, icon: IconCashBanknote },
   ];
 };
 
@@ -230,19 +202,9 @@ export const OPS_SIDEBAR_ROUTES = () => {
     { title: "Locations", url: OPS_LOCATIONS, icon: IconLocation },
     { title: "Topup", url: OPS_TOPUP, icon: IconCircleArrowUpRight },
     { title: "App Feedback", url: OPS_FEEDBACK, icon: IconMessage2Exclamation },
-    {
-      title: "Map Machines",
-      url: OPS_MACHINE_MAP,
-      icon: IconMapPin,
-    },
-    {
-      title: "Rider Locations", url: OPS_RIDER_LOCATION, icon: IconHexagonPlus
-    },
-    {
-      title: "Cash Collection",
-      url: OPS_CASH_COLLECTION,
-      icon: IconCashBanknote,
-    }
+    { title: "Map Machines", url: OPS_MACHINE_MAP, icon: IconMapPin },
+    { title: "Rider Locations", url: OPS_RIDER_LOCATION, icon: IconHexagonPlus },
+    { title: "Cash Collection", url: OPS_CASH_COLLECTION, icon: IconCashBanknote },
   ];
 };
 
@@ -252,57 +214,24 @@ export const FULFILL_SIDEBAR_ROUTES = () => {
     { title: "Machines", url: FULFill_MACHINES, icon: IconChartBar },
     { title: "Locations", url: FULFill_LOCATIONS, icon: IconLocation },
     { title: "Topup", url: FULFill_TOPUP, icon: IconCircleArrowUpRight },
-    {
-      title: "Maintaince",
-      url: FULLFiLL_MAINTAINCE,
-      icon: IconCircleArrowUpRight,
-    },
-    {
-      title: "Maintaince Requests",
-      url: MAINTAINCE_REQUESTS,
-      icon: IconCircleArrowUpRight,
-    },
-    {
-      title: "Map Machines",
-      url: FULFill_MACHINE_MAP,
-      icon: IconMapPin,
-    },
-    {
-      title: "Rider Locations", url: Fulfill_RIDER_LOCATION, icon: IconHexagonPlus
-    },
-    {
-      title: "Cash Collections",
-      url: CASH_COLLECTIONS,
-      icon: IconCashBanknote,
-    },
+    { title: "Maintaince", url: FULLFiLL_MAINTAINCE, icon: IconCircleArrowUpRight },
+    { title: "Maintaince Requests", url: MAINTAINCE_REQUESTS, icon: IconCircleArrowUpRight },
+    { title: "Map Machines", url: FULFill_MACHINE_MAP, icon: IconMapPin },
+    { title: "Rider Locations", url: Fulfill_RIDER_LOCATION, icon: IconHexagonPlus },
+    { title: "Cash Collections", url: CASH_COLLECTIONS, icon: IconCashBanknote },
   ];
 };
+
 export const FINANCE_SIDEBAR_ROUTES = () => {
   return [
     { title: "Dashboard", url: FINANCE_DASHBOARD, icon: IconHome },
     { title: "Machines", url: FINANCE_MACHINES, icon: IconChartBar },
     { title: "Locations", url: FINANCE_LOCATIONS, icon: IconLocation },
     { title: "Topup", url: FINANCE_TOPUP, icon: IconCircleArrowUpRight },
-    {
-      title: "Cash Collections",
-      url: FINANCE_CASH_COLLECTIONS,
-      icon: IconCashBanknote,
-    },
-    {
-      title: "Map Machines",
-      url: FINANCE_MACHINE_MAP,
-      icon: IconMapPin,
-    },
-    {
-      title: "Finance Report",
-      url: FINANCE_REPORT,
-      icon: IconReport,
-    },
-     {
-      title: "User Wallet Activity",
-      url: FINANCE_USER_WALLET_ACTIVITY,
-      icon: IconReport,
-    },
+    { title: "Cash Collections", url: FINANCE_CASH_COLLECTIONS, icon: IconCashBanknote },
+    { title: "Map Machines", url: FINANCE_MACHINE_MAP, icon: IconMapPin },
+    { title: "Finance Report", url: FINANCE_REPORT, icon: IconReport },
+    { title: "User Wallet Activity", url: FINANCE_USER_WALLET_ACTIVITY, icon: IconReport },
   ];
 };
 
@@ -312,40 +241,17 @@ export const MACHINES_SIDEBAR_ROUTES = (firstName: string) => {
     { title: "Machines", url: MACHINE_MACHINES, icon: IconChartBar },
     { title: "Reports", url: REPORT, icon: IconFileDescription },
   ];
-  // Show Test only to Mobilink
   if (firstName === "Mobilink") {
     routes.push(
-      {
-        title: "Users",
-        url: USERS,
-        icon: IconUser,
-      },
-      {
-        title: "Add Bulk Employee",
-        url: ADD_EMPLOYEES,
-        icon: IconHexagonPlus,
-      },
-      {
-        title: "Delete Bulk Employee",
-        url: DELETE_EMPLOYEES,
-        icon: IconHexagonMinus,
-      },
+      { title: "Users", url: USERS, icon: IconUser },
+      { title: "Add Bulk Employee", url: ADD_EMPLOYEES, icon: IconHexagonPlus },
+      { title: "Delete Bulk Employee", url: DELETE_EMPLOYEES, icon: IconHexagonMinus },
     );
   }
-  // if (firstName === "Butterfly") {
-  //   routes.push({
-  //     title: "Cash Collection",
-  //     url: CORPORATE_CASH_COLLECTION,
-  //     icon: IconCashBanknote,
-  //   });
-  // }
   return routes;
 };
 
-// TIME STAMP CONVERTERS — all output in Pakistan Standard Time (Asia/Karachi).
-// These are thin wrappers kept for call-site compatibility; prefer importing
-// formatUnixTimestamp / formatDateTime from @/utils/formatters directly.
-
+// TIME STAMP CONVERTERS
 import { formatUnixTimestamp, formatDateTime as _formatDateTime } from "@/utils/formatters";
 
 /** @deprecated Use formatUnixTimestamp from @/utils/formatters */
