@@ -9,10 +9,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Label } from "@/components/ui/label"
 import { ChevronDown, ChevronUp, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react"
 import type { ApiMachine, MachinesResponse } from "./Types"
-import { timeConverter } from "@/constants/Constant"
 import { SiteHeader } from "@/components/corporate/site-header"
 import { postRequest } from "@/Apis/Api"
 import { useAuth } from "@/contexts/AuthContext" 
+import { formatUnixTimestamp } from "@/utils/formatters"
 
 const CorporateMachines = () => {
   const navigate = useNavigate()
@@ -91,7 +91,7 @@ const CorporateMachines = () => {
               : machine.statusCode === "g"
               ? "Active"
               : "Pending",
-          lastActive: timeConverter(machine.lastUpdated),
+          lastActive: formatUnixTimestamp(machine.lastUpdated),
           stockStatus: machineStockMap[machine.machine_code] || "Unknown",
         }))
       )

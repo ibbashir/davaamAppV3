@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { getRequest } from "@/Apis/Api";
-import { timeConverter } from "@/constants/Constant";
 import { SiteHeader } from "@/components/admin/site-header";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
@@ -25,6 +24,7 @@ import {
   type StockForecast,
 } from "@/utils/stockForecast";
 import { StockForecastBadge } from "@/components/ui/stock-forecast-badge";
+import { formatUnixTimestamp } from "@/utils/formatters";
 
 const categories = [
   { id: "Butterfly", label: "🦋 Butterfly" },
@@ -210,7 +210,7 @@ const Machines = () => {
               : machine.statusCode === "g"
                 ? "Active"
                 : "Pending",
-          lastActive: timeConverter(machine.lastUpdated),
+          lastActive: formatUnixTimestamp(machine.lastUpdated),
           stockStatus: machineStockMap[machine.machine_code] || "Unknown",
         })),
       )

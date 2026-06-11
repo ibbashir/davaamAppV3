@@ -43,7 +43,7 @@ import {
   TrendingUp,
   Activity,
 } from "lucide-react";
-import { SiteHeader } from "@/components/superadmin/site-header";
+import { SiteHeader } from "@/components/superAdmin/site-header";
 import { useLocation } from "react-router-dom";
 import { postRequest } from "@/Apis/Api";
 import { ResponsiveBar } from "@nivo/bar";
