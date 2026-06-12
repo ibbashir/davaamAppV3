@@ -7,6 +7,8 @@ import {
   Search,
   ChevronLeft,
   ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
   ArrowUpDown,
   ArrowUp,
   ArrowDown,
@@ -17,6 +19,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import type { ApiMachine, MachinesResponse } from "./Types";
 import {
   buildForecastMap,
@@ -28,6 +37,18 @@ import AddMachine from "@/screens/ops/machines/components/addMachines";
 import DeleteMachine from "@/screens/ops/machines/components/deleteMachine";
 import UpdateMachine from "@/screens/ops/machines/components/updateMachine";
 import { formatUnixTimestamp } from "@/utils/formatters";
+
+const PAGE_SIZE_OPTIONS = [5, 10, 25, 50];
+
+function getPageWindow(current: number, total: number): (number | "…")[] {
+  if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
+  const pages: (number | "…")[] = [1];
+  if (current > 3) pages.push("…");
+  for (let p = Math.max(2, current - 1); p <= Math.min(total - 1, current + 1); p++) pages.push(p);
+  if (current < total - 2) pages.push("…");
+  pages.push(total);
+  return pages;
+}
 
 const categories = [
   { id: "Butterfly", label: "🦋 Butterfly" },
@@ -118,13 +139,17 @@ const Machines = () => {
   );
   const [currentPage, setCurrentPage] = useState(1);
   const [serverTotalPages, setServerTotalPages] = useState(1);
-  const itemsPerPage = 10;
+  const [serverTotalItems, setServerTotalItems] = useState(0);
+  const [pageSize, setPageSize] = useState(10);
 
   const [machinesData, setMachinesData] = useState<{
     [category: string]: ApiMachine[];
   } | null>(null);
   const [machineStockMap, setMachineStockMap] = useState<{
     [code: string]: string;
+  }>({});
+  const [machineRowsMap, setMachineRowsMap] = useState<{
+    [code: string]: { row_num: number; availableQuantity: number; name: string }[];
   }>({});
   const [machineForecastMap, setMachineForecastMap] = useState<{
     [code: string]: StockForecast;
@@ -150,16 +175,15 @@ const Machines = () => {
     return () => clearTimeout(t);
   }, [searchTerm]);
 
-  useEffect(() => {
-    fetchMachines(1);
-  }, [activeCategory, debouncedSearch, statusFilter, stockFilter]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => { fetchMachines(1); }, [activeCategory, debouncedSearch, statusFilter, stockFilter, pageSize]);
 
   const fetchMachines = async (page: number) => {
     try {
       setLoading(true);
       const params = new URLSearchParams({
         page: String(page),
-        limit: String(itemsPerPage),
+        limit: String(pageSize),
         category: activeCategory,
         ...(sortConfig.field === "machine_code" &&
         sortConfig.direction !== "none"
@@ -178,11 +202,23 @@ const Machines = () => {
       const stockMap: { [code: string]: string } = {};
       const allBrands = [...brands.vending, ...brands.dispensing];
       const grouped: { [machine_code: string]: number[] } = {};
+      const rowsMap: { [code: string]: { row_num: number; availableQuantity: number; name: string }[] } = {};
 
       allBrands.forEach((brand) => {
         if (!grouped[brand.machine_code]) grouped[brand.machine_code] = [];
         grouped[brand.machine_code].push(brand.availableQuantity);
+
+        if (!rowsMap[brand.machine_code]) rowsMap[brand.machine_code] = [];
+        rowsMap[brand.machine_code].push({
+          row_num: brand.row_num,
+          availableQuantity: brand.availableQuantity,
+          name: brand.name,
+        });
       });
+
+      for (const code of Object.keys(rowsMap)) {
+        rowsMap[code].sort((a, b) => a.row_num - b.row_num);
+      }
 
       for (const [code, quantities] of Object.entries(grouped)) {
         const total = quantities.reduce((sum, q) => sum + q, 0);
@@ -199,9 +235,11 @@ const Machines = () => {
       setCurrentPage(page);
       setMachinesData(machines);
       setMachineStockMap(stockMap);
+      setMachineRowsMap(rowsMap);
       setMachineForecastMap(forecastMap);
       setBrandQuantities(bq);
       setServerTotalPages(pagination?.totalPages ?? 1);
+      setServerTotalItems(pagination?.total ?? 0);
     } catch (error) {
       console.error("Error fetching machines:", error);
     } finally {
@@ -571,12 +609,33 @@ const Machines = () => {
           <Button onClick={() => setOpen(true)}>Add Machines</Button>
         </div>
         <Card className="overflow-hidden rounded-2xl shadow-md border-teal-200">
-          <CardHeader>
+          <CardHeader className="flex flex-row items-center justify-between gap-4 pb-2">
             <h3 className="font-semibold text-lg text-teal-700">
               {categories.find((c) => c.id === activeCategory)?.label ||
                 subCategories.find((s) => s.id === activeCategory)?.label ||
                 "Machines"}
             </h3>
+            <div className="flex items-center gap-2 shrink-0">
+              <span className="text-xs text-gray-500 whitespace-nowrap">Rows per page</span>
+              <Select
+                value={String(pageSize)}
+                onValueChange={(v) => {
+                  setPageSize(Number(v));
+                  setCurrentPage(1);
+                }}
+              >
+                <SelectTrigger className="h-8 w-20 text-xs">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {PAGE_SIZE_OPTIONS.map((n) => (
+                    <SelectItem key={n} value={String(n)} className="text-xs">
+                      {n}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </CardHeader>
           <CardContent className="overflow-x-auto">
             {loading ? (
@@ -607,9 +666,8 @@ const Machines = () => {
                           sortable: true,
                         },
                         { label: "Name" },
+                        { label: "Current Stock" },
                         { label: "Type" },
-                        { label: "Category" },
-                        { label: "Last Active" },
                         { label: "Stock" },
                         { label: "Forecast" },
                         { label: "Status" },
@@ -619,7 +677,7 @@ const Machines = () => {
                         sortable: boolean;
                       }[]
                     ).map(({ field, label, sortable }) => (
-                      <th key={field} className="px-4 py-2 text-center">
+                      <th key={label} className="px-4 py-2 text-center whitespace-nowrap">
                         <div
                           className={`flex items-center justify-center ${sortable ? "cursor-pointer select-none" : ""}`}
                           onClick={() => sortable && field && handleSort(field)}
@@ -643,13 +701,23 @@ const Machines = () => {
                         exit={{ opacity: 0, y: -10 }}
                         className="hover:bg-teal-50 border-b border-gray-200 transition-all"
                       >
-                        <td className="px-4 py-3 font-medium">
+                        <td className="px-4 py-3 font-medium whitespace-nowrap">
                           {machine.machine_code}
                         </td>
-                        <td className="px-4 py-3">{machine.machine_name}</td>
-                        <td className="px-4 py-3">{machine.machine_type}</td>
-                        <td className="px-4 py-3">{machine.category}</td>
-                        <td className="px-4 py-3">{machine.lastActive}</td>
+                        <td className="px-4 py-3 text-center whitespace-nowrap">{machine.machine_name}</td>
+                        <td className="px-4 py-3">
+                          <div className="flex justify-center flex-wrap gap-x-2 gap-y-1">
+                            {machineRowsMap[machine.machine_code]?.length
+                              ? machineRowsMap[machine.machine_code].map((row) => (
+                                  <span key={row.row_num} className="inline-flex items-center gap-1 text-xs">
+                                    <span className="text-gray-400">R{row.row_num}:</span>
+                                    <span className="font-semibold text-gray-800">{row.availableQuantity}</span>
+                                  </span>
+                                ))
+                              : <span className="text-gray-400 text-xs">—</span>}
+                          </div>
+                        </td>
+                        <td className="px-4 py-3 whitespace-nowrap">{machine.machine_type}</td>
                         <td className="px-4 py-3">
                           {getStockStatusBadge(machine.stockStatus)}
                         </td>
@@ -729,39 +797,67 @@ const Machines = () => {
           onSuccess={() => fetchMachines(currentPage)}
         />
         {/* ── Pagination ── */}
-        {serverTotalPages > 1 && (
-          <div className="flex justify-center items-center gap-2 mt-6">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => fetchMachines(currentPage - 1)}
-              disabled={currentPage === 1 || loading}
-            >
-              <ChevronLeft className="h-4 w-4" /> Previous
-            </Button>
-            {Array.from({ length: serverTotalPages }, (_, i) => i + 1).map(
-              (page) => (
-                <Button
-                  key={page}
-                  variant={currentPage === page ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => fetchMachines(page)}
-                  className={
-                    currentPage === page ? "bg-teal-600 hover:bg-teal-700" : ""
-                  }
-                >
-                  {page}
-                </Button>
-              ),
-            )}
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => fetchMachines(currentPage + 1)}
-              disabled={currentPage === serverTotalPages || loading}
-            >
-              Next <ChevronRight className="h-4 w-4" />
-            </Button>
+        {sortedMachines.length > 0 && (
+          <div className="mt-4 flex flex-col sm:flex-row items-center justify-between gap-3 px-1">
+            <p className="text-xs text-gray-500 tabular-nums">
+              {serverTotalItems > 0 ? (
+                <>
+                  Showing{" "}
+                  <span className="font-medium text-gray-700">
+                    {(currentPage - 1) * pageSize + 1}–{Math.min(currentPage * pageSize, serverTotalItems)}
+                  </span>{" "}
+                  of <span className="font-medium text-gray-700">{serverTotalItems}</span> machines
+                </>
+              ) : (
+                `Page ${currentPage} of ${serverTotalPages}`
+              )}
+            </p>
+            <div className="flex items-center gap-1">
+              <Button
+                variant="outline" size="icon" className="size-8"
+                onClick={() => fetchMachines(1)}
+                disabled={currentPage === 1 || loading}
+              >
+                <ChevronsLeft className="size-4" />
+              </Button>
+              <Button
+                variant="outline" size="icon" className="size-8"
+                onClick={() => fetchMachines(currentPage - 1)}
+                disabled={currentPage === 1 || loading}
+              >
+                <ChevronLeft className="size-4" />
+              </Button>
+              {getPageWindow(currentPage, serverTotalPages).map((p, i) =>
+                p === "…" ? (
+                  <span key={`ellipsis-${i}`} className="px-1 text-gray-400 text-sm select-none">…</span>
+                ) : (
+                  <Button
+                    key={p}
+                    variant={currentPage === p ? "default" : "outline"}
+                    size="icon"
+                    className={`size-8 text-xs ${currentPage === p ? "bg-teal-600 hover:bg-teal-700 border-teal-600" : ""}`}
+                    onClick={() => fetchMachines(p)}
+                    disabled={loading}
+                  >
+                    {p}
+                  </Button>
+                )
+              )}
+              <Button
+                variant="outline" size="icon" className="size-8"
+                onClick={() => fetchMachines(currentPage + 1)}
+                disabled={currentPage === serverTotalPages || loading}
+              >
+                <ChevronRight className="size-4" />
+              </Button>
+              <Button
+                variant="outline" size="icon" className="size-8"
+                onClick={() => fetchMachines(serverTotalPages)}
+                disabled={currentPage === serverTotalPages || loading}
+              >
+                <ChevronsRight className="size-4" />
+              </Button>
+            </div>
           </div>
         )}
       </div>

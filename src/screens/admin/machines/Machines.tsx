@@ -57,7 +57,12 @@ function getPageWindow(current: number, total: number): (number | "…")[] {
   if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
   const pages: (number | "…")[] = [1];
   if (current > 3) pages.push("…");
-  for (let p = Math.max(2, current - 1); p <= Math.min(total - 1, current + 1); p++) pages.push(p);
+  for (
+    let p = Math.max(2, current - 1);
+    p <= Math.min(total - 1, current + 1);
+    p++
+  )
+    pages.push(p);
   if (current < total - 2) pages.push("…");
   pages.push(total);
   return pages;
@@ -178,7 +183,11 @@ function MobileMachineCard({
           <Hash className="size-3.5 text-teal-600 shrink-0" />
           {machine.machine_code}
         </p>
-        <Badge className={STATUS_COLORS[machine.status] ?? "bg-gray-100 text-gray-800"}>
+        <Badge
+          className={
+            STATUS_COLORS[machine.status] ?? "bg-gray-100 text-gray-800"
+          }
+        >
           {machine.status}
         </Badge>
       </div>
@@ -203,7 +212,11 @@ function MobileMachineCard({
         </p>
         <div className="flex items-center gap-1.5">
           <Package className="size-3 text-teal-600 shrink-0" />
-          <Badge className={STOCK_COLORS[machine.stockStatus] ?? "bg-gray-100 text-gray-800"}>
+          <Badge
+            className={
+              STOCK_COLORS[machine.stockStatus] ?? "bg-gray-100 text-gray-800"
+            }
+          >
             {machine.stockStatus}
           </Badge>
         </div>
@@ -212,7 +225,9 @@ function MobileMachineCard({
           {forecastEnriching.has(machine.machine_code) ? (
             <span className="inline-block h-3 w-3 animate-spin rounded-full border-2 border-teal-600 border-t-transparent" />
           ) : (
-            <StockForecastBadge forecast={machineForecastMap[machine.machine_code]} />
+            <StockForecastBadge
+              forecast={machineForecastMap[machine.machine_code]}
+            />
           )}
         </div>
       </div>
@@ -247,15 +262,34 @@ const Machines = () => {
   const [serverTotalPages, setServerTotalPages] = useState(1);
   const [serverTotalItems, setServerTotalItems] = useState(0);
 
-  const [machinesData, setMachinesData] = useState<{ [category: string]: ApiMachine[] } | null>(null);
-  const [machineStockMap, setMachineStockMap] = useState<{ [code: string]: string }>({});
-  const [machineRowsMap, setMachineRowsMap] = useState<{ [code: string]: { row_num: number; availableQuantity: number; name: string }[] }>({});
-  const [machineForecastMap, setMachineForecastMap] = useState<{ [code: string]: StockForecast }>({});
-  const [brandQuantities, setBrandQuantities] = useState<{ [brandId: string]: number }>({});
-  const [forecastEnriching, setForecastEnriching] = useState<Set<string>>(new Set());
+  const [machinesData, setMachinesData] = useState<{
+    [category: string]: ApiMachine[];
+  } | null>(null);
+  const [machineStockMap, setMachineStockMap] = useState<{
+    [code: string]: string;
+  }>({});
+  const [machineRowsMap, setMachineRowsMap] = useState<{
+    [code: string]: {
+      row_num: number;
+      availableQuantity: number;
+      name: string;
+    }[];
+  }>({});
+  const [machineForecastMap, setMachineForecastMap] = useState<{
+    [code: string]: StockForecast;
+  }>({});
+  const [brandQuantities, setBrandQuantities] = useState<{
+    [brandId: string]: number;
+  }>({});
+  const [forecastEnriching, setForecastEnriching] = useState<Set<string>>(
+    new Set(),
+  );
   const [loading, setLoading] = useState(true);
 
-  const [sortConfig, setSortConfig] = useState<{ field: SortField; direction: SortDirection }>({
+  const [sortConfig, setSortConfig] = useState<{
+    field: SortField;
+    direction: SortDirection;
+  }>({
     field: "machine_code",
     direction: "asc",
   });
@@ -273,7 +307,8 @@ const Machines = () => {
         page: String(page),
         limit: String(pageSize),
         category: activeCategory,
-        ...(sortConfig.field === "machine_code" && sortConfig.direction !== "none"
+        ...(sortConfig.field === "machine_code" &&
+        sortConfig.direction !== "none"
           ? { sortOrder: sortConfig.direction }
           : {}),
         ...(debouncedSearch ? { search: debouncedSearch } : {}),
@@ -289,7 +324,13 @@ const Machines = () => {
       const stockMap: { [code: string]: string } = {};
       const allBrands = [...brands.vending, ...brands.dispensing];
       const grouped: { [machine_code: string]: number[] } = {};
-      const rowsMap: { [code: string]: { row_num: number; availableQuantity: number; name: string }[] } = {};
+      const rowsMap: {
+        [code: string]: {
+          row_num: number;
+          availableQuantity: number;
+          name: string;
+        }[];
+      } = {};
 
       allBrands.forEach((brand) => {
         if (!grouped[brand.machine_code]) grouped[brand.machine_code] = [];
@@ -314,7 +355,10 @@ const Machines = () => {
         else stockMap[code] = "In Stock";
       }
 
-      const { forecasts: forecastMap, brandQuantities: bq } = buildForecastMap(allBrands, stockMap);
+      const { forecasts: forecastMap, brandQuantities: bq } = buildForecastMap(
+        allBrands,
+        stockMap,
+      );
 
       setCurrentPage(page);
       setMachinesData(machines);
@@ -333,7 +377,9 @@ const Machines = () => {
 
   // ── Fetch on filter / page-size change ──────────────────────────────────
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  useEffect(() => { fetchMachines(1); }, [activeCategory, debouncedSearch, statusFilter, stockFilter, pageSize]);
+  useEffect(() => {
+    fetchMachines(1);
+  }, [activeCategory, debouncedSearch, statusFilter, stockFilter, pageSize]);
 
   const allMachines: EnrichedMachine[] = machinesData
     ? Object.entries(machinesData).flatMap(([category, machines]) =>
@@ -341,9 +387,11 @@ const Machines = () => {
           ...machine,
           category,
           status:
-            machine.statusCode === "r" ? "Inactive"
-            : machine.statusCode === "g" ? "Active"
-            : "Pending",
+            machine.statusCode === "r"
+              ? "Inactive"
+              : machine.statusCode === "g"
+                ? "Active"
+                : "Pending",
           lastActive: formatUnixTimestamp(machine.lastUpdated),
           stockStatus: machineStockMap[machine.machine_code] ?? "Unknown",
         })),
@@ -353,35 +401,48 @@ const Machines = () => {
   const handleSort = (field: SortField) => {
     const direction: SortDirection =
       sortConfig.field === field
-        ? sortConfig.direction === "asc" ? "desc"
-          : sortConfig.direction === "desc" ? "none"
-          : "asc"
+        ? sortConfig.direction === "asc"
+          ? "desc"
+          : sortConfig.direction === "desc"
+            ? "none"
+            : "asc"
         : "asc";
     setSortConfig({ field, direction });
     if (field === "machine_code") fetchMachines(currentPage);
   };
 
   const getSortIcon = (field: SortField) => {
-    if (sortConfig.field !== field) return <ArrowUpDown className="h-3 w-3 ml-1 opacity-40" />;
-    if (sortConfig.direction === "asc") return <ArrowUp className="h-3 w-3 ml-1" />;
-    if (sortConfig.direction === "desc") return <ArrowDown className="h-3 w-3 ml-1" />;
+    if (sortConfig.field !== field)
+      return <ArrowUpDown className="h-3 w-3 ml-1 opacity-40" />;
+    if (sortConfig.direction === "asc")
+      return <ArrowUp className="h-3 w-3 ml-1" />;
+    if (sortConfig.direction === "desc")
+      return <ArrowDown className="h-3 w-3 ml-1" />;
     return <ArrowUpDown className="h-3 w-3 ml-1 opacity-40" />;
   };
 
   const sortedMachines = [...allMachines].sort((a, b) => {
-    if (sortConfig.direction === "none" || sortConfig.field === "machine_code") return 0;
+    if (sortConfig.direction === "none" || sortConfig.field === "machine_code")
+      return 0;
     const { field, direction } = sortConfig;
     const mult = direction === "asc" ? 1 : -1;
     if (field === "lastActive") {
-      return mult * (new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+      return (
+        mult *
+        (new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
+      );
     }
     if (field === "forecast") {
       const aF = machineForecastMap[a.machine_code]?.daysRemaining ?? Infinity;
       const bF = machineForecastMap[b.machine_code]?.daysRemaining ?? Infinity;
       return mult * (aF - bF);
     }
-    const aVal = String((a as Record<string, unknown>)[field] ?? "").toLowerCase();
-    const bVal = String((b as Record<string, unknown>)[field] ?? "").toLowerCase();
+    const aVal = String(
+      (a as Record<string, unknown>)[field] ?? "",
+    ).toLowerCase();
+    const bVal = String(
+      (b as Record<string, unknown>)[field] ?? "",
+    ).toLowerCase();
     return mult * aVal.localeCompare(bVal);
   });
 
@@ -389,7 +450,11 @@ const Machines = () => {
   const visibleCodesKey = sortedMachines.map((m) => m.machine_code).join(",");
   useEffect(() => {
     const visibleCodes = sortedMachines.map((m) => m.machine_code);
-    if (visibleCodes.length === 0 || Object.keys(machineForecastMap).length === 0) return;
+    if (
+      visibleCodes.length === 0 ||
+      Object.keys(machineForecastMap).length === 0
+    )
+      return;
     const needsEnrichment = visibleCodes.some(
       (code) => machineForecastMap[code] && !machineForecastMap[code].enriched,
     );
@@ -418,12 +483,16 @@ const Machines = () => {
     ).finally(() => {
       if (!cancelled) setForecastEnriching(new Set());
     });
-    return () => { cancelled = true; };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [visibleCodesKey]);
 
   // ── Helpers ──────────────────────────────────────────────────────────────
-  const activeFilterCount = [statusFilter, stockFilter, debouncedSearch].filter(Boolean).length;
+  const activeFilterCount = [statusFilter, stockFilter, debouncedSearch].filter(
+    Boolean,
+  ).length;
 
   const handleClearAll = () => {
     setSearchTerm("");
@@ -432,13 +501,14 @@ const Machines = () => {
   };
 
   const handleVisit = (machine: EnrichedMachine) =>
-    navigate(`/admin/machine-details/${machine.machine_code}`, { state: { machine } });
+    navigate(`/admin/machine-details/${machine.machine_code}`, {
+      state: { machine },
+    });
 
   return (
     <div>
       <SiteHeader title="Deployed Machines" />
       <div className="min-h-screen bg-gray-50 p-3 sm:p-4">
-
         {/* ── Search + Filters ── */}
         <div className="mb-4 space-y-3">
           {/* Search */}
@@ -505,7 +575,9 @@ const Machines = () => {
                       }}
                       className={[
                         "inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium border transition-all duration-150 cursor-pointer",
-                        activeCategory === cat.id || (cat.id === "CleaningProducts" && isShowCleaningProducts)
+                        activeCategory === cat.id ||
+                        (cat.id === "CleaningProducts" &&
+                          isShowCleaningProducts)
                           ? "bg-teal-600 text-white border-teal-600 shadow-sm"
                           : "bg-white text-gray-600 border-gray-200 hover:border-teal-400 hover:text-teal-700",
                       ].join(" ")}
@@ -555,7 +627,9 @@ const Machines = () => {
                       active={statusFilter === f.value}
                       onClick={(v) => setStatusFilter(v)}
                     >
-                      <span className={`inline-block h-2 w-2 rounded-full ${f.dot}`} />
+                      <span
+                        className={`inline-block h-2 w-2 rounded-full ${f.dot}`}
+                      />
                       {f.label}
                     </FilterPill>
                   ))}
@@ -587,28 +661,42 @@ const Machines = () => {
           {/* Active filter chips */}
           {activeFilterCount > 0 ? (
             <div className="flex flex-wrap items-center gap-2 rounded-lg border border-teal-100 bg-teal-50 px-3 py-2">
-              <span className="text-xs text-teal-700 font-medium shrink-0">Active:</span>
+              <span className="text-xs text-teal-700 font-medium shrink-0">
+                Active:
+              </span>
               {debouncedSearch && (
                 <span className="inline-flex items-center gap-1 rounded-full bg-white border border-teal-200 px-2.5 py-1 text-xs text-teal-800 font-medium shadow-sm">
                   🔍 "{debouncedSearch}"
-                  <button onClick={() => setSearchTerm("")} className="ml-1 hover:text-red-500">
+                  <button
+                    onClick={() => setSearchTerm("")}
+                    className="ml-1 hover:text-red-500"
+                  >
                     <X className="h-3 w-3" />
                   </button>
                 </span>
               )}
               {statusFilter && (
                 <span className="inline-flex items-center gap-1 rounded-full bg-white border border-teal-200 px-2.5 py-1 text-xs text-teal-800 font-medium shadow-sm">
-                  <span className={`inline-block h-2 w-2 rounded-full ${STATUS_FILTERS.find((f) => f.value === statusFilter)?.dot}`} />
+                  <span
+                    className={`inline-block h-2 w-2 rounded-full ${STATUS_FILTERS.find((f) => f.value === statusFilter)?.dot}`}
+                  />
                   {statusFilter}
-                  <button onClick={() => setStatusFilter(null)} className="ml-1 hover:text-red-500">
+                  <button
+                    onClick={() => setStatusFilter(null)}
+                    className="ml-1 hover:text-red-500"
+                  >
                     <X className="h-3 w-3" />
                   </button>
                 </span>
               )}
               {stockFilter && (
                 <span className="inline-flex items-center gap-1 rounded-full bg-white border border-teal-200 px-2.5 py-1 text-xs text-teal-800 font-medium shadow-sm">
-                  {STOCK_FILTERS.find((f) => f.value === stockFilter)?.icon} {stockFilter}
-                  <button onClick={() => setStockFilter(null)} className="ml-1 hover:text-red-500">
+                  {STOCK_FILTERS.find((f) => f.value === stockFilter)?.icon}{" "}
+                  {stockFilter}
+                  <button
+                    onClick={() => setStockFilter(null)}
+                    className="ml-1 hover:text-red-500"
+                  >
                     <X className="h-3 w-3" />
                   </button>
                 </span>
@@ -633,7 +721,9 @@ const Machines = () => {
                 "Machines"}
             </h3>
             <div className="flex items-center gap-2 shrink-0">
-              <span className="text-xs text-gray-500 whitespace-nowrap">Rows per page</span>
+              <span className="text-xs text-gray-500 whitespace-nowrap">
+                Rows per page
+              </span>
               <Select
                 value={String(pageSize)}
                 onValueChange={(v) => {
@@ -656,11 +746,18 @@ const Machines = () => {
           </CardHeader>
           <CardContent className="p-3 sm:p-6">
             {loading ? (
-              <p className="text-center py-6 text-gray-400">Loading machines…</p>
+              <p className="text-center py-6 text-gray-400">
+                Loading machines…
+              </p>
             ) : sortedMachines.length === 0 ? (
               <div className="text-center py-10 space-y-2">
-                <p className="text-gray-500 font-medium">No machines match the selected filters.</p>
-                <button onClick={handleClearAll} className="text-sm text-teal-600 hover:underline">
+                <p className="text-gray-500 font-medium">
+                  No machines match the selected filters.
+                </p>
+                <button
+                  onClick={handleClearAll}
+                  className="text-sm text-teal-600 hover:underline"
+                >
                   Clear all filters
                 </button>
               </div>
@@ -685,13 +782,22 @@ const Machines = () => {
                     <thead className="bg-teal-600 text-white">
                       <tr>
                         {TABLE_COLUMNS.map((col) => (
-                          <th key={col.label} className="px-4 py-2 text-center whitespace-nowrap">
+                          <th
+                            key={col.label}
+                            className="px-4 py-2 text-center whitespace-nowrap"
+                          >
                             <div
                               className={`flex items-center justify-center ${col.sortable ? "cursor-pointer select-none" : ""}`}
-                              onClick={() => col.sortable && col.field && handleSort(col.field)}
+                              onClick={() =>
+                                col.sortable &&
+                                col.field &&
+                                handleSort(col.field)
+                              }
                             >
                               {col.label}
-                              {col.sortable && col.field && getSortIcon(col.field)}
+                              {col.sortable &&
+                                col.field &&
+                                getSortIcon(col.field)}
                             </div>
                           </th>
                         ))}
@@ -708,23 +814,48 @@ const Machines = () => {
                             exit={{ opacity: 0, y: -10 }}
                             className="hover:bg-teal-50 border-b border-gray-200 transition-all"
                           >
-                            <td className="px-4 py-3 font-medium whitespace-nowrap">{machine.machine_code}</td>
-                            <td className="px-4 py-3 whitespace-nowrap">{machine.machine_name}</td>
-                            <td className="px-4 py-3">
-                              <div className="flex flex-wrap gap-x-2 gap-y-1">
-                                {machineRowsMap[machine.machine_code]?.length
-                                  ? machineRowsMap[machine.machine_code].map((row) => (
-                                      <span key={row.row_num} className="inline-flex items-center gap-1 text-xs">
-                                        <span className="text-gray-400">R{row.row_num}:</span>
-                                        <span className="font-semibold text-gray-800">{row.availableQuantity}</span>
+                            <td className="px-4 py-3 font-medium whitespace-nowrap">
+                              {machine.machine_code}
+                            </td>
+                            <td className="px-4 py-3 text-center whitespace-nowrap">
+                              {machine.machine_name}
+                            </td>
+                            <td className="px-4 py-3 text-center">
+                              <div className="flex flex-wrap justify-center gap-x-2 gap-y-1">
+                                {machineRowsMap[machine.machine_code]
+                                  ?.length ? (
+                                  machineRowsMap[machine.machine_code].map(
+                                    (row) => (
+                                      <span
+                                        key={row.row_num}
+                                        className="inline-flex gap-1 text-xs text-center"
+                                      >
+                                        <span className="text-gray-400">
+                                          R{row.row_num}:
+                                        </span>
+                                        <span className="font-semibold text-gray-800">
+                                          {row.availableQuantity}
+                                        </span>
                                       </span>
-                                    ))
-                                  : <span className="text-gray-400 text-xs">—</span>}
+                                    ),
+                                  )
+                                ) : (
+                                  <span className="text-gray-400 text-xs">
+                                    —
+                                  </span>
+                                )}
                               </div>
                             </td>
-                            <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600">{machine.machine_type}</td>
+                            <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
+                              {machine.machine_type}
+                            </td>
                             <td className="px-4 py-3">
-                              <Badge className={STOCK_COLORS[machine.stockStatus] ?? "bg-gray-100 text-gray-800"}>
+                              <Badge
+                                className={
+                                  STOCK_COLORS[machine.stockStatus] ??
+                                  "bg-gray-100 text-gray-800"
+                                }
+                              >
                                 {machine.stockStatus}
                               </Badge>
                             </td>
@@ -732,11 +863,20 @@ const Machines = () => {
                               {forecastEnriching.has(machine.machine_code) ? (
                                 <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-teal-600 border-t-transparent" />
                               ) : (
-                                <StockForecastBadge forecast={machineForecastMap[machine.machine_code]} />
+                                <StockForecastBadge
+                                  forecast={
+                                    machineForecastMap[machine.machine_code]
+                                  }
+                                />
                               )}
                             </td>
                             <td className="px-4 py-3">
-                              <Badge className={STATUS_COLORS[machine.status] ?? "bg-gray-100 text-gray-800"}>
+                              <Badge
+                                className={
+                                  STATUS_COLORS[machine.status] ??
+                                  "bg-gray-100 text-gray-800"
+                                }
+                              >
                                 {machine.status}
                               </Badge>
                             </td>
@@ -769,9 +909,14 @@ const Machines = () => {
                 <>
                   Showing{" "}
                   <span className="font-medium text-gray-700">
-                    {(currentPage - 1) * pageSize + 1}–{Math.min(currentPage * pageSize, serverTotalItems)}
+                    {(currentPage - 1) * pageSize + 1}–
+                    {Math.min(currentPage * pageSize, serverTotalItems)}
                   </span>{" "}
-                  of <span className="font-medium text-gray-700">{serverTotalItems}</span> machines
+                  of{" "}
+                  <span className="font-medium text-gray-700">
+                    {serverTotalItems}
+                  </span>{" "}
+                  machines
                 </>
               ) : (
                 `Page ${currentPage} of ${serverTotalPages}`
@@ -804,7 +949,12 @@ const Machines = () => {
               {/* Windowed page buttons */}
               {getPageWindow(currentPage, serverTotalPages).map((p, i) =>
                 p === "…" ? (
-                  <span key={`ellipsis-${i}`} className="px-1 text-gray-400 text-sm select-none">…</span>
+                  <span
+                    key={`ellipsis-${i}`}
+                    className="px-1 text-gray-400 text-sm select-none"
+                  >
+                    …
+                  </span>
                 ) : (
                   <Button
                     key={p}
@@ -816,7 +966,7 @@ const Machines = () => {
                   >
                     {p}
                   </Button>
-                )
+                ),
               )}
 
               {/* Next */}
