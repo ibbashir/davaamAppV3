@@ -220,7 +220,7 @@ const Machines = () => {
               : machine.statusCode === "g"
                 ? "Active"
                 : "Pending",
-          lastActive: formatUnixTimestamp(machine.lastUpdated),
+          lastActive: formatUnixTimestamp(machine.lastUpdated ?? 0),
           stockStatus: machineStockMap[machine.machine_code] || "Unknown",
         })),
       )
@@ -720,27 +720,13 @@ const Machines = () => {
           open={openDelete}
           setOpen={setOpenDelete}
           machine={selectedMachine}
-          onSuccess={() =>
-            fetchMachines(
-              currentPage,
-              activeCategory,
-              debouncedSearch,
-              itemsPerPage,
-            )
-          }
+          onSuccess={() => fetchMachines(currentPage)}
         />
         <UpdateMachine
           open={openUpdate}
           setOpen={setOpenUpdate}
           machine={selectedMachine}
-          onSuccess={() =>
-            fetchMachines(
-              currentPage,
-              activeCategory,
-              debouncedSearch,
-              itemsPerPage,
-            )
-          }
+          onSuccess={() => fetchMachines(currentPage)}
         />
         {/* ── Pagination ── */}
         {serverTotalPages > 1 && (

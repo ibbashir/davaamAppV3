@@ -1,5 +1,3 @@
-"use client";
-
 import { useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -69,10 +67,37 @@ type NivoBarData = {
   transactions: number;
 };
 
+type Transaction = {
+  id: number | string;
+  msisdn: string;
+  brand_id: string | number;
+  amount: string | number;
+  quantity: string | number;
+  machine_code: string;
+  created_at: string;
+};
+
+type Brand = {
+  id: number | string;
+  name: string;
+  price: string | number;
+};
+
+type BrandFilling = {
+  id: number | string;
+  name: string;
+  quantity: string | number;
+  created_at: string;
+  batch_number: string;
+  lastBatchRefill?: string;
+  stockOut?: string | number;
+  currentStock?: string | number;
+};
+
 type TransactionResponse = {
   success: boolean;
   machine_code: string;
-  transactions: any[];
+  transactions: Transaction[];
   total: number;
   page: number;
   perPage: number;
@@ -87,16 +112,14 @@ export default function OpsMachineVisit() {
 
   const [stockView, setStockView] = useState("batch");
   const [activeTab, setActiveTab] = useState("stock-levels");
-  const [userTransactions, setUserTransactions] = useState<any[]>([]);
-  const [brands, setBrands] = useState<any[]>([]);
-  const [brandFillings, setBrandFillings] = useState<any[]>([]);
+  const [userTransactions, setUserTransactions] = useState<Transaction[]>([]);
+  const [brands, setBrands] = useState<Brand[]>([]);
+  const [brandFillings, setBrandFillings] = useState<BrandFilling[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(20);
   const [selectedMonth, setSelectedMonth] = useState<string>("");
   const [totalTransactions, setTotalTransactions] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
-  const [hasNextPage, setHasNextPage] = useState(false);
-  const [hasPreviousPage, setHasPreviousPage] = useState(false);
   const [isLoadingTransactions, setIsLoadingTransactions] = useState(false);
 
   const [chartData, setChartData] = useState<NivoBarData[]>([]);
@@ -143,9 +166,10 @@ export default function OpsMachineVisit() {
 
   const fetchMachineDetails = async () => {
     try {
-      const res = await postRequest(`/ops/machineDetailsWithMachineCode`, {
-        machine_code: machine.machine_code,
-      });
+      const res = await postRequest<{ fillings: BrandFilling[]; brands: Brand[] }>(
+        `/ops/machineDetailsWithMachineCode`,
+        { machine_code: machine.machine_code },
+      );
       setBrandFillings(res.fillings);
       setBrands(res.brands);
     } catch (error) {
@@ -156,13 +180,12 @@ export default function OpsMachineVisit() {
   const fetchTransactions = async () => {
     setIsLoadingTransactions(true);
     try {
-      const requestBody: any = {
+      const requestBody: { machine_code: string; page: number; perPage: number; month?: string } = {
         machine_code: machine.machine_code,
         page: currentPage,
         perPage: itemsPerPage,
       };
 
-      // Add month filter if selected
       if (selectedMonth) {
         requestBody.month = selectedMonth;
       }
@@ -175,8 +198,6 @@ export default function OpsMachineVisit() {
       setUserTransactions(res.transactions);
       setTotalTransactions(res.total);
       setTotalPages(res.totalPages);
-      setHasNextPage(res.hasNextPage);
-      setHasPreviousPage(res.hasPreviousPage);
     } catch (error) {
       console.error("Error fetching transactions:", error);
       setUserTransactions([]);
@@ -248,12 +269,10 @@ export default function OpsMachineVisit() {
     setIsExporting(true);
 
     try {
-      // Build request body with proper parameters
-      const requestBody: any = {
+      const requestBody: { machine_code: string; month?: string } = {
         machine_code: machine.machine_code,
       };
 
-      // Only add month if selected
       if (selectedMonth) {
         requestBody.month = selectedMonth;
       }
@@ -788,7 +807,7 @@ export default function OpsMachineVisit() {
                                 <TableCell>{transaction.quantity}</TableCell>
                                 <TableCell>{transaction.machine_code}</TableCell>
                                 <TableCell className="text-sm text-slate-500">
-                                  {moment.utc(tx.created_at as string).format("MMMM Do YYYY, h:mm a")}
+                                  {moment.utc(transaction.created_at as string).format("MMMM Do YYYY, h:mm a")}
                                 </TableCell>
                               </TableRow>
                             ))
