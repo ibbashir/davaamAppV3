@@ -1,8 +1,8 @@
-import { Fragment, useRef, useState } from "react";
+import { Fragment, useRef, useState, useEffect } from "react";
 import { Dialog, Transition } from "@headlessui/react";
 import { useForm } from "react-hook-form";
 import { Switch } from "@headlessui/react";
-import { postRequest } from "@/Apis/Api";
+import { postRequest, getRequest } from "@/Apis/Api";
 import { X, Cpu } from "lucide-react";
 
 type Inputs = {
@@ -59,6 +59,11 @@ function SectionHeading({ children }: { children: React.ReactNode }) {
   );
 }
 
+interface ButterflyProduct {
+  id: number;
+  skin: string;
+}
+
 export default function AddMachine({
   open,
   setOpen,
@@ -69,6 +74,22 @@ export default function AddMachine({
   const cancelButtonRef = useRef(null);
   const [enabled, setEnabled] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [butterflyProducts, setButterflyProducts] = useState<
+    ButterflyProduct[]
+  >([]);
+
+  useEffect(() => {
+    if (!open) return;
+    getRequest<{ success?: boolean; data?: unknown }>(
+      "/ops/getButterflyProducts",
+    )
+      .then((result) => {
+        const data = result?.data ?? result;
+        const list = Array.isArray(data) ? data : data ? [data] : [];
+        setButterflyProducts(list as ButterflyProduct[]);
+      })
+      .catch(() => setButterflyProducts([]));
+  }, [open]);
 
   const {
     register,
@@ -95,8 +116,6 @@ export default function AddMachine({
         machineType: data.machine_type,
         variantType: data.variant_type,
         quantity: data.quantity,
-        batchNumber: data.batchNumber,
-        expiryDate: data.expiry,
         is_active: enabled ? 1 : 0,
         lat: data.lat,
         lng: data.lng,
@@ -111,8 +130,8 @@ export default function AddMachine({
       console.error("API Error:", error);
       const message =
         error instanceof Error
-          ? (error as { response?: { data?: { message?: string } } }).response?.data?.message ??
-            error.message
+          ? ((error as { response?: { data?: { message?: string } } }).response
+              ?.data?.message ?? error.message)
           : "An unexpected error occurred.";
       alert(`Error: ${message}`);
     } finally {
@@ -153,7 +172,6 @@ export default function AddMachine({
               leaveTo="opacity-0 scale-95 translate-y-2"
             >
               <Dialog.Panel className="relative w-full max-w-xl rounded-2xl bg-white shadow-2xl ring-1 ring-gray-200 dark:bg-gray-900 dark:ring-gray-700">
-
                 {/* Header */}
                 <div className="flex items-center gap-3 border-b border-gray-100 px-6 py-4 dark:border-gray-700/60">
                   <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-teal-50 dark:bg-teal-900/30">
@@ -177,8 +195,10 @@ export default function AddMachine({
                 </div>
 
                 {/* Body */}
-                <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 px-6 py-5">
-
+                <form
+                  onSubmit={handleSubmit(onSubmit)}
+                  className="space-y-4 px-6 py-5"
+                >
                   <SectionHeading>Machine Info</SectionHeading>
 
                   <div className="grid grid-cols-2 gap-3">
@@ -188,7 +208,8 @@ export default function AddMachine({
                         type="number"
                         {...register("machine_code", {
                           required: "Required.",
-                          validate: (v) => /^\d/.test(v) || "Must start with a digit.",
+                          validate: (v) =>
+                            /^\d/.test(v) || "Must start with a digit.",
                         })}
                         className={inputClass}
                         placeholder="e.g. 10023"
@@ -203,9 +224,11 @@ export default function AddMachine({
                         className={selectClass}
                         defaultValue=""
                       >
-                        <option value="" disabled>Select type</option>
-                        <option value="product">Sanitary</option>
-                        <option value="liquid">Dispensing</option>
+                        <option value="" disabled>
+                          Select type
+                        </option>
+                        <option value="sanitary">Sanitary</option>
+                        <option value="dispensing">Dispensing</option>
                       </select>
                       <FieldError message={errors.machine_type?.message} />
                     </div>
@@ -219,14 +242,35 @@ export default function AddMachine({
                         className={selectClass}
                         defaultValue=""
                       >
-                        <option value="" disabled>Select variant</option>
-                        <option value="besties">Besties</option>
-                        <option value="breathable">Breathable</option>
-                        <option value="corporate">Corporate</option>
-                        <option value="value">Value</option>
-                        <option value="UN_Corporate">UN Corporates</option>
+                        <option value="" disabled>
+                          Select variant
+                        </option>
+                        {butterflyProducts.map((p) => (
+                          <option key={p.id} value={p.skin}>
+                            {p.skin}
+                          </option>
+                        ))}
                       </select>
                       <FieldError message={errors.variant_type?.message} />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <FieldLabel>Quantity</FieldLabel>
+                        <input
+                          type="number"
+                          min="1"
+                          {...register("quantity", {
+                            required: "Required.",
+                            min: { value: 1, message: "At least 1." },
+                            validate: (v) =>
+                              !isNaN(Number(v)) || "Must be a number.",
+                          })}
+                          className={inputClass}
+                          placeholder="Units Per Row"
+                        />
+                        <FieldError message={errors.quantity?.message} />
+                      </div>
                     </div>
 
                     <div>
@@ -236,10 +280,11 @@ export default function AddMachine({
                         className={selectClass}
                         defaultValue=""
                       >
-                        <option value="" disabled>Select category</option>
+                        <option value="" disabled>
+                          Select category
+                        </option>
                         <option value="online">Online</option>
                         <option value="offline">Offline</option>
-                        <option value="hybrid">Hybrid</option>
                       </select>
                       <FieldError message={errors.category?.message} />
                     </div>
@@ -253,7 +298,9 @@ export default function AddMachine({
                         <FieldLabel>Product Name</FieldLabel>
                         <input
                           type="text"
-                          {...register("machine_name", { required: "Required." })}
+                          {...register("machine_name", {
+                            required: "Required.",
+                          })}
                           className={inputClass}
                           placeholder="Enter product name"
                         />
@@ -268,7 +315,8 @@ export default function AddMachine({
                             {...register("image", {
                               required: "Required.",
                               validate: (v) =>
-                                /^https?:\/\/.+/.test(v) || "Must be a valid URL.",
+                                /^https?:\/\/.+/.test(v) ||
+                                "Must be a valid URL.",
                             })}
                             className={inputClass}
                             placeholder="https://..."
@@ -285,7 +333,8 @@ export default function AddMachine({
                             {...register("price", {
                               required: "Required.",
                               min: { value: 0, message: "Must be positive." },
-                              validate: (v) => !isNaN(Number(v)) || "Must be a number.",
+                              validate: (v) =>
+                                !isNaN(Number(v)) || "Must be a number.",
                             })}
                             className={inputClass}
                             placeholder="0.00"
@@ -303,38 +352,14 @@ export default function AddMachine({
                             {...register("quantity", {
                               required: "Required.",
                               min: { value: 1, message: "At least 1." },
-                              validate: (v) => !isNaN(Number(v)) || "Must be a number.",
+                              validate: (v) =>
+                                !isNaN(Number(v)) || "Must be a number.",
                             })}
                             className={inputClass}
                             placeholder="Litres / Units"
                           />
                           <FieldError message={errors.quantity?.message} />
                         </div>
-
-                        <div>
-                          <FieldLabel>Batch Number</FieldLabel>
-                          <input
-                            type="text"
-                            {...register("batchNumber", { required: "Required." })}
-                            className={inputClass}
-                            placeholder="e.g. BT-2024-01"
-                          />
-                          <FieldError message={errors.batchNumber?.message} />
-                        </div>
-                      </div>
-
-                      <div>
-                        <FieldLabel>Expiry Date</FieldLabel>
-                        <input
-                          type="date"
-                          {...register("expiry", {
-                            required: "Required.",
-                            validate: (v) =>
-                              new Date(v) > new Date() || "Must be in the future.",
-                          })}
-                          className={inputClass}
-                        />
-                        <FieldError message={errors.expiry?.message} />
                       </div>
                     </>
                   )}
@@ -346,7 +371,9 @@ export default function AddMachine({
                       <FieldLabel>Location Name</FieldLabel>
                       <input
                         type="text"
-                        {...register("machine_location", { required: "Required." })}
+                        {...register("machine_location", {
+                          required: "Required.",
+                        })}
                         className={inputClass}
                         placeholder="e.g. DHA Phase 5"
                       />
@@ -359,7 +386,9 @@ export default function AddMachine({
                         {...register("machine_city", { required: "Required." })}
                         className={selectClass}
                       >
-                        <option value="" disabled>Select city</option>
+                        <option value="" disabled>
+                          Select city
+                        </option>
                         <option value="karachi">Karachi</option>
                         <option value="lahore">Lahore</option>
                         <option value="islamabad">Islamabad</option>
@@ -397,7 +426,11 @@ export default function AddMachine({
                           max: { value: 90, message: "Max 90" },
                           validate: (v) => {
                             const dec = v?.toString().split(".")[1];
-                            return (!dec || dec.length >= 4) || "4 decimal places required.";
+                            return (
+                              !dec ||
+                              dec.length >= 4 ||
+                              "4 decimal places required."
+                            );
                           },
                         })}
                         className={inputClass}
@@ -417,7 +450,11 @@ export default function AddMachine({
                           max: { value: 180, message: "Max 180" },
                           validate: (v) => {
                             const dec = v?.toString().split(".")[1];
-                            return (!dec || dec.length >= 4) || "4 decimal places required.";
+                            return (
+                              !dec ||
+                              dec.length >= 4 ||
+                              "4 decimal places required."
+                            );
                           },
                         })}
                         className={inputClass}
@@ -430,8 +467,12 @@ export default function AddMachine({
                   {/* Active toggle */}
                   <div className="flex items-center justify-between rounded-xl border border-gray-100 bg-gray-50 px-4 py-3 dark:border-gray-700 dark:bg-gray-800/40">
                     <div>
-                      <p className="text-sm font-medium text-gray-800 dark:text-gray-200">Active</p>
-                      <p className="text-xs text-gray-500 dark:text-gray-400">Machine is live and accepting transactions</p>
+                      <p className="text-sm font-medium text-gray-800 dark:text-gray-200">
+                        Active
+                      </p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">
+                        Machine is live and accepting transactions
+                      </p>
                     </div>
                     <Switch
                       checked={enabled}
@@ -466,9 +507,24 @@ export default function AddMachine({
                       className="flex items-center gap-2 rounded-lg bg-teal-600 px-5 py-2 text-sm font-medium text-white transition-colors hover:bg-teal-700 disabled:opacity-60"
                     >
                       {loading && (
-                        <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
-                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
+                        <svg
+                          className="h-4 w-4 animate-spin"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                        >
+                          <circle
+                            className="opacity-25"
+                            cx="12"
+                            cy="12"
+                            r="10"
+                            stroke="currentColor"
+                            strokeWidth="4"
+                          />
+                          <path
+                            className="opacity-75"
+                            fill="currentColor"
+                            d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+                          />
                         </svg>
                       )}
                       {loading ? "Submitting..." : "Add Machine"}

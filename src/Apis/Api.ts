@@ -36,9 +36,9 @@ export const putRequest = async <T>(
   }
 };
 
-export const deleteRequest = async <T>(endpoint: string): Promise<T> => {
+export const deleteRequest = async <T>(endpoint: string, data?: object): Promise<T> => {
   try {
-    const response = await api.delete<T>(endpoint);
+    const response = await api.delete<T>(endpoint, { data });
     return response.data;
   } catch (error) {
     console.error("DELETE request failed", error);

@@ -70,6 +70,7 @@ export const ADMIN_CORPORATE_TOPUP = "/admin/corporate-topup";
 export const ADMIN_MACHINE_MAP = "/admin/machine-map";
 export const ADMIN_CASH_COLLECTION = "/admin/cashCollection";
 export const ADMIN_RIDER_LOCATION = "/admin/riderLocation";
+export const ADMIN_BUTTERFLY_PRODUCTS="/admin/butterflyProducts"
 
 //OPS PATHS
 export const OPS_DASHBOARD = "/ops/dashboard";
@@ -191,6 +192,7 @@ export const ADMIN_SIDEBAR_ROUTES = () => {
     { title: "Map Machines", url: ADMIN_MACHINE_MAP, icon: IconMapPin },
     { title: "Rider Locations", url: ADMIN_RIDER_LOCATION, icon: IconHexagonPlus },
     { title: "Cash Collection", url: ADMIN_CASH_COLLECTION, icon: IconCashBanknote },
+    { title: "Butterfly Products", url: ADMIN_BUTTERFLY_PRODUCTS, icon: IconShare3 },
   ];
 };
 

@@ -158,6 +158,7 @@ import {
   OPS_RIDER_LOCATION,
   Fulfill_RIDER_LOCATION,
   SUPERADMIN_SURVEY_FORM,
+  ADMIN_BUTTERFLY_PRODUCTS,
 } from '@/constants/Constant'
 
 import ResetPassword from '@/screens/forgetPassword/ResetPassword'
@@ -165,6 +166,7 @@ import AllUsers from '@/Corporate/Mobilink/allUsers/allUsers'
 import AddEmployees from '@/Corporate/Mobilink/addEmployees/AddEmployees'
 import BulkDelete from '@/Corporate/Mobilink/deleteEmployees/BulkDelete'
 import AdminRiderLocation from '@/screens/admin/RiderLocation/AdminRiderLocation'
+import ButterflyProducts from '@/screens/admin/butterflyProducts/butterflyProducts'
 import OpsRiderLocation from '@/screens/ops/RiderLocation/OpsRiderLocation'
 import FulfillmentRiderLocation from '@/screens/fulfillment/RiderLocation/FulfilmentRiderLocation'
 
@@ -221,7 +223,8 @@ const Routing = () => {
           <Route path={ADMIN_CORPORATE_TOPUP} element={<AdminCorporateTopup />} />
           <Route path={ADMIN_MACHINE_MAP} element={<AdminMachineMap />} />
           <Route path={ADMIN_CASH_COLLECTION} element={<AdminCashCollectionPage />} />
-          <Route path={ADMIN_RIDER_LOCATION} element={<AdminRiderLocation />}/>
+          <Route path={ADMIN_RIDER_LOCATION} element={<AdminRiderLocation />}/> 
+          <Route path={ADMIN_BUTTERFLY_PRODUCTS} element={<ButterflyProducts />}/>
         </Route>
       </Route>
 
