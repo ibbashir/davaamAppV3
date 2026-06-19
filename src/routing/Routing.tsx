@@ -71,6 +71,7 @@ import UserWalletActivity from '@/screens/finance/UserWalletActivity/UserWalletA
 import FinanceCashCollectionPage from '@/screens/finance/cashCollections/cashCollection'
 import FinanceMachineMap from '@/screens/finance/MachinesMap/MachineMap'
 import FinanceReport from '@/screens/finance/Reports/Reports'
+import FinanceMachineStocks from '@/screens/finance/stocks/MachineStocks'
 import FinanceLocations from '@/screens/finance/locations/Locations'
 import { FinanceTopup } from '@/screens/finance/topup/Topup'
 
@@ -105,6 +106,7 @@ import {
   FINANCE_CASH_COLLECTIONS,
   FINANCE_DASHBOARD,
   FINANCE_MACHINE_MAP,
+  FINANCE_MACHINE_STOCKS,
   FINANCE_MACHINE_VISIT,
   FINANCE_MACHINES,
   FINANCE_REPORT,
@@ -271,6 +273,7 @@ const Routing = () => {
           <Route path={FINANCE_CASH_COLLECTIONS} element={<FinanceCashCollectionPage />} />
           <Route path={FINANCE_MACHINE_MAP} element={<FinanceMachineMap />} />
           <Route path={FINANCE_REPORT} element={<FinanceReport />} />
+          <Route path={FINANCE_MACHINE_STOCKS} element={<FinanceMachineStocks />} />
         </Route>
       </Route>
 

@@ -18,6 +18,7 @@ import {
   MapPin,
   ChevronDown,
 } from "lucide-react";
+import { SiteHeader } from "@/components/superAdmin/site-header";
 
 interface MachineReport {
   machine_code: string;
@@ -531,6 +532,7 @@ const FinanceCashCollectionPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+      <SiteHeader title="Cash Collection" />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="mb-8">

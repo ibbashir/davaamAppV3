@@ -109,6 +109,7 @@ export const FINANCE_MACHINE_VISIT = "/finance/machine-details/:id";
 export const FINANCE_CASH_COLLECTIONS = "/finance/cashCollection";
 export const FINANCE_MACHINE_MAP = "/finance/machine-map";
 export const FINANCE_REPORT = "/finance/finance-report";
+export const FINANCE_MACHINE_STOCKS = "/finance/machine-stocks";
 
 //MACHINE PATH
 export const MACHINE_DASHBOARD = "/company/dashboard";
@@ -233,6 +234,7 @@ export const FINANCE_SIDEBAR_ROUTES = () => {
     { title: "Cash Collections", url: FINANCE_CASH_COLLECTIONS, icon: IconCashBanknote },
     { title: "Map Machines", url: FINANCE_MACHINE_MAP, icon: IconMapPin },
     { title: "Finance Report", url: FINANCE_REPORT, icon: IconReport },
+    { title: "Machine Stocks", url: FINANCE_MACHINE_STOCKS, icon: IconClipboardList },
     { title: "User Wallet Activity", url: FINANCE_USER_WALLET_ACTIVITY, icon: IconReport },
   ];
 };

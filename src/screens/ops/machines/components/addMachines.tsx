@@ -1,9 +1,9 @@
-import { Fragment, useRef, useState, useEffect } from "react";
+import { Fragment, forwardRef, useRef, useState, useEffect } from "react";
 import { Dialog, Transition } from "@headlessui/react";
 import { useForm } from "react-hook-form";
 import { Switch } from "@headlessui/react";
 import { postRequest, getRequest } from "@/Apis/Api";
-import { X, Cpu } from "lucide-react";
+import { X, Cpu, ChevronDown } from "lucide-react";
 
 type Inputs = {
   machine_code: string;
@@ -33,7 +33,21 @@ const inputClass =
   "block w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 transition-colors focus:border-teal-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-teal-500/20 dark:border-gray-700 dark:bg-gray-800/50 dark:text-gray-100 dark:placeholder:text-gray-500 dark:focus:border-teal-500 dark:focus:bg-gray-800";
 
 const selectClass =
-  "block w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-900 transition-colors focus:border-teal-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-teal-500/20 dark:border-gray-700 dark:bg-gray-800/50 dark:text-gray-100 dark:focus:border-teal-500 dark:focus:bg-gray-800";
+  "block w-full appearance-none rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 pr-9 text-sm text-gray-900 transition-colors cursor-pointer hover:border-gray-300 focus:border-teal-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-teal-500/20 dark:border-gray-700 dark:bg-gray-800/50 dark:text-gray-100 dark:hover:border-gray-600 dark:focus:border-teal-500 dark:focus:bg-gray-800";
+
+const SelectField = forwardRef<
+  HTMLSelectElement,
+  React.SelectHTMLAttributes<HTMLSelectElement>
+>(function SelectField({ children, ...props }, ref) {
+  return (
+    <div className="relative">
+      <select ref={ref} {...props} className={selectClass}>
+        {children}
+      </select>
+      <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400 dark:text-gray-500" />
+    </div>
+  );
+});
 
 function FieldLabel({ children }: { children: React.ReactNode }) {
   return (
@@ -74,6 +88,8 @@ export default function AddMachine({
   const cancelButtonRef = useRef(null);
   const [enabled, setEnabled] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [paymentMethods, setPaymentMethods] = useState<string[]>([]);
+  const [paymentMethodError, setPaymentMethodError] = useState("");
   const [butterflyProducts, setButterflyProducts] = useState<
     ButterflyProduct[]
   >([]);
@@ -95,6 +111,7 @@ export default function AddMachine({
     register,
     watch,
     handleSubmit,
+    setValue,
     formState: { errors },
     reset,
   } = useForm<Inputs>();
@@ -102,7 +119,23 @@ export default function AddMachine({
   const machineCode = watch("machine_code") ?? "";
   const isButterfly = machineCode.startsWith("3");
 
+  useEffect(() => {
+    if (machineCode.length === 0) return;
+    setValue("machine_type", machineCode.startsWith("3") ? "sanitary" : "dispensing");
+  }, [machineCode, setValue]);
+
+  const togglePaymentMethod = (method: string) => {
+    setPaymentMethodError("");
+    setPaymentMethods((prev) =>
+      prev.includes(method) ? prev.filter((m) => m !== method) : [...prev, method],
+    );
+  };
+
   const onSubmit = async (data: Inputs) => {
+    if (paymentMethods.length === 0) {
+      setPaymentMethodError("Select at least one payment method.");
+      return;
+    }
     setLoading(true);
     try {
       await postRequest(`/ops/addNewMachine`, {
@@ -120,12 +153,16 @@ export default function AddMachine({
         lat: data.lat,
         lng: data.lng,
         category: data.category,
+        payment_method: paymentMethods,
       });
 
       alert("Machine added successfully!");
       reset();
       setEnabled(false);
+      setPaymentMethods([]);
+      setPaymentMethodError("");
       setOpen(false);
+      window.location.reload();
     } catch (error: unknown) {
       console.error("API Error:", error);
       const message =
@@ -219,9 +256,8 @@ export default function AddMachine({
 
                     <div>
                       <FieldLabel>Machine Type</FieldLabel>
-                      <select
+                      <SelectField
                         {...register("machine_type", { required: "Required." })}
-                        className={selectClass}
                         defaultValue=""
                       >
                         <option value="" disabled>
@@ -229,7 +265,7 @@ export default function AddMachine({
                         </option>
                         <option value="sanitary">Sanitary</option>
                         <option value="dispensing">Dispensing</option>
-                      </select>
+                      </SelectField>
                       <FieldError message={errors.machine_type?.message} />
                     </div>
                   </div>
@@ -237,9 +273,8 @@ export default function AddMachine({
                   <div className="grid grid-cols-2 gap-3">
                     <div>
                       <FieldLabel>Variant Type</FieldLabel>
-                      <select
+                      <SelectField
                         {...register("variant_type", { required: "Required." })}
-                        className={selectClass}
                         defaultValue=""
                       >
                         <option value="" disabled>
@@ -250,7 +285,7 @@ export default function AddMachine({
                             {p.skin}
                           </option>
                         ))}
-                      </select>
+                      </SelectField>
                       <FieldError message={errors.variant_type?.message} />
                     </div>
 
@@ -275,9 +310,8 @@ export default function AddMachine({
 
                     <div>
                       <FieldLabel>Category</FieldLabel>
-                      <select
+                      <SelectField
                         {...register("category", { required: "Required." })}
-                        className={selectClass}
                         defaultValue=""
                       >
                         <option value="" disabled>
@@ -285,9 +319,38 @@ export default function AddMachine({
                         </option>
                         <option value="online">Online</option>
                         <option value="offline">Offline</option>
-                      </select>
+                      </SelectField>
                       <FieldError message={errors.category?.message} />
                     </div>
+                  </div>
+
+                  <div>
+                    <FieldLabel>Payment Method</FieldLabel>
+                    <div className="flex gap-2">
+                      {["Cash", "App","Employee ID"].map((method) => {
+                        const selected = paymentMethods.includes(method);
+                        return (
+                          <button
+                            key={method}
+                            type="button"
+                            onClick={() => togglePaymentMethod(method)}
+                            className={`flex items-center gap-1.5 rounded-lg border px-4 py-2 text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-teal-500/20 ${
+                              selected
+                                ? "border-teal-500 bg-teal-50 text-teal-700 dark:border-teal-500 dark:bg-teal-900/30 dark:text-teal-300"
+                                : "border-gray-200 bg-gray-50 text-gray-600 hover:border-gray-300 hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-800/50 dark:text-gray-400 dark:hover:border-gray-600"
+                            }`}
+                          >
+                            <span
+                              className={`h-2 w-2 rounded-full ${selected ? "bg-teal-500" : "bg-gray-300 dark:bg-gray-600"}`}
+                            />
+                            {method}
+                          </button>
+                        );
+                      })}
+                    </div>
+                    {paymentMethodError && (
+                      <p className="mt-1 text-xs text-red-500">{paymentMethodError}</p>
+                    )}
                   </div>
 
                   {!isButterfly && (
@@ -382,9 +445,9 @@ export default function AddMachine({
 
                     <div>
                       <FieldLabel>City</FieldLabel>
-                      <select
+                      <SelectField
                         {...register("machine_city", { required: "Required." })}
-                        className={selectClass}
+                        defaultValue=""
                       >
                         <option value="" disabled>
                           Select city
@@ -393,7 +456,7 @@ export default function AddMachine({
                         <option value="lahore">Lahore</option>
                         <option value="islamabad">Islamabad</option>
                         <option value="multan">Multan</option>
-                      </select>
+                      </SelectField>
                       <FieldError message={errors.machine_city?.message} />
                     </div>
                   </div>

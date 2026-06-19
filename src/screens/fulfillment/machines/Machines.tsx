@@ -888,7 +888,7 @@ const Machines = () => {
                               >
                                 Visit
                               </Button>
-                            </td>
+                            </td>  
                           </motion.tr>
                         ))}
                       </AnimatePresence>

@@ -23,6 +23,7 @@ import {
   Droplets,
   ShoppingBag,
 } from 'lucide-react';
+import { SiteHeader } from '@/components/superAdmin/site-header';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -272,6 +273,7 @@ const UserWalletActivity: React.FC = () => {
   return (
     <>
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-gray-50 to-teal-50/20">
+     <SiteHeader title="User Wallet Activity" />
       <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
 
         {/* ── Page Header ── */}

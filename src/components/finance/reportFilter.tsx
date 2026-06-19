@@ -1,4 +1,8 @@
 import React from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Search, Loader2 } from "lucide-react";
 
 interface Props {
   startDate: string;
@@ -13,36 +17,40 @@ const ReportFilters: React.FC<Props> = ({
   startDate, endDate, loading,
   onStartDateChange, onEndDateChange, onFetch,
 }) => (
-  <div className="flex flex-wrap gap-4 items-end mb-8 bg-gray-50 p-5 rounded-xl shadow-sm">
-    <div className="flex flex-wrap gap-5 flex-1">
-      <label className="flex flex-col text-sm font-medium text-gray-700 gap-1">
-        Start Date:
-        <input
-          type="date"
-          value={startDate}
-          onChange={(e) => onStartDateChange(e.target.value)}
-          className="px-3 py-2 border border-gray-300 rounded-lg text-base w-56 max-w-full focus:border-blue-500 focus:outline-none"
-        />
-      </label>
-      <label className="flex flex-col text-sm font-medium text-gray-700 gap-1">
-        End Date:
-        <input
-          type="date"
-          value={endDate}
-          onChange={(e) => onEndDateChange(e.target.value)}
-          className="px-3 py-2 border border-gray-300 rounded-lg text-base w-56 max-w-full focus:border-blue-500 focus:outline-none"
-        />
-      </label>
+  <div className="flex flex-wrap items-end gap-4">
+    <div className="flex flex-col gap-1.5">
+      <Label htmlFor="report-start-date">Start Date</Label>
+      <Input
+        id="report-start-date"
+        type="date"
+        value={startDate}
+        onChange={(e) => onStartDateChange(e.target.value)}
+        className="w-44"
+      />
     </div>
-    <button
-      onClick={onFetch}
-      disabled={loading}
-      className={`px-6 py-2.5 rounded-lg text-white font-medium transition-colors duration-200 h-11 ${
-        loading ? "bg-gray-400 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700"
-      }`}
-    >
-      {loading ? "Generating..." : "Get Report"}
-    </button>
+    <div className="flex flex-col gap-1.5">
+      <Label htmlFor="report-end-date">End Date</Label>
+      <Input
+        id="report-end-date"
+        type="date"
+        value={endDate}
+        onChange={(e) => onEndDateChange(e.target.value)}
+        className="w-44"
+      />
+    </div>
+    <Button onClick={onFetch} disabled={loading} className="bg-teal-600 hover:bg-teal-700">
+      {loading ? (
+        <>
+          <Loader2 className="h-4 w-4 animate-spin" />
+          Generating...
+        </>
+      ) : (
+        <>
+          <Search className="h-4 w-4" />
+          Get Report
+        </>
+      )}
+    </Button>
   </div>
 );
 
