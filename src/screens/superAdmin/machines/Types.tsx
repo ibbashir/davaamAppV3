@@ -14,6 +14,7 @@ type ApiMachine = {
     statusCode: string
     lastUpdated: number
     map_link?: string | null
+    payment_methods: string[]
 }
 
 // Brand types
