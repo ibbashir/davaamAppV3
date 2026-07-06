@@ -1,14 +1,22 @@
-import React, { useEffect, useRef, useState } from "react";
-import { MapContainer, TileLayer, Marker, Popup, Polyline } from "react-leaflet";
+import React, { useCallback, useEffect, useRef, useState } from "react";
+import { MapContainer, TileLayer, Marker, Popup, Polyline, Tooltip } from "react-leaflet";
 import { BASE_URL } from "@/constants/Constant";
-import { createRiderIcon, createStartIcon, createDestinationIcon } from "@/constants/mapIcons";
+import { createRiderIcon, createStartIcon, createDestinationIcon, createStopIcon } from "@/constants/mapIcons";
 import { RecenterMap } from "./components/MapControls";
 import RideHistoryPanel from "./components/RideHistoryPanel";
 import type { RiderLocation } from "@/Types/SuperAdmin/rider";
 import { getRequest } from "@/Apis/Api";
+import { fetchOSRMRoute, fetchOSRMRouteMulti, straightLegs } from "@/utils/osrm";
 
 const POLLING_INTERVAL_MS = 5_000;
 const DEFAULT_CENTER: [number, number] = [24.8607, 67.0011]; // Karachi
+
+/** Road-routing estimates for a rider's remaining run (from OSRM). */
+interface RouteStats {
+  etaNextSec: number | null;   // time to the stop the rider is heading to now
+  etaTotalSec: number;         // time to finish all remaining stops
+  distRemainKm: number;        // road distance left for the whole run
+}
 
 const SuperAdminRiderLocation: React.FC = () => {
   const [riders,          setRiders]          = useState<RiderLocation[]>([]);
@@ -19,7 +27,20 @@ const SuperAdminRiderLocation: React.FC = () => {
   const [showHistory,     setShowHistory]     = useState(false);
   const [selectedRiderId, setSelectedRiderId] = useState<string | null>(null);
   const [showMobileSheet, setShowMobileSheet] = useState(false);
+  const [routeStats,      setRouteStats]      = useState<Record<string, RouteStats>>({});
   const initialCenterSet = useRef(false);
+
+  const handleRouteStats = useCallback((riderId: string, stats: RouteStats | null) => {
+    setRouteStats((prev) => {
+      if (stats === null) {
+        if (!(riderId in prev)) return prev;
+        const next = { ...prev };
+        delete next[riderId];
+        return next;
+      }
+      return { ...prev, [riderId]: stats };
+    });
+  }, []);
 
   const fetchLocations = async () => {
     try {
@@ -108,6 +129,7 @@ const SuperAdminRiderLocation: React.FC = () => {
               selectedRiderId={selectedRiderId}
               onSelect={handleSelectRider}
               loading={loading && riders.length === 0}
+              routeStats={routeStats}
             />
           </div>
         </aside>
@@ -150,6 +172,7 @@ const SuperAdminRiderLocation: React.FC = () => {
                   key={rider.riderId}
                   rider={rider}
                   onSelect={handleSelectRider}
+                  onRouteStats={handleRouteStats}
                 />
               ))}
               <RecenterMap center={mapCenter} />
@@ -225,6 +248,7 @@ const SuperAdminRiderLocation: React.FC = () => {
                   selectedRiderId={selectedRiderId}
                   onSelect={handleSelectRider}
                   loading={loading && riders.length === 0}
+                  routeStats={routeStats}
                 />
               </div>
             </div>
@@ -243,10 +267,11 @@ interface RiderListPanelProps {
   selectedRiderId: string | null;
   onSelect: (rider: RiderLocation) => void;
   loading: boolean;
+  routeStats: Record<string, RouteStats>;
 }
 
 const RiderListPanel: React.FC<RiderListPanelProps> = ({
-  activeRiders, inactiveRiders, selectedRiderId, onSelect, loading,
+  activeRiders, inactiveRiders, selectedRiderId, onSelect, loading, routeStats,
 }) => {
   if (loading) {
     return (
@@ -277,6 +302,7 @@ const RiderListPanel: React.FC<RiderListPanelProps> = ({
               rider={rider}
               selected={rider.riderId === selectedRiderId}
               onSelect={onSelect}
+              eta={routeStats[rider.riderId]}
             />
           ))}
         </>
@@ -290,6 +316,7 @@ const RiderListPanel: React.FC<RiderListPanelProps> = ({
               rider={rider}
               selected={rider.riderId === selectedRiderId}
               onSelect={onSelect}
+              eta={routeStats[rider.riderId]}
             />
           ))}
         </>
@@ -324,8 +351,11 @@ const RiderCard: React.FC<{
   rider:    RiderLocation;
   selected: boolean;
   onSelect: (rider: RiderLocation) => void;
-}> = ({ rider, selected, onSelect }) => {
+  eta?:     RouteStats;
+}> = ({ rider, selected, onSelect, eta }) => {
   const isOngoingRide = rider.active && rider.status === "ongoing";
+  const stops = rider.stops ?? [];
+  const currentStop = rider.currentStop ?? 0;
 
   return (
     <button
@@ -410,12 +440,72 @@ const RiderCard: React.FC<{
         </span>
       </div>
 
-      {/* ── Destination chip ── */}
-      {rider.dest_name && (
-        <div className="mt-1.5 pl-1 flex items-center space-x-1 text-xs text-teal-700 bg-teal-50 border border-teal-100 rounded px-1.5 py-0.5 min-w-0">
-          <span className="flex-shrink-0">→</span>
-          <span className="truncate font-medium">{rider.dest_name}</span>
+      {/* ── Itinerary: every stop in visit order, with live status ── */}
+      {stops.length > 0 ? (
+        <div className="mt-1.5 pl-1">
+          <div className="flex items-center justify-between mb-1">
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-gray-400">
+              Route · {stops.length} stop{stops.length > 1 ? "s" : ""}
+            </span>
+            {isOngoingRide && (
+              <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-blue-100 text-blue-700 font-semibold">
+                {Math.min(currentStop + 1, stops.length)}/{stops.length}
+              </span>
+            )}
+          </div>
+          <div className="space-y-1 max-h-36 overflow-y-auto pr-0.5">
+            {stops.map((stop, i) => {
+              const isCurrent = isOngoingRide && !stop.arrived && i === currentStop;
+              return (
+                <div
+                  key={i}
+                  className={`flex items-center gap-1.5 text-xs rounded border px-1.5 py-1 min-w-0 ${
+                    stop.arrived
+                      ? "bg-green-50 border-green-100 text-green-700"
+                      : isCurrent
+                        ? "bg-blue-50 border-blue-200 text-blue-700"
+                        : "bg-gray-50 border-gray-100 text-gray-500"
+                  }`}
+                >
+                  <span
+                    className={`flex-shrink-0 w-4 h-4 rounded-full flex items-center justify-center text-[10px] font-bold text-white ${
+                      stop.arrived ? "bg-green-500" : isCurrent ? "bg-blue-500" : "bg-gray-300"
+                    }`}
+                  >
+                    {stop.arrived ? "✓" : i + 1}
+                  </span>
+                  <span className="truncate font-medium flex-1">{stop.name}</span>
+                  <span className="flex-shrink-0 text-[10px] font-semibold">
+                    {stop.arrived
+                      ? "visited"
+                      : isCurrent
+                        ? eta?.etaNextSec != null
+                          ? `~${fmtEta(eta.etaNextSec)}`
+                          : "en route"
+                        : "next"}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+          {isOngoingRide && eta && (
+            <p className="mt-1 text-[10px] text-gray-400">
+              Full run: ~{fmtEta(eta.etaTotalSec)} · {eta.distRemainKm.toFixed(1)} km left
+            </p>
+          )}
         </div>
+      ) : (
+        rider.dest_name && (
+          <div className="mt-1.5 pl-1 flex items-center space-x-1 text-xs text-teal-700 bg-teal-50 border border-teal-100 rounded px-1.5 py-0.5 min-w-0">
+            <span className="flex-shrink-0">→</span>
+            <span className="truncate font-medium">{rider.dest_name}</span>
+            {isOngoingRide && eta?.etaNextSec != null && (
+              <span className="flex-shrink-0 ml-auto font-semibold">
+                ~{fmtEta(eta.etaNextSec)}
+              </span>
+            )}
+          </div>
+        )
       )}
 
       {/* ── Last seen ── */}
@@ -502,67 +592,153 @@ const LiveMapHeader: React.FC<HeaderProps> = ({
 const RiderMapLayer: React.FC<{
   rider:    RiderLocation;
   onSelect: (rider: RiderLocation) => void;
-}> = ({ rider, onSelect }) => {
+  onRouteStats: (riderId: string, stats: RouteStats | null) => void;
+}> = ({ rider, onSelect, onRouteStats }) => {
   const [startRouteCoords, setStartRouteCoords] = useState<[number, number][]>([]);
-  const [destRouteCoords,  setDestRouteCoords]  = useState<[number, number][]>([]);
-  const lastFetchedPosRef = useRef<{ lat: number; lng: number } | null>(null);
+  const [destRouteLegs,    setDestRouteLegs]    = useState<[number, number][][]>([]);
+  const [stats,            setStats]            = useState<RouteStats | null>(null);
+  const lastFetchedPosRef  = useRef<{ lat: number; lng: number } | null>(null);
+  const lastStopIndexRef   = useRef<number | null>(null);
 
-  const hasStartPin =
-    rider.status === "ongoing" &&
-    rider.start_lat !== 0 &&
-    rider.start_lng !== 0;
+  const reportStats = (s: RouteStats | null) => {
+    setStats(s);
+    onRouteStats(rider.riderId, s);
+  };
+
+  const stops        = rider.stops ?? [];
+  const currentStop  = rider.currentStop ?? 0;
+  const isBatch      = stops.length > 1;
+  const isOngoing    = rider.status === "ongoing";
+  // Actual traveled path reported by the rider's GPS (breadcrumbs)
+  const traveled     = rider.route ?? [];
+  // Remaining stops the rider still has to visit (current one first)
+  const remainingStops = isOngoing ? stops.slice(currentStop) : [];
 
   const hasDestination =
     rider.dest_lat != null &&
     rider.dest_lng != null;
 
+  // Waypoints still ahead of the rider, in visit order (stops win over the
+  // single-destination fallback). One route leg is drawn per waypoint.
+  const remainingPoints: [number, number][] =
+    remainingStops.length > 0
+      ? remainingStops.map((s): [number, number] => [s.lat, s.lng])
+      : isOngoing && hasDestination
+        ? [[rider.dest_lat!, rider.dest_lng!]]
+        : [];
+  // Name of the machine/destination each leg ends at
+  const legEndName = (i: number): string | null =>
+    remainingStops.length > 0 ? remainingStops[i]?.name ?? null : rider.dest_name;
+
+  const hasStartPin =
+    isOngoing &&
+    rider.start_lat !== 0 &&
+    rider.start_lng !== 0;
+
   useEffect(() => {
     const last = lastFetchedPosRef.current;
-    if (last && geoDistMeters(last.lat, last.lng, rider.lat, rider.lng) < 100) return;
+    const stopChanged = lastStopIndexRef.current !== currentStop;
+    if (
+      !stopChanged &&
+      last &&
+      geoDistMeters(last.lat, last.lng, rider.lat, rider.lng) < 100
+    ) return;
     lastFetchedPosRef.current = { lat: rider.lat, lng: rider.lng };
+    lastStopIndexRef.current = currentStop;
 
-    if (hasStartPin) {
+    // Only OSRM-guess the covered path when we have no real breadcrumbs.
+    if (hasStartPin && traveled.length < 2) {
       fetchOSRMRoute(rider.start_lat, rider.start_lng, rider.lat, rider.lng)
         .then((d) => { if (d) setStartRouteCoords(d.coords); });
     }
-    if (hasDestination && rider.status === "ongoing") {
-      fetchOSRMRoute(rider.lat, rider.lng, rider.dest_lat!, rider.dest_lng!)
-        .then((d) => { if (d) setDestRouteCoords(d.coords); });
+    // Full remaining run: rider → stop 1 → stop 2 → … (or → destination),
+    // returned as one leg per waypoint so each leg is drawn separately.
+    if (isOngoing && remainingPoints.length > 0) {
+      fetchOSRMRouteMulti([[rider.lat, rider.lng], ...remainingPoints]).then((d) => {
+        if (!d) return;
+        setDestRouteLegs(d.legCoords);
+        reportStats({
+          etaNextSec: d.legDurationsSec[0] ?? d.durationSec,
+          etaTotalSec: d.durationSec,
+          distRemainKm: d.distanceMeters / 1000,
+        });
+      });
     }
-  }, [rider.lat, rider.lng, rider.start_lat, rider.start_lng, rider.dest_lat, rider.dest_lng, hasStartPin, hasDestination, rider.status]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [rider.lat, rider.lng, rider.start_lat, rider.start_lng, rider.dest_lat, rider.dest_lng, hasStartPin, hasDestination, rider.status, currentStop, stops.length]);
+
+  // Drop stale ETAs when the ride ends or this rider unmounts
+  useEffect(() => {
+    if (!isOngoing) reportStats(null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOngoing, rider.riderId]);
+  useEffect(() => {
+    return () => onRouteStats(rider.riderId, null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [rider.riderId]);
 
   const displayName = rider.riderName || rider.riderId;
 
   return (
     <React.Fragment>
+      {/* Covered path: real GPS breadcrumbs when available, OSRM guess otherwise */}
       {hasStartPin && (
         <Polyline
           positions={
-            startRouteCoords.length > 1
-              ? startRouteCoords
-              : [[rider.start_lat, rider.start_lng], [rider.lat, rider.lng]]
+            traveled.length > 1
+              ? [
+                  ...traveled.map((p): [number, number] => [p.lat, p.lng]),
+                  [rider.lat, rider.lng],
+                ]
+              : startRouteCoords.length > 1
+                ? startRouteCoords
+                : [[rider.start_lat, rider.start_lng], [rider.lat, rider.lng]]
           }
           pathOptions={{
             color:     rider.active ? "#0d9488" : "#9ca3af",
             weight:    3,
             opacity:   0.7,
-            dashArray: startRouteCoords.length > 1 ? undefined : "6 4",
+            dashArray: traveled.length > 1 || startRouteCoords.length > 1 ? undefined : "6 4",
           }}
         />
       )}
 
-      {hasDestination && rider.status === "ongoing" && (
-        <Polyline
-          positions={
-            destRouteCoords.length > 1
-              ? destRouteCoords
-              : [[rider.lat, rider.lng], [rider.dest_lat!, rider.dest_lng!]]
-          }
-          pathOptions={{
-            color: "#f59e0b", weight: 4, opacity: 0.85, lineJoin: "round"
-          }}
-        />
-      )}
+      {/*
+        Full remaining run drawn one thick leg at a time so the admin sees the
+        whole plan: rider → stop 1 (blue, heading now) → stop 2 → stop 3 (amber,
+        upcoming). Falls back to straight dashed legs while OSRM loads/fails.
+      */}
+      {isOngoing && remainingPoints.length > 0 &&
+        (destRouteLegs.length > 0
+          ? destRouteLegs
+          : straightLegs([[rider.lat, rider.lng] as [number, number], ...remainingPoints])
+        ).map((leg, i) => {
+          const isCurrentLeg = i === 0;
+          const stopName = legEndName(i);
+          const isRouted = destRouteLegs.length > 0;
+          return (
+            <Polyline
+              key={`${rider.riderId}-leg-${i}`}
+              positions={leg}
+              pathOptions={{
+                color:     isCurrentLeg ? "#2563eb" : "#f59e0b",
+                weight:    isCurrentLeg ? 7 : 5,
+                opacity:   isCurrentLeg ? 0.9 : 0.75,
+                dashArray: isRouted ? undefined : "8 6",
+                lineJoin:  "round",
+                lineCap:   "round",
+              }}
+            >
+              <Tooltip sticky>
+                <span className="text-xs font-semibold">
+                  {isCurrentLeg
+                    ? `🏍️ ${displayName} heading now${stopName ? ` → ${stopName}` : ""}`
+                    : `Then stop ${currentStop + i + 1}${stopName ? ` → ${stopName}` : ""}`}
+                </span>
+              </Tooltip>
+            </Polyline>
+          );
+        })}
 
       {hasStartPin && (
         <Marker position={[rider.start_lat, rider.start_lng]} icon={createStartIcon()}>
@@ -580,20 +756,53 @@ const RiderMapLayer: React.FC<{
         </Marker>
       )}
 
-      {hasDestination && (
-        <Marker
-          position={[rider.dest_lat!, rider.dest_lng!]}
-          icon={createDestinationIcon(rider.dest_name)}
-        >
-          <Popup>
-            <div className="text-sm space-y-1">
-              <p className="font-bold text-amber-600">🏁 Destination</p>
-              <p className="font-medium">{rider.dest_name ?? "Unknown"}</p>
-              <p className="text-gray-500 text-xs">Rider: {displayName}</p>
-            </div>
-          </Popup>
-        </Marker>
-      )}
+      {/* Batch / stop-based ride: one numbered pin per stop */}
+      {stops.length > 0
+        ? stops.map((stop, i) => (
+            <Marker
+              key={`${rider.riderId}-stop-${i}`}
+              position={[stop.lat, stop.lng]}
+              icon={createStopIcon(
+                i,
+                stop.arrived ? "arrived" : i === currentStop && isOngoing ? "current" : "pending",
+                stop.name
+              )}
+            >
+              <Popup>
+                <div className="text-sm space-y-1">
+                  <p className="font-bold text-amber-600">
+                    {stop.arrived ? "✅" : "📍"} Stop {i + 1} of {stops.length}
+                  </p>
+                  <p className="font-medium">{stop.name}</p>
+                  {stop.machineCode && (
+                    <p className="text-gray-500 text-xs">Machine: {stop.machineCode}</p>
+                  )}
+                  <p className="text-gray-500 text-xs">
+                    {stop.arrived
+                      ? "Visited"
+                      : i === currentStop && isOngoing
+                        ? "Heading here now"
+                        : "Pending"}
+                  </p>
+                  <p className="text-gray-500 text-xs">Rider: {displayName}</p>
+                </div>
+              </Popup>
+            </Marker>
+          ))
+        : hasDestination && (
+            <Marker
+              position={[rider.dest_lat!, rider.dest_lng!]}
+              icon={createDestinationIcon(rider.dest_name)}
+            >
+              <Popup>
+                <div className="text-sm space-y-1">
+                  <p className="font-bold text-amber-600">🏁 Destination</p>
+                  <p className="font-medium">{rider.dest_name ?? "Unknown"}</p>
+                  <p className="text-gray-500 text-xs">Rider: {displayName}</p>
+                </div>
+              </Popup>
+            </Marker>
+          )}
 
       <Marker
         position={[rider.lat, rider.lng]}
@@ -608,8 +817,21 @@ const RiderMapLayer: React.FC<{
             <p>Ride: {rider.status === "ongoing" ? "🔵 Ongoing" : "✅ Completed"}</p>
             <p>Speed: {rider.speed.toFixed(1)} km/h</p>
             <p>Distance: {rider.total_distance ? `${rider.total_distance.toFixed(2)} km` : "N/A"}</p>
+            {isBatch && isOngoing && (
+              <p className="text-blue-600 font-medium">
+                🗺 Stop {Math.min(currentStop + 1, stops.length)} of {stops.length}
+              </p>
+            )}
             {rider.dest_name && (
-              <p className="text-amber-600 font-medium">→ {rider.dest_name}</p>
+              <p className="text-amber-600 font-medium">
+                → {rider.dest_name}
+                {isOngoing && stats?.etaNextSec != null && ` · ~${fmtEta(stats.etaNextSec)}`}
+              </p>
+            )}
+            {isBatch && isOngoing && stats && (
+              <p className="text-gray-500 text-xs">
+                Full run: ~{fmtEta(stats.etaTotalSec)} · {stats.distRemainKm.toFixed(1)} km left
+              </p>
             )}
             {rider.updatedAt && (
               <p className="text-gray-400 text-xs">
@@ -666,32 +888,20 @@ const XIcon: React.FC = () => (
   </svg>
 );
 
+const fmtEta = (secs: number) => {
+  const m = Math.round(secs / 60);
+  if (m < 1) return "<1 min";
+  if (m < 60) return `${m} min`;
+  const h = Math.floor(m / 60);
+  return `${h}h ${m % 60}m`;
+};
+
 const fmtElapsed = (secs: number) => {
   const h = Math.floor(secs / 3600);
   const m = Math.floor((secs % 3600) / 60);
   if (h > 0) return `${h}h ${m}m`;
   if (m > 0) return `${m}m`;
   return "<1m";
-};
-
-const fetchOSRMRoute = async (
-  startLat: number, startLng: number,
-  endLat: number,   endLng: number,
-): Promise<{ coords: [number, number][] } | null> => {
-  try {
-    const res = await fetch(
-      `https://router.project-osrm.org/route/v1/driving/${startLng},${startLat};${endLng},${endLat}?overview=full&geometries=geojson`,
-    );
-    const data = await res.json();
-    if (data.code !== "Ok" || !data.routes?.[0]) return null;
-    return {
-      coords: data.routes[0].geometry.coordinates.map(
-        ([lng, lat]: [number, number]) => [lat, lng] as [number, number],
-      ),
-    };
-  } catch {
-    return null;
-  }
 };
 
 const geoDistMeters = (lat1: number, lon1: number, lat2: number, lon2: number): number => {

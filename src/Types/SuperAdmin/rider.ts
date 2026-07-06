@@ -1,3 +1,11 @@
+export interface RideStop {
+  machineCode: string | null;
+  name: string;
+  lat: number;
+  lng: number;
+  arrived: boolean;
+}
+
 export interface RiderLocation {
   riderId: string;
   lat: number;
@@ -15,6 +23,11 @@ export interface RiderLocation {
   dest_lat: number | null;
   dest_lng: number | null;
   dest_name: string | null;
+  mode?: "single" | "batch";
+  stops?: RideStop[];
+  currentStop?: number;
+  /** Breadcrumb trail of positions the rider has actually traveled. */
+  route?: { lat: number; lng: number }[];
 }
 
 export interface RideHistory {
@@ -31,6 +44,10 @@ export interface RideHistory {
   total_distance_km: string;
   duration_seconds: number | null;
   created_at: string;
+  /** Machine stops visited on this ride, in visit order. */
+  stops?: RideStop[];
+  /** GPS breadcrumb trail the rider actually traveled. */
+  route_path?: { lat: number; lng: number }[];
 }
 
 export interface RideHistoryPagination {

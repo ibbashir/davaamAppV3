@@ -19,7 +19,9 @@ import {
 import React from "react";
 
 export const BASE_URL_TWO = "https://api.davaam.app/";
+// export const BASE_URL_TWO = "http://localhost:4000/";
 export const BASE_URL = "https://api.davaam.app/api/dashboard";
+// export const BASE_URL = "http://localhost:4000/api/dashboard";
 export const SOCKET_URL = "https://api.davaam.app";
 export const BASE_URL_STOCK = "https://api.davaam.app/api/smsPortal/stockApp";
 export const BASE_URL_STOCK_AUTH = "https://api.davaam.app/api/smsPortal/stockAuth";

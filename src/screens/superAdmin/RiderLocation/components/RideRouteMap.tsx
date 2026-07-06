@@ -1,35 +1,20 @@
 import React, { useEffect, useState } from "react";
-import { MapContainer, TileLayer, Marker, Popup, Polyline } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, Popup, Polyline, Tooltip } from "react-leaflet";
 import type { RideHistory } from "@/Types/SuperAdmin/rider";
-import { createStartIcon, createEndIcon } from "@/constants/mapIcons";
+import { createStartIcon, createEndIcon, createStopIcon } from "@/constants/mapIcons";
 import { FitBounds } from "./MapControls";
 import { formatDateTime, isValidCoord } from "@/utils/formatters";
+import { fetchOSRMRouteMulti, straightLegs } from "@/utils/osrm";
 
 interface Props {
   ride: RideHistory;
 }
 
-const fetchOSRMRoute = async (
-  startLat: number, startLng: number,
-  endLat: number,   endLng: number,
-): Promise<[number, number][] | null> => {
-  try {
-    const res = await fetch(
-      `https://router.project-osrm.org/route/v1/driving/${startLng},${startLat};${endLng},${endLat}?overview=full&geometries=geojson`,
-    );
-    const data = await res.json();
-    if (data.code !== "Ok" || !data.routes?.[0]) return null;
-    return data.routes[0].geometry.coordinates.map(
-      ([lng, lat]: [number, number]) => [lat, lng] as [number, number],
-    );
-  } catch {
-    return null;
-  }
-};
-
 /**
- * Renders a small embedded map showing the start → end route for a single ride.
- * Uses OSRM to draw the real road path instead of a straight line.
+ * Embedded map replaying a completed ride, matching the live-tracking map:
+ *  - numbered pins for every machine stop (with machine names)
+ *  - the actual GPS breadcrumb trail when it was recorded
+ *  - otherwise a road route drawn leg-by-leg: start → stop 1 → stop 2 → … → end
  * Gracefully handles rides with missing or zeroed-out coordinates.
  */
 const RideRouteMap: React.FC<Props> = ({ ride }) => {
@@ -41,32 +26,52 @@ const RideRouteMap: React.FC<Props> = ({ ride }) => {
   const hasStart = isValidCoord(ride.start_lat, ride.start_lng);
   const hasEnd   = isValidCoord(ride.end_lat,   ride.end_lng);
 
-  const fallbackPositions: [number, number][] = [
+  const stops    = ride.stops ?? [];
+  const traveled = ride.route_path ?? [];
+
+  // Waypoints in visit order: start → each stop → end
+  const waypoints: [number, number][] = [
     ...(hasStart ? [[startLat, startLng] as [number, number]] : []),
-    ...(hasEnd   ? [[endLat,   endLng  ] as [number, number]] : []),
+    ...stops.map((s): [number, number] => [s.lat, s.lng]),
+    ...(hasEnd ? [[endLat, endLng] as [number, number]] : []),
   ];
 
   const center: [number, number] = hasStart
     ? [startLat, startLng]
     : [24.8607, 67.0011]; // fallback: Karachi
 
-  const [routeCoords, setRouteCoords] = useState<[number, number][] | null>(null);
+  const [routeLegs,    setRouteLegs]    = useState<[number, number][][]>([]);
   const [routeLoading, setRouteLoading] = useState(false);
 
+  // Only ask OSRM for the road path when we have no real breadcrumbs
+  const needsOSRM = traveled.length < 2 && waypoints.length >= 2;
+
   useEffect(() => {
-    if (!hasStart || !hasEnd) return;
+    if (!needsOSRM) return;
 
     setRouteLoading(true);
-    setRouteCoords(null);
+    setRouteLegs([]);
 
-    fetchOSRMRoute(startLat, startLng, endLat, endLng)
-      .then((coords) => setRouteCoords(coords))
+    fetchOSRMRouteMulti(waypoints)
+      .then((d) => { if (d) setRouteLegs(d.legCoords); })
       .finally(() => setRouteLoading(false));
-  }, [ride.id, startLat, startLng, endLat, endLng, hasStart, hasEnd]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ride.id]);
 
-  // Use OSRM route if available, otherwise fall back to straight dashed line
-  const polylinePositions = routeCoords ?? (fallbackPositions.length === 2 ? fallbackPositions : null);
-  const isRoutedPath      = !!routeCoords;
+  // Name of the point each OSRM leg ends at (stop 1..n, then End)
+  const legEndLabel = (i: number): string => {
+    const stop = stops[i];
+    if (stop) return `Stop ${i + 1}: ${stop.name}`;
+    return "End point";
+  };
+
+  // Everything the camera should frame
+  const boundsPositions: [number, number][] = [
+    ...waypoints,
+    ...traveled.map((p): [number, number] => [p.lat, p.lng]),
+  ];
+
+  const showFallbackLegs = needsOSRM && !routeLoading && routeLegs.length === 0;
 
   return (
     <MapContainer center={center} zoom={14} style={{ height: "100%", width: "100%" }}>
@@ -75,19 +80,47 @@ const RideRouteMap: React.FC<Props> = ({ ride }) => {
         url="https://tiles.locationiq.com/v3/streets/r/{z}/{x}/{y}.png?key=pk.b32f17b2ac79ace43426c2a0d2fefedd"
       />
 
-      {polylinePositions && (
+      {/* Actual traveled GPS trail — the truest record of the ride */}
+      {traveled.length > 1 && (
         <Polyline
-          positions={polylinePositions}
+          positions={traveled.map((p): [number, number] => [p.lat, p.lng])}
           pathOptions={{
-            color:     "#6366f1",
-            weight:    isRoutedPath ? 5 : 4,
-            opacity:   0.85,
-            // Dashed only for fallback straight line; solid for real road route
-            dashArray: isRoutedPath ? undefined : "8 4",
-            lineJoin:  "round",
+            color: "#0d9488", weight: 6, opacity: 0.85,
+            lineJoin: "round", lineCap: "round",
           }}
-        />
+        >
+          <Tooltip sticky>
+            <span className="text-xs font-semibold">Traveled path</span>
+          </Tooltip>
+        </Polyline>
       )}
+
+      {/* Road route leg-by-leg when no breadcrumbs were recorded */}
+      {(routeLegs.length > 0
+        ? routeLegs
+        : showFallbackLegs
+          ? straightLegs(waypoints)
+          : []
+      ).map((leg, i) => (
+        <Polyline
+          key={`${ride.id}-leg-${i}`}
+          positions={leg}
+          pathOptions={{
+            color:     i % 2 === 0 ? "#6366f1" : "#8b5cf6",
+            weight:    5,
+            opacity:   0.85,
+            dashArray: routeLegs.length > 0 ? undefined : "8 6",
+            lineJoin:  "round",
+            lineCap:   "round",
+          }}
+        >
+          <Tooltip sticky>
+            <span className="text-xs font-semibold">
+              Leg {i + 1} → {legEndLabel(i)}
+            </span>
+          </Tooltip>
+        </Polyline>
+      ))}
 
       {hasStart && (
         <Marker position={[startLat, startLng]} icon={createStartIcon()}>
@@ -101,7 +134,31 @@ const RideRouteMap: React.FC<Props> = ({ ride }) => {
         </Marker>
       )}
 
-      {hasEnd && ride.status === "completed" && (
+      {/* Numbered pin per machine stop, in visit order */}
+      {stops.map((stop, i) => (
+        <Marker
+          key={`${ride.id}-stop-${i}`}
+          position={[stop.lat, stop.lng]}
+          icon={createStopIcon(i, stop.arrived ? "arrived" : "pending", stop.name)}
+        >
+          <Popup>
+            <div className="text-sm space-y-1">
+              <p className="font-bold text-amber-600">
+                {stop.arrived ? "✅" : "📍"} Stop {i + 1} of {stops.length}
+              </p>
+              <p className="font-medium">{stop.name}</p>
+              {stop.machineCode && (
+                <p className="text-gray-500 text-xs">Machine: {stop.machineCode}</p>
+              )}
+              <p className="text-gray-500 text-xs">
+                {stop.arrived ? "Visited" : "Not visited"}
+              </p>
+            </div>
+          </Popup>
+        </Marker>
+      ))}
+
+      {hasEnd && ride.status?.toLowerCase() === "completed" && (
         <Marker position={[endLat, endLng]} icon={createEndIcon()}>
           <Popup>
             <div className="text-sm space-y-0.5">
@@ -113,7 +170,7 @@ const RideRouteMap: React.FC<Props> = ({ ride }) => {
         </Marker>
       )}
 
-      {fallbackPositions.length >= 2 && <FitBounds positions={fallbackPositions} />}
+      {boundsPositions.length >= 2 && <FitBounds positions={boundsPositions} />}
 
       {/* Loading indicator while fetching route */}
       {routeLoading && (
@@ -132,7 +189,7 @@ const RideRouteMap: React.FC<Props> = ({ ride }) => {
         </div>
       )}
 
-      {!hasStart && !hasEnd && (
+      {!hasStart && !hasEnd && stops.length === 0 && (
         <div style={{
           position: "absolute", inset: 0, zIndex: 9999,
           display: "flex", alignItems: "center", justifyContent: "center",

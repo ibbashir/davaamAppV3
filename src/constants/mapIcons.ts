@@ -94,6 +94,36 @@ export const createDestinationIcon = (name: string | null) =>
     popupAnchor: [0, -14],
   });
 
+/** Numbered pin for a batch-ride stop: pending (amber), current (blue), arrived (green). */
+export const createStopIcon = (
+  index: number,
+  state: "pending" | "current" | "arrived",
+  name: string | null
+) => {
+  const color =
+    state === "arrived" ? "#10b981" : state === "current" ? "#3b82f6" : "#f59e0b";
+  const label = state === "arrived" ? "✓" : String(index + 1);
+
+  return L.divIcon({
+    html: `
+      <div style="display:flex;flex-direction:column;align-items:center;">
+        <div style="width:22px;height:22px;background-color:${color};border:2px solid white;
+          border-radius:50%;box-shadow:0 1px 4px rgba(0,0,0,0.4);display:flex;
+          align-items:center;justify-content:center;color:white;font-size:11px;
+          font-weight:700;">${label}</div>
+        <div style="margin-top:2px;background-color:${color};color:white;font-size:9px;
+          font-weight:600;padding:1px 5px;border-radius:999px;white-space:nowrap;
+          box-shadow:0 1px 3px rgba(0,0,0,0.3);max-width:90px;overflow:hidden;text-overflow:ellipsis;">
+          ${name ? name.slice(0, 16) : `Stop ${index + 1}`}
+        </div>
+      </div>`,
+    className: "",
+    iconSize: [22, 38],
+    iconAnchor: [11, 11],
+    popupAnchor: [0, -14],
+  });
+};
+
 /** Small red dot labelled "End". */
 export const createEndIcon = () =>
   L.divIcon({

@@ -8,7 +8,7 @@ interface Props {
  * Pill badge that visually distinguishes ongoing vs completed rides.
  */
 const RideStatusBadge: React.FC<Props> = ({ status }) => {
-  const isOngoing = status === "ongoing";
+  const isOngoing = status?.toLowerCase() === "ongoing";
   return (
     <span
       className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${

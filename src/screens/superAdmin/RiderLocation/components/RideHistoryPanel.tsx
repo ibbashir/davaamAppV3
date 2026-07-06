@@ -49,7 +49,7 @@ const RideHistoryPanel: React.FC<Props> = ({ onClose }) => {
   const filtered = history.filter((ride) => {
     const rideStart = new Date(ride.start_time).getTime();
     return (
-      (filterStatus === "all" || ride.status === filterStatus) &&
+      (filterStatus === "all" || ride.status?.toLowerCase() === filterStatus) &&
       (!filterUserId || String(ride.user_id).includes(filterUserId.trim())) &&
       (!startDate || rideStart >= new Date(startDate).getTime()) &&
       (!endDate   || rideStart <= new Date(endDate).getTime() + 86_400_000)
@@ -206,7 +206,7 @@ const RideTable: React.FC<{
   <table className="w-full text-sm">
     <thead className="bg-gray-50 sticky top-0 z-10">
       <tr>
-        {["#", "Username", "Status", "Start Time", "End Time", "Duration", "Distance", "Route"].map(
+        {["#", "Username", "Status", "Stops", "Start Time", "End Time", "Duration", "Distance", "Route"].map(
           (heading) => (
             <th
               key={heading}
@@ -230,16 +230,31 @@ const RideTableRow: React.FC<{
   ride: RideHistory;
   onViewMap: (ride: RideHistory) => void;
 }> = ({ ride, onViewMap }) => {
-  const endTime = ride.status === "completed" ? ride.end_time : undefined;
+  const isCompleted = ride.status?.toLowerCase() === "completed";
+  const endTime = isCompleted ? ride.end_time : undefined;
+  const stops = ride.stops ?? [];
+  const visited = stops.filter((s) => s.arrived).length;
 
   return (
     <tr className="hover:bg-gray-50 transition">
       <td className="px-4 py-3 text-gray-400 text-xs">{ride.id}</td>
       <td className="px-4 py-3 font-medium text-gray-800">{ride.username}</td>
       <td className="px-4 py-3"><RideStatusBadge status={ride.status} /></td>
+      <td className="px-4 py-3">
+        {stops.length > 0 ? (
+          <span
+            className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 text-xs font-medium whitespace-nowrap"
+            title={stops.map((s, i) => `${i + 1}. ${s.name}${s.arrived ? " ✓" : ""}`).join("\n")}
+          >
+            🗺 {visited}/{stops.length}
+          </span>
+        ) : (
+          <span className="text-gray-300 text-xs">—</span>
+        )}
+      </td>
       <td className="px-4 py-3 text-gray-600">{formatDateTime(ride.start_time)}</td>
       <td className="px-4 py-3 text-gray-600">
-        {ride.status === "completed" ? formatDateTime(ride.end_time) : "—"}
+        {isCompleted ? formatDateTime(ride.end_time) : "—"}
       </td>
       <td className="px-4 py-3 text-gray-600">
         {formatDuration(ride.start_time, endTime)}
