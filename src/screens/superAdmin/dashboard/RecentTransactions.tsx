@@ -1,5 +1,6 @@
 import type React from "react";
 import { useState, useEffect } from "react";
+import moment from "moment";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
@@ -526,8 +527,9 @@ const RecentTransactions = () => {
                       <TableCell className="text-sm tabular-nums">
                         <span className="flex items-center gap-1.5">
                           <Calendar className="size-3.5 text-teal-600 shrink-0" />
-                          {formatDateTime(transaction.created_at)}
-                        </span>
+                          {moment
+                            .utc(transaction.created_at)
+                            .format("DD-MM-YYYY - HH:mm:ss")}                        </span>
                       </TableCell>
                     </TableRow>
                   ))
