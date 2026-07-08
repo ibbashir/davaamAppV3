@@ -160,7 +160,13 @@ import {
   OPS_RIDER_LOCATION,
   Fulfill_RIDER_LOCATION,
   SUPERADMIN_SURVEY_FORM,
+  SUPERADMIN_ALERT_MACHINE_DETAIL,
   ADMIN_BUTTERFLY_PRODUCTS,
+  ADMIN_ALERT_SYSTEM,
+  ADMIN_ALERT_MACHINE_DETAIL,
+  OPS_ALERT_SYSTEM,
+  OPS_ALERT_MACHINE_DETAIL,
+  SUPERADMIN_ALERT_SYSTEM,
 } from '@/constants/Constant'
 
 import ResetPassword from '@/screens/forgetPassword/ResetPassword'
@@ -171,6 +177,8 @@ import AdminRiderLocation from '@/screens/admin/RiderLocation/AdminRiderLocation
 import ButterflyProducts from '@/screens/admin/butterflyProducts/butterflyProducts'
 import OpsRiderLocation from '@/screens/ops/RiderLocation/OpsRiderLocation'
 import FulfillmentRiderLocation from '@/screens/fulfillment/RiderLocation/FulfilmentRiderLocation'
+import { AlertSystem } from '@/screens/superAdmin/AlertSystem/AlertSystem'
+import { MachineAlertDetail } from '@/screens/superAdmin/AlertSystem/MachineAlertDetail'
 
 const Routing = () => {
   return (
@@ -207,6 +215,8 @@ const Routing = () => {
           <Route path={SUPERADMIN_KNOWLEDGE_BASE} element={<KnowledgeBase />} />
           <Route path={SUPERADMIN_USER_ANALYSIS} element={<SuperAdminUserAnalysis />} />
           <Route path={SUPERADMIN_SURVEY_FORM} element={<SurveyForm />} />
+          <Route path={SUPERADMIN_ALERT_SYSTEM} element={<AlertSystem />} />
+          <Route path={SUPERADMIN_ALERT_MACHINE_DETAIL} element={<MachineAlertDetail />} />
         </Route>
       </Route>
 
@@ -227,6 +237,8 @@ const Routing = () => {
           <Route path={ADMIN_CASH_COLLECTION} element={<AdminCashCollectionPage />} />
           <Route path={ADMIN_RIDER_LOCATION} element={<AdminRiderLocation />}/> 
           <Route path={ADMIN_BUTTERFLY_PRODUCTS} element={<ButterflyProducts />}/>
+          <Route path={ADMIN_ALERT_SYSTEM} element={<AlertSystem />} />
+          <Route path={ADMIN_ALERT_MACHINE_DETAIL} element={<MachineAlertDetail />} />
         </Route>
       </Route>
 
@@ -244,6 +256,8 @@ const Routing = () => {
           <Route path={OPS_MACHINE_MAP} element={<OpsMachineMap />} />
           <Route path={OPS_CASH_COLLECTION} element={<OpsCashCollectionPage />} />
           <Route path={OPS_RIDER_LOCATION} element={<OpsRiderLocation />}/>
+          <Route path={OPS_ALERT_SYSTEM} element={<AlertSystem />} />
+          <Route path={OPS_ALERT_MACHINE_DETAIL} element={<MachineAlertDetail />} />
         </Route>
       </Route>
 

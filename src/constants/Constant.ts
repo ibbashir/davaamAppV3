@@ -56,6 +56,8 @@ export const SUPERADMIN_ADD_EMPLOYEES = "/superadmin/add-employees";
 export const SUPERADMIN_DELETE_EMPLOYEES = "/superadmin/delete-employees";
 export const SUPERADMIN_USER_ANALYSIS = "/superadmin/userAnalysis";
 export const SUPERADMIN_SURVEY_FORM = "/superadmin/survey-form";
+export const SUPERADMIN_ALERT_SYSTEM = "/superadmin/alert-system";
+export const SUPERADMIN_ALERT_MACHINE_DETAIL = "/superadmin/alert-system/machine/:machineCode";
 
 // ADMIN PATHS
 export const ADMIN_DASHBOARD = "/admin/dashboard";
@@ -73,6 +75,8 @@ export const ADMIN_MACHINE_MAP = "/admin/machine-map";
 export const ADMIN_CASH_COLLECTION = "/admin/cashCollection";
 export const ADMIN_RIDER_LOCATION = "/admin/riderLocation";
 export const ADMIN_BUTTERFLY_PRODUCTS="/admin/butterflyProducts"
+export const ADMIN_ALERT_SYSTEM = "/admin/alert-system";
+export const ADMIN_ALERT_MACHINE_DETAIL = "/admin/alert-system/machine/:machineCode";
 
 //OPS PATHS
 export const OPS_DASHBOARD = "/ops/dashboard";
@@ -87,6 +91,8 @@ export const OPS_MACHINE_VISIT = "/ops/machine-details/:id";
 export const OPS_MACHINE_MAP = "/ops/machine-map";
 export const OPS_CASH_COLLECTION = "/ops/cashCollection";
 export const OPS_RIDER_LOCATION = "/ops/riderLocation";
+export const OPS_ALERT_SYSTEM = "/ops/alert-system";
+export const OPS_ALERT_MACHINE_DETAIL = "/ops/alert-system/machine/:machineCode";
 
 // Fulfillment PATH
 export const FULFill_DASHBOARD = "/fulfill/dashboard";
@@ -178,6 +184,8 @@ export const SUPER_ADMIN_SIDEBAR_ROUTES = (activeRiderCount = 0) => {
     },
     { title: "Knowledge Base", url: SUPERADMIN_KNOWLEDGE_BASE, icon: IconFileDescription },
     { title: "Survey Forms", url: SUPERADMIN_SURVEY_FORM, icon: IconClipboardList },
+    { title: "Alert System", url: SUPERADMIN_ALERT_SYSTEM, icon: IconClipboardList },
+
     // { title: "Delete Corporate Employees", url: SUPERADMIN_DELETE_EMPLOYEES, icon: IconHexagonMinus },
   ];
 };
@@ -196,6 +204,7 @@ export const ADMIN_SIDEBAR_ROUTES = () => {
     { title: "Rider Locations", url: ADMIN_RIDER_LOCATION, icon: IconHexagonPlus },
     { title: "Cash Collection", url: ADMIN_CASH_COLLECTION, icon: IconCashBanknote },
     { title: "Butterfly Products", url: ADMIN_BUTTERFLY_PRODUCTS, icon: IconShare3 },
+    { title: "Alert System", url: ADMIN_ALERT_SYSTEM, icon: IconClipboardList },
   ];
 };
 
@@ -210,6 +219,7 @@ export const OPS_SIDEBAR_ROUTES = () => {
     { title: "Map Machines", url: OPS_MACHINE_MAP, icon: IconMapPin },
     { title: "Rider Locations", url: OPS_RIDER_LOCATION, icon: IconHexagonPlus },
     { title: "Cash Collection", url: OPS_CASH_COLLECTION, icon: IconCashBanknote },
+    { title: "Alert System", url: OPS_ALERT_SYSTEM, icon: IconClipboardList },
   ];
 };
 
