@@ -15,6 +15,7 @@ import {
   IconCashBanknote,
   IconReport,
   IconClipboardList,
+  IconRobot,
 } from "@tabler/icons-react";
 import React from "react";
 
@@ -58,6 +59,7 @@ export const SUPERADMIN_USER_ANALYSIS = "/superadmin/userAnalysis";
 export const SUPERADMIN_SURVEY_FORM = "/superadmin/survey-form";
 export const SUPERADMIN_ALERT_SYSTEM = "/superadmin/alert-system";
 export const SUPERADMIN_ALERT_MACHINE_DETAIL = "/superadmin/alert-system/machine/:machineCode";
+export const SUPERADMIN_ASK_CHATBOT = "/superadmin/askChatbot";
 
 // ADMIN PATHS
 export const ADMIN_DASHBOARD = "/admin/dashboard";
@@ -77,6 +79,7 @@ export const ADMIN_RIDER_LOCATION = "/admin/riderLocation";
 export const ADMIN_BUTTERFLY_PRODUCTS="/admin/butterflyProducts"
 export const ADMIN_ALERT_SYSTEM = "/admin/alert-system";
 export const ADMIN_ALERT_MACHINE_DETAIL = "/admin/alert-system/machine/:machineCode";
+export const ADMIN_ASK_CHATBOT = "/admin/askChatbot";
 
 //OPS PATHS
 export const OPS_DASHBOARD = "/ops/dashboard";
@@ -185,6 +188,7 @@ export const SUPER_ADMIN_SIDEBAR_ROUTES = (activeRiderCount = 0) => {
     { title: "Knowledge Base", url: SUPERADMIN_KNOWLEDGE_BASE, icon: IconFileDescription },
     { title: "Survey Forms", url: SUPERADMIN_SURVEY_FORM, icon: IconClipboardList },
     { title: "Alert System", url: SUPERADMIN_ALERT_SYSTEM, icon: IconClipboardList },
+    { title: "Ask Chatbot", url: SUPERADMIN_ASK_CHATBOT, icon: IconRobot },
 
     // { title: "Delete Corporate Employees", url: SUPERADMIN_DELETE_EMPLOYEES, icon: IconHexagonMinus },
   ];
@@ -205,6 +209,7 @@ export const ADMIN_SIDEBAR_ROUTES = () => {
     { title: "Cash Collection", url: ADMIN_CASH_COLLECTION, icon: IconCashBanknote },
     { title: "Butterfly Products", url: ADMIN_BUTTERFLY_PRODUCTS, icon: IconShare3 },
     { title: "Alert System", url: ADMIN_ALERT_SYSTEM, icon: IconClipboardList },
+    { title: "Ask Chatbot", url: ADMIN_ASK_CHATBOT, icon: IconRobot },
   ];
 };
 

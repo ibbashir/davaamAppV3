@@ -7,6 +7,8 @@ import SuperAdminDispensingBarChart from "../../../components/superAdmin/superAd
 import { Separator } from "../../../components/ui/separator"
 import { SectionCards } from "../../../components/superAdmin/section-cards"
 import { SiteHeader } from "../../../components/superAdmin/site-header"
+import { FloatingChatbotButton } from "@/components/floating-chatbot-button"
+import { SUPERADMIN_ASK_CHATBOT } from "@/constants/Constant"
 
 const Dashboard = () => {
     return (
@@ -66,6 +68,7 @@ const Dashboard = () => {
 
                 </div>
             </div>
+            <FloatingChatbotButton to={SUPERADMIN_ASK_CHATBOT} />
         </>
     )
 }

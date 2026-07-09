@@ -27,6 +27,7 @@ import KnowledgeBase from '@/screens/superAdmin/knowledgeBase/KnowledgeBase'
 import CorporateTopup from '@/screens/superAdmin/corporateTopup'
 import {SuperAdminUserAnalysis} from '@/screens/superAdmin/usersAnalysis/UserAnalysis'
 import SurveyForm from '@/screens/superAdmin/SurveyForm/SurveyForm'
+import SuperAdminAskChatbot from '@/screens/superAdmin/AskChatbot/askChatbot'
 
 //admin screens
 import AdminDashboard from '@/screens/admin/dashboard/Dashboard'
@@ -40,6 +41,7 @@ import AdminMachineVisit from '@/screens/admin/machines/MachineVisit'
 import AdminCashCollectionPage from '@/screens/admin/cashCollections/cashCollection'
 import AdminMachineMap from '@/screens/admin/MachinesMap/MachineMap'
 import AdminCorporateTopup from '@/screens/admin/corporateTopup'
+import AdminAskChatbot from '@/screens/admin/AskChatbot/askChatbot'
 
 //ops screens
 import OpsDashboard from '@/screens/ops/dashboard/Dashboard'
@@ -164,9 +166,11 @@ import {
   ADMIN_BUTTERFLY_PRODUCTS,
   ADMIN_ALERT_SYSTEM,
   ADMIN_ALERT_MACHINE_DETAIL,
+  ADMIN_ASK_CHATBOT,
   OPS_ALERT_SYSTEM,
   OPS_ALERT_MACHINE_DETAIL,
   SUPERADMIN_ALERT_SYSTEM,
+  SUPERADMIN_ASK_CHATBOT,
 } from '@/constants/Constant'
 
 import ResetPassword from '@/screens/forgetPassword/ResetPassword'
@@ -217,6 +221,7 @@ const Routing = () => {
           <Route path={SUPERADMIN_SURVEY_FORM} element={<SurveyForm />} />
           <Route path={SUPERADMIN_ALERT_SYSTEM} element={<AlertSystem />} />
           <Route path={SUPERADMIN_ALERT_MACHINE_DETAIL} element={<MachineAlertDetail />} />
+          <Route path={SUPERADMIN_ASK_CHATBOT} element={<SuperAdminAskChatbot />} />
         </Route>
       </Route>
 
@@ -239,6 +244,7 @@ const Routing = () => {
           <Route path={ADMIN_BUTTERFLY_PRODUCTS} element={<ButterflyProducts />}/>
           <Route path={ADMIN_ALERT_SYSTEM} element={<AlertSystem />} />
           <Route path={ADMIN_ALERT_MACHINE_DETAIL} element={<MachineAlertDetail />} />
+          <Route path={ADMIN_ASK_CHATBOT} element={<AdminAskChatbot />} />
         </Route>
       </Route>
 
