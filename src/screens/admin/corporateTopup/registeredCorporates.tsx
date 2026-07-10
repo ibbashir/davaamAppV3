@@ -52,6 +52,9 @@ interface ApiResponse {
   success?: boolean;
   status?: number;
   message:string;
+  totalRecords?: number;
+  totalPages?: number;
+  currentPage?: number;
   [key: string]: unknown;
 }
 
@@ -66,8 +69,6 @@ interface RegisteredCorporatesListProps {
 
 }
 
-
-
 const RegisteredCorporatesList = ({ setShowModal, fetchCorporatesAll }: RegisteredCorporatesListProps) => {
 
   const [corporates, setCorporates] = useState<CorporateTopupsData[]>([]);
@@ -75,18 +76,24 @@ const RegisteredCorporatesList = ({ setShowModal, fetchCorporatesAll }: Register
   const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10);
+  const [totalRecords, setTotalRecords] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
   const [selectedCorporate, setSelectedCorporate] = useState<CorporateTopupsData | null>(null);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Fetch corporates
+  // Fetch corporates (server-side pagination)
   useEffect(() => {
     const fetchCorporates = async () => {
       try {
         setLoading(true);
-        const response = await getRequest("/admin/getAllCorporateClients") as ApiResponse;
+        const response = await getRequest(
+          `/admin/getAllCorporateClients?page=${currentPage}&limit=${itemsPerPage}`
+        ) as ApiResponse;
         if (response && response.data) {
           setCorporates(response.data);
+          setTotalRecords(response.totalRecords ?? response.data.length);
+          setTotalPages(response.totalPages ?? 1);
         }
       } catch (err) {
         console.error("Error fetching corporates:", err);
@@ -97,14 +104,7 @@ const RegisteredCorporatesList = ({ setShowModal, fetchCorporatesAll }: Register
     };
 
     fetchCorporates();
-  }, []);
-
-  // Pagination logic
-  const totalPages = Math.ceil(corporates.length / itemsPerPage);
-  const paginatedData = corporates.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
+  }, [currentPage, itemsPerPage]);
 
   // Parse machine codes from various formats
   const parseMachineCodes = (machineCodes: CorporateTopupsData['machine_codes']): string[] => {
@@ -254,8 +254,8 @@ const RegisteredCorporatesList = ({ setShowModal, fetchCorporatesAll }: Register
                 </TableHeader>
 
                 <TableBody>
-                  {paginatedData.length > 0 ? (
-                    paginatedData.map((corporate) => (
+                  {corporates.length > 0 ? (
+                    corporates.map((corporate) => (
                       <TableRow key={corporate.id}>
                         <TableCell className="font-medium">
                           {corporate.corporate_name || corporate.name || "N/A"}
@@ -309,8 +309,8 @@ const RegisteredCorporatesList = ({ setShowModal, fetchCorporatesAll }: Register
             {corporates.length > 0 && (
               <div className="flex items-center justify-between px-4 mt-4">
                 <div className="hidden text-sm text-muted-foreground lg:flex">
-                  Showing {paginatedData.length} of{" "}
-                  {corporates.length} corporates
+                  Showing {corporates.length} of{" "}
+                  {totalRecords} corporates
                 </div>
                 <div className="flex items-center gap-2">
                   <Button
