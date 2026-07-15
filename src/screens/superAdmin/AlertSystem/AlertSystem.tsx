@@ -21,7 +21,7 @@ import { useAlertBase } from "./useAlertBase";
 import { AnalyticsTab } from "./AnalyticsTab";
 import { AlertsTab } from "./AlertsTab";
 import { InactiveMachinesTab } from "./InactiveMachinesTab";
-import { EmailLogsTab } from "./EmailLogsTab";
+import { DailyReportTab } from "./DailyReportTab";
 
 type StatCard = {
   label: string;
@@ -167,7 +167,7 @@ export const AlertSystem = () => {
             <TabsTrigger value="analytics">Analytics</TabsTrigger>
             <TabsTrigger value="alerts">Alerts</TabsTrigger>
             <TabsTrigger value="inactive">Inactive Machines</TabsTrigger>
-            <TabsTrigger value="emails">Email Logs</TabsTrigger>
+            <TabsTrigger value="report">24h Report</TabsTrigger>
           </TabsList>
 
           <TabsContent value="analytics" className="mt-4">
@@ -179,8 +179,8 @@ export const AlertSystem = () => {
           <TabsContent value="inactive" className="mt-4">
             <InactiveMachinesTab />
           </TabsContent>
-          <TabsContent value="emails" className="mt-4">
-            <EmailLogsTab />
+          <TabsContent value="report" className="mt-4">
+            <DailyReportTab />
           </TabsContent>
         </Tabs>
       </div>
