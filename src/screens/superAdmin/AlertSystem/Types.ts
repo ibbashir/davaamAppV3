@@ -98,6 +98,57 @@ export type AnalyticsResponse = {
   };
 };
 
+// ── 24-hour report (mirrors the daily report email) ───────────────────────────
+
+export type ReportInactiveMachine = {
+  machineCode: string;
+  machineName: string | null;
+  machineLocation: string | null;
+  inactiveSince: number;
+  durationSeconds: number;
+};
+
+export type ReportResolvedSession = {
+  machineCode: string;
+  machineName: string | null;
+  machineLocation: string | null;
+  inactiveSince: number;
+  resolvedAt: number;
+  durationSeconds: number;
+};
+
+export type ReportRecipient = {
+  recipient: string;
+  status: "sent" | "failed";
+  error: string | null;
+  sent_at: number;
+};
+
+export type DailyReport = {
+  windowStart: number;
+  windowEnd: number;
+  totals: {
+    monitored: number;
+    currentlyInactive: number;
+    resolvedOutages: number;
+    downtimeSeconds: number;
+  };
+  inactiveMachines: ReportInactiveMachine[];
+  resolvedSessions: ReportResolvedSession[];
+  lastReport: {
+    triggered_at: number;
+    email_status: "pending" | "sent" | "partial" | "failed";
+    emails_sent: number;
+    emails_total: number;
+    recipients: ReportRecipient[];
+  } | null;
+};
+
+export type DailyReportResponse = {
+  success: boolean;
+  data: DailyReport;
+};
+
 export type EmailLog = {
   id: number;
   alert_id: number;

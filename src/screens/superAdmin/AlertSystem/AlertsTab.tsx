@@ -244,10 +244,14 @@ export const AlertsTab = () => {
                 alerts.map((a) => (
                   <TableRow
                     key={a.id}
-                    className="cursor-pointer"
-                    onClick={() =>
-                      navigate(`${routeBase}/machine/${a.machine_code}`)
+                    className={
+                      a.alert_type === "daily_report" ? "" : "cursor-pointer"
                     }
+                    onClick={() => {
+                      // The daily digest row has no machine behind it
+                      if (a.alert_type === "daily_report") return;
+                      navigate(`${routeBase}/machine/${a.machine_code}`);
+                    }}
                   >
                     <TableCell>
                       <div className="font-medium">
