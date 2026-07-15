@@ -482,7 +482,7 @@ const Machines = () => {
                     Type
                   </span>
                   <div className="flex flex-wrap gap-1.5">
-                    {subCategories.map((sub) => (
+                    {subCategories.map((sub) => ( 
                       <button
                         key={sub.id}
                         onClick={() => setActiveCategory(sub.id)}

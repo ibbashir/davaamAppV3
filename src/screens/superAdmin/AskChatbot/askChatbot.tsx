@@ -11,9 +11,18 @@ import {
   TableHead,
   TableCell,
 } from "@/components/ui/table"
-import { postRequest } from "@/Apis/Api"
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+  SheetFooter,
+} from "@/components/ui/sheet"
+import { getRequest, postRequest } from "@/Apis/Api"
 import { useAuth } from "@/contexts/AuthContext"
 import { cn } from "@/lib/utils"
+import { formatRelativeTime } from "@/utils/formatters"
 import { toast } from "sonner"
 import {
   IconRobot,
@@ -25,6 +34,7 @@ import {
   IconCheck,
   IconChartBar,
   IconTable,
+  IconHistory,
 } from "@tabler/icons-react"
 import {
   ResponsiveContainer,
@@ -78,6 +88,22 @@ type AskChatbotResponse = {
   truncated?: boolean
 }
 
+type ChatHistoryItem = {
+  id?: string | number
+  user_id?: string | number
+  question?: string
+  prompt?: string
+  query?: string
+  created_at?: string | number
+  createdAt?: string | number
+  timestamp?: string | number
+  // The history API nests the full askChatbot response (text + presentation +
+  // chart/table data) under `answer` — not a flat string.
+  answer?: AskChatbotResponse | string
+}
+
+const HISTORY_PAGE_SIZE = 10
+
 const SUGGESTED_PROMPTS = [
   "How many machines are currently offline?",
   "Summarize today's cash collections",
@@ -102,17 +128,38 @@ const MAX_LINE_POINTS = 60
 const GRID_COLOR = "#e1e0d9"
 const AXIS_TICK_COLOR = "#898781"
 
+const pickFirstString = (...values: (string | undefined)[]): string | undefined =>
+  values.find((v) => typeof v === "string" && v.trim().length > 0)
+
 const extractReply = (data: AskChatbotResponse | string): string => {
   if (typeof data === "string") return data
   return (
-    data?.answer ??
-    data?.reply ??
-    data?.message ??
-    data?.response ??
-    data?.data ??
+    pickFirstString(data?.answer, data?.reply, data?.message, data?.response, data?.data) ??
     "I couldn't generate a response for that. Please try rephrasing your question."
   )
 }
+
+const extractHistoryList = (res: unknown): ChatHistoryItem[] => {
+  if (Array.isArray(res)) return res as ChatHistoryItem[]
+  if (res && typeof res === "object") {
+    const obj = res as Record<string, unknown>
+    const candidate = obj.history ?? obj.data ?? obj.items ?? obj.results
+    if (Array.isArray(candidate)) return candidate as ChatHistoryItem[]
+  }
+  return []
+}
+
+const historyQuestion = (item: ChatHistoryItem): string =>
+  pickFirstString(item.question, item.prompt, item.query) ?? "Untitled question"
+
+const historyAnswer = (item: ChatHistoryItem): string =>
+  item.answer !== undefined ? extractReply(item.answer) : "No answer recorded."
+
+const historyStructured = (item: ChatHistoryItem): AskChatbotResponse | undefined =>
+  typeof item.answer === "object" && item.answer !== null ? item.answer : undefined
+
+const historyTimestamp = (item: ChatHistoryItem): string | number | undefined =>
+  item.created_at ?? item.createdAt ?? item.timestamp
 
 const toNumber = (value: string | number | null | undefined): number => {
   if (typeof value === "number") return value
@@ -151,10 +198,6 @@ const isNumericColumn = (rows: ChatRow[], key: string): boolean =>
 
 type TickPayload = { x?: number; y?: number; payload?: { value: string | number } }
 
-// Custom tick: translate to the tick's own anchor first, then rotate the text
-// around that point — the reliable way to keep rotated axis labels aligned
-// under their bars (Recharts' declarative `angle` prop on <XAxis> alone tends
-// to mis-anchor the text, which is what caused the crooked/overlapping labels).
 function RotatedTick({ x, y, payload }: TickPayload) {
   return (
     <g transform={`translate(${x},${y})`}>
@@ -483,6 +526,10 @@ const AskChatbot = () => {
   const [loading, setLoading] = useState(false)
   const [copiedId, setCopiedId] = useState<string | null>(null)
   const [expandedTableIds, setExpandedTableIds] = useState<Set<string>>(new Set())
+  const [historyOpen, setHistoryOpen] = useState(false)
+  const [historyItems, setHistoryItems] = useState<ChatHistoryItem[]>([])
+  const [historyLimit, setHistoryLimit] = useState(HISTORY_PAGE_SIZE)
+  const [historyLoading, setHistoryLoading] = useState(false)
 
   const toggleTable = (id: string) => {
     setExpandedTableIds((prev) => {
@@ -573,6 +620,55 @@ const AskChatbot = () => {
     textareaRef.current?.focus()
   }
 
+  const fetchHistory = async (limit: number) => {
+    if (!state.user?.id) return
+    setHistoryLoading(true)
+    try {
+      const res = await getRequest<unknown>(`/superadmin/chatbotHistory/${state.user.id}?limit=${limit}`)
+      setHistoryItems(extractHistoryList(res))
+    } catch {
+      toast.error("Failed to load chat history")
+    } finally {
+      setHistoryLoading(false)
+    }
+  }
+
+  const openHistory = () => {
+    setHistoryOpen(true)
+    setHistoryLimit(HISTORY_PAGE_SIZE)
+    fetchHistory(HISTORY_PAGE_SIZE)
+  }
+
+  const loadMoreHistory = () => {
+    const next = historyLimit + HISTORY_PAGE_SIZE
+    setHistoryLimit(next)
+    fetchHistory(next)
+  }
+
+  const restoreHistoryItem = (item: ChatHistoryItem) => {
+    const structured = historyStructured(item)
+    const userMsg: ChatMessage = {
+      id: makeId(),
+      role: "user",
+      content: historyQuestion(item),
+      createdAt: Date.now(),
+    }
+    const assistantMsg: ChatMessage = {
+      id: makeId(),
+      role: "assistant",
+      content: historyAnswer(item),
+      createdAt: Date.now(),
+      presentation: structured?.presentation,
+      columns: structured?.columns,
+      chart: structured?.chart,
+      rows: structured?.rows,
+      rowCount: structured?.rowCount,
+      truncated: structured?.truncated,
+    }
+    setMessages((prev) => [...prev, userMsg, assistantMsg])
+    setHistoryOpen(false)
+  }
+
   return (
     <>
       <SiteHeader title="Ask Chatbot" />
@@ -593,16 +689,27 @@ const AskChatbot = () => {
                   </p>
                 </div>
               </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={clearChat}
-                disabled={messages.length === 0 && !input}
-                className="text-muted-foreground"
-              >
-                <IconTrash className="size-4" />
-                <span className="hidden sm:inline">Clear</span>
-              </Button>
+              <div className="flex items-center gap-1">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={openHistory}
+                  className="text-muted-foreground"
+                >
+                  <IconHistory className="size-4" />
+                  <span className="hidden sm:inline">History</span>
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={clearChat}
+                  disabled={messages.length === 0 && !input}
+                  className="text-muted-foreground"
+                >
+                  <IconTrash className="size-4" />
+                  <span className="hidden sm:inline">Clear</span>
+                </Button>
+              </div>
             </div>
 
             {/* Messages */}
@@ -754,6 +861,66 @@ const AskChatbot = () => {
           </div>
         </div>
       </div>
+
+      <Sheet open={historyOpen} onOpenChange={setHistoryOpen}>
+        <SheetContent side="right" className="flex w-full flex-col sm:max-w-md">
+          <SheetHeader>
+            <SheetTitle>Chat history</SheetTitle>
+            <SheetDescription>
+              Your recent questions to the assistant. Tap one to bring it back into the conversation.
+            </SheetDescription>
+          </SheetHeader>
+
+          <div className="flex-1 overflow-y-auto px-4 pb-4">
+            {historyLoading && historyItems.length === 0 ? (
+              <div className="flex h-full items-center justify-center gap-2 text-sm text-muted-foreground">
+                <IconLoader2 className="size-4 animate-spin" />
+                Loading history…
+              </div>
+            ) : historyItems.length === 0 ? (
+              <div className="flex h-full flex-col items-center justify-center gap-2 text-center text-sm text-muted-foreground">
+                <IconHistory className="size-8 opacity-40" />
+                <p>No previous questions yet.</p>
+              </div>
+            ) : (
+              <div className="flex flex-col gap-2">
+                {historyItems.map((item, i) => (
+                  <button
+                    key={item.id ?? i}
+                    onClick={() => restoreHistoryItem(item)}
+                    className="rounded-lg border border-border bg-muted/30 p-3 text-left transition-colors hover:bg-muted"
+                  >
+                    <div className="mb-1 flex items-center justify-between gap-2">
+                      <span className="text-[11px] text-muted-foreground">
+                        {formatRelativeTime(historyTimestamp(item))}
+                      </span>
+                      {historyStructured(item)?.presentation === "chart" ? (
+                        <IconChartBar className="size-3.5 shrink-0 text-muted-foreground" />
+                      ) : historyStructured(item)?.presentation === "table" ? (
+                        <IconTable className="size-3.5 shrink-0 text-muted-foreground" />
+                      ) : null}
+                    </div>
+                    <p className="line-clamp-2 text-sm font-medium text-foreground">
+                      {historyQuestion(item)}
+                    </p>
+                    <p className="mt-1 line-clamp-1 text-xs text-muted-foreground">
+                      {historyAnswer(item)}
+                    </p>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {historyItems.length > 0 && historyItems.length >= historyLimit && (
+            <SheetFooter>
+              <Button variant="outline" size="sm" onClick={loadMoreHistory} disabled={historyLoading}>
+                {historyLoading ? <IconLoader2 className="size-4 animate-spin" /> : "Load more"}
+              </Button>
+            </SheetFooter>
+          )}
+        </SheetContent>
+      </Sheet>
     </>
   )
 }

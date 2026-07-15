@@ -41,7 +41,6 @@ import AdminMachineVisit from '@/screens/admin/machines/MachineVisit'
 import AdminCashCollectionPage from '@/screens/admin/cashCollections/cashCollection'
 import AdminMachineMap from '@/screens/admin/MachinesMap/MachineMap'
 import AdminCorporateTopup from '@/screens/admin/corporateTopup'
-import AdminAskChatbot from '@/screens/admin/AskChatbot/askChatbot'
 
 //ops screens
 import OpsDashboard from '@/screens/ops/dashboard/Dashboard'
@@ -166,7 +165,6 @@ import {
   ADMIN_BUTTERFLY_PRODUCTS,
   ADMIN_ALERT_SYSTEM,
   ADMIN_ALERT_MACHINE_DETAIL,
-  ADMIN_ASK_CHATBOT,
   OPS_ALERT_SYSTEM,
   OPS_ALERT_MACHINE_DETAIL,
   SUPERADMIN_ALERT_SYSTEM,
@@ -244,7 +242,6 @@ const Routing = () => {
           <Route path={ADMIN_BUTTERFLY_PRODUCTS} element={<ButterflyProducts />}/>
           <Route path={ADMIN_ALERT_SYSTEM} element={<AlertSystem />} />
           <Route path={ADMIN_ALERT_MACHINE_DETAIL} element={<MachineAlertDetail />} />
-          <Route path={ADMIN_ASK_CHATBOT} element={<AdminAskChatbot />} />
         </Route>
       </Route>
 

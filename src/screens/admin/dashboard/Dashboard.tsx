@@ -6,8 +6,6 @@ import AdminDashboardSanitary from "@/components/admin/PieMainDashboardSanitary"
 import AdminDashboardDispensing from "@/components/admin/PieMainDashboardDispensing"
 import AdminSanitaryBarChart from "@/components/admin/adminSanitaryBarChart"
 import AdminDispensingBarChart from "@/components/admin/adminBarChartDispensing"
-import { FloatingChatbotButton } from "@/components/floating-chatbot-button"
-import { ADMIN_ASK_CHATBOT } from "@/constants/Constant"
 
 
 const Dashboard = () => {
@@ -35,7 +33,6 @@ const Dashboard = () => {
                     </div>
                 </div>
             </div>
-            <FloatingChatbotButton to={ADMIN_ASK_CHATBOT} />
         </>
 
     )
