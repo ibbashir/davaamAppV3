@@ -42,6 +42,7 @@ import {
 } from "@/utils/stockForecast";
 import { StockForecastBadge } from "@/components/ui/stock-forecast-badge";
 import { formatUnixTimestamp } from "@/utils/formatters";
+import moment from "moment-timezone"
 
 // ── Enriched machine type ─────────────────────────────────────────────────────
 type EnrichedMachine = ApiMachine & {
@@ -110,6 +111,7 @@ const TABLE_COLUMNS: TableColumn[] = [
   { label: "Stock" },
   { label: "Forecast" },
   { label: "Payment Methods" },
+  {label: "Last Active"},
   { label: "Status" },
 ];
 
@@ -940,6 +942,9 @@ const Machines = () => {
                               <PaymentMethodBadges
                                 methods={machine.payment_methods}
                               />
+                            </td>
+                            <td className="px-4 py-3 text-center whitespace-nowrap">
+                              {moment(machine.lastUpdated).format("DD:MM:YYYY hh:mm:ss")}
                             </td>
                             <td className="px-4 py-3">
                               <Badge

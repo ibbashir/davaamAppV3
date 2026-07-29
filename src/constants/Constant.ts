@@ -79,6 +79,7 @@ export const ADMIN_RIDER_LOCATION = "/admin/riderLocation";
 export const ADMIN_BUTTERFLY_PRODUCTS="/admin/butterflyProducts"
 export const ADMIN_ALERT_SYSTEM = "/admin/alert-system";
 export const ADMIN_ALERT_MACHINE_DETAIL = "/admin/alert-system/machine/:machineCode";
+export const ADMIN_USER_ANALYSIS = "/superadmin/userAnalysis";
 
 //OPS PATHS
 export const OPS_DASHBOARD = "/ops/dashboard";
@@ -205,6 +206,7 @@ export const ADMIN_SIDEBAR_ROUTES = () => {
     { title: "Map Machines", url: ADMIN_MACHINE_MAP, icon: IconMapPin },
     { title: "Rider Locations", url: ADMIN_RIDER_LOCATION, icon: IconHexagonPlus },
     { title: "Cash Collection", url: ADMIN_CASH_COLLECTION, icon: IconCashBanknote },
+    { title: "User Analysis Report", url: ADMIN_USER_ANALYSIS, icon: IconReport },
     { title: "Butterfly Products", url: ADMIN_BUTTERFLY_PRODUCTS, icon: IconShare3 },
     { title: "Alert System", url: ADMIN_ALERT_SYSTEM, icon: IconClipboardList },
   ];

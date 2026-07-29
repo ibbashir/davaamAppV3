@@ -4,14 +4,6 @@ import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import {
-  Table,
-  TableHeader,
-  TableBody,
-  TableRow,
-  TableHead,
-  TableCell,
-} from "@/components/ui/table"
-import {
   Sheet,
   SheetContent,
   SheetHeader,
@@ -395,6 +387,9 @@ function ChatChart({
   )
 }
 
+const THIN_SCROLLBAR =
+  "[&::-webkit-scrollbar]:h-1.5 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-border hover:[&::-webkit-scrollbar-thumb]:bg-muted-foreground/40"
+
 function ChatTable({
   columns,
   rows,
@@ -410,36 +405,53 @@ function ChatTable({
     ? Math.max(1, ...rows.map((row) => toNumber(row[resolvedBarKey])))
     : 0
 
+  // A single scroll container (both axes) is used instead of nesting the shared
+  // <Table> component's own overflow-x wrapper inside this one — two nested
+  // overflow containers break `sticky` header positioning.
   return (
-    <div className="max-h-72 overflow-auto rounded-md border border-border">
-      <Table>
-        <TableHeader className="sticky top-0 z-10 bg-muted/95 backdrop-blur-sm">
-          <TableRow className="hover:bg-transparent">
+    <div
+      className={cn(
+        "max-h-80 w-full overflow-auto rounded-lg border border-border",
+        THIN_SCROLLBAR
+      )}
+    >
+      <table className="w-full caption-bottom border-collapse text-sm">
+        <thead className="sticky top-0 z-10 bg-muted/95 shadow-[0_1px_0_0] shadow-border backdrop-blur-sm">
+          <tr>
+            <th className="h-10 w-10 whitespace-nowrap px-3 text-left align-middle text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+              #
+            </th>
             {columns.map((col) => (
-              <TableHead
+              <th
                 key={col.key}
                 className={cn(
-                  "text-[11px] font-semibold tracking-wide text-muted-foreground",
+                  "h-10 whitespace-nowrap px-3 text-left align-middle text-[11px] font-semibold uppercase tracking-wide text-muted-foreground",
                   numericKeys.has(col.key) && "text-right"
                 )}
               >
                 {col.label}
-              </TableHead>
+              </th>
             ))}
-          </TableRow>
-        </TableHeader>
-        <TableBody>
+          </tr>
+        </thead>
+        <tbody>
           {rows.map((row, i) => (
-            <TableRow key={i} className="even:bg-muted/20">
+            <tr
+              key={i}
+              className="border-b border-border/60 last:border-0 even:bg-muted/20 hover:bg-primary/5 transition-colors"
+            >
+              <td className="whitespace-nowrap px-3 py-2 align-middle text-xs text-muted-foreground [font-variant-numeric:tabular-nums]">
+                {i + 1}
+              </td>
               {columns.map((col) => {
                 const isNumeric = numericKeys.has(col.key)
                 const showBar = col.key === resolvedBarKey
                 const pct = showBar ? Math.max(2, (toNumber(row[col.key]) / maxBarValue) * 100) : 0
                 return (
-                  <TableCell
+                  <td
                     key={col.key}
                     className={cn(
-                      "relative",
+                      "relative whitespace-nowrap px-3 py-2 align-middle",
                       isNumeric && "text-right font-medium [font-variant-numeric:tabular-nums]"
                     )}
                   >
@@ -451,13 +463,13 @@ function ChatTable({
                       />
                     )}
                     <span className="relative z-10">{formatCellValue(row[col.key])}</span>
-                  </TableCell>
+                  </td>
                 )
               })}
-            </TableRow>
+            </tr>
           ))}
-        </TableBody>
-      </Table>
+        </tbody>
+      </table>
     </div>
   )
 }
@@ -484,10 +496,17 @@ function ChatDataBlock({
   const totalRows = message.rowCount ?? rows.length
 
   return (
-    <div className="w-full max-w-full rounded-lg border border-border bg-card p-3 shadow-sm">
-      <div className="mb-2 flex items-center justify-between gap-2">
+    <div className="w-full max-w-full rounded-xl border border-border bg-card p-3 shadow-sm transition-shadow hover:shadow-md">
+      <div className="mb-2.5 flex items-center justify-between gap-2">
         <div className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
-          {chart ? <IconChartBar className="size-3.5" /> : <IconTable className="size-3.5" />}
+          <span
+            className={cn(
+              "flex size-5 shrink-0 items-center justify-center rounded-md",
+              chart ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"
+            )}
+          >
+            {chart ? <IconChartBar className="size-3" /> : <IconTable className="size-3" />}
+          </span>
           <span>
             {totalRows.toLocaleString()} row{totalRows === 1 ? "" : "s"}
             {isTruncatedForChart ? ` · top ${maxPoints} shown in chart` : ""}
@@ -499,7 +518,7 @@ function ChatDataBlock({
             variant="ghost"
             size="sm"
             onClick={onToggleTable}
-            className="h-7 text-xs text-muted-foreground"
+            className="h-7 text-xs text-muted-foreground hover:text-foreground"
           >
             {expanded ? "Hide table" : "View table"}
           </Button>
@@ -672,19 +691,26 @@ const AskChatbot = () => {
   return (
     <>
       <SiteHeader title="Ask Chatbot" />
-      <div className="flex flex-1 flex-col overflow-hidden">
+      <div className="flex flex-1 flex-col overflow-hidden bg-gradient-to-b from-muted/30 to-transparent">
         <div className="flex flex-1 flex-col mx-auto w-full max-w-4xl overflow-hidden px-3 sm:px-4 lg:px-6 py-4 md:py-6">
           {/* Card container */}
-          <div className="flex flex-1 flex-col overflow-hidden rounded-xl border border-border bg-background shadow-sm">
+          <div className="flex flex-1 flex-col overflow-hidden rounded-2xl border border-border bg-background shadow-md">
             {/* Header */}
-            <div className="flex items-center justify-between gap-2 border-b border-border px-4 py-3">
+            <div className="flex items-center justify-between gap-2 border-b border-border bg-gradient-to-r from-primary/5 via-transparent to-transparent px-4 py-3">
               <div className="flex items-center gap-2.5">
-                <div className="flex size-9 items-center justify-center rounded-full bg-primary text-primary-foreground">
+                <div className="relative flex size-9 items-center justify-center rounded-full bg-gradient-to-br from-primary to-primary/70 text-primary-foreground shadow-sm">
                   <IconRobot className="size-5" />
+                  <span
+                    className={cn(
+                      "absolute -bottom-0.5 -right-0.5 size-2.5 rounded-full border-2 border-background",
+                      loading ? "bg-amber-500" : "bg-emerald-500"
+                    )}
+                  />
                 </div>
                 <div>
                   <p className="text-sm font-semibold leading-none">Davaam Assistant</p>
-                  <p className="mt-1 text-xs text-muted-foreground">
+                  <p className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
+                    {loading && <IconLoader2 className="size-3 animate-spin" />}
                     {loading ? "Thinking…" : "Online · ready to help"}
                   </p>
                 </div>
@@ -694,7 +720,7 @@ const AskChatbot = () => {
                   variant="ghost"
                   size="sm"
                   onClick={openHistory}
-                  className="text-muted-foreground"
+                  className="text-muted-foreground hover:text-foreground"
                 >
                   <IconHistory className="size-4" />
                   <span className="hidden sm:inline">History</span>
@@ -704,7 +730,7 @@ const AskChatbot = () => {
                   size="sm"
                   onClick={clearChat}
                   disabled={messages.length === 0 && !input}
-                  className="text-muted-foreground"
+                  className="text-muted-foreground hover:text-foreground"
                 >
                   <IconTrash className="size-4" />
                   <span className="hidden sm:inline">Clear</span>
@@ -713,10 +739,13 @@ const AskChatbot = () => {
             </div>
 
             {/* Messages */}
-            <div ref={scrollRef} className="flex-1 overflow-y-auto px-3 sm:px-5 py-4 space-y-4">
+            <div
+              ref={scrollRef}
+              className={cn("flex-1 overflow-y-auto px-3 sm:px-5 py-4 space-y-4", THIN_SCROLLBAR)}
+            >
               {messages.length === 0 ? (
                 <div className="flex h-full flex-col items-center justify-center gap-4 text-center px-4">
-                  <div className="flex size-14 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+                  <div className="flex size-14 items-center justify-center rounded-2xl bg-gradient-to-br from-primary/15 to-primary/5 text-primary ring-1 ring-primary/10">
                     <IconSparkles className="size-7" />
                   </div>
                   <div className="space-y-1">
@@ -730,9 +759,10 @@ const AskChatbot = () => {
                       <button
                         key={prompt}
                         onClick={() => sendMessage(prompt)}
-                        className="rounded-lg border border-border bg-muted/40 px-3 py-2 text-left text-xs text-foreground hover:bg-muted transition-colors"
+                        className="group flex items-center gap-2 rounded-lg border border-border bg-muted/40 px-3 py-2.5 text-left text-xs text-foreground shadow-sm transition-all hover:-translate-y-0.5 hover:border-primary/30 hover:bg-primary/5 hover:shadow-md"
                       >
-                        {prompt}
+                        <IconSparkles className="size-3.5 shrink-0 text-primary/60 transition-colors group-hover:text-primary" />
+                        <span>{prompt}</span>
                       </button>
                     ))}
                   </div>
@@ -747,8 +777,8 @@ const AskChatbot = () => {
                       )}
                     >
                       {msg.role === "assistant" && (
-                        <Avatar className="size-7 mb-1 shrink-0">
-                          <AvatarFallback className="bg-primary text-primary-foreground">
+                        <Avatar className="size-7 mb-1 shrink-0 ring-2 ring-background">
+                          <AvatarFallback className="bg-gradient-to-br from-primary to-primary/70 text-primary-foreground">
                             <IconRobot className="size-4" />
                           </AvatarFallback>
                         </Avatar>
@@ -758,9 +788,9 @@ const AskChatbot = () => {
                         className={cn(
                           "group relative max-w-[80%] sm:max-w-[75%] rounded-2xl px-3.5 py-2.5 text-sm whitespace-pre-wrap break-words shadow-sm",
                           msg.role === "user"
-                            ? "bg-primary text-primary-foreground rounded-br-sm"
+                            ? "bg-gradient-to-br from-primary to-primary/90 text-primary-foreground rounded-br-sm"
                             : msg.isError
-                              ? "bg-destructive/10 text-destructive rounded-bl-sm"
+                              ? "bg-destructive/10 text-destructive rounded-bl-sm ring-1 ring-destructive/20"
                               : "bg-muted text-foreground rounded-bl-sm"
                         )}
                       >
@@ -785,7 +815,7 @@ const AskChatbot = () => {
                       </div>
 
                       {msg.role === "user" && (
-                        <Avatar className="size-7 mb-1 shrink-0">
+                        <Avatar className="size-7 mb-1 shrink-0 ring-2 ring-background">
                           <AvatarFallback className="bg-secondary text-secondary-foreground text-[11px] font-medium">
                             {firstName.slice(0, 2).toUpperCase()}
                           </AvatarFallback>
@@ -808,12 +838,12 @@ const AskChatbot = () => {
 
               {loading && (
                 <div className="flex items-end gap-2 justify-start">
-                  <Avatar className="size-7 mb-1 shrink-0">
-                    <AvatarFallback className="bg-primary text-primary-foreground">
+                  <Avatar className="size-7 mb-1 shrink-0 ring-2 ring-background">
+                    <AvatarFallback className="bg-gradient-to-br from-primary to-primary/70 text-primary-foreground">
                       <IconRobot className="size-4" />
                     </AvatarFallback>
                   </Avatar>
-                  <div className="flex items-center gap-1 rounded-2xl rounded-bl-sm bg-muted px-4 py-3">
+                  <div className="flex items-center gap-1 rounded-2xl rounded-bl-sm bg-muted px-4 py-3 shadow-sm">
                     <span className="size-1.5 rounded-full bg-muted-foreground/60 animate-bounce [animation-delay:-0.3s]" />
                     <span className="size-1.5 rounded-full bg-muted-foreground/60 animate-bounce [animation-delay:-0.15s]" />
                     <span className="size-1.5 rounded-full bg-muted-foreground/60 animate-bounce" />
@@ -823,13 +853,13 @@ const AskChatbot = () => {
             </div>
 
             {/* Input */}
-            <div className="border-t border-border p-3">
+            <div className="border-t border-border bg-muted/10 p-3">
               <form
                 onSubmit={(e) => {
                   e.preventDefault()
                   sendMessage()
                 }}
-                className="flex items-end gap-2 rounded-xl border border-border bg-muted/30 p-2 focus-within:ring-1 focus-within:ring-ring"
+                className="flex items-end gap-2 rounded-2xl border border-border bg-background p-2 shadow-sm transition-shadow focus-within:border-primary/40 focus-within:ring-2 focus-within:ring-primary/15"
               >
                 <Textarea
                   ref={textareaRef}
@@ -845,7 +875,7 @@ const AskChatbot = () => {
                   type="submit"
                   size="icon"
                   disabled={loading || !input.trim()}
-                  className="shrink-0"
+                  className="shrink-0 rounded-xl bg-gradient-to-br from-primary to-primary/85 shadow-sm transition-transform enabled:hover:scale-105"
                 >
                   {loading ? (
                     <IconLoader2 className="size-4 animate-spin" />
@@ -871,7 +901,7 @@ const AskChatbot = () => {
             </SheetDescription>
           </SheetHeader>
 
-          <div className="flex-1 overflow-y-auto px-4 pb-4">
+          <div className={cn("flex-1 overflow-y-auto px-4 pb-4", THIN_SCROLLBAR)}>
             {historyLoading && historyItems.length === 0 ? (
               <div className="flex h-full items-center justify-center gap-2 text-sm text-muted-foreground">
                 <IconLoader2 className="size-4 animate-spin" />
@@ -888,7 +918,7 @@ const AskChatbot = () => {
                   <button
                     key={item.id ?? i}
                     onClick={() => restoreHistoryItem(item)}
-                    className="rounded-lg border border-border bg-muted/30 p-3 text-left transition-colors hover:bg-muted"
+                    className="rounded-lg border border-border bg-muted/30 p-3 text-left shadow-sm transition-all hover:-translate-y-0.5 hover:border-primary/30 hover:bg-primary/5 hover:shadow-md"
                   >
                     <div className="mb-1 flex items-center justify-between gap-2">
                       <span className="text-[11px] text-muted-foreground">

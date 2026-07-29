@@ -169,6 +169,7 @@ import {
   OPS_ALERT_MACHINE_DETAIL,
   SUPERADMIN_ALERT_SYSTEM,
   SUPERADMIN_ASK_CHATBOT,
+  ADMIN_USER_ANALYSIS
 } from '@/constants/Constant'
 
 import ResetPassword from '@/screens/forgetPassword/ResetPassword'
@@ -181,6 +182,7 @@ import OpsRiderLocation from '@/screens/ops/RiderLocation/OpsRiderLocation'
 import FulfillmentRiderLocation from '@/screens/fulfillment/RiderLocation/FulfilmentRiderLocation'
 import { AlertSystem } from '@/screens/superAdmin/AlertSystem/AlertSystem'
 import { MachineAlertDetail } from '@/screens/superAdmin/AlertSystem/MachineAlertDetail'
+import { AdminUserAnalysis } from '@/screens/admin/usersAnalysis/UserAnalysis'
 
 const Routing = () => {
   return (
@@ -242,6 +244,7 @@ const Routing = () => {
           <Route path={ADMIN_BUTTERFLY_PRODUCTS} element={<ButterflyProducts />}/>
           <Route path={ADMIN_ALERT_SYSTEM} element={<AlertSystem />} />
           <Route path={ADMIN_ALERT_MACHINE_DETAIL} element={<MachineAlertDetail />} />
+          <Route path={ADMIN_USER_ANALYSIS} element={<AdminUserAnalysis />} />
         </Route>
       </Route>
 

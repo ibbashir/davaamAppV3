@@ -30,6 +30,7 @@ import {
 interface MachineReport {
   machine_code: string;
   location: string;
+  machine_name:string;
   total_cash_received: string;
   transaction_count: number;
   transactions: {
@@ -535,7 +536,7 @@ const SuperAdminCashCollectionPage: React.FC = () => {
           (machine, index) => [
             index + 1,
             machine.machine_code,
-            machine.location || "N/A",
+            machine.machine_name || "N/A",
           ],
         ),
       ]
