@@ -944,7 +944,7 @@ const Machines = () => {
                               />
                             </td>
                             <td className="px-4 py-3 text-center whitespace-nowrap">
-                              {moment(machine.lastUpdated).format("DD:MM:YYYY hh:mm:ss")}
+                              {machine.lastUpdated ? moment.unix(machine.lastUpdated).format("DD/MM/YYYY hh:mm:ss A") : "N/A"}
                             </td>
                             <td className="px-4 py-3">
                               <Badge

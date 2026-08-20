@@ -28,6 +28,7 @@ import CorporateTopup from '@/screens/superAdmin/corporateTopup'
 import {SuperAdminUserAnalysis} from '@/screens/superAdmin/usersAnalysis/UserAnalysis'
 import SurveyForm from '@/screens/superAdmin/SurveyForm/SurveyForm'
 import SuperAdminAskChatbot from '@/screens/superAdmin/AskChatbot/askChatbot'
+import SuperAdminTeamMembers from '@/screens/superAdmin/TeamMembers/teamMembers'
 
 //admin screens
 import AdminDashboard from '@/screens/admin/dashboard/Dashboard'
@@ -169,6 +170,7 @@ import {
   OPS_ALERT_MACHINE_DETAIL,
   SUPERADMIN_ALERT_SYSTEM,
   SUPERADMIN_ASK_CHATBOT,
+  SUPERADMIN_TEAM_MEMBERS,
   ADMIN_USER_ANALYSIS
 } from '@/constants/Constant'
 
@@ -222,6 +224,7 @@ const Routing = () => {
           <Route path={SUPERADMIN_ALERT_SYSTEM} element={<AlertSystem />} />
           <Route path={SUPERADMIN_ALERT_MACHINE_DETAIL} element={<MachineAlertDetail />} />
           <Route path={SUPERADMIN_ASK_CHATBOT} element={<SuperAdminAskChatbot />} />
+          <Route path={SUPERADMIN_TEAM_MEMBERS} element={<SuperAdminTeamMembers />} />
         </Route>
       </Route>
 

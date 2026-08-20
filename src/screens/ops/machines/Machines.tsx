@@ -37,6 +37,7 @@ import AddMachine from "@/screens/ops/machines/components/addMachines";
 import DeleteMachine from "@/screens/ops/machines/components/deleteMachine";
 import UpdateMachine from "@/screens/ops/machines/components/updateMachine";
 import { formatUnixTimestamp } from "@/utils/formatters";
+import moment from "moment-timezone";
 
 const PAGE_SIZE_OPTIONS = [5, 10, 25, 50];
 
@@ -670,6 +671,7 @@ const Machines = () => {
                         { label: "Type" },
                         { label: "Stock" },
                         { label: "Forecast" },
+                        { label: "Last Active" },
                         { label: "Status" },
                       ] as {
                         field: SortField;
@@ -731,6 +733,11 @@ const Machines = () => {
                               }
                             />
                           )}
+                        </td>
+                        <td className="px-4 py-3 text-center whitespace-nowrap">
+                            {machine.lastUpdated
+                              ? moment.unix(machine.lastUpdated).format("DD/MM/YYYY hh:mm:ss A")
+                              : "N/A"}
                         </td>
                         <td className="px-4 py-3">
                           {getStatusBadge(machine.status)}

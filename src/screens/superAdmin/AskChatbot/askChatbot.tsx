@@ -97,10 +97,7 @@ type ChatHistoryItem = {
 const HISTORY_PAGE_SIZE = 10
 
 const SUGGESTED_PROMPTS = [
-  "How many machines are currently offline?",
-  "Summarize today's cash collections",
-  "Which locations need a refill soon?",
-  "Show me pending topup requests",
+  "Summarize total cash collected this month",
 ]
 
 // Validated categorical palette — fixed hue order, CVD-safe (see dataviz skill).
