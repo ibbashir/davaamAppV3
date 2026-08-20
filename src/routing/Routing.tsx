@@ -77,6 +77,38 @@ import FinanceMachineStocks from '@/screens/finance/stocks/MachineStocks'
 import FinanceLocations from '@/screens/finance/locations/Locations'
 import { FinanceTopup } from '@/screens/finance/topup/Topup'
 
+// HR Management (HCM / HRM) screens
+import HrDashboard from '@/screens/hr/dashboard/Dashboard'
+import HrEmployees from '@/screens/hr/employees/Employees'
+import HrAttendance from '@/screens/hr/attendance/Attendance'
+import HrLeave from '@/screens/hr/leave/Leave'
+import HrPayroll from '@/screens/hr/payroll/Payroll'
+import HrRecruitment from '@/screens/hr/recruitment/Recruitment'
+import HrOnboarding from '@/screens/hr/onboarding/Onboarding'
+import HrPerformance from '@/screens/hr/performance/Performance'
+import HrTraining from '@/screens/hr/training/Training'
+import HrExpenses from '@/screens/hr/expenses/Expenses'
+import HrHelpdesk from '@/screens/hr/helpdesk/Helpdesk'
+import HrTravel from '@/screens/hr/travel/Travel'
+import HrSeparation from '@/screens/hr/separation/Separation'
+import HrLetters from '@/screens/hr/letters/Letters'
+import HrAlerts from '@/screens/hr/alerts/Alerts'
+import HrReports from '@/screens/hr/reports/Reports'
+import HrAssets from '@/screens/hr/assets/Assets'
+import HrManpower from '@/screens/hr/manpower/Manpower'
+import HrPieceWork from '@/screens/hr/piecework/PieceWork'
+import HrAnalytics from '@/screens/hr/analytics/Analytics'
+import HrOrgSetup from '@/screens/hr/orgSetup/OrgSetup'
+
+// Self service (ESS + MSS) — shared by every internal role
+import EssHub from '@/screens/ess/EssHub'
+import EssAttendance from '@/screens/ess/MyAttendance'
+import EssLeave from '@/screens/ess/MyLeave'
+import EssRequests from '@/screens/ess/MyRequests'
+import EssPayslips from '@/screens/ess/MyPayslips'
+import EssProfile from '@/screens/ess/MyProfile'
+import MssTeam from '@/screens/ess/MyTeam'
+
 //corporate (company) screens
 import CorporateDashboard from '@/screens/corporate/dashboard/Dashboard'
 import CorporateMachines from '@/screens/corporate/machines/Machines'
@@ -170,8 +202,37 @@ import {
   OPS_ALERT_MACHINE_DETAIL,
   SUPERADMIN_ALERT_SYSTEM,
   SUPERADMIN_ASK_CHATBOT,
+  HR_DASHBOARD,
+  HR_EMPLOYEES,
+  HR_ATTENDANCE,
+  HR_LEAVE,
+  HR_PAYROLL,
+  HR_RECRUITMENT,
+  HR_ONBOARDING,
+  HR_PERFORMANCE,
+  HR_TRAINING,
+  HR_EXPENSES,
+  HR_HELPDESK,
+  HR_TRAVEL,
+  HR_SEPARATION,
+  HR_LETTERS,
+  HR_ALERTS,
+  HR_REPORTS,
+  HR_ASSETS,
+  HR_MANPOWER,
+  HR_PIECE_WORK,
+  HR_ANALYTICS,
+  HR_ORG_SETUP,
+  ESS_HUB,
+  ESS_ATTENDANCE,
+  ESS_LEAVE,
+  ESS_REQUESTS,
+  ESS_PAYSLIPS,
+  ESS_PROFILE,
+  MSS_TEAM,
+  OTHERS_DASHBOARD,
   SUPERADMIN_TEAM_MEMBERS,
-  ADMIN_USER_ANALYSIS
+  ADMIN_USER_ANALYSIS,
 } from '@/constants/Constant'
 
 import ResetPassword from '@/screens/forgetPassword/ResetPassword'
@@ -297,6 +358,60 @@ const Routing = () => {
           <Route path={FINANCE_MACHINE_MAP} element={<FinanceMachineMap />} />
           <Route path={FINANCE_REPORT} element={<FinanceReport />} />
           <Route path={FINANCE_MACHINE_STOCKS} element={<FinanceMachineStocks />} />
+        </Route>
+      </Route>
+
+      {/* HR Management (HCM / HRM) — the 20 modules */}
+      <Route element={<PrivateRouting allowedRoles={["hr"]} />}>
+        <Route element={<Layout />}>
+          <Route path={HR_DASHBOARD} element={<HrDashboard />} />
+          <Route path={HR_EMPLOYEES} element={<HrEmployees />} />
+          <Route path={HR_ATTENDANCE} element={<HrAttendance />} />
+          <Route path={HR_LEAVE} element={<HrLeave />} />
+          <Route path={HR_PAYROLL} element={<HrPayroll />} />
+          <Route path={HR_RECRUITMENT} element={<HrRecruitment />} />
+          <Route path={HR_ONBOARDING} element={<HrOnboarding />} />
+          <Route path={HR_PERFORMANCE} element={<HrPerformance />} />
+          <Route path={HR_TRAINING} element={<HrTraining />} />
+          <Route path={HR_EXPENSES} element={<HrExpenses />} />
+          <Route path={HR_HELPDESK} element={<HrHelpdesk />} />
+          <Route path={HR_TRAVEL} element={<HrTravel />} />
+          <Route path={HR_SEPARATION} element={<HrSeparation />} />
+          <Route path={HR_LETTERS} element={<HrLetters />} />
+          <Route path={HR_ALERTS} element={<HrAlerts />} />
+          <Route path={HR_REPORTS} element={<HrReports />} />
+          <Route path={HR_ASSETS} element={<HrAssets />} />
+          <Route path={HR_MANPOWER} element={<HrManpower />} />
+          <Route path={HR_PIECE_WORK} element={<HrPieceWork />} />
+          <Route path={HR_ANALYTICS} element={<HrAnalytics />} />
+          <Route path={HR_ORG_SETUP} element={<HrOrgSetup />} />
+        </Route>
+      </Route>
+
+      {/*
+        Self Service (ESS + MSS) — open to every internal role, not just HR.
+        This is what lets ops, finance, admin and fulfillment staff mark their
+        own attendance and apply for leave. The backend scopes each request to
+        the caller's own employee record, so the shared route list is safe.
+      */}
+      <Route
+        element={
+          <PrivateRouting
+            allowedRoles={["superadmin", "admin", "ops", "fulfill", "finance", "hr", "others"]}
+          />
+        }
+      >
+        {/* "others" is the employee role — self-service is all it has, so its
+            dashboard is the self-service hub. */}
+        <Route path={OTHERS_DASHBOARD} element={<Navigate to={ESS_HUB} replace />} />
+        <Route element={<Layout />}>
+          <Route path={ESS_HUB} element={<EssHub />} />
+          <Route path={ESS_ATTENDANCE} element={<EssAttendance />} />
+          <Route path={ESS_LEAVE} element={<EssLeave />} />
+          <Route path={ESS_REQUESTS} element={<EssRequests />} />
+          <Route path={ESS_PAYSLIPS} element={<EssPayslips />} />
+          <Route path={ESS_PROFILE} element={<EssProfile />} />
+          <Route path={MSS_TEAM} element={<MssTeam />} />
         </Route>
       </Route>
 

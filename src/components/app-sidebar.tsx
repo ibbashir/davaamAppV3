@@ -20,6 +20,8 @@ import {
   MACHINES_SIDEBAR_ROUTES,
   OPS_SIDEBAR_ROUTES,
   FINANCE_SIDEBAR_ROUTES,
+  HR_SIDEBAR_ROUTES,
+  SELF_SERVICE_ROUTES,
   BASE_URL,
 } from "@/constants/Constant"
 import { getRequest } from "@/Apis/Api"
@@ -57,17 +59,57 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     return () => clearInterval(id)
   }, [role])
 
-  const navMain = React.useMemo(() => {
-    switch (role) {
-      case "superadmin": return SUPER_ADMIN_SIDEBAR_ROUTES(activeRiderCount) // ← count passed here
-      case "admin":      return ADMIN_SIDEBAR_ROUTES()
-      case "ops":        return OPS_SIDEBAR_ROUTES()
-      case "fulfill":    return FULFILL_SIDEBAR_ROUTES()
-      case "finance":    return FINANCE_SIDEBAR_ROUTES()
-      case "company":    return MACHINES_SIDEBAR_ROUTES(state.user?.first_name ?? "User")
-      default:           return []
+  // Self-service is available to every internal role. `/ess/me` provisions the
+  // caller's employee record on first call, so this returns 200 for any staff
+  // login and only 404s for corporate client accounts. It also tells us whether
+  // they have direct reports, which is what reveals "My Team".
+  const [ess, setEss] = React.useState<{ linked: boolean; isManager: boolean }>({
+    linked: false,
+    isManager: false,
+  })
+
+  React.useEffect(() => {
+    if (!role || role === "company") return
+
+    let cancelled = false
+    ;(async () => {
+      try {
+        const res = await getRequest<{ data: { direct_reports: number } }>(
+          `${BASE_URL}/ess/me`
+        )
+        if (!cancelled) {
+          setEss({ linked: true, isManager: (res.data?.direct_reports ?? 0) > 0 })
+        }
+      } catch {
+        // Not linked to an employee record — self-service simply doesn't appear
+        if (!cancelled) setEss({ linked: false, isManager: false })
+      }
+    })()
+
+    return () => {
+      cancelled = true
     }
-  }, [role, state.user?.first_name, activeRiderCount])
+  }, [role])
+
+  const navMain = React.useMemo(() => {
+    const roleRoutes = (() => {
+      switch (role) {
+        case "superadmin": return SUPER_ADMIN_SIDEBAR_ROUTES(activeRiderCount) // ← count passed here
+        case "admin":      return ADMIN_SIDEBAR_ROUTES()
+        case "ops":        return OPS_SIDEBAR_ROUTES()
+        case "fulfill":    return FULFILL_SIDEBAR_ROUTES()
+        case "finance":    return FINANCE_SIDEBAR_ROUTES()
+        case "hr":         return HR_SIDEBAR_ROUTES()
+        case "company":    return MACHINES_SIDEBAR_ROUTES(state.user?.first_name ?? "User")
+        default:           return []
+      }
+    })()
+
+    // Corporate (company) logins are external clients — no self-service for them
+    if (!ess.linked || role === "company") return roleRoutes
+
+    return [...roleRoutes, ...SELF_SERVICE_ROUTES(ess.isManager)]
+  }, [role, state.user?.first_name, activeRiderCount, ess])
 
   const userData = {
     name:   state.user?.first_name ?? "User",

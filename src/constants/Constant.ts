@@ -17,8 +17,25 @@ import {
   IconClipboardList,
   IconRobot,
   IconUsers,
+  IconClockHour4,
+  IconCalendarStats,
+  IconBriefcase,
+  IconChecklist,
+  IconTargetArrow,
+  IconSchool,
+  IconReceipt,
+  IconTicket,
+  IconPlane,
+  IconDoorExit,
+  IconDeviceLaptop,
+  IconUsersGroup,
+  IconHammer,
+  IconSettings,
+  IconUserCircle,
 } from "@tabler/icons-react";
 import React from "react";
+// Type-only import — erased at build time, so no runtime cycle with nav-main.
+import type { NavItem } from "@/components/nav-main";
 
 export const BASE_URL_TWO = "https://api.davaam.app/";
 // export const BASE_URL_TWO = "http://localhost:4000/";
@@ -123,6 +140,46 @@ export const FINANCE_CASH_COLLECTIONS = "/finance/cashCollection";
 export const FINANCE_MACHINE_MAP = "/finance/machine-map";
 export const FINANCE_REPORT = "/finance/finance-report";
 export const FINANCE_MACHINE_STOCKS = "/finance/machine-stocks";
+
+// HR MANAGEMENT PATHS (HCM / HRM)
+export const HR_DASHBOARD = "/hr/dashboard";
+export const HR_EMPLOYEES = "/hr/employees";
+export const HR_ATTENDANCE = "/hr/attendance";
+export const HR_LEAVE = "/hr/leave";
+export const HR_PAYROLL = "/hr/payroll";
+export const HR_RECRUITMENT = "/hr/recruitment";
+export const HR_ONBOARDING = "/hr/onboarding";
+export const HR_PERFORMANCE = "/hr/performance";
+export const HR_TRAINING = "/hr/training";
+export const HR_EXPENSES = "/hr/expenses";
+export const HR_HELPDESK = "/hr/helpdesk";
+export const HR_TRAVEL = "/hr/travel";
+export const HR_SEPARATION = "/hr/separation";
+export const HR_LETTERS = "/hr/letters";
+export const HR_ALERTS = "/hr/scheduled-alerts";
+export const HR_REPORTS = "/hr/scheduled-reports";
+export const HR_ASSETS = "/hr/assets";
+export const HR_MANPOWER = "/hr/manpower";
+export const HR_PIECE_WORK = "/hr/piece-work";
+export const HR_ANALYTICS = "/hr/analytics";
+export const HR_ORG_SETUP = "/hr/org-setup";
+
+// SELF SERVICE PATHS (ESS + MSS) — available to every dashboard role
+export const ESS_HUB = "/self-service";
+export const ESS_ATTENDANCE = "/self-service/attendance";
+export const ESS_LEAVE = "/self-service/leave";
+export const ESS_EXPENSES = "/self-service/expenses";
+export const ESS_PAYSLIPS = "/self-service/payslips";
+export const ESS_PROFILE = "/self-service/profile";
+export const ESS_REQUESTS = "/self-service/requests";
+export const MSS_TEAM = "/self-service/team";
+
+/**
+ * Employees on the "others" role have no admin area of their own, but login and
+ * the sidebar logo both navigate to `/<role>/dashboard` — so this path exists
+ * purely to bounce them into self-service.
+ */
+export const OTHERS_DASHBOARD = "/others/dashboard";
 
 //MACHINE PATH
 export const MACHINE_DASHBOARD = "/company/dashboard";
@@ -255,6 +312,71 @@ export const FINANCE_SIDEBAR_ROUTES = () => {
     { title: "Finance Report", url: FINANCE_REPORT, icon: IconReport },
     { title: "Machine Stocks", url: FINANCE_MACHINE_STOCKS, icon: IconClipboardList },
     { title: "User Wallet Activity", url: FINANCE_USER_WALLET_ACTIVITY, icon: IconReport },
+  ];
+};
+
+/**
+ * HR Management sidebar — the 20 HCM / HRM modules, ordered so the daily-use
+ * ones (people, attendance, leave, payroll) sit at the top and configuration
+ * sits at the bottom.
+ */
+export const HR_SIDEBAR_ROUTES = () => {
+  return [
+    { title: "Dashboard", url: HR_DASHBOARD, icon: IconHome },
+    { title: "Employees", url: HR_EMPLOYEES, icon: IconUsers },
+    { title: "Attendance", url: HR_ATTENDANCE, icon: IconClockHour4 },
+    { title: "Leave", url: HR_LEAVE, icon: IconCalendarStats },
+    { title: "Payroll", url: HR_PAYROLL, icon: IconCashBanknote },
+    { title: "Recruitment", url: HR_RECRUITMENT, icon: IconBriefcase },
+    { title: "Onboarding", url: HR_ONBOARDING, icon: IconChecklist },
+    { title: "Performance", url: HR_PERFORMANCE, icon: IconTargetArrow },
+    { title: "Training", url: HR_TRAINING, icon: IconSchool },
+    { title: "Expenses", url: HR_EXPENSES, icon: IconReceipt },
+    { title: "Help Desk", url: HR_HELPDESK, icon: IconTicket },
+    { title: "Travel", url: HR_TRAVEL, icon: IconPlane },
+    { title: "Separation", url: HR_SEPARATION, icon: IconDoorExit },
+    { title: "HR Letters", url: HR_LETTERS, icon: IconFileDescription },
+    { title: "Assets", url: HR_ASSETS, icon: IconDeviceLaptop },
+    { title: "Manpower", url: HR_MANPOWER, icon: IconUsersGroup },
+    { title: "Piece Work", url: HR_PIECE_WORK, icon: IconHammer },
+    { title: "Scheduled Alerts", url: HR_ALERTS, icon: IconBell },
+    { title: "Scheduled Reports", url: HR_REPORTS, icon: IconReport },
+    { title: "Analytics", url: HR_ANALYTICS, icon: IconChartBar },
+    { title: "Org Setup", url: HR_ORG_SETUP, icon: IconSettings },
+  ];
+};
+
+/**
+ * Self-service appended to EVERY role's sidebar — as ONE collapsible entry.
+ *
+ * ESS is deliberately role-independent: an ops, finance, admin or fulfillment
+ * user marks their own attendance and applies for leave through these screens.
+ * Nesting the pages under a single "Self Service" row keeps that from eating
+ * seven slots in a sidebar that already belongs to the role's own work.
+ *
+ * "My Team" only appears for users who actually have direct reports.
+ */
+export const SELF_SERVICE_ROUTES = (isManager = false): NavItem[] => {
+  const pages: NavItem[] = [
+    // exact: "/self-service" prefixes every entry below it
+    { title: "My Hub", url: ESS_HUB, icon: IconUserCircle, exact: true },
+    { title: "My Attendance", url: ESS_ATTENDANCE, icon: IconClockHour4 },
+    { title: "My Leave", url: ESS_LEAVE, icon: IconCalendarStats },
+    { title: "My Requests", url: ESS_REQUESTS, icon: IconReceipt },
+    { title: "My Payslips", url: ESS_PAYSLIPS, icon: IconCashBanknote },
+    { title: "My Profile", url: ESS_PROFILE, icon: IconUser },
+  ];
+  if (isManager) {
+    pages.push({ title: "My Team", url: MSS_TEAM, icon: IconUsersGroup });
+  }
+
+  return [
+    {
+      title: "Self Service",
+      url: ESS_HUB,
+      icon: IconUserCircle,
+      items: pages,
+    },
   ];
 };
 
