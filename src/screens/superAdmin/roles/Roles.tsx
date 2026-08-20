@@ -106,6 +106,8 @@ interface ApiResponse {
   companyRoles?: number;
   fulfillRoles?: number;
   financeRoles?: number;
+  hrRoles?: number;
+  othersRoles?: number;
 }
 
 interface UserFormData {
@@ -125,6 +127,8 @@ const ROLE_OPTIONS = [
   { value: "fulfillment", label: "Fulfillment / Operations" },
   { value: "company", label: "Corporate" },
   { value: "finance", label: "Finance" },
+  { value: "hr", label: "HR Management" },
+  { value: "others", label: "Employee (Self Service)" },
 ];
 
 const MACHINE_TYPE_OPTIONS = [
@@ -144,6 +148,11 @@ const getRoleCode = (role: string): string => {
     fulfillment: "4",
     "Fulfill":"4",
     finance: "5",
+    hr: "6",
+    "hr management": "6",
+    // Rank-and-file employees — self-service only, no admin permissions at all
+    others: "7",
+    employee: "7",
   };
   return roleMap[role.toLowerCase()] ?? "3";
 };
@@ -158,6 +167,9 @@ const getRoleBadgeColor = (role: string): string => {
     corporate: "bg-cyan-500 text-white border-transparent hover:bg-cyan-500",
     fulfillment: "bg-purple-500 text-white border-transparent hover:bg-purple-500",
     finance: "bg-green-500 text-white border-transparent hover:bg-green-500",
+    hr: "bg-teal-600 text-white border-transparent hover:bg-teal-600",
+    "hr management": "bg-teal-600 text-white border-transparent hover:bg-teal-600",
+    others: "bg-slate-500 text-white border-transparent hover:bg-slate-500",
   };
   return roleColors[role.toLowerCase()] ?? "bg-gray-500 text-white border-transparent";
 };
@@ -174,6 +186,9 @@ const formatRoleDisplay = (role: string): string => {
     corporate: "Corporate",
     fulfillment: "Fulfillment",
     finance: "Finance",
+    hr: "HR Management",
+    "hr management": "HR Management",
+    others: "Employee",
   };
   return (
     roleMap[role.toLowerCase()] ??
@@ -812,8 +827,8 @@ const Roles = () => {
             </DialogContent>
           </Dialog>
 
-        {/* Statistics Cards — 2×2 on mobile, 3 cols on md, 6 cols on lg */}
-        <div className="grid gap-3 grid-cols-2 md:grid-cols-3 lg:grid-cols-6">
+        {/* Statistics Cards — 2×2 on mobile, 3 cols on md, 7 cols on lg */}
+        <div className="grid gap-3 grid-cols-2 md:grid-cols-4 lg:grid-cols-8">
           <Card className="bg-red-500">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium text-white">Super Admins</CardTitle>
@@ -889,6 +904,32 @@ const Roles = () => {
                 {totalRoleList?.financeRoles ?? 0}
               </div>
               <p className="text-xs text-white/80">Finance team</p>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-teal-600">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium text-white">HR</CardTitle>
+              <IconUsers className="h-4 w-4 text-white" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-white">
+                {totalRoleList?.hrRoles ?? 0}
+              </div>
+              <p className="text-xs text-white/80">HR management team</p>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-slate-500">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium text-white">Employees</CardTitle>
+              <IconUsers className="h-4 w-4 text-white" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-white">
+                {totalRoleList?.othersRoles ?? 0}
+              </div>
+              <p className="text-xs text-white/80">Self service only</p>
             </CardContent>
           </Card>
         </div>
