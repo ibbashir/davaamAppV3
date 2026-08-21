@@ -74,11 +74,20 @@ export const formatDateTime = (value: unknown): string => {
   });
 };
 
+/**
+ * Punch times read in Pakistan time, not the viewer's. Lateness is judged
+ * against a 09:30 PKT cut-off, so a browser somewhere else must not show an
+ * on-time arrival as 04:45 or a late one as on time.
+ */
 export const formatTime = (value: unknown): string => {
   if (!value) return "—";
   const d = new Date(String(value));
   if (Number.isNaN(d.getTime())) return "—";
-  return d.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
+  return d.toLocaleTimeString("en-GB", {
+    hour: "2-digit",
+    minute: "2-digit",
+    timeZone: "Asia/Karachi",
+  });
 };
 
 export const formatMoney = (value: unknown): string => {
