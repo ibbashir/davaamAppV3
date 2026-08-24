@@ -3,11 +3,10 @@ import { toast } from "sonner"
 import { essPost, errorMessage } from "@/components/hr/hr-api"
 
 /**
- * Check-in / check-out is geofenced for the office roles (superadmin, admin,
- * ops, fulfillment): the punch only lands if the browser reports a position
- * inside one of the approved sites. The server owns that decision — everything
- * here just collects the coordinates and turns a refusal into a message worth
- * reading.
+ * Check-in / check-out is geofenced for every employee, whatever their role:
+ * the punch only lands if the browser reports a position inside one of the
+ * approved sites. The server owns that decision — everything here just collects
+ * the coordinates and turns a refusal into a message worth reading.
  */
 export interface GeofenceSite {
   id: string
@@ -65,9 +64,10 @@ function currentPosition(): Promise<Fix> {
 /**
  * Shared by My Hub and My Attendance so both punch buttons behave identically.
  *
- * A failed location read still posts — roles outside the fence are allowed to
- * punch without coordinates — but the reason is held so that if the server does
- * refuse, the user sees "location is blocked" rather than the generic
+ * A failed location read is now fatal to the punch: no role may check in or out
+ * without coordinates, so there is nothing to gain by posting one that the
+ * server is certain to refuse. The geolocation error is reported as-is, since
+ * "location is blocked" is far more actionable than the server's generic
  * "location is required".
  */
 export function usePunch(onDone: () => void) {
@@ -77,30 +77,30 @@ export function usePunch(onDone: () => void) {
     async (type: "in" | "out") => {
       setPunching(true)
 
-      let fix: Fix | null = null
-      let locationError: string | null = null
+      let fix: Fix
       try {
         fix = await currentPosition()
       } catch (err) {
-        locationError = (err as Error).message
+        // Stop here rather than spending a round-trip to be told the same thing
+        // in vaguer words.
+        toast.error((err as Error).message)
+        setPunching(false)
+        return
       }
 
       try {
         const res = await essPost<{ message: string }>("/attendance/punch", {
           type,
-          lat: fix?.lat,
-          lng: fix?.lng,
-          accuracy: fix?.accuracy,
+          lat: fix.lat,
+          lng: fix.lng,
+          accuracy: fix.accuracy,
         })
         toast.success(res.message)
         onDone()
       } catch (err) {
-        const status = (err as { response?: { status?: number } })?.response?.status
-        toast.error(
-          status === 403 && locationError
-            ? locationError
-            : errorMessage(err, "Could not record your punch"),
-        )
+        // A 403 here means the fix was good but the place was wrong — the
+        // server's message names the nearest site and the distance to it.
+        toast.error(errorMessage(err, "Could not record your punch"))
       } finally {
         setPunching(false)
       }

@@ -2,10 +2,11 @@ import { IconMapPin } from "@tabler/icons-react"
 import type { Geofence } from "@/components/hr/use-punch"
 
 /**
- * Explains the rule before the user hits a refusal. Renders nothing when the
- * caller's role isn't fenced. With more than one approved site the list is
- * spelled out, so staff know which places will work rather than discovering it
- * by being turned away.
+ * Explains the rule before the user hits a refusal. The fence applies to every
+ * employee, so this renders for everyone unless it has been switched off
+ * server-side. With more than one approved site the list is spelled out, so
+ * staff know which places will work rather than discovering it by being turned
+ * away.
  */
 export function GeofenceNotice({ geofence }: { geofence?: Geofence | null }) {
   const sites = geofence?.sites ?? []
