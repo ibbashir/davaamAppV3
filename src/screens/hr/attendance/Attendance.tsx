@@ -21,7 +21,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { IconLoader2, IconLogin2, IconLogout2, IconInbox } from "@tabler/icons-react"
+import { IconLoader2, IconLogin2, IconLogout2, IconInbox, IconMapPin } from "@tabler/icons-react"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 import {
@@ -46,9 +46,46 @@ const ATTENDANCE_STATUSES = [
   "week_off",
 ]
 
+/**
+ * Where a punch was made, when it carried coordinates. Self-service punches
+ * record them; anything HR marks by hand has none, so the pin is absent rather
+ * than dead — an icon that goes nowhere is worse than no icon.
+ *
+ * Rendered as a real anchor so the coordinates survive middle-click and
+ * "copy link address", and so the target is keyboard-reachable.
+ */
+function PunchLocation({
+  lat,
+  lng,
+  label,
+}: {
+  lat: number | null
+  lng: number | null
+  label: string
+}) {
+  if (lat == null || lng == null) return null
+
+  const coords = `${Number(lat).toFixed(5)}, ${Number(lng).toFixed(5)}`
+  return (
+    <a
+      href={`https://www.google.com/maps/search/?api=1&query=${lat},${lng}`}
+      target="_blank"
+      rel="noopener noreferrer"
+      title={`${label} at ${coords} — open in Google Maps`}
+      aria-label={`${label} location ${coords}. Opens Google Maps in a new tab.`}
+      className="text-muted-foreground transition-colors hover:text-teal-600"
+    >
+      <IconMapPin className="h-3.5 w-3.5" />
+    </a>
+  )
+}
+
 /** Today's roster — who is in, who is late, who hasn't been marked. */
 function RosterTab() {
+  const { options } = useHrOptions(["departments"])
   const [date, setDate] = React.useState(todayISO())
+  const [departmentId, setDepartmentId] = React.useState("all")
+  const [statusFilter, setStatusFilter] = React.useState("all")
   const [rows, setRows] = React.useState<RosterRow[]>([])
   const [summary, setSummary] = React.useState<Record<string, number>>({})
   const [loading, setLoading] = React.useState(true)
@@ -56,12 +93,16 @@ function RosterTab() {
   const [bulkStatus, setBulkStatus] = React.useState("absent")
   const [selected, setSelected] = React.useState<number[]>([])
 
+  // Department is filtered server-side — the endpoint takes it, and letting the
+  // server narrow the set keeps the tiles counting the department on screen.
+  // Status stays client-side on purpose: the tiles are the day's breakdown, so
+  // filtering to "Late" must not collapse every other tile to zero.
   const load = React.useCallback(async () => {
     setLoading(true)
     try {
       const res = await hrGet<{ data: RosterRow[]; summary: Record<string, number> }>(
         "/attendance/roster",
-        { date },
+        { date, department_id: departmentId },
       )
       setRows(res.data ?? [])
       setSummary(res.summary ?? {})
@@ -71,7 +112,7 @@ function RosterTab() {
     } finally {
       setLoading(false)
     }
-  }, [date])
+  }, [date, departmentId])
 
   React.useEffect(() => {
     load()
@@ -111,7 +152,26 @@ function RosterTab() {
   const toggle = (id: number) =>
     setSelected((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]))
 
-  const allSelected = rows.length > 0 && selected.length === rows.length
+  const visibleRows = React.useMemo(
+    () => (statusFilter === "all" ? rows : rows.filter((r) => r.status === statusFilter)),
+    [rows, statusFilter],
+  )
+
+  // Narrowing the filter drops anything it hides out of the selection. Bulk-mark
+  // would otherwise write a status onto employees the user can no longer see.
+  React.useEffect(() => {
+    const visibleIds = new Set(visibleRows.map((r) => r.employee_id))
+    setSelected((prev) => {
+      const next = prev.filter((id) => visibleIds.has(id))
+      return next.length === prev.length ? prev : next
+    })
+  }, [visibleRows])
+
+  const allSelected =
+    visibleRows.length > 0 && visibleRows.every((r) => selected.includes(r.employee_id))
+
+  const toggleAll = (checked: boolean) =>
+    setSelected(checked ? visibleRows.map((r) => r.employee_id) : [])
 
   return (
     <div className="flex flex-col gap-4">
@@ -123,39 +183,82 @@ function RosterTab() {
         <StatTile label="Half Day" value={summary.half_day ?? 0} tone="amber" />
       </div>
 
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex items-center gap-2">
-          <Input
-            type="date"
-            value={date}
-            onChange={(e) => setDate(e.target.value)}
-            className="w-[170px]"
-          />
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+        <div className="flex flex-wrap items-end gap-2">
+          <div className="flex flex-col gap-1">
+            <label className="text-xs font-medium text-muted-foreground">Date</label>
+            <Input
+              type="date"
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
+              className="w-[170px]"
+            />
+          </div>
+
+          <div className="flex flex-col gap-1">
+            <label className="text-xs font-medium text-muted-foreground">Department</label>
+            <Select value={departmentId} onValueChange={setDepartmentId}>
+              <SelectTrigger className="w-[170px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All departments</SelectItem>
+                {(options.departments ?? []).map((o) => (
+                  <SelectItem key={o.value} value={String(o.value)}>
+                    {o.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="flex flex-col gap-1">
+            <label className="text-xs font-medium text-muted-foreground">Status</label>
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="w-[150px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All statuses</SelectItem>
+                {ATTENDANCE_STATUSES.map((s) => (
+                  <SelectItem key={s} value={s}>
+                    {humanise(s)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
           <Button variant="outline" onClick={load}>
             Refresh
           </Button>
         </div>
 
-        <div className="flex items-center gap-2">
-          <Select value={bulkStatus} onValueChange={setBulkStatus}>
-            <SelectTrigger className="w-[150px]">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {ATTENDANCE_STATUSES.map((s) => (
-                <SelectItem key={s} value={s}>
-                  {humanise(s)}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Button
-            onClick={applyBulk}
-            disabled={!selected.length}
-            className="bg-teal-600 hover:bg-teal-700"
-          >
-            Mark {selected.length || ""} selected
-          </Button>
+        <div className="flex flex-col gap-1">
+          <label className="text-xs font-medium text-muted-foreground">
+            Bulk action — writes to selected employees
+          </label>
+          <div className="flex items-center gap-2">
+            <Select value={bulkStatus} onValueChange={setBulkStatus}>
+              <SelectTrigger className="w-[150px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {ATTENDANCE_STATUSES.map((s) => (
+                  <SelectItem key={s} value={s}>
+                    Mark as {humanise(s)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Button
+              onClick={applyBulk}
+              disabled={!selected.length}
+              className="bg-teal-600 hover:bg-teal-700"
+            >
+              Apply to {selected.length || ""} selected
+            </Button>
+          </div>
         </div>
       </div>
 
@@ -169,7 +272,7 @@ function RosterTab() {
                     <input
                       type="checkbox"
                       checked={allSelected}
-                      onChange={(e) => setSelected(e.target.checked ? rows.map((r) => r.employee_id) : [])}
+                      onChange={(e) => toggleAll(e.target.checked)}
                       className="h-4 w-4 rounded border-gray-300 text-teal-600 focus:ring-teal-500"
                       aria-label="Select all"
                     />
@@ -191,15 +294,17 @@ function RosterTab() {
                       <IconLoader2 className="mx-auto h-5 w-5 animate-spin text-teal-600" />
                     </TableCell>
                   </TableRow>
-                ) : rows.length === 0 ? (
+                ) : visibleRows.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={9} className="h-32 text-center text-sm text-muted-foreground">
                       <IconInbox className="mx-auto mb-2 h-6 w-6 opacity-50" />
-                      No active employees yet — add them in Employee Management
+                      {rows.length === 0
+                        ? "No active employees yet — add them in Employee Management"
+                        : `No employees are marked ${humanise(statusFilter)} on this date`}
                     </TableCell>
                   </TableRow>
                 ) : (
-                  rows.map((row) => (
+                  visibleRows.map((row) => (
                     <TableRow key={row.employee_id}>
                       <TableCell>
                         <input
@@ -220,8 +325,26 @@ function RosterTab() {
                           {humanise(row.status)}
                         </Badge>
                       </TableCell>
-                      <TableCell>{formatTime(row.check_in)}</TableCell>
-                      <TableCell>{formatTime(row.check_out)}</TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-1.5">
+                          {formatTime(row.check_in)}
+                          <PunchLocation
+                            lat={row.check_in_lat}
+                            lng={row.check_in_lng}
+                            label="Checked in"
+                          />
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-1.5">
+                          {formatTime(row.check_out)}
+                          <PunchLocation
+                            lat={row.check_out_lat}
+                            lng={row.check_out_lng}
+                            label="Checked out"
+                          />
+                        </div>
+                      </TableCell>
                       <TableCell>{formatMinutes(row.worked_minutes)}</TableCell>
                       <TableCell>
                         {row.late_minutes > 0 ? (

@@ -58,6 +58,10 @@ export interface RosterRow {
   attendance_id: number | null;
   check_in: string | null;
   check_out: string | null;
+  check_in_lat: number | null;
+  check_in_lng: number | null;
+  check_out_lat: number | null;
+  check_out_lng: number | null;
   worked_minutes: number | null;
   late_minutes: number;
   status: string;
