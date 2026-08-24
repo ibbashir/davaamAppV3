@@ -50,13 +50,17 @@ export function HrTabbedPage({
   return (
     <HrPage title={title} description={description}>
       <Tabs defaultValue={defaultTab ?? tabs[0]?.value} className="w-full">
-        <TabsList className="w-full justify-start overflow-x-auto">
-          {tabs.map((tab) => (
-            <TabsTrigger key={tab.value} value={tab.value}>
-              {tab.label}
-            </TabsTrigger>
-          ))}
-        </TabsList>
+        {/* A one-item tab bar reads as a broken control, so it is left out —
+            this happens when a role is scoped to a single tab of a module. */}
+        {tabs.length > 1 && (
+          <TabsList className="w-full justify-start overflow-x-auto">
+            {tabs.map((tab) => (
+              <TabsTrigger key={tab.value} value={tab.value}>
+                {tab.label}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+        )}
         {tabs.map((tab) => (
           <TabsContent key={tab.value} value={tab.value} className="mt-4">
             {tab.content}

@@ -24,6 +24,7 @@ import {
 import { IconLoader2, IconLogin2, IconLogout2, IconInbox, IconMapPin } from "@tabler/icons-react"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
+import { useAuth } from "@/contexts/AuthContext"
 import {
   hrGet,
   hrAction,
@@ -499,7 +500,13 @@ function SummaryTab() {
 }
 
 const Attendance = () => {
-  const { options } = useHrOptions(["employees"])
+  const { state } = useAuth()
+  // Superadmin reaches this screen to watch the daily roster, not to administer
+  // attendance — Records (create/edit/delete) and Summary stay with HR.
+  const rosterOnly = state.role === "superadmin"
+  // The employee list only feeds the Records form, so it is not worth fetching
+  // for a role that never sees that tab.
+  const { options } = useHrOptions(rosterOnly ? [] : ["employees"])
 
   const recordFields: Field[] = [
     {
@@ -541,26 +548,36 @@ const Attendance = () => {
   return (
     <HrTabbedPage
       title="Attendance Management"
-      description="Daily roster, manual corrections and period summaries. Employees punch their own attendance from Self Service."
+      description={
+        rosterOnly
+          ? "Today's roster — who is in, who is late, and who has not been marked."
+          : "Daily roster, manual corrections and period summaries. Employees punch their own attendance from Self Service."
+      }
       tabs={[
         { value: "roster", label: "Daily Roster", content: <RosterTab /> },
-        {
-          value: "records",
-          label: "Records",
-          content: (
-            <ResourceScreen
-              embedded
-              title="Attendance Records"
-              singular="Record"
-              endpoint="/attendance"
-              fields={recordFields}
-              optionSources={options}
-              filters={[{ name: "status", label: "Status", options: enumOptions(ATTENDANCE_STATUSES) }]}
-              searchPlaceholder="Search records…"
-            />
-          ),
-        },
-        { value: "summary", label: "Summary", content: <SummaryTab /> },
+        ...(rosterOnly
+          ? []
+          : [
+              {
+                value: "records",
+                label: "Records",
+                content: (
+                  <ResourceScreen
+                    embedded
+                    title="Attendance Records"
+                    singular="Record"
+                    endpoint="/attendance"
+                    fields={recordFields}
+                    optionSources={options}
+                    filters={[
+                      { name: "status", label: "Status", options: enumOptions(ATTENDANCE_STATUSES) },
+                    ]}
+                    searchPlaceholder="Search records…"
+                  />
+                ),
+              },
+              { value: "summary", label: "Summary", content: <SummaryTab /> },
+            ]),
       ]}
     />
   )

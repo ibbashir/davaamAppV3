@@ -361,12 +361,23 @@ const Routing = () => {
         </Route>
       </Route>
 
+      {/*
+        Attendance is the one HR module superadmin also reaches, so it sits in
+        its own guard rather than inside the HR block below. Declaring the path
+        once keeps the two roles from racing to match it — the screen itself
+        decides what each role sees, and superadmin gets the Daily Roster only.
+      */}
+      <Route element={<PrivateRouting allowedRoles={["hr", "superadmin"]} />}>
+        <Route element={<Layout />}>
+          <Route path={HR_ATTENDANCE} element={<HrAttendance />} />
+        </Route>
+      </Route>
+
       {/* HR Management (HCM / HRM) — the 20 modules */}
       <Route element={<PrivateRouting allowedRoles={["hr"]} />}>
         <Route element={<Layout />}>
           <Route path={HR_DASHBOARD} element={<HrDashboard />} />
           <Route path={HR_EMPLOYEES} element={<HrEmployees />} />
-          <Route path={HR_ATTENDANCE} element={<HrAttendance />} />
           <Route path={HR_LEAVE} element={<HrLeave />} />
           <Route path={HR_PAYROLL} element={<HrPayroll />} />
           <Route path={HR_RECRUITMENT} element={<HrRecruitment />} />

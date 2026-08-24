@@ -248,6 +248,9 @@ export const SUPER_ADMIN_SIDEBAR_ROUTES = (activeRiderCount = 0) => {
     { title: "Alert System", url: SUPERADMIN_ALERT_SYSTEM, icon: IconClipboardList },
     { title: "Ask Chatbot", url: SUPERADMIN_ASK_CHATBOT, icon: IconRobot },
     { title: "Team Members", url: SUPERADMIN_TEAM_MEMBERS, icon: IconUsers },
+    // The HR attendance module, roster tab only. Named in full so it is not
+    // mistaken for "My Attendance" under Self Service, which is this user's own.
+    { title: "Attendance Management", url: HR_ATTENDANCE, icon: IconClockHour4 },
 
     // { title: "Delete Corporate Employees", url: SUPERADMIN_DELETE_EMPLOYEES, icon: IconHexagonMinus },
   ];
