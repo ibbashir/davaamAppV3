@@ -34,6 +34,7 @@ import {
   formatTime,
   formatMinutes,
   todayISO,
+  stripHiddenEmployees,
 } from "@/components/hr/hr-api"
 import type { RosterRow, HrRow } from "@/Types/hr"
 
@@ -105,7 +106,7 @@ function RosterTab() {
         "/attendance/roster",
         { date, department_id: departmentId },
       )
-      setRows(res.data ?? [])
+      setRows(stripHiddenEmployees(res.data ?? []))
       setSummary(res.summary ?? {})
       setSelected([])
     } catch (err) {

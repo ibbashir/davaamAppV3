@@ -50,6 +50,7 @@ import {
   formatDate,
   formatDateTime,
   formatMoney,
+  stripHiddenEmployees,
 } from "./hr-api"
 import type { HrRow, HrItemResponse } from "@/Types/hr"
 
@@ -236,7 +237,7 @@ export function ResourceScreen({
         search: debouncedSearch,
         ...filterValues,
       })
-      setRows(res.data ?? [])
+      setRows(stripHiddenEmployees(res.data ?? []))
       setTotalPages(res.totalPages ?? 1)
       setTotal(res.total ?? res.data?.length ?? 0)
       onLoaded?.(res.data ?? [])

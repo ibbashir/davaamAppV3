@@ -54,6 +54,7 @@ export interface RosterRow {
   employee_id: number;
   employee_code: string;
   name: string;
+  email: string | null;
   department: string | null;
   attendance_id: number | null;
   check_in: string | null;

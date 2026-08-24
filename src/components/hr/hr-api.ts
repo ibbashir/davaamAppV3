@@ -47,6 +47,40 @@ export const essGet = <T>(path: string, params?: Record<string, unknown>) =>
 export const essPost = <T>(path: string, body: object = {}) =>
   postRequest<T>(`${ESS}${path}`, body);
 
+/**
+ * Accounts that must never be rendered in an HR list.
+ *
+ * The server already filters these out — this is a second line of defence for
+ * the screens that reach an endpoint the filter has not been applied to yet, so
+ * one missed query does not put them back on screen. Keep in step with
+ * backend/src/controllers/DavaamDashboard/Hr/hiddenEmployees.js.
+ */
+const HIDDEN_EMPLOYEE_EMAILS = [
+  "ifraaslamhr@davaam.pk",
+  "hassanharoon321@gmail.com",
+  "salman@davaam.pk",
+  "ifrahaslam@davaam.pk",
+  "hassan.haroon@davaam.pk",
+]
+
+/**
+ * Drops rows belonging to a hidden account, whether the address sits on the row
+ * itself (an employee list) or on a nested `employee` (attendance, leave,
+ * payslips…). Rows with no email are always kept — most records carry none, and
+ * dropping them would empty half the screens this guards.
+ */
+export function stripHiddenEmployees<T>(rows: T[]): T[] {
+  const hidden = (value: unknown): boolean =>
+    typeof value === "string" && HIDDEN_EMPLOYEE_EMAILS.includes(value.trim().toLowerCase())
+
+  return (rows ?? []).filter((row) => {
+    if (!row || typeof row !== "object") return true
+    const r = row as Record<string, unknown>
+    const nested = r.employee as Record<string, unknown> | undefined
+    return !hidden(r.email) && !hidden(nested?.email)
+  })
+}
+
 // ─── Display helpers ─────────────────────────────────────────────────────────
 
 /** "notice_period" → "Notice Period" */
