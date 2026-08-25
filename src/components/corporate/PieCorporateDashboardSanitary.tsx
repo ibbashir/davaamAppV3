@@ -68,15 +68,15 @@ export default function PieCorporateDashboardSanitary({machineCodes}:PieCorporat
     }
 
     return (
-        <Card>
+        <Card className="h-full flex flex-col">
             <CardHeader>
-                <CardTitle>Sanitary Brands Transactions</CardTitle>
-                <CardDescription>Transaction distribution with total stats</CardDescription>
+                <CardTitle>Sanitary Brands by Transactions</CardTitle>
+                <CardDescription>Transaction share across sanitary napkin brands</CardDescription>
                 <div className="mt-3 text-sm text-muted-foreground space-y-1">
                     <div className="text-black text-lg">🧾 <span className="">Total Transactions:</span> {totalTransactions.toLocaleString()}</div>
                 </div>
             </CardHeader>
-            <CardContent className="h-[445px]">
+            <CardContent className="flex-1 min-h-[400px]">
                 <ResponsivePie
                     data={data}
                     margin={{ top: 40, right: 80, bottom: 80, left: 80 }}

@@ -5,12 +5,10 @@ import { postRequest } from "@/Apis/Api"
 import { ResponsiveBar } from "@nivo/bar"
 
 type PeriodData = {
-  Revenue: Record<string, number>[]
   Transaction: Record<string, number>[]
-  CashRevenue?: Record<string, number>[]
   CashTransaction?: Record<string, number>[]
-  OnlineRevenue?: Record<string, number>[]
-  OnlineTransaction?: Record<string, number>[]
+  CorporateTransaction?: Record<string, number>[]
+  AppTransaction?: Record<string, number>[]
 }
 
 type ApiResponse = {
@@ -24,13 +22,14 @@ type ApiResponse = {
 type NivoBarData = {
   id: string
   label: string
-  revenue: number
   transactions: number
-  cashRevenue: number
   cashTransactions: number
-  onlineRevenue: number
-  onlineTransactions: number
+  corporateTransactions: number
+  appTransactions: number
 }
+
+const toLookup = (arr?: Record<string, number>[]) =>
+  Object.fromEntries((arr ?? []).map((obj) => Object.entries(obj)[0]))
 
 interface BarChartCorporateClientSanitary {
   machineCodes: number[]
@@ -38,12 +37,10 @@ interface BarChartCorporateClientSanitary {
 
 export default function BarCorporateDashboardSanitary({ machineCodes }: BarChartCorporateClientSanitary) {
   const [data, setData] = React.useState<NivoBarData[]>([])
-  const [totalRevenue, setTotalRevenue] = React.useState(0)
   const [totalTransactions, setTotalTransactions] = React.useState(0)
   const [loading, setLoading] = React.useState(true)
   const [error, setError] = React.useState<string | null>(null)
   const [view, setView] = React.useState<"monthly" | "weekly">("monthly")
-  const [metric, setMetric] = React.useState<"revenue" | "transactions">("transactions")
 
   const fetchData = async (type: "monthly" | "weekly") => {
     setLoading(true)
@@ -52,32 +49,26 @@ export default function BarCorporateDashboardSanitary({ machineCodes }: BarChart
 
       const period = type === "weekly" ? res.data.weekly : res.data.monthly
 
-      const revenueArr      = period.Revenue
-      const transactionArr  = period.Transaction
-      const cashRevArr      = period.CashRevenue      ?? []
-      const cashTxnArr      = period.CashTransaction  ?? []
-      const onlineRevArr    = period.OnlineRevenue    ?? []
-      const onlineTxnArr    = period.OnlineTransaction ?? []
+      const cashLookup = toLookup(period.CashTransaction)
+      const corporateLookup = toLookup(period.CorporateTransaction)
+      const appLookup = toLookup(period.AppTransaction)
 
-      const transformed: NivoBarData[] = revenueArr.map((revObj, i) => {
-        const rawLabel = Object.keys(revObj)[0]
+      const transformed: NivoBarData[] = period.Transaction.map((txnObj) => {
+        const rawLabel = Object.keys(txnObj)[0]
         const label = type === "weekly"
           ? new Date(rawLabel + "T00:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric" })
           : rawLabel
         return {
           id: rawLabel,
           label,
-          revenue:            Object.values(revObj)[0],
-          transactions:       Object.values(transactionArr[i])[0],
-          cashRevenue:        cashRevArr[i]    ? Object.values(cashRevArr[i])[0]    : 0,
-          cashTransactions:   cashTxnArr[i]    ? Object.values(cashTxnArr[i])[0]    : 0,
-          onlineRevenue:      onlineRevArr[i]  ? Object.values(onlineRevArr[i])[0]  : 0,
-          onlineTransactions: onlineTxnArr[i]  ? Object.values(onlineTxnArr[i])[0]  : 0,
+          transactions: Object.values(txnObj)[0],
+          cashTransactions: cashLookup[rawLabel] ?? 0,
+          corporateTransactions: corporateLookup[rawLabel] ?? 0,
+          appTransactions: appLookup[rawLabel] ?? 0,
         }
       })
 
       setData(transformed)
-      setTotalRevenue(transformed.reduce((sum, d) => sum + d.revenue, 0))
       setTotalTransactions(transformed.reduce((sum, d) => sum + d.transactions, 0))
       setError(null)
     } catch (err) {
@@ -92,31 +83,20 @@ export default function BarCorporateDashboardSanitary({ machineCodes }: BarChart
     fetchData(view)
   }, [view])
 
-  const barKeys = [metric]
-
-  const barColors = [metric === "revenue" ? "#3b82f680" : "#10b98180"]
-
   return (
-    <Card>
+    <Card className="h-full flex flex-col">
       <CardHeader>
         <div className="flex justify-between items-center">
           <div>
             <CardTitle>Sanitary Transactions Breakdown</CardTitle>
             <CardDescription>
-              {view === "monthly" ? "Monthly" : "Weekly"}{" "}
-              {metric === "transactions"}
+              {view === "monthly" ? "Last 6 Months Transactions Record" : "Last 7 Weeks Transaction Record"}
             </CardDescription>
             <div className="mt-3 text-sm text-muted-foreground space-y-1">
               <div>
                 🧾 <strong>Total Transactions:</strong>{" "}
                 {totalTransactions.toLocaleString()}
               </div>
-            </div>
-
-            <div className="flex p-2 space-x-2">
-              <Button variant={metric === "transactions" ? "default" : "outline"} onClick={() => setMetric("transactions")}>
-                Transactions
-              </Button>
             </div>
           </div>
 
@@ -131,7 +111,7 @@ export default function BarCorporateDashboardSanitary({ machineCodes }: BarChart
         </div>
       </CardHeader>
 
-      <CardContent className="h-[400px]">
+      <CardContent className="flex-1 min-h-[400px]">
         {loading ? (
           <div className="flex justify-center items-center h-full">Loading...</div>
         ) : error ? (
@@ -139,7 +119,7 @@ export default function BarCorporateDashboardSanitary({ machineCodes }: BarChart
         ) : (
           <ResponsiveBar
             data={data}
-            keys={barKeys}
+            keys={["transactions"]}
             indexBy="label"
             groupMode="stacked"
             margin={{ top: 50, right: 130, bottom: 50, left: 60 }}
@@ -151,16 +131,45 @@ export default function BarCorporateDashboardSanitary({ machineCodes }: BarChart
               legendOffset: 32,
             }}
             axisLeft={{
-              legend: metric === "revenue" ? "Revenue (Rs)" : "Transactions",
+              legend: "Transactions",
               legendPosition: "middle",
               legendOffset: -40,
             }}
             labelSkipWidth={12}
             labelSkipHeight={12}
-            colors={barColors}
+            colors={["#10b98180"]}
             borderRadius={15}
             role="application"
             enableGridY={false}
+            tooltip={({ indexValue, data }) => {
+              const d = data as unknown as Partial<NivoBarData>
+              const rows = [
+                { label: "Cash", value: d.cashTransactions ?? 0, color: "#f59e0b" },
+                { label: "Corporate", value: d.corporateTransactions ?? 0, color: "#3b82f6" },
+                { label: "App", value: d.appTransactions ?? 0, color: "#8b5cf6" },
+              ]
+              return (
+                <div className="min-w-[190px] rounded-lg border border-gray-200 bg-white px-3 py-2 shadow-lg text-black">
+                  <div className="flex items-center justify-between gap-4 border-b border-gray-100 pb-1.5 mb-1.5">
+                    <span className="text-sm font-semibold">{indexValue}</span>
+                    <span className="text-sm font-semibold text-emerald-600 tabular-nums">
+                      {(d.transactions ?? 0).toLocaleString()}
+                    </span>
+                  </div>
+                  <div className="space-y-1">
+                    {rows.map((row) => (
+                      <div key={row.label} className="flex items-center justify-between gap-4 text-xs">
+                        <span className="flex items-center gap-1.5 text-gray-600">
+                          <span className="h-2 w-2 rounded-full" style={{ backgroundColor: row.color }} />
+                          {row.label}
+                        </span>
+                        <span className="font-medium tabular-nums">{row.value.toLocaleString()}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )
+            }}
           />
         )}
       </CardContent>

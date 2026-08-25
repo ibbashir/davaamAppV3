@@ -1,6 +1,4 @@
 import { SiteHeader } from "@/components/corporate/site-header"
-import SanitaryTransactionTable from "./CorporateSanitaryTrasactions"
-import AllCorporatesUsers from "./AllCorporatesUsers"
 import PieCorporateDashboardSanitary from "@/components/corporate/PieCorporateDashboardSanitary"
 import BarCorporateDashboardSanitary from "@/components/corporate/BarCorporateDashboardSanitary"
 import { useAuth } from "@/contexts/AuthContext"
@@ -56,15 +54,15 @@ const Dashboard = () => {
               {/* Graph placeholders: only shown when toggled */}
               <div className="px-0">
                 {activeGraph !== "none" && (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 mb-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 items-stretch gap-3 sm:gap-4 mb-4">
                     {(activeGraph === "dispensing" || activeGraph === "both") && (
-                      <div className="rounded-2xl bg-white/90">
+                      <div className="rounded-2xl bg-white/90 h-full">
                         <BarCorporateDashboardSanitary machineCodes={machineCodes} />
                       </div>
                     )}
 
                     {(activeGraph === "brands" || activeGraph === "both") && (
-                      <div className="rounded-2xl bg-white/90">
+                      <div className="rounded-2xl bg-white/90 h-full">
                         <PieCorporateDashboardSanitary machineCodes={machineCodes} />
                       </div>
                     )}
