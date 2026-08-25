@@ -4,7 +4,7 @@ import { useHrOptions } from "@/components/hr/useHrOptions"
 import type { HrRow } from "@/Types/hr"
 
 function DepartmentsTab() {
-  const { options } = useHrOptions(["employees"])
+  const { options } = useHrOptions(["reportsTo"])
 
   const fields: Field[] = [
     { name: "name", label: "Department", required: true },
@@ -14,7 +14,7 @@ function DepartmentsTab() {
       name: "head_employee_id",
       label: "Department Head",
       type: "select",
-      optionsKey: "employees",
+      optionsKey: "reportsTo",
       hideInTable: true,
     },
     { name: "is_active", label: "Active", type: "checkbox", defaultValue: true },
@@ -89,25 +89,6 @@ function ShiftsTab() {
   )
 }
 
-function HolidaysTab() {
-  const fields: Field[] = [
-    { name: "name", label: "Holiday", required: true },
-    { name: "holiday_date", label: "Date", type: "date", required: true },
-    { name: "is_optional", label: "Optional", type: "checkbox" },
-    { name: "description", label: "Description", type: "textarea", hideInTable: true },
-  ]
-
-  return (
-    <ResourceScreen
-      embedded
-      title="Holiday Calendar"
-      singular="Holiday"
-      endpoint="/holidays"
-      fields={fields}
-    />
-  )
-}
-
 const OrgSetup = () => (
   <HrTabbedPage
     title="Org Setup"
@@ -116,7 +97,6 @@ const OrgSetup = () => (
       { value: "departments", label: "Departments", content: <DepartmentsTab /> },
       { value: "designations", label: "Designations", content: <DesignationsTab /> },
       { value: "shifts", label: "Shifts", content: <ShiftsTab /> },
-      { value: "holidays", label: "Holidays", content: <HolidaysTab /> },
     ]}
   />
 )

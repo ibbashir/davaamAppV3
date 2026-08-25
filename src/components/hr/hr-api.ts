@@ -56,11 +56,9 @@ export const essPost = <T>(path: string, body: object = {}) =>
  * backend/src/controllers/DavaamDashboard/Hr/hiddenEmployees.js.
  */
 const HIDDEN_EMPLOYEE_EMAILS = [
-  "ifraaslamhr@davaam.pk",
+  "ifraaslam@davaam.pk",
   "hassanharoon321@gmail.com",
   "salman@davaam.pk",
-  "ifrahaslam@davaam.pk",
-  "hassan.haroon@davaam.pk",
 ]
 
 /**

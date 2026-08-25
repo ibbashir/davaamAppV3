@@ -66,12 +66,6 @@ const Analytics = () => {
     value: Number(g.count),
   }))
 
-  const payroll = (data?.payroll_history ?? []).map((p) => ({
-    name: `${String(p.period_month).padStart(2, "0")}/${String(p.period_year).slice(2)}`,
-    net: Number(p.total_net),
-    employees: p.employee_count,
-  }))
-
   const totalHeadcount = byDepartment.reduce((s, d) => s + d.count, 0)
 
   return (
@@ -148,28 +142,6 @@ const Analytics = () => {
                   <YAxis tick={{ fontSize: 11 }} domain={[0, 100]} unit="%" />
                   <Tooltip formatter={(v: number) => `${v}%`} />
                   <Bar dataKey="attendance_rate" name="Attendance" fill={PALETTE[1]} radius={[4, 4, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            )}
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base">Payroll Cost</CardTitle>
-            <CardDescription>Net payable per run</CardDescription>
-          </CardHeader>
-          <CardContent className="h-72">
-            {payroll.length === 0 ? (
-              <EmptyChart message="No payroll has been processed yet" />
-            ) : (
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={payroll} margin={{ top: 8, right: 8, bottom: 8, left: 8 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} />
-                  <XAxis dataKey="name" tick={{ fontSize: 11 }} />
-                  <YAxis tick={{ fontSize: 11 }} tickFormatter={(v) => formatMoney(v)} width={70} />
-                  <Tooltip formatter={(v: number) => formatMoney(v)} />
-                  <Bar dataKey="net" name="Net Payable" fill={PALETTE[2]} radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             )}

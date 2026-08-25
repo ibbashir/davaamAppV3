@@ -82,7 +82,7 @@ import HrDashboard from '@/screens/hr/dashboard/Dashboard'
 import HrEmployees from '@/screens/hr/employees/Employees'
 import HrAttendance from '@/screens/hr/attendance/Attendance'
 import HrLeave from '@/screens/hr/leave/Leave'
-import HrPayroll from '@/screens/hr/payroll/Payroll'
+import HrHolidays from '@/screens/hr/holidays/Holidays'
 import HrRecruitment from '@/screens/hr/recruitment/Recruitment'
 import HrOnboarding from '@/screens/hr/onboarding/Onboarding'
 import HrPerformance from '@/screens/hr/performance/Performance'
@@ -105,7 +105,6 @@ import EssHub from '@/screens/ess/EssHub'
 import EssAttendance from '@/screens/ess/MyAttendance'
 import EssLeave from '@/screens/ess/MyLeave'
 import EssRequests from '@/screens/ess/MyRequests'
-import EssPayslips from '@/screens/ess/MyPayslips'
 import EssProfile from '@/screens/ess/MyProfile'
 import MssTeam from '@/screens/ess/MyTeam'
 
@@ -205,7 +204,7 @@ import {
   HR_EMPLOYEES,
   HR_ATTENDANCE,
   HR_LEAVE,
-  HR_PAYROLL,
+  HR_HOLIDAYS,
   HR_RECRUITMENT,
   HR_ONBOARDING,
   HR_PERFORMANCE,
@@ -226,7 +225,6 @@ import {
   ESS_ATTENDANCE,
   ESS_LEAVE,
   ESS_REQUESTS,
-  ESS_PAYSLIPS,
   ESS_PROFILE,
   MSS_TEAM,
   OTHERS_DASHBOARD,
@@ -381,7 +379,7 @@ const Routing = () => {
           <Route path={HR_DASHBOARD} element={<HrDashboard />} />
           <Route path={HR_EMPLOYEES} element={<HrEmployees />} />
           <Route path={HR_LEAVE} element={<HrLeave />} />
-          <Route path={HR_PAYROLL} element={<HrPayroll />} />
+          <Route path={HR_HOLIDAYS} element={<HrHolidays />} />
           <Route path={HR_RECRUITMENT} element={<HrRecruitment />} />
           <Route path={HR_ONBOARDING} element={<HrOnboarding />} />
           <Route path={HR_PERFORMANCE} element={<HrPerformance />} />
@@ -422,7 +420,6 @@ const Routing = () => {
           <Route path={ESS_ATTENDANCE} element={<EssAttendance />} />
           <Route path={ESS_LEAVE} element={<EssLeave />} />
           <Route path={ESS_REQUESTS} element={<EssRequests />} />
-          <Route path={ESS_PAYSLIPS} element={<EssPayslips />} />
           <Route path={ESS_PROFILE} element={<EssProfile />} />
           <Route path={MSS_TEAM} element={<MssTeam />} />
         </Route>

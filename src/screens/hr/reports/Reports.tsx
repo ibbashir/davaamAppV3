@@ -39,7 +39,6 @@ const REPORT_TYPES = [
   "headcount",
   "attendance_summary",
   "leave_summary",
-  "payroll_summary",
   "expense_summary",
   "recruitment_funnel",
   "training_summary",

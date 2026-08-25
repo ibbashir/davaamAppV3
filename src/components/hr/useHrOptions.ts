@@ -14,6 +14,7 @@ import type { EmployeeOption } from "@/Types/hr"
 export type OptionKey =
   | "employees"
   | "managers"
+  | "reportsTo"
   | "departments"
   | "designations"
   | "shifts"
@@ -29,7 +30,7 @@ export type OptionKey =
   | "separations"
   | "travelRequests"
 
-const ENDPOINTS: Record<Exclude<OptionKey, "employees" | "managers">, { path: string; label: (r: Record<string, unknown>) => string }> = {
+const ENDPOINTS: Record<Exclude<OptionKey, "employees" | "managers" | "reportsTo">, { path: string; label: (r: Record<string, unknown>) => string }> = {
   departments: { path: "/departments", label: (r) => String(r.name ?? "") },
   designations: { path: "/designations", label: (r) => String(r.title ?? "") },
   shifts: {
@@ -76,9 +77,13 @@ export function useHrOptions(keys: OptionKey[]) {
     await Promise.all(
       wanted.map(async (key) => {
         try {
-          if (key === "employees" || key === "managers") {
+          if (key === "employees" || key === "managers" || key === "reportsTo") {
+            // "reportsTo" is the same list plus the hidden-but-still-a-manager
+            // accounts (the CEO) — see hiddenEmployees.js. Only the pickers that
+            // choose somebody's manager ask for it.
             const res = await hrGet<{ data: EmployeeOption[] }>("/employees/options", {
               managersOnly: key === "managers" ? "true" : undefined,
+              includeManagers: key === "reportsTo" ? "true" : undefined,
             })
             next[key] = (res.data ?? []).map((e) => ({
               value: e.id,

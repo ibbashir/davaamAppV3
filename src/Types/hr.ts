@@ -152,8 +152,19 @@ export interface EssDashboard {
   };
   pending: { leave: number; expense: number; tickets: number; onboarding_tasks: number };
   assets_held: number;
+  /** Company holidays from today onwards, soonest first. */
+  holidays: Holiday[];
   is_manager: boolean;
   direct_reports: number;
+}
+
+export interface Holiday {
+  id: number;
+  name: string;
+  holiday_date: string;
+  is_optional: boolean;
+  description?: string | null;
+  is_today: boolean;
 }
 
 export interface TeamMember {

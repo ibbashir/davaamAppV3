@@ -19,6 +19,7 @@ import {
   IconUsers,
   IconClockHour4,
   IconCalendarStats,
+  IconCalendarEvent,
   IconBriefcase,
   IconChecklist,
   IconTargetArrow,
@@ -146,6 +147,7 @@ export const HR_DASHBOARD = "/hr/dashboard";
 export const HR_EMPLOYEES = "/hr/employees";
 export const HR_ATTENDANCE = "/hr/attendance";
 export const HR_LEAVE = "/hr/leave";
+export const HR_HOLIDAYS = "/hr/holidays";
 export const HR_PAYROLL = "/hr/payroll";
 export const HR_RECRUITMENT = "/hr/recruitment";
 export const HR_ONBOARDING = "/hr/onboarding";
@@ -320,9 +322,13 @@ export const FINANCE_SIDEBAR_ROUTES = () => {
 };
 
 /**
- * HR Management sidebar — the 20 HCM / HRM modules, ordered so the daily-use
- * ones (people, attendance, leave, payroll) sit at the top and configuration
- * sits at the bottom.
+ * HR Management sidebar — the HCM / HRM modules, ordered so the daily-use ones
+ * (people, attendance, leave) sit at the top and configuration sits at the
+ * bottom.
+ *
+ * Payroll is deliberately absent: salary is not HR's to see here, so the
+ * Payroll screen and ESS "My Payslips" are unrouted. The screens and the whole
+ * backend are still in the tree — putting the two rows back is all it takes.
  */
 export const HR_SIDEBAR_ROUTES = () => {
   return [
@@ -330,7 +336,7 @@ export const HR_SIDEBAR_ROUTES = () => {
     { title: "Employees", url: HR_EMPLOYEES, icon: IconUsers },
     { title: "Attendance", url: HR_ATTENDANCE, icon: IconClockHour4 },
     { title: "Leave", url: HR_LEAVE, icon: IconCalendarStats },
-    { title: "Payroll", url: HR_PAYROLL, icon: IconCashBanknote },
+    { title: "Holidays", url: HR_HOLIDAYS, icon: IconCalendarEvent },
     { title: "Recruitment", url: HR_RECRUITMENT, icon: IconBriefcase },
     { title: "Onboarding", url: HR_ONBOARDING, icon: IconChecklist },
     { title: "Performance", url: HR_PERFORMANCE, icon: IconTargetArrow },
@@ -367,7 +373,6 @@ export const SELF_SERVICE_ROUTES = (isManager = false): NavItem[] => {
     { title: "My Attendance", url: ESS_ATTENDANCE, icon: IconClockHour4 },
     { title: "My Leave", url: ESS_LEAVE, icon: IconCalendarStats },
     { title: "My Requests", url: ESS_REQUESTS, icon: IconReceipt },
-    { title: "My Payslips", url: ESS_PAYSLIPS, icon: IconCashBanknote },
     { title: "My Profile", url: ESS_PROFILE, icon: IconUser },
   ];
   if (isManager) {
