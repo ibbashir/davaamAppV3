@@ -8,7 +8,6 @@ type PeriodData = {
   Transaction: Record<string, number>[]
   CashTransaction?: Record<string, number>[]
   CorporateTransaction?: Record<string, number>[]
-  AppTransaction?: Record<string, number>[]
 }
 
 type ApiResponse = {
@@ -25,7 +24,6 @@ type NivoBarData = {
   transactions: number
   cashTransactions: number
   corporateTransactions: number
-  appTransactions: number
 }
 
 const toLookup = (arr?: Record<string, number>[]) =>
@@ -51,7 +49,6 @@ export default function BarCorporateDashboardSanitary({ machineCodes }: BarChart
 
       const cashLookup = toLookup(period.CashTransaction)
       const corporateLookup = toLookup(period.CorporateTransaction)
-      const appLookup = toLookup(period.AppTransaction)
 
       const transformed: NivoBarData[] = period.Transaction.map((txnObj) => {
         const rawLabel = Object.keys(txnObj)[0]
@@ -64,7 +61,6 @@ export default function BarCorporateDashboardSanitary({ machineCodes }: BarChart
           transactions: Object.values(txnObj)[0],
           cashTransactions: cashLookup[rawLabel] ?? 0,
           corporateTransactions: corporateLookup[rawLabel] ?? 0,
-          appTransactions: appLookup[rawLabel] ?? 0,
         }
       })
 
@@ -146,7 +142,6 @@ export default function BarCorporateDashboardSanitary({ machineCodes }: BarChart
               const rows = [
                 { label: "Cash", value: d.cashTransactions ?? 0, color: "#f59e0b" },
                 { label: "Corporate", value: d.corporateTransactions ?? 0, color: "#3b82f6" },
-                { label: "App", value: d.appTransactions ?? 0, color: "#8b5cf6" },
               ]
               return (
                 <div className="min-w-[190px] rounded-lg border border-gray-200 bg-white px-3 py-2 shadow-lg text-black">
