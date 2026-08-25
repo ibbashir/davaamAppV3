@@ -1,6 +1,7 @@
 import * as React from "react"
 import { toast } from "sonner"
 import { essPost, errorMessage } from "@/components/hr/hr-api"
+import { collectDeviceInfo } from "@/components/hr/device-info"
 
 /**
  * Check-in / check-out is geofenced for every employee, whatever their role:
@@ -94,6 +95,9 @@ export function usePunch(onDone: () => void) {
           lat: fix.lat,
           lng: fix.lng,
           accuracy: fix.accuracy,
+          // Which machine this punch came from. The server records it and
+          // scores it; a punch is never refused for the device alone.
+          device: collectDeviceInfo(),
         })
         toast.success(res.message)
         onDone()

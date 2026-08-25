@@ -37,6 +37,7 @@ import {
   stripHiddenEmployees,
 } from "@/components/hr/hr-api"
 import type { RosterRow, HrRow } from "@/Types/hr"
+import PunchIntegrity from "./PunchIntegrity"
 
 const ATTENDANCE_STATUSES = [
   "present",
@@ -578,6 +579,7 @@ const Attendance = () => {
                 ),
               },
               { value: "summary", label: "Summary", content: <SummaryTab /> },
+              { value: "integrity", label: "Device Trail", content: <PunchIntegrity /> },
             ]),
       ]}
     />
