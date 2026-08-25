@@ -4,10 +4,7 @@ import { getRequest, postRequest } from "@/Apis/Api";
 import {
   TrendingUp,
   TrendingDown,
-  CheckCircle,
   AlertCircle,
-  MinusCircle,
-  Eye,
   X,
   PieChart as PieChartIcon,
   DollarSign,
@@ -17,7 +14,6 @@ import {
   Calendar,
   MapPin,
   ChevronDown,
-  Ban,
   Wallet,
   ArrowUpDown,
   Boxes,
@@ -484,7 +480,6 @@ const CorporateCashCollectionPage: React.FC = () => {
         [`Overall Total Cash: ${monthlyReport.overall_total_cash.toFixed(2)}`],
         [`Cash Transactions: ${monthlyReport.total_cash_transactions}`],
         [`Dispensed Quantity: ${monthlyReport.total_cash_quantity}`],
-        [`Cash Difference: ${monthlyReport.cash_difference.toFixed(2)}`],
         [`Reported Collection: ${monthlyReport.total_amount.toFixed(2)}`],
         [`Total Transactions: ${monthlyReport.total_transactions}`],
         [
@@ -564,6 +559,16 @@ const CorporateCashCollectionPage: React.FC = () => {
       machines.find((m) => m.machine_code === code)?.machine_name ||
       "Unknown Machine"
     );
+  };
+
+  const SPECIAL_DIVISOR_MACHINES = ["3244", "3247", "3248","3264"];
+
+  const getTransactionsCount = (machine: MachineReport) => {
+    const collections = parseFloat(machine?.cash_collections?.total || "0");
+    const divisor = SPECIAL_DIVISOR_MACHINES.includes(machine.machine_code)
+      ? 20
+      : 50;
+    return Math.round(collections / divisor);
   };
 
   const getCurrentMachines = (): MachineReport[] => {
@@ -892,7 +897,7 @@ const CorporateCashCollectionPage: React.FC = () => {
                     </div>
 
                     {/* Cash Difference — Deep Amber */}
-                    <div className="bg-gradient-to-br from-amber-500 to-orange-600 rounded-xl p-6 shadow-lg">
+                    {/* <div className="bg-gradient-to-br from-amber-500 to-orange-600 rounded-xl p-6 shadow-lg">
                       <div className="flex items-center justify-between mb-3">
                         <p className="text-sm text-amber-100 font-medium">
                           Cash Difference
@@ -910,7 +915,7 @@ const CorporateCashCollectionPage: React.FC = () => {
                       <p className="text-xs text-amber-200 mt-2">
                         Variance amount
                       </p>
-                    </div>
+                    </div> */}
                   </div>
 
                   {/* Breakdown Summary Cards */}
@@ -1122,20 +1127,17 @@ const CorporateCashCollectionPage: React.FC = () => {
                         <table className="min-w-full divide-y divide-gray-200">
                           <thead className="bg-gray-50">
                             <tr>
-                              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 Serial No
                               </th>
-                              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 Machine Code
                               </th>
-                              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 Location
                               </th>
-                              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 Cash In Machine
-                              </th>
-                              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Status
                               </th>
                             </tr>
                           </thead>
@@ -1143,7 +1145,7 @@ const CorporateCashCollectionPage: React.FC = () => {
                             {getCurrentMachinesCount() === 0 ? (
                               <tr>
                                 <td
-                                  colSpan={5}
+                                  colSpan={4}
                                   className="px-6 py-12 text-center"
                                 >
                                   <p className="text-gray-500">
@@ -1157,27 +1159,21 @@ const CorporateCashCollectionPage: React.FC = () => {
                                   key={machine.machine_code || index}
                                   className="hover:bg-gray-50"
                                 >
-                                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-500">
+                                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-500 text-center">
                                     {index + 1}
                                   </td>
-                                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 text-center">
                                     {machine.machine_code || "N/A"}
                                   </td>
-                                  <td className="px-6 py-4 text-sm text-gray-500 max-w-xs truncate">
+                                  <td className="px-6 py-4 text-sm text-gray-500 max-w-xs truncate text-center">
                                     {machine.location ||
                                       machine.machine_name ||
                                       "N/A"}
                                   </td>
-                                  <td className="px-6 py-4 whitespace-nowrap text-sm">
+                                  <td className="px-6 py-4 whitespace-nowrap text-sm text-center">
                                     Rs{" "}
                                     {machine?.CashToBeReceived
                                       ?.CashToBeCollected || "0.00"}
-                                  </td>
-                                  <td className="px-6 py-4 whitespace-nowrap text-sm">
-                                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-700">
-                                      <Ban className="h-3 w-3" />
-                                      No Collection
-                                    </span>
                                   </td>
                                 </tr>
                               ))
@@ -1189,32 +1185,26 @@ const CorporateCashCollectionPage: React.FC = () => {
                         <table className="min-w-full divide-y divide-gray-200">
                           <thead className="bg-gray-50">
                             <tr>
-                              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 Serial No
                               </th>
-                              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 Machine Code
                               </th>
-                              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 Location
                               </th>
-                              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 Collections
                               </th>
-                              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 Transactions
                               </th>
-                              {/* <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              {/* <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 Difference
                               </th> */}
-                              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 Cash In Machine
-                              </th>
-                              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Status
-                              </th>
-                              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Actions
                               </th>
                             </tr>
                           </thead>
@@ -1223,7 +1213,7 @@ const CorporateCashCollectionPage: React.FC = () => {
                             {getCurrentMachinesCount() === 0 ? (
                               <tr>
                                 <td
-                                  colSpan={9}
+                                  colSpan={7}
                                   className="px-6 py-12 text-center"
                                 >
                                   <p className="text-gray-500">
@@ -1233,28 +1223,6 @@ const CorporateCashCollectionPage: React.FC = () => {
                               </tr>
                             ) : (
                               getCurrentMachines().map((machine, index) => {
-                                const diffAmount = parseFloat(
-                                  machine?.difference?.amount || "0",
-                                );
-
-                                let diffColor = "text-gray-600";
-                                let diffBgColor = "bg-gray-50";
-                                let DiffIcon = MinusCircle;
-
-                                if (diffAmount > 0) {
-                                  diffColor = "text-green-600";
-                                  diffBgColor = "bg-green-50";
-                                  DiffIcon = TrendingUp;
-                                } else if (diffAmount < 0) {
-                                  diffColor = "text-red-600";
-                                  diffBgColor = "bg-red-50";
-                                  DiffIcon = TrendingDown;
-                                } else {
-                                  diffColor = "text-blue-600";
-                                  diffBgColor = "bg-blue-50";
-                                  DiffIcon = CheckCircle;
-                                }
-
                                 return (
                                   <tr
                                     key={machine.machine_code || index}
@@ -1271,19 +1239,19 @@ const CorporateCashCollectionPage: React.FC = () => {
                                       }
                                     }}
                                   >
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-500">
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-500 text-center">
                                       {index + 1}
                                     </td>
 
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 text-center">
                                       {machine.machine_code || "N/A"}
                                     </td>
 
-                                    <td className="px-6 py-4 text-sm text-gray-500 max-w-xs truncate">
+                                    <td className="px-6 py-4 text-sm text-gray-500 max-w-xs truncate text-center">
                                       {machine.location || "N/A"}
                                     </td>
 
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm">
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-center">
                                       <div>
                                         <p className="font-medium text-gray-900">
                                           Rs{" "}
@@ -1302,63 +1270,18 @@ const CorporateCashCollectionPage: React.FC = () => {
                                       </div>
                                     </td>
 
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm">
-                                      <div>
-                                        <p className="font-medium text-gray-900">
-                                          Rs{" "}
-                                          {parseFloat(
-                                            machine?.cash_transactions?.total ||
-                                              "0",
-                                          ).toLocaleString("en-IN", {
-                                            minimumFractionDigits: 2,
-                                          })}
-                                        </p>
-                                        <p className="text-xs text-gray-500">
-                                          {machine?.cash_transactions
-                                            ?.transaction_count || 0}{" "}
-                                          txns
-                                        </p>
-                                      </div>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-center">
+                                      <p className="font-medium text-gray-900">
+                                        {getTransactionsCount(machine)} txns
+                                      </p>
                                     </td>
 
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm">
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-center">
                                       <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium">
                                         Rs:{" "}
                                         {machine?.CashToBeReceived
                                           ?.CashToBeCollected || "0.00"}
                                       </span>
-                                    </td>
-
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm">
-                                      <span
-                                        className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium ${diffBgColor} ${diffColor}`}
-                                      >
-                                        <DiffIcon className="h-3 w-3" />
-                                        {machine?.difference?.type || "N/A"}
-                                      </span>
-                                    </td>
-
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm">
-                                      <button
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          const foundMachine =
-                                            rawApiResponse.detailed_breakdown.all_machines.find(
-                                              (m) =>
-                                                m.machine_code ===
-                                                machine.machine_code,
-                                            );
-                                          if (foundMachine) {
-                                            setSelectedMachineReport(
-                                              foundMachine,
-                                            );
-                                          }
-                                        }}
-                                        className="text-blue-600 hover:text-blue-800 flex items-center gap-1"
-                                      >
-                                        <Eye className="h-4 w-4" />
-                                        View Details
-                                      </button>
                                     </td>
                                   </tr>
                                 );

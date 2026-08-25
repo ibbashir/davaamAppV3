@@ -28,13 +28,15 @@ import {
 import {
   Download,
   Plus,
+  ArrowLeft,
   ChevronLeft,
   ChevronRight,
   ChevronsLeft,
   ChevronsRight,
 } from "lucide-react";
 import { SiteHeader } from "@/components/superAdmin/site-header";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
+import { MACHINE_MACHINES } from "@/constants/Constant";
 import { postRequest } from "@/Apis/Api";
 import { ResponsiveBar } from "@nivo/bar";
 
@@ -60,6 +62,7 @@ type NivoBarData = {
 
 export default function AdminMachineVisit() {
   const { state } = useLocation();
+  const navigate = useNavigate();
   const machine = state?.machine;
 
   const [stockView, setStockView] = useState("batch");
@@ -249,6 +252,15 @@ export default function AdminMachineVisit() {
       <SiteHeader title="🌍 Machine Detail" />
       <div className="min-h-screen bg-gradient-to-b from-green-50 to-teal-50 p-6">
         <div className="mx-auto max-w-7xl">
+          <Button
+            variant="outline"
+            onClick={() => navigate(MACHINE_MACHINES)}
+            className="mb-4 gap-2 bg-white"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back to Machines
+          </Button>
+
           <Tabs
             value={activeTab}
             onValueChange={setActiveTab}
