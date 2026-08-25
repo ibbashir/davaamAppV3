@@ -102,6 +102,7 @@ import HrOrgSetup from '@/screens/hr/orgSetup/OrgSetup'
 
 // Self service (ESS + MSS) — shared by every internal role
 import EssHub from '@/screens/ess/EssHub'
+import EssInstructions from '@/screens/ess/Instructions'
 import EssAttendance from '@/screens/ess/MyAttendance'
 import EssLeave from '@/screens/ess/MyLeave'
 import EssRequests from '@/screens/ess/MyRequests'
@@ -222,6 +223,7 @@ import {
   HR_ANALYTICS,
   HR_ORG_SETUP,
   ESS_HUB,
+  ESS_INSTRUCTIONS,
   ESS_ATTENDANCE,
   ESS_LEAVE,
   ESS_REQUESTS,
@@ -417,6 +419,7 @@ const Routing = () => {
         <Route path={OTHERS_DASHBOARD} element={<Navigate to={ESS_HUB} replace />} />
         <Route element={<Layout />}>
           <Route path={ESS_HUB} element={<EssHub />} />
+          <Route path={ESS_INSTRUCTIONS} element={<EssInstructions />} />
           <Route path={ESS_ATTENDANCE} element={<EssAttendance />} />
           <Route path={ESS_LEAVE} element={<EssLeave />} />
           <Route path={ESS_REQUESTS} element={<EssRequests />} />

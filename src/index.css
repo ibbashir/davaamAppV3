@@ -3,6 +3,22 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/**
+ * Urdu body text.
+ *
+ * Nastaliq letterforms stack diagonally and are far taller than Latin ones, so
+ * the default line-height overlaps them into an unreadable mess — the generous
+ * leading here is what makes the script legible rather than a style choice.
+ */
+.font-urdu {
+  font-family: "Noto Nastaliq Urdu", "Noto Naskh Arabic", serif;
+  line-height: 2.4;
+}
+.font-urdu-tight {
+  font-family: "Noto Nastaliq Urdu", "Noto Naskh Arabic", serif;
+  line-height: 1.9;
+}
+
 :root {
   font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
     Helvetica, Arial, sans-serif;
