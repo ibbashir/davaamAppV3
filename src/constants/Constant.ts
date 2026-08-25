@@ -20,6 +20,7 @@ import {
   IconClockHour4,
   IconCalendarStats,
   IconCalendarEvent,
+  IconBook2,
   IconBriefcase,
   IconChecklist,
   IconTargetArrow,
@@ -172,6 +173,7 @@ export const ESS_ATTENDANCE = "/self-service/attendance";
 export const ESS_LEAVE = "/self-service/leave";
 export const ESS_EXPENSES = "/self-service/expenses";
 export const ESS_PAYSLIPS = "/self-service/payslips";
+export const ESS_INSTRUCTIONS = "/self-service/how-to-mark-attendance";
 export const ESS_PROFILE = "/self-service/profile";
 export const ESS_REQUESTS = "/self-service/requests";
 export const MSS_TEAM = "/self-service/team";
@@ -370,6 +372,7 @@ export const SELF_SERVICE_ROUTES = (isManager = false): NavItem[] => {
   const pages: NavItem[] = [
     // exact: "/self-service" prefixes every entry below it
     { title: "My Hub", url: ESS_HUB, icon: IconUserCircle, exact: true },
+    { title: "How to Mark Attendance", url: ESS_INSTRUCTIONS, icon: IconBook2 },
     { title: "My Attendance", url: ESS_ATTENDANCE, icon: IconClockHour4 },
     { title: "My Leave", url: ESS_LEAVE, icon: IconCalendarStats },
     { title: "My Requests", url: ESS_REQUESTS, icon: IconReceipt },
