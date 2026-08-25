@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Label } from "@/components/ui/label"
-import { ChevronDown, ChevronUp, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react"
+import { ChevronDown, ChevronUp, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Search } from "lucide-react"
 import type { ApiMachine, MachinesResponse } from "./Types"
 import { SiteHeader } from "@/components/corporate/site-header"
 import { postRequest } from "@/Apis/Api"
@@ -34,7 +34,7 @@ const CorporateMachines = () => {
   const [machineStockMap, setMachineStockMap] = useState<{ [code: string]: string }>({})
   const [loading, setLoading] = useState(true)
   const [expanded, setExpanded] = useState<number | null>(null)
-  const [itemsPerPage, setItemsPerPage] = useState(5)
+  const [itemsPerPage, setItemsPerPage] = useState(20)
 
   useEffect(() => {
     if (machineCodes.length > 0) {
@@ -64,7 +64,7 @@ const CorporateMachines = () => {
       for (const [code, quantities] of Object.entries(grouped)) {
         if (quantities.every((q) => q === 0)) {
           stockMap[code] = "Out of Stock ❌"
-        } else if (quantities.some((q) => q < 10)) {
+        } else if (quantities.some((q) => q < 5)) {
           stockMap[code] = "Low Stock ⚠️"
         } else {
           stockMap[code] = "In Stock ✅"
@@ -141,6 +141,19 @@ const CorporateMachines = () => {
     <div>
       <SiteHeader title="🌱 Deployed Machines" />
       <div className="min-h-screen bg-gray-50 p-6">
+        <div className="relative mb-4 max-w-sm">
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            type="text"
+            placeholder="Search machines by name or code..."
+            value={searchTerm}
+            onChange={(e) => {
+              setSearchTerm(e.target.value)
+              setCurrentPage(1)
+            }}
+            className="pl-9"
+          />
+        </div>
         {loading ? (
           <p className="text-center text-gray-600">Loading machines...</p>
         ) : paginatedMachines.length === 0 ? (
@@ -242,7 +255,7 @@ const CorporateMachines = () => {
                     <SelectValue placeholder={itemsPerPage} />
                   </SelectTrigger>
                   <SelectContent side="top">
-                    {[5, 10, 15, 20, 50].map((pageSize) => (
+                    {[20, 50, 100].map((pageSize) => (
                       <SelectItem key={pageSize} value={`${pageSize}`}>
                         {pageSize}
                       </SelectItem>

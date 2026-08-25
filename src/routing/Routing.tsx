@@ -114,7 +114,6 @@ import CorporateDashboard from '@/screens/corporate/dashboard/Dashboard'
 import CorporateMachines from '@/screens/corporate/machines/Machines'
 import CorporateMachineVisit from '@/screens/corporate/machines/MachineVisit'
 import Reports from '@/screens/corporate/reports/reports'
-import CorporateCashCollectionPage from '@/screens/corporate/cashCollections/cashCollectionCorporate'
 
 //404 not found
 import NotFound from '@/screens/NotFound/NotFound'
@@ -233,6 +232,7 @@ import {
   OTHERS_DASHBOARD,
   SUPERADMIN_TEAM_MEMBERS,
   ADMIN_USER_ANALYSIS,
+  COMPANY_USER_ANALYSIS,
 } from '@/constants/Constant'
 
 import ResetPassword from '@/screens/forgetPassword/ResetPassword'
@@ -246,6 +246,8 @@ import FulfillmentRiderLocation from '@/screens/fulfillment/RiderLocation/Fulfil
 import { AlertSystem } from '@/screens/superAdmin/AlertSystem/AlertSystem'
 import { MachineAlertDetail } from '@/screens/superAdmin/AlertSystem/MachineAlertDetail'
 import { AdminUserAnalysis } from '@/screens/admin/usersAnalysis/UserAnalysis'
+import { CompanyUserAnalysis } from '@/screens/corporate/usersAnalysis/UserAnalysis'
+import CorporateCashCollectionPage from '@/screens/corporate/cashCollections/cashCollection'
 
 const Routing = () => {
   return (
@@ -437,6 +439,7 @@ const Routing = () => {
           <Route path={ADD_EMPLOYEES} element={<AddEmployees />} />
           <Route path={DELETE_EMPLOYEES} element={<BulkDelete />} />
           <Route path={CORPORATE_CASH_COLLECTION} element={<CorporateCashCollectionPage />} />
+          <Route path={COMPANY_USER_ANALYSIS} element={<CompanyUserAnalysis />} />
         </Route>
       </Route>
 

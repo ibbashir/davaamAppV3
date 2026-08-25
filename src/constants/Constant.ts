@@ -190,6 +190,7 @@ export const ADD_EMPLOYEES = "/company/add-employees";
 export const DELETE_EMPLOYEES = "/company/delete-employees";
 export const USERS = "/company/users";
 export const CORPORATE_CASH_COLLECTION = "/company/cashCollection";
+export const COMPANY_USER_ANALYSIS="/company/userAnalysis"
 
 // ─── Live rider badge helper ──────────────────────────────────────────────────
 // Renders a teal pulsing pill showing the active rider count.
@@ -388,6 +389,8 @@ export const MACHINES_SIDEBAR_ROUTES = (firstName: string) => {
     { title: "Dashboard", url: MACHINE_DASHBOARD, icon: IconHome },
     { title: "Machines", url: MACHINE_MACHINES, icon: IconChartBar },
     { title: "Reports", url: REPORT, icon: IconFileDescription },
+    { title: "Cash Collections", url: CORPORATE_CASH_COLLECTION, icon: IconFileDescription },
+    { title: "User Analysis", url: COMPANY_USER_ANALYSIS, icon: IconFileDescription },
   ];
   if (firstName === "Mobilink") {
     routes.push(

@@ -46,8 +46,8 @@ const Dashboard = () => {
 
             <div className="px-3 sm:px-4 flex flex-col gap-3 sm:gap-4">
               {/* Cards sections (always visible) */}
-              <SanitaryTransactionTable />
-              <AllCorporatesUsers />
+              {/* <SanitaryTransactionTable /> */}
+              {/* <AllCorporatesUsers /> */}
             </div>
 
             <hr className="my-2" />

@@ -2,7 +2,7 @@ import { useState, useMemo } from "react";
 import { postRequest } from "@/Apis/Api";
 import { useAuth } from "@/contexts/AuthContext";
 import * as XLSX from "xlsx";
-import { SiteHeader } from "@/components/superAdmin/site-header";
+import { SiteHeader } from "@/components/corporate/site-header";
 
 interface Transaction {
   id: number;

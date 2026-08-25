@@ -38,7 +38,6 @@ interface BarChartCorporateClientSanitary {
 
 export default function BarCorporateDashboardSanitary({ machineCodes }: BarChartCorporateClientSanitary) {
   const [data, setData] = React.useState<NivoBarData[]>([])
-  const [isTcf, setIsTcf] = React.useState(false)
   const [totalRevenue, setTotalRevenue] = React.useState(0)
   const [totalTransactions, setTotalTransactions] = React.useState(0)
   const [loading, setLoading] = React.useState(true)
@@ -52,7 +51,6 @@ export default function BarCorporateDashboardSanitary({ machineCodes }: BarChart
       const res = await postRequest<ApiResponse>("corporates/BarChartCorporateClientSanitary", { machine_code: machineCodes })
 
       const period = type === "weekly" ? res.data.weekly : res.data.monthly
-      const tcf = !!res.isTcf
 
       const revenueArr      = period.Revenue
       const transactionArr  = period.Transaction
@@ -78,7 +76,6 @@ export default function BarCorporateDashboardSanitary({ machineCodes }: BarChart
         }
       })
 
-      setIsTcf(tcf)
       setData(transformed)
       setTotalRevenue(transformed.reduce((sum, d) => sum + d.revenue, 0))
       setTotalTransactions(transformed.reduce((sum, d) => sum + d.transactions, 0))
@@ -95,53 +92,30 @@ export default function BarCorporateDashboardSanitary({ machineCodes }: BarChart
     fetchData(view)
   }, [view])
 
-  const barKeys = isTcf
-    ? metric === "transactions" ? ["cashTransactions", "onlineTransactions"] : ["cashRevenue", "onlineRevenue"]
-    : [metric]
+  const barKeys = [metric]
 
-  const barColors = isTcf ? ["#10b98180", "#3b82f680"] : [metric === "revenue" ? "#3b82f680" : "#10b98180"]
+  const barColors = [metric === "revenue" ? "#3b82f680" : "#10b98180"]
 
   return (
     <Card>
       <CardHeader>
         <div className="flex justify-between items-center">
           <div>
-            <CardTitle>Dispensing Revenue & Transactions Breakdown</CardTitle>
+            <CardTitle>Sanitary Transactions Breakdown</CardTitle>
             <CardDescription>
               {view === "monthly" ? "Monthly" : "Weekly"}{" "}
-              {metric === "transactions" ? "Transactions" : "Revenue"}
-              {isTcf && " — Cash & Online"}
+              {metric === "transactions"}
             </CardDescription>
             <div className="mt-3 text-sm text-muted-foreground space-y-1">
-              <div>
-                📦 <strong>Total Revenue:</strong> Rs{" "}
-                {totalRevenue.toLocaleString(undefined, { maximumFractionDigits: 2 })}
-              </div>
               <div>
                 🧾 <strong>Total Transactions:</strong>{" "}
                 {totalTransactions.toLocaleString()}
               </div>
             </div>
 
-            {isTcf && (
-              <div className="mt-2 flex items-center gap-4 text-xs text-muted-foreground">
-                <span className="flex items-center gap-1">
-                  <span className="inline-block w-3 h-3 rounded-sm" style={{ background: "#10b98180" }} />
-                  Cash
-                </span>
-                <span className="flex items-center gap-1">
-                  <span className="inline-block w-3 h-3 rounded-sm" style={{ background: "#3b82f680" }} />
-                  Online
-                </span>
-              </div>
-            )}
-
             <div className="flex p-2 space-x-2">
               <Button variant={metric === "transactions" ? "default" : "outline"} onClick={() => setMetric("transactions")}>
                 Transactions
-              </Button>
-              <Button variant={metric === "revenue" ? "default" : "outline"} onClick={() => setMetric("revenue")}>
-                Revenue
               </Button>
             </div>
           </div>
@@ -167,7 +141,7 @@ export default function BarCorporateDashboardSanitary({ machineCodes }: BarChart
             data={data}
             keys={barKeys}
             indexBy="label"
-            groupMode={isTcf ? "grouped" : "stacked"}
+            groupMode="stacked"
             margin={{ top: 50, right: 130, bottom: 50, left: 60 }}
             padding={0.3}
             indexScale={{ type: "band", round: true }}
