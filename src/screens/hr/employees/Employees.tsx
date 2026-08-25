@@ -34,6 +34,7 @@ const Employees = () => {
     "departments",
     "designations",
     "employees",
+    "reportsTo",
     "shifts",
   ])
   const [adminOptions, setAdminOptions] = React.useState<Option[]>([])
@@ -136,7 +137,7 @@ const Employees = () => {
       name: "manager_id",
       label: "Reports To",
       type: "select",
-      optionsKey: "employees",
+      optionsKey: "reportsTo",
       hideInTable: true,
       help: "Drives Manager Self Service — this person approves their leave and expenses",
     },
@@ -173,7 +174,6 @@ const Employees = () => {
       options: enumOptions(["male", "female", "other"]),
       hideInTable: true,
     },
-    { name: "base_salary", label: "Base Salary", type: "money", hideInTable: true },
     { name: "work_location", label: "Work Location", hideInTable: true },
     { name: "bank_name", label: "Bank", hideInTable: true },
     { name: "bank_account", label: "Bank Account", hideInTable: true },

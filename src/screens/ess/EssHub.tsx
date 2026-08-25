@@ -23,7 +23,7 @@ import {
 import { usePunch } from "@/components/hr/use-punch"
 import { GeofenceNotice } from "@/components/hr/GeofenceNotice"
 import type { EssDashboard } from "@/Types/hr"
-import { ESS_ATTENDANCE, ESS_LEAVE, ESS_REQUESTS, ESS_PAYSLIPS, MSS_TEAM } from "@/constants/Constant"
+import { ESS_ATTENDANCE, ESS_LEAVE, ESS_REQUESTS, MSS_TEAM } from "@/constants/Constant"
 
 /**
  * Shown when a dashboard user has no linked employee record. This is the normal
@@ -210,9 +210,6 @@ const EssHub = () => {
       <div className="flex flex-wrap gap-2">
         <Button variant="outline" onClick={() => navigate(ESS_ATTENDANCE)}>
           My attendance
-        </Button>
-        <Button variant="outline" onClick={() => navigate(ESS_PAYSLIPS)}>
-          My payslips
         </Button>
         {data.is_manager && (
           <Button variant="outline" onClick={() => navigate(MSS_TEAM)}>
