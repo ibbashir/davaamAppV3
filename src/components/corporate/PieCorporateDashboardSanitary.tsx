@@ -17,7 +17,7 @@ type NivoPieData = {
     id: string
     label: string
     value: number
-    transactions: number
+    revenue: number
 }
 
 interface PieCorporateDashboardSanitary{
@@ -41,8 +41,8 @@ export default function PieCorporateDashboardSanitary({machineCodes}:PieCorporat
                 const transformed: NivoPieData[] = res.butterflyBrandsId.map((brand, i) => ({
                     id: brand,
                     label: brand,
-                    value: res.butterflyAmount[i],
-                    transactions: res.butterflyTransactionCounts[i]
+                    value: res.butterflyTransactionCounts[i],
+                    revenue: res.butterflyAmount[i]
                 }))
 
                 setData(transformed)
@@ -70,10 +70,9 @@ export default function PieCorporateDashboardSanitary({machineCodes}:PieCorporat
     return (
         <Card>
             <CardHeader>
-                <CardTitle>Sanitary Brands Revenue</CardTitle>
-                <CardDescription>Revenue distribution with total stats</CardDescription>
+                <CardTitle>Sanitary Brands Transactions</CardTitle>
+                <CardDescription>Transaction distribution with total stats</CardDescription>
                 <div className="mt-3 text-sm text-muted-foreground space-y-1">
-                    <div className="text-black text-lg">📦 <span className="">Total Revenue:</span> Rs {totalRevenue.toLocaleString()}</div>
                     <div className="text-black text-lg">🧾 <span className="">Total Transactions:</span> {totalTransactions.toLocaleString()}</div>
                 </div>
             </CardHeader>
@@ -97,8 +96,8 @@ export default function PieCorporateDashboardSanitary({machineCodes}:PieCorporat
                     tooltip={({ datum }) => (
                         <div className="px-3 py-1 text-sm bg-white shadow-md rounded-md border border-gray-200 text-black">
                             <strong>{datum.label}</strong><br />
-                            Revenue: Rs {datum.value.toLocaleString()}<br />
-                            Transactions: {(datum.data as NivoPieData).transactions}
+                            Transactions: {datum.value.toLocaleString()}<br />
+                            Revenue: Rs {(datum.data as NivoPieData).revenue.toLocaleString()}
                         </div>
                     )}
                 />
