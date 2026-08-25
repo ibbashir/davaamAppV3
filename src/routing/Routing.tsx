@@ -82,6 +82,7 @@ import HrDashboard from '@/screens/hr/dashboard/Dashboard'
 import HrEmployees from '@/screens/hr/employees/Employees'
 import HrAttendance from '@/screens/hr/attendance/Attendance'
 import HrLeave from '@/screens/hr/leave/Leave'
+import HrHolidays from '@/screens/hr/holidays/Holidays'
 import HrRecruitment from '@/screens/hr/recruitment/Recruitment'
 import HrOnboarding from '@/screens/hr/onboarding/Onboarding'
 import HrPerformance from '@/screens/hr/performance/Performance'
@@ -204,6 +205,7 @@ import {
   HR_EMPLOYEES,
   HR_ATTENDANCE,
   HR_LEAVE,
+  HR_HOLIDAYS,
   HR_RECRUITMENT,
   HR_ONBOARDING,
   HR_PERFORMANCE,
@@ -375,6 +377,7 @@ const Routing = () => {
           <Route path={HR_DASHBOARD} element={<HrDashboard />} />
           <Route path={HR_EMPLOYEES} element={<HrEmployees />} />
           <Route path={HR_LEAVE} element={<HrLeave />} />
+          <Route path={HR_HOLIDAYS} element={<HrHolidays />} />
           <Route path={HR_RECRUITMENT} element={<HrRecruitment />} />
           <Route path={HR_ONBOARDING} element={<HrOnboarding />} />
           <Route path={HR_PERFORMANCE} element={<HrPerformance />} />

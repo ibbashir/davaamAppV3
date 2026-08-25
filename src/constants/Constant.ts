@@ -19,6 +19,7 @@ import {
   IconUsers,
   IconClockHour4,
   IconCalendarStats,
+  IconCalendarEvent,
   IconBriefcase,
   IconChecklist,
   IconTargetArrow,
@@ -37,10 +38,10 @@ import React from "react";
 // Type-only import — erased at build time, so no runtime cycle with nav-main.
 import type { NavItem } from "@/components/nav-main";
 
-export const BASE_URL_TWO = "https://api.davaam.app/";
-// export const BASE_URL_TWO = "http://localhost:4000/";
-export const BASE_URL = "https://api.davaam.app/api/dashboard";
-// export const BASE_URL = "http://localhost:4000/api/dashboard";
+// export const BASE_URL_TWO = "https://api.davaam.app/";
+export const BASE_URL_TWO = "http://localhost:4000/";
+// export const BASE_URL = "https://api.davaam.app/api/dashboard";
+export const BASE_URL = "http://localhost:4000/api/dashboard";
 export const SOCKET_URL = "https://api.davaam.app";
 export const BASE_URL_STOCK = "https://api.davaam.app/api/smsPortal/stockApp";
 export const BASE_URL_STOCK_AUTH = "https://api.davaam.app/api/smsPortal/stockAuth";
@@ -146,6 +147,7 @@ export const HR_DASHBOARD = "/hr/dashboard";
 export const HR_EMPLOYEES = "/hr/employees";
 export const HR_ATTENDANCE = "/hr/attendance";
 export const HR_LEAVE = "/hr/leave";
+export const HR_HOLIDAYS = "/hr/holidays";
 export const HR_PAYROLL = "/hr/payroll";
 export const HR_RECRUITMENT = "/hr/recruitment";
 export const HR_ONBOARDING = "/hr/onboarding";
@@ -333,6 +335,7 @@ export const HR_SIDEBAR_ROUTES = () => {
     { title: "Employees", url: HR_EMPLOYEES, icon: IconUsers },
     { title: "Attendance", url: HR_ATTENDANCE, icon: IconClockHour4 },
     { title: "Leave", url: HR_LEAVE, icon: IconCalendarStats },
+    { title: "Holidays", url: HR_HOLIDAYS, icon: IconCalendarEvent },
     { title: "Recruitment", url: HR_RECRUITMENT, icon: IconBriefcase },
     { title: "Onboarding", url: HR_ONBOARDING, icon: IconChecklist },
     { title: "Performance", url: HR_PERFORMANCE, icon: IconTargetArrow },

@@ -9,6 +9,7 @@ import {
   IconLogin2,
   IconLogout2,
   IconAlertCircle,
+  IconCalendarEvent,
 } from "@tabler/icons-react"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
@@ -19,10 +20,11 @@ import {
   humanise,
   formatTime,
   formatMinutes,
+  formatDate,
 } from "@/components/hr/hr-api"
 import { usePunch } from "@/components/hr/use-punch"
 import { GeofenceNotice } from "@/components/hr/GeofenceNotice"
-import type { EssDashboard } from "@/Types/hr"
+import type { EssDashboard, Holiday } from "@/Types/hr"
 import { ESS_ATTENDANCE, ESS_LEAVE, ESS_REQUESTS, MSS_TEAM } from "@/constants/Constant"
 
 /**
@@ -154,6 +156,8 @@ const EssHub = () => {
         </CardContent>
       </Card>
 
+      <HolidayBanner holidays={data.holidays ?? []} />
+
       <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
         <StatTile label="Present This Month" value={month.present_days} tone="emerald" />
         <StatTile label="Leave Taken" value={month.leave_days} tone="teal" />
@@ -205,6 +209,40 @@ const EssHub = () => {
             <Row label="Assets in my custody" value={data.assets_held} onClick={() => navigate(ESS_REQUESTS)} />
           </CardContent>
         </Card>
+
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base">Upcoming Holidays</CardTitle>
+            <CardDescription>Company holiday calendar</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            {(data.holidays ?? []).length === 0 ? (
+              <p className="text-sm text-muted-foreground">
+                No holidays scheduled. HR will announce the next one here.
+              </p>
+            ) : (
+              (data.holidays ?? []).map((h) => (
+                <div
+                  key={h.id}
+                  className="flex items-center justify-between gap-3 rounded-lg border px-3 py-2 text-sm"
+                >
+                  <div className="min-w-0">
+                    <p className="truncate font-medium">{h.name}</p>
+                    <p className="text-xs text-muted-foreground">{formatDate(h.holiday_date)}</p>
+                  </div>
+                  <div className="flex shrink-0 items-center gap-2">
+                    {h.is_optional && (
+                      <Badge variant="outline" className="text-xs">
+                        Optional
+                      </Badge>
+                    )}
+                    <span className="text-xs font-medium text-teal-600">{holidayWhen(h)}</span>
+                  </div>
+                </div>
+              ))
+            )}
+          </CardContent>
+        </Card>
       </div>
 
       <div className="flex flex-wrap gap-2">
@@ -218,6 +256,61 @@ const EssHub = () => {
         )}
       </div>
     </HrPage>
+  )
+}
+
+/**
+ * Whole days between today and a holiday, on calendar dates rather than
+ * elapsed hours — "tomorrow" has to stay tomorrow at 23:00 tonight, which a
+ * millisecond difference divided by 86,400,000 would round away.
+ */
+function daysUntil(dateStr: string): number {
+  const [y, m, d] = dateStr.slice(0, 10).split("-").map(Number)
+  const now = new Date()
+  const target = Date.UTC(y, (m ?? 1) - 1, d ?? 1)
+  const today = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate())
+  return Math.round((target - today) / 86_400_000)
+}
+
+/** "Today" / "Tomorrow" / "in 12 days" */
+function holidayWhen(holiday: Holiday): string {
+  const days = holiday.is_today ? 0 : daysUntil(holiday.holiday_date)
+  if (days <= 0) return "Today"
+  if (days === 1) return "Tomorrow"
+  return `in ${days} days`
+}
+
+/**
+ * Announces a holiday that is today or tomorrow, at the top of the hub.
+ *
+ * The notification bell already carries the announcement from the moment HR
+ * saves it, but a holiday added months ahead has long scrolled out of the bell
+ * by the time it matters — this is the reminder on the day it lands.
+ */
+function HolidayBanner({ holidays }: { holidays: Holiday[] }) {
+  const imminent = holidays.find((h) => h.is_today || daysUntil(h.holiday_date) === 1)
+  if (!imminent) return null
+
+  const when = holidayWhen(imminent)
+
+  return (
+    <div className="flex items-start gap-3 rounded-lg border border-teal-200 bg-teal-50 px-4 py-3 dark:border-teal-900 dark:bg-teal-950">
+      <IconCalendarEvent className="mt-0.5 h-5 w-5 shrink-0 text-teal-600" />
+      <div className="min-w-0">
+        <p className="text-sm font-medium text-teal-900 dark:text-teal-100">
+          {when === "Today" ? `Today is ${imminent.name}` : `${imminent.name} is tomorrow`}
+          <span className="font-normal text-teal-700 dark:text-teal-300">
+            {" "}· {formatDate(imminent.holiday_date)}
+          </span>
+        </p>
+        <p className="mt-0.5 text-xs text-teal-700 dark:text-teal-300">
+          {imminent.is_optional
+            ? "This holiday is optional — mark your attendance as usual if you are working."
+            : "Offices are closed and no attendance is required."}
+          {imminent.description ? ` ${imminent.description}` : ""}
+        </p>
+      </div>
+    </div>
   )
 }
 

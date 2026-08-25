@@ -89,25 +89,6 @@ function ShiftsTab() {
   )
 }
 
-function HolidaysTab() {
-  const fields: Field[] = [
-    { name: "name", label: "Holiday", required: true },
-    { name: "holiday_date", label: "Date", type: "date", required: true },
-    { name: "is_optional", label: "Optional", type: "checkbox" },
-    { name: "description", label: "Description", type: "textarea", hideInTable: true },
-  ]
-
-  return (
-    <ResourceScreen
-      embedded
-      title="Holiday Calendar"
-      singular="Holiday"
-      endpoint="/holidays"
-      fields={fields}
-    />
-  )
-}
-
 const OrgSetup = () => (
   <HrTabbedPage
     title="Org Setup"
@@ -116,7 +97,6 @@ const OrgSetup = () => (
       { value: "departments", label: "Departments", content: <DepartmentsTab /> },
       { value: "designations", label: "Designations", content: <DesignationsTab /> },
       { value: "shifts", label: "Shifts", content: <ShiftsTab /> },
-      { value: "holidays", label: "Holidays", content: <HolidaysTab /> },
     ]}
   />
 )

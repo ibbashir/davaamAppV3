@@ -22,6 +22,7 @@ const TYPE_COLORS: Record<string, string> = {
   fulfillment: "bg-orange-100 text-orange-700",
   finance: "bg-purple-100 text-purple-700",
   machine_alert: "bg-red-100 text-red-700",
+  holiday: "bg-teal-100 text-teal-700",
   system: "bg-gray-100 text-gray-600",
 };
 
