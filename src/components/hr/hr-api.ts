@@ -196,10 +196,50 @@ export const statusClass = (status: unknown): string =>
   STATUS_CLASSES[String(status ?? "").toLowerCase()] ??
   "bg-slate-100 text-slate-600 border-slate-200";
 
-/** Pulls a readable message out of an axios error. */
+/**
+ * Pulls a readable message out of an axios error.
+ *
+ * The server sends `{ message }` on every error it raises itself, and that text
+ * is always the best thing to show. What this also has to handle is the error
+ * the server never got to write: when a request reaches a deployment that has
+ * no such route, Express answers with an HTML page carrying no `message`, and
+ * the only string left is axios's own "Request failed with status code 404",
+ * which tells the person at the screen nothing and tells whoever they report it
+ * to even less. So a body with no message is reported by what the status
+ * actually means.
+ */
 export function errorMessage(err: unknown, fallback = "Something went wrong"): string {
-  const anyErr = err as { response?: { data?: { message?: string } }; message?: string };
-  return anyErr?.response?.data?.message || anyErr?.message || fallback;
+  const anyErr = err as {
+    response?: { status?: number; data?: unknown };
+    message?: string;
+    code?: string;
+  };
+
+  const data = anyErr?.response?.data;
+  const served =
+    data && typeof data === "object" ? (data as { message?: unknown }).message : undefined;
+  if (typeof served === "string" && served.trim()) return served;
+
+  // No response at all — the request never landed
+  if (!anyErr?.response) {
+    if (anyErr?.code === "ECONNABORTED") return "The server took too long to respond. Try again.";
+    return "Could not reach the server. Check your connection and try again.";
+  }
+
+  switch (anyErr.response.status) {
+    case 404:
+      return "The server did not recognise that request. Reload the page and try again — if it keeps happening, report it with what you were doing at the time.";
+    case 401:
+      return "Your session has expired. Log in again.";
+    case 403:
+      return "You do not have permission to do that.";
+    case 502:
+    case 503:
+    case 504:
+      return "The server is temporarily unavailable. Try again in a moment.";
+    default:
+      return fallback;
+  }
 }
 
 export const todayISO = (): string => new Date().toISOString().slice(0, 10);
