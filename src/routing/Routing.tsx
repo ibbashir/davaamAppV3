@@ -81,6 +81,7 @@ import { FinanceTopup } from '@/screens/finance/topup/Topup'
 import HrDashboard from '@/screens/hr/dashboard/Dashboard'
 import HrEmployees from '@/screens/hr/employees/Employees'
 import HrAttendance from '@/screens/hr/attendance/Attendance'
+import HrMonthlySheet from '@/screens/hr/attendance/MonthlySheet'
 import HrLeave from '@/screens/hr/leave/Leave'
 import HrHolidays from '@/screens/hr/holidays/Holidays'
 import HrRecruitment from '@/screens/hr/recruitment/Recruitment'
@@ -204,6 +205,7 @@ import {
   HR_DASHBOARD,
   HR_EMPLOYEES,
   HR_ATTENDANCE,
+  HR_MONTHLY_SHEET,
   HR_LEAVE,
   HR_HOLIDAYS,
   HR_RECRUITMENT,
@@ -372,6 +374,7 @@ const Routing = () => {
       <Route element={<PrivateRouting allowedRoles={["hr", "superadmin"]} />}>
         <Route element={<Layout />}>
           <Route path={HR_ATTENDANCE} element={<HrAttendance />} />
+          <Route path={HR_MONTHLY_SHEET} element={<HrMonthlySheet />} />
         </Route>
       </Route>
 

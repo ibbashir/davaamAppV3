@@ -20,6 +20,7 @@ import {
   IconClockHour4,
   IconCalendarStats,
   IconCalendarEvent,
+  IconTable,
   IconBook2,
   IconBriefcase,
   IconChecklist,
@@ -149,6 +150,7 @@ export const HR_EMPLOYEES = "/hr/employees";
 export const HR_ATTENDANCE = "/hr/attendance";
 export const HR_LEAVE = "/hr/leave";
 export const HR_HOLIDAYS = "/hr/holidays";
+export const HR_MONTHLY_SHEET = "/hr/monthly-sheet";
 export const HR_PAYROLL = "/hr/payroll";
 export const HR_RECRUITMENT = "/hr/recruitment";
 export const HR_ONBOARDING = "/hr/onboarding";
@@ -337,24 +339,25 @@ export const HR_SIDEBAR_ROUTES = () => {
     { title: "Dashboard", url: HR_DASHBOARD, icon: IconHome },
     { title: "Employees", url: HR_EMPLOYEES, icon: IconUsers },
     { title: "Attendance", url: HR_ATTENDANCE, icon: IconClockHour4 },
+    { title: "Monthly Sheet", url: HR_MONTHLY_SHEET, icon: IconTable },
     { title: "Leave", url: HR_LEAVE, icon: IconCalendarStats },
     { title: "Holidays", url: HR_HOLIDAYS, icon: IconCalendarEvent },
-    { title: "Recruitment", url: HR_RECRUITMENT, icon: IconBriefcase },
-    { title: "Onboarding", url: HR_ONBOARDING, icon: IconChecklist },
-    { title: "Performance", url: HR_PERFORMANCE, icon: IconTargetArrow },
-    { title: "Training", url: HR_TRAINING, icon: IconSchool },
-    { title: "Expenses", url: HR_EXPENSES, icon: IconReceipt },
-    { title: "Help Desk", url: HR_HELPDESK, icon: IconTicket },
-    { title: "Travel", url: HR_TRAVEL, icon: IconPlane },
-    { title: "Separation", url: HR_SEPARATION, icon: IconDoorExit },
-    { title: "HR Letters", url: HR_LETTERS, icon: IconFileDescription },
-    { title: "Assets", url: HR_ASSETS, icon: IconDeviceLaptop },
-    { title: "Manpower", url: HR_MANPOWER, icon: IconUsersGroup },
-    { title: "Piece Work", url: HR_PIECE_WORK, icon: IconHammer },
-    { title: "Scheduled Alerts", url: HR_ALERTS, icon: IconBell },
-    { title: "Scheduled Reports", url: HR_REPORTS, icon: IconReport },
-    { title: "Analytics", url: HR_ANALYTICS, icon: IconChartBar },
-    { title: "Org Setup", url: HR_ORG_SETUP, icon: IconSettings },
+    // { title: "Recruitment", url: HR_RECRUITMENT, icon: IconBriefcase },
+    // { title: "Onboarding", url: HR_ONBOARDING, icon: IconChecklist },
+    // { title: "Performance", url: HR_PERFORMANCE, icon: IconTargetArrow },
+    // { title: "Training", url: HR_TRAINING, icon: IconSchool },
+    // { title: "Expenses", url: HR_EXPENSES, icon: IconReceipt },
+    // { title: "Help Desk", url: HR_HELPDESK, icon: IconTicket },
+    // { title: "Travel", url: HR_TRAVEL, icon: IconPlane },
+    // { title: "Separation", url: HR_SEPARATION, icon: IconDoorExit },
+    // { title: "HR Letters", url: HR_LETTERS, icon: IconFileDescription },
+    // { title: "Assets", url: HR_ASSETS, icon: IconDeviceLaptop },
+    // { title: "Manpower", url: HR_MANPOWER, icon: IconUsersGroup },
+    // { title: "Piece Work", url: HR_PIECE_WORK, icon: IconHammer },
+    // { title: "Scheduled Alerts", url: HR_ALERTS, icon: IconBell },
+    // { title: "Scheduled Reports", url: HR_REPORTS, icon: IconReport },
+    // { title: "Analytics", url: HR_ANALYTICS, icon: IconChartBar },
+    // { title: "Org Setup", url: HR_ORG_SETUP, icon: IconSettings },
   ];
 };
 
