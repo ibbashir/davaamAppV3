@@ -836,7 +836,7 @@ const CorporateCashCollectionPage: React.FC = () => {
                     <div className="bg-gradient-to-br from-blue-600 to-blue-800 rounded-xl p-6 shadow-lg">
                       <div className="flex items-center justify-between mb-3">
                         <p className="text-sm text-blue-100 font-medium">
-                          Total Collection
+                          Cash Collection (manual)
                         </p>
                         <div className="bg-blue-500/40 p-2 rounded-lg">
                           <Wallet className="h-5 w-5 text-white" />
@@ -849,7 +849,7 @@ const CorporateCashCollectionPage: React.FC = () => {
                         ).toLocaleString("en-IN", { minimumFractionDigits: 2 })}
                       </p>
                       <p className="text-xs text-blue-200 mt-2">
-                        Across all machines
+                        Collected by Davaam Riders
                       </p>
                     </div>
 
@@ -857,7 +857,7 @@ const CorporateCashCollectionPage: React.FC = () => {
                     <div className="bg-gradient-to-br from-emerald-500 to-emerald-700 rounded-xl p-6 shadow-lg">
                       <div className="flex items-center justify-between mb-3">
                         <p className="text-sm text-emerald-100 font-medium">
-                          Total Cash Transactions
+                          Cash Transactions Recorded
                         </p>
                         <div className="bg-emerald-400/40 p-2 rounded-lg">
                           <ArrowUpDown className="h-5 w-5 text-white" />
@@ -871,7 +871,7 @@ const CorporateCashCollectionPage: React.FC = () => {
                         ).toLocaleString("en-IN", { minimumFractionDigits: 2 })}
                       </p>
                       <p className="text-xs text-emerald-200 mt-2">
-                        Cash transactions count
+                        Cash Transactions Recorded on Davaam Dashboard
                       </p>
                     </div>
 
@@ -1198,7 +1198,7 @@ const CorporateCashCollectionPage: React.FC = () => {
                                 Collections
                               </th>
                               <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Transactions
+                                Transactions (estimated)
                               </th>
                               {/* <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 Difference
