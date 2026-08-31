@@ -28,6 +28,32 @@ const api = axios.create({
   headers: { "Content-Type": "application/json" },
 });
 
+/**
+ * The single refresh in flight, shared by every request that hits a 401.
+ *
+ * The dashboard makes several calls at once, so an expired access token used to
+ * produce one refresh per call — the same token presented repeatedly in the
+ * same second. The server rotates on first use, so the first won and the rest
+ * were told the token was revoked, which logged the user out mid-session.
+ *
+ * Now the first 401 starts the refresh and the others await the same promise,
+ * so exactly one refresh happens however many requests were waiting. Cleared as
+ * soon as it settles, so the next expiry starts a fresh one.
+ */
+let refreshInFlight: Promise<void> | null = null;
+
+function refreshSession(): Promise<void> {
+  if (!refreshInFlight) {
+    refreshInFlight = axios
+      .post(`${BASE_URL}/auth/refresh`, {}, { withCredentials: true })
+      .then(() => undefined)
+      .finally(() => {
+        refreshInFlight = null;
+      });
+  }
+  return refreshInFlight;
+}
+
 api.interceptors.response.use(
   (res) => res,
   async (error: AxiosError) => {
@@ -43,7 +69,7 @@ api.interceptors.response.use(
     if (error.response?.status === 401 && !originalRequest._retry && !isAuthEndpoint) {
       originalRequest._retry = true;
       try {
-        await axios.post(`${BASE_URL}/auth/refresh`, {}, { withCredentials: true });
+        await refreshSession();
         return api(originalRequest);
       } catch {
         // Refresh token is also expired — force a full logout.
