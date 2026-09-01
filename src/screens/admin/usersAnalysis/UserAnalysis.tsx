@@ -631,7 +631,7 @@ export function AdminUserAnalysis() {
     const fetchMachines = async () => {
       try {
         setMachinesLoading(true);
-        const res = await getRequest<{ data?: MachineInfo[] }>("/admin/getMachinesWithMachineCode");
+        const res = await getRequest<{ data?: MachineInfo[] }>("admin/getMachinesWithMachineCode");
         setMachines(res?.data ?? []);
       } catch (e) {
         console.error("Failed to fetch machines:", e);

@@ -100,7 +100,7 @@ export const ADMIN_RIDER_LOCATION = "/admin/riderLocation";
 export const ADMIN_BUTTERFLY_PRODUCTS="/admin/butterflyProducts"
 export const ADMIN_ALERT_SYSTEM = "/admin/alert-system";
 export const ADMIN_ALERT_MACHINE_DETAIL = "/admin/alert-system/machine/:machineCode";
-export const ADMIN_USER_ANALYSIS = "/superadmin/userAnalysis";
+export const ADMIN_USER_ANALYSIS = "/admin/userAnalysis";
 
 //OPS PATHS
 export const OPS_DASHBOARD = "/ops/dashboard";

@@ -30,6 +30,7 @@ import {
 import {
   Download,
   Plus,
+  ArrowLeft,
   ChevronLeft,
   ChevronRight,
   ChevronsLeft,
@@ -44,7 +45,8 @@ import {
   Activity,
 } from "lucide-react";
 import { SiteHeader } from "@/components/superAdmin/site-header";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
+import { SUPERADMIN_MACHINES } from "@/constants/Constant";
 import { postRequest } from "@/Apis/Api";
 import { ResponsiveBar } from "@nivo/bar";
 import moment from "moment-timezone";
@@ -83,6 +85,7 @@ type TransactionResponse = {
 
 export default function AdminMachineVisit() {
   const { state } = useLocation();
+  const navigate = useNavigate();
   const machine = state?.machine;
 
   const [stockView, setStockView] = useState("batch");
@@ -400,6 +403,15 @@ export default function AdminMachineVisit() {
       <SiteHeader title="🌍 SuperAdmin Machine Dashboard" />
       <div className="min-h-screen bg-gradient-to-b from-green-50 to-teal-50 p-6">
         <div className="mx-auto max-w-7xl">
+          <Button
+            variant="outline"
+            onClick={() => navigate(SUPERADMIN_MACHINES)}
+            className="mb-4 gap-2 bg-white"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back to Machines
+          </Button>
+
           <Tabs
             value={activeTab}
             onValueChange={setActiveTab}
