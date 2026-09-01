@@ -61,21 +61,35 @@ const HIDDEN_EMPLOYEE_EMAILS = [
   "salman@davaam.pk",
 ]
 
+/** Records hidden by employee_code rather than address — same list, same file. */
+const HIDDEN_EMPLOYEE_CODES = [
+  "EMP-2026-0012",
+  "EMP-2026-0025",
+]
+
 /**
- * Drops rows belonging to a hidden account, whether the address sits on the row
- * itself (an employee list) or on a nested `employee` (attendance, leave,
- * payslips…). Rows with no email are always kept — most records carry none, and
- * dropping them would empty half the screens this guards.
+ * Drops rows belonging to a hidden account, matching on either the address or
+ * the employee code, and whether the value sits on the row itself (an employee
+ * list) or on a nested `employee` (attendance, leave, requests…).
+ *
+ * Rows carrying neither value are always kept — plenty of records have no email
+ * and a nested employee is often trimmed to a few columns, so dropping them
+ * would empty half the screens this guards.
  */
 export function stripHiddenEmployees<T>(rows: T[]): T[] {
-  const hidden = (value: unknown): boolean =>
+  const hiddenEmail = (value: unknown): boolean =>
     typeof value === "string" && HIDDEN_EMPLOYEE_EMAILS.includes(value.trim().toLowerCase())
+
+  const hiddenCode = (value: unknown): boolean =>
+    typeof value === "string" && HIDDEN_EMPLOYEE_CODES.includes(value.trim().toUpperCase())
 
   return (rows ?? []).filter((row) => {
     if (!row || typeof row !== "object") return true
     const r = row as Record<string, unknown>
     const nested = r.employee as Record<string, unknown> | undefined
-    return !hidden(r.email) && !hidden(nested?.email)
+    if (hiddenEmail(r.email) || hiddenEmail(nested?.email)) return false
+    if (hiddenCode(r.employee_code) || hiddenCode(nested?.employee_code)) return false
+    return true
   })
 }
 

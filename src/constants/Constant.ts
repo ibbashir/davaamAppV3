@@ -20,20 +20,22 @@ import {
   IconClockHour4,
   IconCalendarStats,
   IconCalendarEvent,
+  IconTable,
   IconBook2,
-  IconBriefcase,
-  IconChecklist,
-  IconTargetArrow,
-  IconSchool,
   IconReceipt,
-  IconTicket,
-  IconPlane,
-  IconDoorExit,
-  IconDeviceLaptop,
   IconUsersGroup,
-  IconHammer,
-  IconSettings,
   IconUserCircle,
+
+  // IconBriefcase,
+  // IconChecklist,
+  // IconTargetArrow,
+  // IconSchool,
+  // IconTicket,
+  // IconPlane,
+  // IconDoorExit,
+  // IconDeviceLaptop,
+  // IconHammer,
+  // IconSettings,
 } from "@tabler/icons-react";
 import React from "react";
 // Type-only import — erased at build time, so no runtime cycle with nav-main.
@@ -45,7 +47,8 @@ export const BASE_URL = "https://api.davaam.app/api/dashboard";
 // export const BASE_URL = "http://localhost:4000/api/dashboard";
 export const SOCKET_URL = "https://api.davaam.app";
 export const BASE_URL_STOCK = "https://api.davaam.app/api/smsPortal/stockApp";
-export const BASE_URL_STOCK_AUTH = "https://api.davaam.app/api/smsPortal/stockAuth";
+export const BASE_URL_STOCK_AUTH =
+  "https://api.davaam.app/api/smsPortal/stockAuth";
 export const CHATBOT_API_URL = "https://api.davaam.app/api/chatbot";
 
 //PUBLIC PATHS
@@ -78,7 +81,8 @@ export const SUPERADMIN_DELETE_EMPLOYEES = "/superadmin/delete-employees";
 export const SUPERADMIN_USER_ANALYSIS = "/superadmin/userAnalysis";
 export const SUPERADMIN_SURVEY_FORM = "/superadmin/survey-form";
 export const SUPERADMIN_ALERT_SYSTEM = "/superadmin/alert-system";
-export const SUPERADMIN_ALERT_MACHINE_DETAIL = "/superadmin/alert-system/machine/:machineCode";
+export const SUPERADMIN_ALERT_MACHINE_DETAIL =
+  "/superadmin/alert-system/machine/:machineCode";
 export const SUPERADMIN_ASK_CHATBOT = "/superadmin/askChatbot";
 export const SUPERADMIN_TEAM_MEMBERS = "/superadmin/team-members";
 
@@ -97,7 +101,7 @@ export const ADMIN_CORPORATE_TOPUP = "/admin/corporate-topup";
 export const ADMIN_MACHINE_MAP = "/admin/machine-map";
 export const ADMIN_CASH_COLLECTION = "/admin/cashCollection";
 export const ADMIN_RIDER_LOCATION = "/admin/riderLocation";
-export const ADMIN_BUTTERFLY_PRODUCTS="/admin/butterflyProducts"
+export const ADMIN_BUTTERFLY_PRODUCTS = "/admin/butterflyProducts";
 export const ADMIN_ALERT_SYSTEM = "/admin/alert-system";
 export const ADMIN_ALERT_MACHINE_DETAIL = "/admin/alert-system/machine/:machineCode";
 export const ADMIN_USER_ANALYSIS = "/admin/userAnalysis";
@@ -116,7 +120,8 @@ export const OPS_MACHINE_MAP = "/ops/machine-map";
 export const OPS_CASH_COLLECTION = "/ops/cashCollection";
 export const OPS_RIDER_LOCATION = "/ops/riderLocation";
 export const OPS_ALERT_SYSTEM = "/ops/alert-system";
-export const OPS_ALERT_MACHINE_DETAIL = "/ops/alert-system/machine/:machineCode";
+export const OPS_ALERT_MACHINE_DETAIL =
+  "/ops/alert-system/machine/:machineCode";
 
 // Fulfillment PATH
 export const FULFill_DASHBOARD = "/fulfill/dashboard";
@@ -149,6 +154,7 @@ export const HR_EMPLOYEES = "/hr/employees";
 export const HR_ATTENDANCE = "/hr/attendance";
 export const HR_LEAVE = "/hr/leave";
 export const HR_HOLIDAYS = "/hr/holidays";
+export const HR_MONTHLY_SHEET = "/hr/monthly-sheet";
 export const HR_PAYROLL = "/hr/payroll";
 export const HR_RECRUITMENT = "/hr/recruitment";
 export const HR_ONBOARDING = "/hr/onboarding";
@@ -194,7 +200,7 @@ export const ADD_EMPLOYEES = "/company/add-employees";
 export const DELETE_EMPLOYEES = "/company/delete-employees";
 export const USERS = "/company/users";
 export const CORPORATE_CASH_COLLECTION = "/company/cashCollection";
-export const COMPANY_USER_ANALYSIS="/company/userAnalysis"
+export const COMPANY_USER_ANALYSIS = "/company/userAnalysis";
 
 // ─── Live rider badge helper ──────────────────────────────────────────────────
 // Renders a teal pulsing pill showing the active rider count.
@@ -216,9 +222,9 @@ const LiveRiderBadge = (count: number): React.ReactNode => {
       }),
       React.createElement("span", {
         className: "relative inline-flex rounded-full h-1.5 w-1.5 bg-white",
-      })
+      }),
     ),
-    String(count)
+    String(count),
   );
 };
 
@@ -233,29 +239,61 @@ export const SUPER_ADMIN_SIDEBAR_ROUTES = (activeRiderCount = 0) => {
     { title: "Dashboard", url: SUPERADMIN_DASHBOARD, icon: IconHome },
     { title: "Create Roles", url: SUPERADMIN_ROLES, icon: IconUserPlus },
     // { title: "Corporate Clients", url: SUPERADMIN_CORPORATE, icon: IconUserStar },
-    { title: "Send Notifications", url: SUPERADMIN_NOTIFICATIONS, icon: IconBell },
+    {
+      title: "Send Notifications",
+      url: SUPERADMIN_NOTIFICATIONS,
+      icon: IconBell,
+    },
     { title: "Machines", url: SUPERADMIN_MACHINES, icon: IconChartBar },
     { title: "Points Share", url: SUPERADMIN_POINTS, icon: IconShare3 },
     { title: "Locations", url: SUPERADMIN_LOCATIONS, icon: IconLocation },
     { title: "Topup", url: SUPERADMIN_TOPUP, icon: IconCircleArrowUpRight },
-    { title: "App Feedback", url: SUPERADMIN_FEEDBACK, icon: IconMessage2Exclamation },
-    { title: "Corporate Topup", url: SUPERADMIN_CORPORATE_TOPUP, icon: IconCashBanknote },
+    {
+      title: "App Feedback",
+      url: SUPERADMIN_FEEDBACK,
+      icon: IconMessage2Exclamation,
+    },
+    {
+      title: "Corporate Topup",
+      url: SUPERADMIN_CORPORATE_TOPUP,
+      icon: IconCashBanknote,
+    },
     { title: "Map Machines", url: SUPERADMIN_MACHINE_MAP, icon: IconMapPin },
-    { title: "Cash Collection", url: SUPERADMIN_CASH_COLLECTION, icon: IconCashBanknote },
-    { title: "User Analysis Report", url: SUPERADMIN_USER_ANALYSIS, icon: IconReport },
+    {
+      title: "Cash Collection",
+      url: SUPERADMIN_CASH_COLLECTION,
+      icon: IconCashBanknote,
+    },
+    {
+      title: "User Analysis Report",
+      url: SUPERADMIN_USER_ANALYSIS,
+      icon: IconReport,
+    },
     {
       title: "Rider Locations",
       url: SUPERADMIN_RIDER_LOCATION,
       icon: IconHexagonPlus,
       badge: LiveRiderBadge(activeRiderCount), // ← pulsing pill when riders are live
     },
-    { title: "Survey Forms", url: SUPERADMIN_SURVEY_FORM, icon: IconClipboardList },
-    { title: "Alert System", url: SUPERADMIN_ALERT_SYSTEM, icon: IconClipboardList },
+    {
+      title: "Survey Forms",
+      url: SUPERADMIN_SURVEY_FORM,
+      icon: IconClipboardList,
+    },
+    {
+      title: "Alert System",
+      url: SUPERADMIN_ALERT_SYSTEM,
+      icon: IconClipboardList,
+    },
     { title: "Ask Chatbot", url: SUPERADMIN_ASK_CHATBOT, icon: IconRobot },
     { title: "Team Members", url: SUPERADMIN_TEAM_MEMBERS, icon: IconUsers },
     // The HR attendance module, roster tab only. Named in full so it is not
     // mistaken for "My Attendance" under Self Service, which is this user's own.
-    { title: "Attendance Management", url: HR_ATTENDANCE, icon: IconClockHour4 },
+    {
+      title: "Attendance Management",
+      url: HR_ATTENDANCE,
+      icon: IconClockHour4,
+    },
 
     // { title: "Delete Corporate Employees", url: SUPERADMIN_DELETE_EMPLOYEES, icon: IconHexagonMinus },
   ];
@@ -269,13 +307,37 @@ export const ADMIN_SIDEBAR_ROUTES = () => {
     { title: "Points Share", url: ADMIN_POINTS, icon: IconShare3 },
     { title: "Locations", url: ADMIN_LOCATIONS, icon: IconLocation },
     { title: "Topup", url: ADMIN_TOPUP, icon: IconCircleArrowUpRight },
-    { title: "App Feedback", url: ADMIN_FEEDBACK, icon: IconMessage2Exclamation },
-    { title: "Corporate Topup", url: ADMIN_CORPORATE_TOPUP, icon: IconCircleArrowUpRight },
+    {
+      title: "App Feedback",
+      url: ADMIN_FEEDBACK,
+      icon: IconMessage2Exclamation,
+    },
+    {
+      title: "Corporate Topup",
+      url: ADMIN_CORPORATE_TOPUP,
+      icon: IconCircleArrowUpRight,
+    },
     { title: "Map Machines", url: ADMIN_MACHINE_MAP, icon: IconMapPin },
-    { title: "Rider Locations", url: ADMIN_RIDER_LOCATION, icon: IconHexagonPlus },
-    { title: "Cash Collection", url: ADMIN_CASH_COLLECTION, icon: IconCashBanknote },
-    { title: "User Analysis Report", url: ADMIN_USER_ANALYSIS, icon: IconReport },
-    { title: "Butterfly Products", url: ADMIN_BUTTERFLY_PRODUCTS, icon: IconShare3 },
+    {
+      title: "Rider Locations",
+      url: ADMIN_RIDER_LOCATION,
+      icon: IconHexagonPlus,
+    },
+    {
+      title: "Cash Collection",
+      url: ADMIN_CASH_COLLECTION,
+      icon: IconCashBanknote,
+    },
+    {
+      title: "User Analysis Report",
+      url: ADMIN_USER_ANALYSIS,
+      icon: IconReport,
+    },
+    {
+      title: "Butterfly Products",
+      url: ADMIN_BUTTERFLY_PRODUCTS,
+      icon: IconShare3,
+    },
     { title: "Alert System", url: ADMIN_ALERT_SYSTEM, icon: IconClipboardList },
   ];
 };
@@ -289,8 +351,16 @@ export const OPS_SIDEBAR_ROUTES = () => {
     { title: "Topup", url: OPS_TOPUP, icon: IconCircleArrowUpRight },
     { title: "App Feedback", url: OPS_FEEDBACK, icon: IconMessage2Exclamation },
     { title: "Map Machines", url: OPS_MACHINE_MAP, icon: IconMapPin },
-    { title: "Rider Locations", url: OPS_RIDER_LOCATION, icon: IconHexagonPlus },
-    { title: "Cash Collection", url: OPS_CASH_COLLECTION, icon: IconCashBanknote },
+    {
+      title: "Rider Locations",
+      url: OPS_RIDER_LOCATION,
+      icon: IconHexagonPlus,
+    },
+    {
+      title: "Cash Collection",
+      url: OPS_CASH_COLLECTION,
+      icon: IconCashBanknote,
+    },
     { title: "Alert System", url: OPS_ALERT_SYSTEM, icon: IconClipboardList },
   ];
 };
@@ -301,11 +371,27 @@ export const FULFILL_SIDEBAR_ROUTES = () => {
     { title: "Machines", url: FULFill_MACHINES, icon: IconChartBar },
     { title: "Locations", url: FULFill_LOCATIONS, icon: IconLocation },
     { title: "Topup", url: FULFill_TOPUP, icon: IconCircleArrowUpRight },
-    { title: "Maintaince", url: FULLFiLL_MAINTAINCE, icon: IconCircleArrowUpRight },
-    { title: "Maintaince Requests", url: MAINTAINCE_REQUESTS, icon: IconCircleArrowUpRight },
+    {
+      title: "Maintaince",
+      url: FULLFiLL_MAINTAINCE,
+      icon: IconCircleArrowUpRight,
+    },
+    {
+      title: "Maintaince Requests",
+      url: MAINTAINCE_REQUESTS,
+      icon: IconCircleArrowUpRight,
+    },
     { title: "Map Machines", url: FULFill_MACHINE_MAP, icon: IconMapPin },
-    { title: "Rider Locations", url: Fulfill_RIDER_LOCATION, icon: IconHexagonPlus },
-    { title: "Cash Collections", url: CASH_COLLECTIONS, icon: IconCashBanknote },
+    {
+      title: "Rider Locations",
+      url: Fulfill_RIDER_LOCATION,
+      icon: IconHexagonPlus,
+    },
+    {
+      title: "Cash Collections",
+      url: CASH_COLLECTIONS,
+      icon: IconCashBanknote,
+    },
   ];
 };
 
@@ -315,11 +401,23 @@ export const FINANCE_SIDEBAR_ROUTES = () => {
     { title: "Machines", url: FINANCE_MACHINES, icon: IconChartBar },
     { title: "Locations", url: FINANCE_LOCATIONS, icon: IconLocation },
     { title: "Topup", url: FINANCE_TOPUP, icon: IconCircleArrowUpRight },
-    { title: "Cash Collections", url: FINANCE_CASH_COLLECTIONS, icon: IconCashBanknote },
+    {
+      title: "Cash Collections",
+      url: FINANCE_CASH_COLLECTIONS,
+      icon: IconCashBanknote,
+    },
     { title: "Map Machines", url: FINANCE_MACHINE_MAP, icon: IconMapPin },
     { title: "Finance Report", url: FINANCE_REPORT, icon: IconReport },
-    { title: "Machine Stocks", url: FINANCE_MACHINE_STOCKS, icon: IconClipboardList },
-    { title: "User Wallet Activity", url: FINANCE_USER_WALLET_ACTIVITY, icon: IconReport },
+    {
+      title: "Machine Stocks",
+      url: FINANCE_MACHINE_STOCKS,
+      icon: IconClipboardList,
+    },
+    {
+      title: "User Wallet Activity",
+      url: FINANCE_USER_WALLET_ACTIVITY,
+      icon: IconReport,
+    },
   ];
 };
 
@@ -337,24 +435,25 @@ export const HR_SIDEBAR_ROUTES = () => {
     { title: "Dashboard", url: HR_DASHBOARD, icon: IconHome },
     { title: "Employees", url: HR_EMPLOYEES, icon: IconUsers },
     { title: "Attendance", url: HR_ATTENDANCE, icon: IconClockHour4 },
+    { title: "Monthly Sheet", url: HR_MONTHLY_SHEET, icon: IconTable },
     { title: "Leave", url: HR_LEAVE, icon: IconCalendarStats },
     { title: "Holidays", url: HR_HOLIDAYS, icon: IconCalendarEvent },
-    { title: "Recruitment", url: HR_RECRUITMENT, icon: IconBriefcase },
-    { title: "Onboarding", url: HR_ONBOARDING, icon: IconChecklist },
-    { title: "Performance", url: HR_PERFORMANCE, icon: IconTargetArrow },
-    { title: "Training", url: HR_TRAINING, icon: IconSchool },
-    { title: "Expenses", url: HR_EXPENSES, icon: IconReceipt },
-    { title: "Help Desk", url: HR_HELPDESK, icon: IconTicket },
-    { title: "Travel", url: HR_TRAVEL, icon: IconPlane },
-    { title: "Separation", url: HR_SEPARATION, icon: IconDoorExit },
-    { title: "HR Letters", url: HR_LETTERS, icon: IconFileDescription },
-    { title: "Assets", url: HR_ASSETS, icon: IconDeviceLaptop },
-    { title: "Manpower", url: HR_MANPOWER, icon: IconUsersGroup },
-    { title: "Piece Work", url: HR_PIECE_WORK, icon: IconHammer },
-    { title: "Scheduled Alerts", url: HR_ALERTS, icon: IconBell },
-    { title: "Scheduled Reports", url: HR_REPORTS, icon: IconReport },
-    { title: "Analytics", url: HR_ANALYTICS, icon: IconChartBar },
-    { title: "Org Setup", url: HR_ORG_SETUP, icon: IconSettings },
+    // { title: "Recruitment", url: HR_RECRUITMENT, icon: IconBriefcase },
+    // { title: "Onboarding", url: HR_ONBOARDING, icon: IconChecklist },
+    // { title: "Performance", url: HR_PERFORMANCE, icon: IconTargetArrow },
+    // { title: "Training", url: HR_TRAINING, icon: IconSchool },
+    // { title: "Expenses", url: HR_EXPENSES, icon: IconReceipt },
+    // { title: "Help Desk", url: HR_HELPDESK, icon: IconTicket },
+    // { title: "Travel", url: HR_TRAVEL, icon: IconPlane },
+    // { title: "Separation", url: HR_SEPARATION, icon: IconDoorExit },
+    // { title: "HR Letters", url: HR_LETTERS, icon: IconFileDescription },
+    // { title: "Assets", url: HR_ASSETS, icon: IconDeviceLaptop },
+    // { title: "Manpower", url: HR_MANPOWER, icon: IconUsersGroup },
+    // { title: "Piece Work", url: HR_PIECE_WORK, icon: IconHammer },
+    // { title: "Scheduled Alerts", url: HR_ALERTS, icon: IconBell },
+    // { title: "Scheduled Reports", url: HR_REPORTS, icon: IconReport },
+    // { title: "Analytics", url: HR_ANALYTICS, icon: IconChartBar },
+    // { title: "Org Setup", url: HR_ORG_SETUP, icon: IconSettings },
   ];
 };
 
@@ -397,21 +496,36 @@ export const MACHINES_SIDEBAR_ROUTES = (firstName: string) => {
     { title: "Dashboard", url: MACHINE_DASHBOARD, icon: IconHome },
     { title: "Machines", url: MACHINE_MACHINES, icon: IconChartBar },
     { title: "Reports", url: REPORT, icon: IconFileDescription },
-    { title: "Cash Collections", url: CORPORATE_CASH_COLLECTION, icon: IconFileDescription },
-    { title: "User Analysis", url: COMPANY_USER_ANALYSIS, icon: IconFileDescription },
+    {
+      title: "Cash Collections",
+      url: CORPORATE_CASH_COLLECTION,
+      icon: IconFileDescription,
+    },
+    {
+      title: "User Analysis",
+      url: COMPANY_USER_ANALYSIS,
+      icon: IconFileDescription,
+    },
   ];
   if (firstName === "Mobilink") {
     routes.push(
       { title: "Users", url: USERS, icon: IconUser },
       { title: "Add Bulk Employee", url: ADD_EMPLOYEES, icon: IconHexagonPlus },
-      { title: "Delete Bulk Employee", url: DELETE_EMPLOYEES, icon: IconHexagonMinus },
+      {
+        title: "Delete Bulk Employee",
+        url: DELETE_EMPLOYEES,
+        icon: IconHexagonMinus,
+      },
     );
   }
   return routes;
 };
 
 // TIME STAMP CONVERTERS
-import { formatUnixTimestamp, formatDateTime as _formatDateTime } from "@/utils/formatters";
+import {
+  formatUnixTimestamp,
+  formatDateTime as _formatDateTime,
+} from "@/utils/formatters";
 
 /** @deprecated Use formatUnixTimestamp from @/utils/formatters */
 export function timeConverter(UNIX_timestamp: number): string {

@@ -158,6 +158,93 @@ export interface EssDashboard {
   direct_reports: number;
 }
 
+export interface MonthlySheetDay {
+  date: string;
+  day: number;
+  weekday: number;
+  label: string;
+  is_week_off: boolean;
+  is_holiday: boolean;
+  holiday_name: string | null;
+  is_working_day: boolean;
+  is_future: boolean;
+}
+
+export interface MonthlySheetCell {
+  status: string | null;
+  check_in: string | null;
+  check_out: string | null;
+  worked_minutes: number | null;
+  late_minutes: number;
+  overtime_minutes: number;
+}
+
+export interface MonthlySheetRow {
+  employee_id: number;
+  employee_code: string;
+  name: string;
+  email: string | null;
+  department: string | null;
+  designation: string | null;
+  shift: string | null;
+  days: Record<string, MonthlySheetCell>;
+  totals: {
+    working_days: number;
+    counted_from: string;
+    present_days: number;
+    late_days: number;
+    half_days: number;
+    leave_days: number;
+    absent_days: number;
+    holiday_days: number;
+    week_off_days: number;
+    days_marked: number;
+    worked_minutes: number;
+    worked_hours: number;
+    late_minutes: number;
+    overtime_minutes: number;
+    overtime_hours: number;
+    expected_hours: number;
+    late_penalty_days: number;
+    payable_days: number;
+    attendance_rate: number;
+  };
+}
+
+export interface MonthlySheet {
+  period: {
+    month: number;
+    year: number;
+    from: string;
+    to: string;
+    label: string;
+    working_days_in_month: number;
+    working_days_elapsed: number;
+    tracking_start: string;
+    is_current_month: boolean;
+    days: MonthlySheetDay[];
+  };
+  policy: {
+    late_after: string;
+    full_day_hours: number;
+    lates_per_half_day: number;
+    working_week: string;
+    timezone: string;
+  };
+  totals: {
+    employees: number;
+    present_days: number;
+    absent_days: number;
+    late_days: number;
+    half_days: number;
+    leave_days: number;
+    worked_hours: number;
+    overtime_hours: number;
+    attendance_rate: number;
+  };
+  data: MonthlySheetRow[];
+}
+
 export interface Holiday {
   id: number;
   name: string;
