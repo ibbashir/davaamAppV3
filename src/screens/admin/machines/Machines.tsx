@@ -21,6 +21,7 @@ import {
   Clock,
   Package,
   Activity,
+  CreditCard,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -89,7 +90,7 @@ type StockFilter = "low" | "full" | null;
 type SortField =
   | "machine_code"
   | "machine_name"
-  | "machine_type"
+  | "variant"
   | "category"
   | "lastActive"
   | "stockStatus"
@@ -106,6 +107,7 @@ const TABLE_COLUMNS: TableColumn[] = [
   { label: "Name" },
   { label: "Current Stock" },
   { label: "Variant" },
+  { label: "Payment Methods" },
   { label: "Stock" },
   { label: "Forecast" },
   { label: "Status" },
@@ -134,6 +136,67 @@ const STOCK_COLORS: Record<string, string> = {
   "Out of Stock": "bg-red-100 text-red-800",
   Unknown: "bg-gray-100 text-gray-800",
 };
+
+const PAYMENT_METHOD_ICONS: Record<
+  string,
+  { icon: string; label: string; color: string }
+> = {
+  cash: {
+    icon: "💵",
+    label: "Cash",
+    color: "bg-green-50 border-green-200 text-green-700",
+  },
+  card: {
+    icon: "💳",
+    label: "Card",
+    color: "bg-blue-50 border-blue-200 text-blue-700",
+  },
+  jazzcash: {
+    icon: "📱",
+    label: "JazzCash",
+    color: "bg-red-50 border-red-200 text-red-700",
+  },
+  easypaisa: {
+    icon: "📲",
+    label: "Easypaisa",
+    color: "bg-emerald-50 border-emerald-200 text-emerald-700",
+  },
+  bank: {
+    icon: "🏦",
+    label: "Bank",
+    color: "bg-indigo-50 border-indigo-200 text-indigo-700",
+  },
+  nfc: {
+    icon: "📡",
+    label: "NFC",
+    color: "bg-purple-50 border-purple-200 text-purple-700",
+  },
+};
+
+function PaymentMethodBadges({ methods }: { methods?: string[] | null }) {
+  if (!methods?.length) return <span className="text-gray-400 text-xs">—</span>;
+  return (
+    <div className="flex flex-wrap gap-1 justify-center">
+      {methods.map((method) => {
+        const key = method.toLowerCase();
+        const config = PAYMENT_METHOD_ICONS[key];
+        return (
+          <span
+            key={method}
+            title={config?.label ?? method}
+            className={[
+              "inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-medium",
+              config?.color ?? "bg-gray-50 border-gray-200 text-gray-600",
+            ].join(" ")}
+          >
+            <span>{config?.icon ?? "💰"}</span>
+            <span className="hidden lg:inline">{config?.label ?? method}</span>
+          </span>
+        );
+      })}
+    </div>
+  );
+}
 
 // ── Filter pill ───────────────────────────────────────────────────────────────
 function FilterPill<T>({
@@ -198,9 +261,9 @@ function MobileMachineCard({
           <Server className="size-3 text-teal-600 shrink-0" />
           <span className="font-medium truncate">{machine.machine_name}</span>
         </p>
-        <p className="flex items-center gap-1.5 text-gray-500">
+        <p className="flex items-center gap-1.5 text-gray-500 uppercase">
           <Cpu className="size-3 text-teal-600 shrink-0" />
-          {machine.machine_type}
+          {machine.variant}
         </p>
         <p className="flex items-center gap-1.5 text-gray-500">
           <Tag className="size-3 text-teal-600 shrink-0" />
@@ -219,6 +282,10 @@ function MobileMachineCard({
           >
             {machine.stockStatus}
           </Badge>
+        </div>
+        <div className="flex items-center gap-1.5 flex-wrap">
+          <CreditCard className="size-3 text-teal-600 shrink-0" />
+          <PaymentMethodBadges methods={machine.payment_methods} />
         </div>
         <div className="flex items-center gap-1.5">
           <Activity className="size-3 text-teal-600 shrink-0" />
@@ -846,8 +913,11 @@ const Machines = () => {
                                 )}
                               </div>
                             </td>
-                            <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
-                              {machine.machine_type}
+                            <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600 uppercase">
+                              {machine.variant}
+                            </td>
+                            <td className="px-4 py-3">
+                              <PaymentMethodBadges methods={machine.payment_methods} />
                             </td>
                             <td className="px-4 py-3">
                               <Badge

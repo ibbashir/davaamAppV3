@@ -44,10 +44,12 @@ import {
   Activity,
 } from "lucide-react";
 import { SiteHeader } from "@/components/fulfillment/site-header";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { postRequest } from "@/Apis/Api";
 import { ResponsiveBar } from "@nivo/bar";
 import moment from "moment-timezone";
+import { FULFill_MACHINES } from "@/constants/Constant";
+import { ArrowLeft } from "lucide-react";
 
 type ApiResponse = {
   data: {
@@ -83,6 +85,7 @@ type TransactionResponse = {
 
 export default function FulfillmentMachineVisit() {
   const { state } = useLocation();
+  const navigate = useNavigate();
   const machine = state?.machine;
 
   const [stockView, setStockView] = useState("batch");
@@ -400,6 +403,13 @@ export default function FulfillmentMachineVisit() {
       <SiteHeader title="🌍 Fulfillment Machine Dashboard" />
       <div className="min-h-screen bg-gradient-to-b from-green-50 to-teal-50 p-6">
         <div className="mx-auto max-w-7xl">
+          <Button
+            variant="outline"
+            className="mb-4 border-teal-600 text-teal-600 hover:bg-teal-50"
+            onClick={() => navigate(FULFill_MACHINES)}
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" /> Back to Machines
+          </Button>
           <Tabs
             value={activeTab}
             onValueChange={setActiveTab}

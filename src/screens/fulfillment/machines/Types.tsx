@@ -4,7 +4,7 @@ type ApiMachine = {
     machine_code: string
     machine_name: string
     machine_location: string
-    machine_type: string
+    variant: string
     created_at: number
     is_active: string
     lat: number | null
@@ -14,6 +14,7 @@ type ApiMachine = {
     statusCode: string
     lastUpdated: number | null
     map_link?: string | null
+    payment_methods?: string[] | null
 }
 
 // Brand types

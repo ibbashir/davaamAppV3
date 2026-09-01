@@ -91,7 +91,7 @@ type StockFilter = "low" | "full" | null;
 type SortField =
   | "machine_code"
   | "machine_name"
-  | "machine_type"
+  | "variant"
   | "category"
   | "lastActive"
   | "stockStatus"
@@ -239,7 +239,7 @@ function MobileMachineCard({
         </p>
         <p className="flex items-center gap-1.5 text-gray-500">
           <Cpu className="size-3 text-teal-600 shrink-0" />
-          {machine.machine_type}
+          {machine.variant}
         </p>
         <p className="flex items-center gap-1.5 text-gray-500">
           <Tag className="size-3 text-teal-600 shrink-0" />
@@ -914,8 +914,8 @@ const Machines = () => {
                                 )}
                               </div>
                             </td>
-                            <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
-                              {machine.machine_type}
+                            <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600 uppercase">
+                              {machine.variant}
                             </td>
                             <td className="px-4 py-3">
                               <Badge

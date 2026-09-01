@@ -42,6 +42,15 @@ interface AttendanceRow {
   remarks: string | null
 }
 
+/** "H:MM:SS" ticking duration, for a live in-progress shift — formatMinutes rounds to the minute, too coarse for a running clock. */
+const formatDuration = (ms: number): string => {
+  const totalSeconds = Math.max(0, Math.floor(ms / 1000))
+  const h = Math.floor(totalSeconds / 3600)
+  const m = Math.floor((totalSeconds % 3600) / 60)
+  const s = totalSeconds % 60
+  return `${h}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`
+}
+
 const MyAttendance = () => {
   const [from, setFrom] = React.useState(monthStartISO())
   const [to, setTo] = React.useState(todayISO())
@@ -50,6 +59,7 @@ const MyAttendance = () => {
   const [loading, setLoading] = React.useState(true)
   const [notLinked, setNotLinked] = React.useState(false)
   const [geofence, setGeofence] = React.useState<Geofence | null>(null)
+  const [now, setNow] = React.useState(() => Date.now())
 
   const load = React.useCallback(async () => {
     setLoading(true)
@@ -78,6 +88,15 @@ const MyAttendance = () => {
 
   const { punch, punching } = usePunch(load)
 
+  const todayRow = rows.find((r) => r.attendance_date?.slice(0, 10) === todayISO())
+  const shiftRunning = !!todayRow?.check_in && !todayRow?.check_out
+
+  React.useEffect(() => {
+    if (!shiftRunning) return
+    const id = setInterval(() => setNow(Date.now()), 1000)
+    return () => clearInterval(id)
+  }, [shiftRunning])
+
   if (notLinked) {
     return (
       <HrPage title="My Attendance">
@@ -87,7 +106,7 @@ const MyAttendance = () => {
   }
 
   const s: Record<string, number> = summary ?? {}
-  const todayRow = rows.find((r) => r.attendance_date?.slice(0, 10) === todayISO())
+  const elapsedMs = shiftRunning ? now - new Date(todayRow!.check_in as string).getTime() : 0
 
   return (
     <HrPage title="My Attendance">
@@ -99,6 +118,15 @@ const MyAttendance = () => {
         </div>
 
         <div className="flex flex-col items-start gap-2 sm:items-end">
+          {shiftRunning && (
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <span className="relative flex h-2 w-2">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
+              </span>
+              Time in: <span className="font-mono text-base font-semibold text-foreground">{formatDuration(elapsedMs)}</span>
+            </div>
+          )}
           <div className="flex gap-2">
             <Button
               onClick={() => punch("in")}
