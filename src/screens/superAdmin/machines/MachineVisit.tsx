@@ -44,7 +44,7 @@ import {
   TrendingUp,
   Activity,
 } from "lucide-react";
-import { SiteHeader } from "@/components/superAdmin/site-header";
+import { SiteHeader } from "../../../components/superAdmin/site-header";
 import { useLocation, useNavigate } from "react-router-dom";
 import { SUPERADMIN_MACHINES } from "@/constants/Constant";
 import { postRequest } from "@/Apis/Api";
