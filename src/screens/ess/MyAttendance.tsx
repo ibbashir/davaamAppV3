@@ -29,6 +29,8 @@ import {
 } from "@/components/hr/hr-api"
 import { usePunch, type Geofence } from "@/components/hr/use-punch"
 import { GeofenceNotice } from "@/components/hr/GeofenceNotice"
+import { RemoteCheckoutButton } from "@/components/hr/RemoteCheckout"
+import type { CheckoutRequest } from "@/Types/hr"
 
 interface AttendanceRow {
   id: number
@@ -59,6 +61,7 @@ const MyAttendance = () => {
   const [loading, setLoading] = React.useState(true)
   const [notLinked, setNotLinked] = React.useState(false)
   const [geofence, setGeofence] = React.useState<Geofence | null>(null)
+  const [checkoutRequest, setCheckoutRequest] = React.useState<CheckoutRequest | null>(null)
   const [now, setNow] = React.useState(() => Date.now())
 
   const load = React.useCallback(async () => {
@@ -68,10 +71,12 @@ const MyAttendance = () => {
         data: AttendanceRow[]
         summary: Record<string, number>
         geofence?: Geofence
+        checkout_request?: CheckoutRequest | null
       }>("/attendance", { from, to })
       setRows(res.data ?? [])
       setSummary(res.summary ?? {})
       setGeofence(res.geofence ?? null)
+      setCheckoutRequest(res.checkout_request ?? null)
       setNotLinked(false)
     } catch (err) {
       const anyErr = err as { response?: { status?: number } }
@@ -145,6 +150,9 @@ const MyAttendance = () => {
               Check out
             </Button>
           </div>
+          {/* Only mid-shift — there is nothing to ask HR for otherwise. */}
+          {shiftRunning && <RemoteCheckoutButton pending={checkoutRequest} onDone={load} />}
+
           <div className="max-w-md sm:text-right">
             <GeofenceNotice geofence={geofence} />
           </div>

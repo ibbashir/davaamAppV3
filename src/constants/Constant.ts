@@ -25,6 +25,7 @@ import {
   IconReceipt,
   IconUsersGroup,
   IconUserCircle,
+  IconLogout2,
 
   // IconBriefcase,
   // IconChecklist,
@@ -155,6 +156,7 @@ export const HR_ATTENDANCE = "/hr/attendance";
 export const HR_LEAVE = "/hr/leave";
 export const HR_HOLIDAYS = "/hr/holidays";
 export const HR_MONTHLY_SHEET = "/hr/monthly-sheet";
+export const HR_CHECKOUT_REQUESTS = "/hr/checkout-requests";
 export const HR_PAYROLL = "/hr/payroll";
 export const HR_RECRUITMENT = "/hr/recruitment";
 export const HR_ONBOARDING = "/hr/onboarding";
@@ -224,6 +226,24 @@ const LiveRiderBadge = (count: number): React.ReactNode => {
         className: "relative inline-flex rounded-full h-1.5 w-1.5 bg-white",
       }),
     ),
+    String(count),
+  );
+};
+
+/**
+ * Amber count pill for a queue that is waiting on the user — check-out requests
+ * today. Not the rider badge: nothing here is live, it is a backlog, and amber
+ * reads as "needs you" where teal reads as "running fine". Null at zero, so an
+ * empty queue leaves the row clean.
+ */
+const PendingBadge = (count: number): React.ReactNode => {
+  if (count <= 0) return null;
+  return React.createElement(
+    "span",
+    {
+      className:
+        "min-w-[18px] text-center text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-amber-500 text-white shadow-sm",
+    },
     String(count),
   );
 };
@@ -426,15 +446,25 @@ export const FINANCE_SIDEBAR_ROUTES = () => {
  * (people, attendance, leave) sit at the top and configuration sits at the
  * bottom.
  *
+ * `pendingCheckouts` (polled in AppSidebar) badges the check-out queue, so a
+ * request from someone stuck outside the geofence is visible without HR having
+ * to open the screen to find out.
+ *
  * Payroll is deliberately absent: salary is not HR's to see here, so the
  * Payroll screen and ESS "My Payslips" are unrouted. The screens and the whole
  * backend are still in the tree — putting the two rows back is all it takes.
  */
-export const HR_SIDEBAR_ROUTES = () => {
+export const HR_SIDEBAR_ROUTES = (pendingCheckouts = 0) => {
   return [
     { title: "Dashboard", url: HR_DASHBOARD, icon: IconHome },
     { title: "Employees", url: HR_EMPLOYEES, icon: IconUsers },
     { title: "Attendance", url: HR_ATTENDANCE, icon: IconClockHour4 },
+    {
+      title: "Check-out Requests",
+      url: HR_CHECKOUT_REQUESTS,
+      icon: IconLogout2,
+      badge: PendingBadge(pendingCheckouts),
+    },
     { title: "Monthly Sheet", url: HR_MONTHLY_SHEET, icon: IconTable },
     { title: "Leave", url: HR_LEAVE, icon: IconCalendarStats },
     { title: "Holidays", url: HR_HOLIDAYS, icon: IconCalendarEvent },

@@ -113,6 +113,35 @@ export interface HrAnalytics {
   candidate_count: number;
 }
 
+/**
+ * A request to be checked out from wherever the employee actually is, because
+ * the office geofence refused their punch. HR decides; approving writes the
+ * check-out onto that day's attendance.
+ */
+export interface CheckoutRequest {
+  id: number;
+  employee_id: number;
+  employee: string | null;
+  employee_code: string | null;
+  email: string | null;
+  department: string | null;
+  attendance_date: string;
+  attendance_id: number | null;
+  check_in: string | null;
+  requested_at: string;
+  reason: string;
+  lat: number | null;
+  lng: number | null;
+  accuracy_m: number | null;
+  distance_m: number | null;
+  nearest_site: string | null;
+  approved_check_out: string | null;
+  status: string;
+  decided_at: string | null;
+  decision_note: string | null;
+  created_at?: string;
+}
+
 export interface EssDashboard {
   employee: {
     id: number;
@@ -131,6 +160,8 @@ export interface EssDashboard {
     check_out: string | null;
     status: string | null;
     worked_minutes: number | null;
+    /** Set while a remote check-out is waiting on HR. */
+    checkout_request: CheckoutRequest | null;
   };
   this_month: {
     present_days: number;
