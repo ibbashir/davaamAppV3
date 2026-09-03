@@ -22,7 +22,7 @@ export interface Geofence {
   sites: GeofenceSite[]
 }
 
-interface Fix {
+export interface Fix {
   lat: number
   lng: number
   accuracy: number
@@ -42,8 +42,13 @@ function reason(err: GeolocationPositionError): string {
   }
 }
 
-/** Promise wrapper over the callback-style geolocation API. */
-function currentPosition(): Promise<Fix> {
+/**
+ * Promise wrapper over the callback-style geolocation API. Exported because a
+ * remote check-out request needs the same fix the punch would have carried —
+ * the request exists precisely because the punch was refused, so it has to be
+ * just as specific about where the employee is.
+ */
+export function currentPosition(): Promise<Fix> {
   return new Promise((resolve, reject) => {
     if (typeof navigator === "undefined" || !navigator.geolocation) {
       reject(new Error("This browser cannot share your location, so check-in cannot be verified."))

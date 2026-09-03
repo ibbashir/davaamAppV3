@@ -23,6 +23,7 @@ import {
   formatDate,
 } from "@/components/hr/hr-api"
 import { usePunch } from "@/components/hr/use-punch"
+import { RemoteCheckoutButton } from "@/components/hr/RemoteCheckout"
 import { GeofenceNotice } from "@/components/hr/GeofenceNotice"
 import type { EssDashboard, Holiday } from "@/Types/hr"
 import { ESS_ATTENDANCE, ESS_LEAVE, ESS_REQUESTS, MSS_TEAM } from "@/constants/Constant"
@@ -123,6 +124,12 @@ const EssHub = () => {
                 In {formatTime(today.check_in)} · Out {formatTime(today.check_out)}
               </span>
             </div>
+
+            {/* Offered only mid-shift: nothing to ask for before check-in, and
+                nothing left to ask for after check-out. */}
+            {today.checked_in && !today.checked_out && (
+              <RemoteCheckoutButton pending={today.checkout_request} onDone={load} />
+            )}
 
             <div className="flex gap-2">
               <Button

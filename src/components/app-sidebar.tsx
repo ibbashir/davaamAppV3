@@ -59,6 +59,33 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     return () => clearInterval(id)
   }, [role])
 
+  /**
+   * Check-out requests waiting on HR. Polled on the same cadence as the rider
+   * badge and just as non-critical: the number is a prompt to open the screen,
+   * never the thing being acted on, so a failed poll is silence rather than an
+   * error in a sidebar.
+   */
+  const [pendingCheckouts, setPendingCheckouts] = React.useState(0)
+
+  React.useEffect(() => {
+    if (role !== "hr") return
+
+    const poll = async () => {
+      try {
+        const res = await getRequest<{ count: number }>(
+          `${BASE_URL}/hr/attendance/checkout-requests/pending-count`
+        )
+        setPendingCheckouts(res.count ?? 0)
+      } catch {
+        // badge is non-critical — silently ignore errors
+      }
+    }
+
+    poll()
+    const id = setInterval(poll, POLL_MS)
+    return () => clearInterval(id)
+  }, [role])
+
   // Self-service is available to every internal role. `/ess/me` provisions the
   // caller's employee record on first call, so this returns 200 for any staff
   // login and only 404s for corporate client accounts. It also tells us whether
@@ -99,7 +126,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         case "ops":        return OPS_SIDEBAR_ROUTES()
         case "fulfill":    return FULFILL_SIDEBAR_ROUTES()
         case "finance":    return FINANCE_SIDEBAR_ROUTES()
-        case "hr":         return HR_SIDEBAR_ROUTES()
+        case "hr":         return HR_SIDEBAR_ROUTES(pendingCheckouts)
         case "company":    return MACHINES_SIDEBAR_ROUTES(state.user?.first_name ?? "User")
         default:           return []
       }
@@ -109,7 +136,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     if (!ess.linked || role === "company") return roleRoutes
 
     return [...roleRoutes, ...SELF_SERVICE_ROUTES(ess.isManager)]
-  }, [role, state.user?.first_name, activeRiderCount, ess])
+  }, [role, state.user?.first_name, activeRiderCount, pendingCheckouts, ess])
 
   const userData = {
     name:   state.user?.first_name ?? "User",
