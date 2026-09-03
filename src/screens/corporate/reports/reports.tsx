@@ -3,6 +3,29 @@ import { postRequest } from "@/Apis/Api";
 import { useAuth } from "@/contexts/AuthContext";
 import * as XLSX from "xlsx";
 import { SiteHeader } from "@/components/corporate/site-header";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Banknote,
+  Smartphone,
+  Receipt,
+  Download,
+  Loader2,
+  AlertCircle,
+  Search,
+} from "lucide-react";
 
 interface Transaction {
   id: number;
@@ -18,6 +41,8 @@ interface Transaction {
   machine_name?: string;
   // Add other fields as needed
 }
+
+type FilterMode = "month" | "range";
 
 export default function Report() {
   const { state } = useAuth();
@@ -36,26 +61,56 @@ export default function Report() {
     overalltotal?: number;
     cashTotal?: number;
     onlineTotal?: number;
+    totalCashCollected?:number,
     cashTransactions?: Transaction[];
     onlineTransactions?: Transaction[];
   }>({});
 
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [filterMode, setFilterMode] = useState<FilterMode>("month");
   const [selectedDate, setSelectedDate] = useState("");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+
+  const periodLabel =
+    filterMode === "month" ? selectedDate : `${startDate}_to_${endDate}`;
 
   const getReports = async () => {
-    if (!selectedDate) {
-      alert("Please select a month");
+    setError("");
+
+    if (machineCodes.length === 0) {
+      setError("No machines available");
       return;
     }
 
-    if (machineCodes.length === 0) {
-      alert("No machines available");
-      return;
+    if (filterMode === "month") {
+      if (!selectedDate) {
+        setError("Please select a month");
+        return;
+      }
+    } else {
+      if (!startDate || !endDate) {
+        setError("Please select both start and end dates");
+        return;
+      }
+      if (new Date(endDate) < new Date(startDate)) {
+        setError("End date cannot be before start date");
+        return;
+      }
     }
 
     setLoading(true);
+    setData({});
     try {
+      const payload: Record<string, unknown> = { machineCode: machineCodes };
+      if (filterMode === "month") {
+        payload.Month = selectedDate;
+      } else {
+        payload.startDate = startDate;
+        payload.endDate = endDate;
+      }
+
       const response = await postRequest<{
         statusCode?: number;
         overalltotal?: number;
@@ -63,21 +118,14 @@ export default function Report() {
         onlineTotal?: number;
         cashTransactions?: Transaction[];
         onlineTransactions?: Transaction[];
-      }>("/corporates/reports", {
-        machineCode: machineCodes, // Changed from machineCodes to machineCode to match backend
-        Month: selectedDate // Use the selected date directly
-      });
+      }>("/corporates/reports", payload);
       setData(response);
     } catch (err) {
       console.error("Error fetching reports:", err);
-      alert("Failed to fetch reports");
+      setError("Failed to fetch reports");
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSelectedDate(e.target.value);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -103,7 +151,7 @@ export default function Report() {
         ["Online Transactions", data.onlineTotal || 0],
         [],
         ["Generated on", new Date().toLocaleString()],
-        ["For period", selectedDate]
+        ["For period", periodLabel],
       ];
 
       const summaryWS = XLSX.utils.aoa_to_sheet(summaryData);
@@ -147,7 +195,7 @@ export default function Report() {
       }
 
       // Generate file name with date
-      const fileName = `transactions_report_${selectedDate || "all"}.xlsx`;
+      const fileName = `transactions_report_${periodLabel || "all"}.xlsx`;
 
       // Download the file
       XLSX.writeFile(wb, fileName);
@@ -161,95 +209,190 @@ export default function Report() {
     <div>
       <SiteHeader title="📚 Transaction Report" />
 
-      <div className=" sm:px-6 lg:px-8 py-2">
-        <div className="flex items-center justify-between">
+      <div className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <p className="text-muted-foreground text-sm">
+            Generate cash and online transaction reports by month or a custom date range
+          </p>
           {data.overalltotal !== undefined && data.overalltotal > 0 && (
-            <button
+            <Button
               onClick={exportToExcel}
-              className="flex items-center rounded bg-green-600 px-4 py-2 font-bold text-white hover:bg-green-700"
+              className="bg-green-600 hover:bg-green-700"
             >
-              Export to csv
-            </button>
+              <Download className="h-4 w-4" />
+              Export to Excel
+            </Button>
           )}
         </div>
 
-        <form className="mt-5 w-full max-w-lg" onSubmit={handleSubmit}>
-          <div className="-mx-3 mb-6 flex flex-wrap">
-            <div className="mb-6 w-full px-3 md:mb-0 md:w-1/2">
-              <label
-                className="mb-2 block text-xs font-bold uppercase tracking-wide text-gray-700"
-                htmlFor="month"
+        <Card>
+          <CardContent className="pt-0">
+            <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+              <Tabs
+                value={filterMode}
+                onValueChange={(v) => setFilterMode(v as FilterMode)}
               >
-                Month
-              </label>
-              <input
-                className="mb-3 block w-full appearance-none rounded border border-gray-200 bg-gray-200 px-4 py-3 leading-tight text-gray-700 focus:border-blue-500 focus:bg-white focus:outline-none"
-                id="month"
-                name="month"
-                type="month"
-                value={selectedDate}
-                onChange={handleDateChange}
-                required
-              />
-            </div>
-          </div>
-          <button
-            type="submit"
-            className="rounded bg-teal-700 px-4 py-2 font-bold text-white hover:bg-teal-300 focus:outline-none focus:ring-2 focus:bg-teal-300 focus:ring-opacity-50 disabled:opacity-50"
-            disabled={loading || !selectedDate}
-          >
-            {loading ? "Loading..." : "Generate Report"}
-          </button>
-        </form>
+                <TabsList>
+                  <TabsTrigger value="month">By Month</TabsTrigger>
+                  <TabsTrigger value="range">By Date Range</TabsTrigger>
+                </TabsList>
+              </Tabs>
 
-        {data.overalltotal !== undefined && (
-          <div className="mt-8">
-            <h2 className="text-xl font-semibold">Transaction Summary</h2>
-            <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-3">
-              <div className="rounded-lg bg-white p-4 shadow">
-                <h3 className="text-gray-500">Total Transactions</h3>
+              <div className="flex flex-wrap items-end gap-4">
+                {filterMode === "month" ? (
+                  <div className="flex flex-col gap-1.5">
+                    <Label htmlFor="month">Month</Label>
+                    <Input
+                      id="month"
+                      name="month"
+                      type="month"
+                      value={selectedDate}
+                      onChange={(e) => setSelectedDate(e.target.value)}
+                      className="w-44"
+                    />
+                  </div>
+                ) : (
+                  <>
+                    <div className="flex flex-col gap-1.5">
+                      <Label htmlFor="start-date">Start Date</Label>
+                      <Input
+                        id="start-date"
+                        type="date"
+                        value={startDate}
+                        onChange={(e) => setStartDate(e.target.value)}
+                        className="w-44"
+                      />
+                    </div>
+                    <div className="flex flex-col gap-1.5">
+                      <Label htmlFor="end-date">End Date</Label>
+                      <Input
+                        id="end-date"
+                        type="date"
+                        value={endDate}
+                        onChange={(e) => setEndDate(e.target.value)}
+                        className="w-44"
+                      />
+                    </div>
+                  </>
+                )}
+
+                <Button
+                  type="submit"
+                  disabled={loading}
+                  className="bg-teal-700 hover:bg-teal-800"
+                >
+                  {loading ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Generating...
+                    </>
+                  ) : (
+                    <>
+                      <Search className="h-4 w-4" />
+                      Generate Report
+                    </>
+                  )}
+                </Button>
+              </div>
+            </form>
+          </CardContent>
+        </Card>
+
+        {error && (
+          <div className="flex items-center gap-2 rounded-md border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
+            <AlertCircle className="h-4 w-4" />
+            {error}
+          </div>
+        )}
+
+        {loading && (
+          <div className="flex items-center justify-center gap-2 p-10 text-muted-foreground">
+            <Loader2 className="h-5 w-5 animate-spin" />
+            <p className="text-sm">Loading report...</p>
+          </div>
+        )}
+
+        {!loading && data.overalltotal !== undefined && (
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+            <Card>
+              <CardHeader className="flex flex-row items-center gap-2 space-y-0 border-b px-4 py-3">
+                <Receipt className="h-4 w-4 text-gray-500" />
+                <CardTitle className="text-sm font-medium">Total Transactions</CardTitle>
+              </CardHeader>
+              <CardContent className="px-4 py-3">
                 <p className="text-2xl font-bold">{data.overalltotal}</p>
-              </div>
-              <div className="rounded-lg bg-white p-4 shadow">
-                <h3 className="text-gray-500">Cash Transactions</h3>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center gap-2 space-y-0 border-b px-4 py-3">
+                <Banknote className="h-4 w-4 text-blue-500" />
+                <CardTitle className="text-sm font-medium">Cash Transactions</CardTitle>
+              </CardHeader>
+              <CardContent className="px-4 py-3">
                 <p className="text-2xl font-bold">{data.cashTotal}</p>
-              </div>
-              <div className="rounded-lg bg-white p-4 shadow">
-                <h3 className="text-gray-500">Online Transactions</h3>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center gap-2 space-y-0 border-b px-4 py-3">
+                <Smartphone className="h-4 w-4 text-emerald-500" />
+                <CardTitle className="text-sm font-medium">Online Transactions</CardTitle>
+              </CardHeader>
+              <CardContent className="px-4 py-3">
                 <p className="text-2xl font-bold">{data.onlineTotal}</p>
-              </div>
-            </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center gap-2 space-y-0 border-b px-4 py-3">
+                <Banknote className="h-4 w-4 text-emerald-500" />
+                <CardTitle className="text-sm font-medium">Cash Collected</CardTitle>
+              </CardHeader>
+              <CardContent className="px-4 py-3">
+                <p className="text-2xl font-bold">{data.totalCashCollected}</p>
+              </CardContent>
+            </Card>
           </div>
         )}
 
-        {data.cashTransactions && data.cashTransactions.length > 0 && (
-          <div className="mt-8 mb-8">
-            <div className="flex items-center justify-between">
-              <h2 className="mb-4 text-xl font-semibold">Cash Transactions</h2>
-              <span className="text-sm text-gray-500">
-                Count: {data.cashTotal}
-              </span>
-            </div>
-            <TransactionTable transactions={data.cashTransactions} />
-          </div>
+        {!loading && data.cashTransactions && data.cashTransactions.length > 0 && (
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0">
+              <CardTitle className="flex items-center gap-2 text-base">
+                <Banknote className="h-4 w-4 text-blue-500" />
+                Cash Transactions
+              </CardTitle>
+              <Badge variant="secondary">Count: {data.cashTotal}</Badge>
+            </CardHeader>
+            <CardContent className="px-0">
+              <TransactionTable transactions={data.cashTransactions} />
+            </CardContent>
+          </Card>
         )}
 
-        {data.onlineTransactions && data.onlineTransactions.length > 0 && (
-          <div className="mt-8 mb-8">
-            <div className="flex items-center justify-between">
-              <h2 className="mb-4 text-xl font-semibold">Online Transactions</h2>
-              <span className="text-sm text-gray-500">
-                Count: {data.onlineTotal}
-              </span>
-            </div>
-            <TransactionTable transactions={data.onlineTransactions} />
-          </div>
+        {!loading && data.onlineTransactions && data.onlineTransactions.length > 0 && (
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0">
+              <CardTitle className="flex items-center gap-2 text-base">
+                <Smartphone className="h-4 w-4 text-emerald-500" />
+                Online Transactions
+              </CardTitle>
+              <Badge variant="secondary">Count: {data.onlineTotal}</Badge>
+            </CardHeader>
+            <CardContent className="px-0">
+              <TransactionTable transactions={data.onlineTransactions} />
+            </CardContent>
+          </Card>
         )}
 
-        {data.overalltotal === 0 && (
-          <div className="mt-8 text-center">
-            <p className="text-gray-500">No transactions found for the selected period.</p>
-          </div>
+        {!loading && data.overalltotal === 0 && (
+          <p className="py-10 text-center text-sm text-muted-foreground">
+            No transactions found for the selected period.
+          </p>
+        )}
+
+        {!loading && data.overalltotal === undefined && !error && (
+          <p className="py-10 text-center text-sm text-muted-foreground">
+            Select a month or date range and click "Generate Report" to view data.
+          </p>
         )}
       </div>
     </div>
@@ -258,65 +401,39 @@ export default function Report() {
 
 function TransactionTable({ transactions }: { transactions: Transaction[] }) {
   if (transactions.length === 0) {
-    return <p className="text-gray-500">No transactions found</p>;
+    return <p className="p-4 text-sm text-muted-foreground">No transactions found</p>;
   }
 
   return (
-    <div className="overflow-x-auto rounded-lg border border-gray-200">
-      <table className="min-w-full divide-y divide-gray-200">
-        <thead className="bg-gray-50">
-          <tr>
-            <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-              ID
-            </th>
-            <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-              Employee ID
-            </th>
-            <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-              Amount
-            </th>
-            <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-              Date
-            </th>
-            <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-              Machine Code
-            </th>
-            <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-              Machine Name
-            </th>
-            <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-              Merchant
-            </th>
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-gray-200 bg-white">
-          {transactions.map((transaction) => (
-            <tr key={transaction.id}>
-              <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
-                {transaction.id}
-              </td>
-              <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
-                {transaction.user_id}
-              </td>
-              <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
-                {transaction.amount}
-              </td>
-              <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
-                {new Date(transaction.created_at).toLocaleString()}
-              </td>
-              <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
-                {transaction.machine_code}
-              </td>
-              <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
-                {transaction.machine_name ?? "-"}
-              </td>
-              <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
-                {transaction.merchant}
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+    <Table>
+      <TableHeader>
+        <TableRow>
+          <TableHead>ID</TableHead>
+          <TableHead>Employee ID</TableHead>
+          <TableHead>Amount</TableHead>
+          <TableHead>Date</TableHead>
+          <TableHead>Machine Code</TableHead>
+          <TableHead>Machine Name</TableHead>
+          <TableHead>Merchant</TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {transactions.map((transaction) => (
+          <TableRow key={transaction.id}>
+            <TableCell className="text-muted-foreground">{transaction.id}</TableCell>
+            <TableCell className="text-muted-foreground">{transaction.user_id}</TableCell>
+            <TableCell className="font-medium">{transaction.amount}</TableCell>
+            <TableCell className="text-muted-foreground">
+              {new Date(transaction.created_at).toLocaleString()}
+            </TableCell>
+            <TableCell className="text-muted-foreground">{transaction.machine_code}</TableCell>
+            <TableCell className="text-muted-foreground">
+              {transaction.machine_name ?? "-"}
+            </TableCell>
+            <TableCell className="text-muted-foreground">{transaction.merchant}</TableCell>
+          </TableRow>
+        ))}
+      </TableBody>
+    </Table>
   );
 }

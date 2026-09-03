@@ -1,6 +1,8 @@
+import type { ReactNode } from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
 import Layout from '@/layouts/layout'
 import PrivateRouting from './PrivateRouting'
+import { useAuth } from '@/contexts/AuthContext'
 
 import Login from '@/screens/login/Login'
 import ForgetPassword from '@/screens/forgetPassword/ForgetPassword'
@@ -251,6 +253,22 @@ import { AdminUserAnalysis } from '@/screens/admin/usersAnalysis/UserAnalysis'
 import { CompanyUserAnalysis } from '@/screens/corporate/usersAnalysis/UserAnalysis'
 import CorporateCashCollectionPage from '@/screens/corporate/cashCollections/cashCollection'
 
+/** Gates a company route to Mobilink-branded accounts only; other companies are bounced to their dashboard. */
+const MobilinkOnly = ({ children }: { children: ReactNode }) => {
+  const { state } = useAuth()
+  if (state.user?.first_name !== "Mobilink") {
+    return <Navigate to={MACHINE_DASHBOARD} replace />
+  }
+  return <>{children}</>
+}
+const ButterflyOnly = ({ children }: { children: ReactNode }) => {
+  const { state } = useAuth()
+  if (state.user?.first_name !== "Butterfly") {
+    return <Navigate to={MACHINE_DASHBOARD} replace />
+  }
+  return <>{children}</>
+}
+
 const Routing = () => {
   return (
     <Routes>
@@ -439,10 +457,10 @@ const Routing = () => {
           <Route path={COMPANY_MACHINE_VISIT} element={<CorporateMachineVisit />} />
           <Route path={REPORT} element={<Reports />} />
           <Route path={USERS} element={<AllUsers />} />
-          <Route path={ADD_EMPLOYEES} element={<AddEmployees />} />
-          <Route path={DELETE_EMPLOYEES} element={<BulkDelete />} />
-          <Route path={CORPORATE_CASH_COLLECTION} element={<CorporateCashCollectionPage />} />
-          <Route path={COMPANY_USER_ANALYSIS} element={<CompanyUserAnalysis />} />
+          <Route path={ADD_EMPLOYEES} element={<MobilinkOnly><AddEmployees /></MobilinkOnly>} />
+          <Route path={DELETE_EMPLOYEES} element={<MobilinkOnly><BulkDelete /></MobilinkOnly>} />
+          <Route path={CORPORATE_CASH_COLLECTION} element={<ButterflyOnly><CorporateCashCollectionPage /></ButterflyOnly>} />
+          <Route path={COMPANY_USER_ANALYSIS} element={<ButterflyOnly><CompanyUserAnalysis /></ButterflyOnly>} />
         </Route>
       </Route>
 

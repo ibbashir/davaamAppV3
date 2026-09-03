@@ -496,7 +496,10 @@ export const MACHINES_SIDEBAR_ROUTES = (firstName: string) => {
     { title: "Dashboard", url: MACHINE_DASHBOARD, icon: IconHome },
     { title: "Machines", url: MACHINE_MACHINES, icon: IconChartBar },
     { title: "Reports", url: REPORT, icon: IconFileDescription },
-    {
+  ];
+  if (firstName === "Butterfly") {
+    routes.push(
+      {
       title: "Cash Collections",
       url: CORPORATE_CASH_COLLECTION,
       icon: IconFileDescription,
@@ -505,8 +508,9 @@ export const MACHINES_SIDEBAR_ROUTES = (firstName: string) => {
       title: "User Analysis",
       url: COMPANY_USER_ANALYSIS,
       icon: IconFileDescription,
-    },
-  ];
+    }
+    );
+  }
   if (firstName === "Mobilink") {
     routes.push(
       { title: "Users", url: USERS, icon: IconUser },
