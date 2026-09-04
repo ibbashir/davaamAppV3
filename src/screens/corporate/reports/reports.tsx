@@ -313,7 +313,7 @@ export default function Report() {
         )}
 
         {!loading && data.overalltotal !== undefined && (
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
             <Card>
               <CardHeader className="flex flex-row items-center gap-2 space-y-0 border-b px-4 py-3">
                 <Receipt className="h-4 w-4 text-gray-500" />
