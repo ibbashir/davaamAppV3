@@ -14,6 +14,8 @@ import { IconLoader2, IconDownload, IconInfoCircle } from "@tabler/icons-react"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 import { hrGet, errorMessage, formatDate, formatTime } from "@/components/hr/hr-api"
+import { useNavigate } from "react-router-dom"
+import { hrEmployeeAttendancePath } from "@/constants/Constant"
 import { useHrOptions } from "@/components/hr/useHrOptions"
 import type { MonthlySheet as Sheet, MonthlySheetRow, MonthlySheetDay } from "@/Types/hr"
 
@@ -226,13 +228,23 @@ function TrackingNotice({ period }: { period: Sheet["period"] }) {
 }
 
 function TotalsTable({ sheet }: { sheet: Sheet }) {
+  const navigate = useNavigate()
+
+  /** Open one employee's month. The period travels with the link so HR lands
+   *  on the month they were already looking at, not on today. */
+  const openEmployee = (employeeId: number) =>
+    navigate(
+      `${hrEmployeeAttendancePath(employeeId)}?month=${sheet.period.month}&year=${sheet.period.year}`,
+    )
+
   return (
     <Card>
       <CardHeader className="pb-3">
         <CardTitle className="text-base">Per-employee totals</CardTitle>
         <CardDescription>
           {sheet.period.label} · {sheet.policy.working_week} · late after {sheet.policy.late_after} ·{" "}
-          {sheet.policy.lates_per_half_day} lates count as half a day
+          {sheet.policy.lates_per_half_day} lates count as half a day · click a row for the
+          day-by-day record
         </CardDescription>
       </CardHeader>
       <CardContent className="p-0">
@@ -257,9 +269,16 @@ function TotalsTable({ sheet }: { sheet: Sheet }) {
             </thead>
             <tbody>
               {sheet.data.map((r) => (
-                <tr key={r.employee_id} className="border-b last:border-0 hover:bg-muted/40">
+                <tr
+                  key={r.employee_id}
+                  onClick={() => openEmployee(r.employee_id)}
+                  className="cursor-pointer border-b last:border-0 hover:bg-muted/40"
+                  title={`Open ${r.name}'s attendance`}
+                >
                   <td className="px-3 py-2.5">
-                    <p className="font-medium">{r.name}</p>
+                    <p className="font-medium text-teal-700 hover:underline dark:text-teal-400">
+                      {r.name}
+                    </p>
                     <p className="text-xs text-muted-foreground">{r.employee_code}</p>
                   </td>
                   <td className="px-3 py-2.5 text-muted-foreground">{r.department ?? "—"}</td>

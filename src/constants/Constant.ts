@@ -156,6 +156,11 @@ export const HR_ATTENDANCE = "/hr/attendance";
 export const HR_LEAVE = "/hr/leave";
 export const HR_HOLIDAYS = "/hr/holidays";
 export const HR_MONTHLY_SHEET = "/hr/monthly-sheet";
+// One employee's attendance, day by day. Reached by clicking a name on the
+// monthly sheet or the daily roster.
+export const HR_EMPLOYEE_ATTENDANCE = "/hr/attendance/employee/:id";
+export const hrEmployeeAttendancePath = (id: number | string) =>
+  `/hr/attendance/employee/${id}`;
 export const HR_CHECKOUT_REQUESTS = "/hr/checkout-requests";
 export const HR_PAYROLL = "/hr/payroll";
 export const HR_RECRUITMENT = "/hr/recruitment";

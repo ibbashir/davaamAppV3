@@ -38,6 +38,8 @@ import {
 } from "@/components/hr/hr-api"
 import type { RosterRow, HrRow } from "@/Types/hr"
 import PunchIntegrity from "./PunchIntegrity"
+import { useNavigate } from "react-router-dom"
+import { hrEmployeeAttendancePath } from "@/constants/Constant"
 
 const ATTENDANCE_STATUSES = [
   "present",
@@ -85,6 +87,7 @@ function PunchLocation({
 
 /** Today's roster — who is in, who is late, who hasn't been marked. */
 function RosterTab() {
+  const navigate = useNavigate()
   const { options } = useHrOptions(["departments"])
   const [date, setDate] = React.useState(todayISO())
   const [departmentId, setDepartmentId] = React.useState("all")
@@ -319,7 +322,17 @@ function RosterTab() {
                         />
                       </TableCell>
                       <TableCell>
-                        <div className="font-medium">{row.name}</div>
+                        {/* The roster answers "who is in today"; this opens the
+                            same person's whole month, which is the next
+                            question HR always asks. */}
+                        <button
+                          type="button"
+                          onClick={() => navigate(hrEmployeeAttendancePath(row.employee_id))}
+                          className="text-left font-medium text-teal-700 hover:underline dark:text-teal-400"
+                          title={`Open ${row.name}'s attendance`}
+                        >
+                          {row.name}
+                        </button>
                         <div className="text-xs text-muted-foreground">{row.employee_code}</div>
                       </TableCell>
                       <TableCell>{row.department ?? "—"}</TableCell>

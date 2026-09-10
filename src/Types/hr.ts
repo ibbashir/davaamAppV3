@@ -276,6 +276,65 @@ export interface MonthlySheet {
   data: MonthlySheetRow[];
 }
 
+/**
+ * One employee's attendance over a date range — the HR-side counterpart of the
+ * ESS hub view. The day cells and totals come from the same server helper the
+ * monthly sheet uses, so the shapes are deliberately identical.
+ */
+export interface EmployeeAttendance {
+  employee: {
+    id: number;
+    employee_code: string;
+    name: string;
+    email: string | null;
+    status: string;
+    date_of_joining: string | null;
+    department: string | null;
+    designation: string | null;
+    shift: {
+      name: string;
+      start_time: string;
+      end_time: string;
+      full_day_hours: number | string;
+    } | null;
+  };
+  period: {
+    from: string;
+    to: string;
+    days: MonthlySheetDay[];
+    working_days: number;
+    working_days_elapsed: number;
+    tracking_start: string;
+  };
+  policy: MonthlySheet["policy"];
+  totals: MonthlySheetRow["totals"];
+  /** Keyed by YYYY-MM-DD. */
+  days: Record<string, MonthlySheetCell>;
+  /** The stored rows themselves — the evidence behind the day cells. */
+  records: AttendanceRecordRow[];
+  total: number;
+}
+
+/** A row of hr_attendance as the server stores it. */
+export interface AttendanceRecordRow {
+  id: number;
+  employee_id: number;
+  attendance_date: string;
+  check_in: string | null;
+  check_out: string | null;
+  worked_minutes: number | null;
+  late_minutes: number;
+  overtime_minutes: number;
+  status: string;
+  source: string;
+  check_in_lat: number | null;
+  check_in_lng: number | null;
+  check_out_lat: number | null;
+  check_out_lng: number | null;
+  remarks: string | null;
+  marked_by: number | null;
+}
+
 export interface Holiday {
   id: number;
   name: string;
