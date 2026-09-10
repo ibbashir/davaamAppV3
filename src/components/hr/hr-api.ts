@@ -57,7 +57,7 @@ export const essPost = <T>(path: string, body: object = {}) =>
  */
 const HIDDEN_EMPLOYEE_EMAILS = [
   "ifraaslam@davaam.pk",
-  "hassanharoon321@gmail.com",
+  // "hassanharoon321@gmail.com",
   "salman@davaam.pk",
 ]
 
