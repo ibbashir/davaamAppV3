@@ -66,16 +66,38 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
    * error in a sidebar.
    */
   const [pendingCheckouts, setPendingCheckouts] = React.useState(0)
+  // Missed-attendance requests — HR's first review, and the super admin's
+  // final one. Same polling, same non-critical failure handling.
+  const [pendingMissedPunch, setPendingMissedPunch] = React.useState(0)
+  const [pendingApprovals, setPendingApprovals] = React.useState(0)
 
   React.useEffect(() => {
     if (role !== "hr") return
 
     const poll = async () => {
+      const [checkouts, missed] = await Promise.allSettled([
+        getRequest<{ count: number }>(`${BASE_URL}/hr/attendance/checkout-requests/pending-count`),
+        getRequest<{ count: number }>(`${BASE_URL}/hr/attendance/missed-punch-requests/pending-count`),
+      ])
+      // badge is non-critical — a failed poll just leaves the number as it was
+      if (checkouts.status === "fulfilled") setPendingCheckouts(checkouts.value.count ?? 0)
+      if (missed.status === "fulfilled") setPendingMissedPunch(missed.value.count ?? 0)
+    }
+
+    poll()
+    const id = setInterval(poll, POLL_MS)
+    return () => clearInterval(id)
+  }, [role])
+
+  React.useEffect(() => {
+    if (role !== "superadmin") return
+
+    const poll = async () => {
       try {
         const res = await getRequest<{ count: number }>(
-          `${BASE_URL}/hr/attendance/checkout-requests/pending-count`
+          `${BASE_URL}/hr/attendance/missed-punch-requests/final/pending-count`
         )
-        setPendingCheckouts(res.count ?? 0)
+        setPendingApprovals(res.count ?? 0)
       } catch {
         // badge is non-critical — silently ignore errors
       }
@@ -121,12 +143,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const navMain = React.useMemo(() => {
     const roleRoutes = (() => {
       switch (role) {
-        case "superadmin": return SUPER_ADMIN_SIDEBAR_ROUTES(activeRiderCount) // ← count passed here
+        case "superadmin": return SUPER_ADMIN_SIDEBAR_ROUTES(activeRiderCount, pendingApprovals) // ← counts passed here
         case "admin":      return ADMIN_SIDEBAR_ROUTES()
         case "ops":        return OPS_SIDEBAR_ROUTES()
         case "fulfill":    return FULFILL_SIDEBAR_ROUTES()
         case "finance":    return FINANCE_SIDEBAR_ROUTES()
-        case "hr":         return HR_SIDEBAR_ROUTES(pendingCheckouts)
+        case "hr":         return HR_SIDEBAR_ROUTES(pendingCheckouts, pendingMissedPunch)
         case "company":    return MACHINES_SIDEBAR_ROUTES(state.user?.first_name ?? "User")
         default:           return []
       }
@@ -136,7 +158,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     if (!ess.linked || role === "company") return roleRoutes
 
     return [...roleRoutes, ...SELF_SERVICE_ROUTES(ess.isManager)]
-  }, [role, state.user?.first_name, activeRiderCount, pendingCheckouts, ess])
+  }, [role, state.user?.first_name, activeRiderCount, pendingCheckouts, pendingMissedPunch, pendingApprovals, ess])
 
   const userData = {
     name:   state.user?.first_name ?? "User",

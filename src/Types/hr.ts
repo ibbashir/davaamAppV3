@@ -142,6 +142,36 @@ export interface CheckoutRequest {
   created_at?: string;
 }
 
+/**
+ * "I forgot to mark my attendance." HR reviews it first, then the super admin
+ * gives the final approval; only then is the attendance row written.
+ * `current_*` is what the attendance row holds for that day right now.
+ */
+export interface MissedPunchRequest {
+  id: number;
+  employee_id: number;
+  employee: string | null;
+  employee_code: string | null;
+  email: string | null;
+  department: string | null;
+  attendance_date: string;
+  requested_check_in: string | null;
+  requested_check_out: string | null;
+  current_check_in: string | null;
+  current_check_out: string | null;
+  reason: string;
+  status: "pending_hr" | "pending_superadmin" | "approved" | "rejected" | "cancelled";
+  in_process: boolean;
+  hr_decided_at: string | null;
+  hr_note: string | null;
+  sa_decided_at: string | null;
+  sa_note: string | null;
+  rejected_stage: "hr" | "superadmin" | null;
+  cancelled_at: string | null;
+  attendance_id: number | null;
+  created_at?: string;
+}
+
 export interface EssDashboard {
   employee: {
     id: number;

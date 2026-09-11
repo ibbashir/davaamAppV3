@@ -86,6 +86,8 @@ import HrAttendance from '@/screens/hr/attendance/Attendance'
 import HrMonthlySheet from '@/screens/hr/attendance/MonthlySheet'
 import HrEmployeeAttendance from '@/screens/hr/attendance/EmployeeAttendance'
 import HrCheckoutRequests from '@/screens/hr/attendance/CheckoutRequests'
+import HrMissedPunchRequests from '@/screens/hr/attendance/MissedPunchRequests'
+import SuperAdminAttendanceApprovals from '@/screens/superAdmin/attendanceApprovals/AttendanceApprovals'
 import HrLeave from '@/screens/hr/leave/Leave'
 import HrHolidays from '@/screens/hr/holidays/Holidays'
 import HrRecruitment from '@/screens/hr/recruitment/Recruitment'
@@ -212,6 +214,8 @@ import {
   HR_MONTHLY_SHEET,
   HR_EMPLOYEE_ATTENDANCE,
   HR_CHECKOUT_REQUESTS,
+  HR_MISSED_PUNCH_REQUESTS,
+  SUPERADMIN_ATTENDANCE_APPROVALS,
   HR_LEAVE,
   HR_HOLIDAYS,
   HR_RECRUITMENT,
@@ -288,6 +292,7 @@ const Routing = () => {
       <Route element={<PrivateRouting allowedRoles={["superadmin"]} />}>
         <Route element={<Layout />}>
           <Route path={SUPERADMIN_DASHBOARD} element={<Dashboard />} />
+          <Route path={SUPERADMIN_ATTENDANCE_APPROVALS} element={<SuperAdminAttendanceApprovals />} />
           <Route path={SUPERADMIN_MACHINES} element={<Machines />} />
           <Route path={SUPERADMIN_ROLES} element={<Roles />} />
           <Route path={SUPERADMIN_POINTS} element={<PointShare />} />
@@ -407,6 +412,7 @@ const Routing = () => {
           <Route path={HR_DASHBOARD} element={<HrDashboard />} />
           <Route path={HR_EMPLOYEES} element={<HrEmployees />} />
           <Route path={HR_CHECKOUT_REQUESTS} element={<HrCheckoutRequests />} />
+          <Route path={HR_MISSED_PUNCH_REQUESTS} element={<HrMissedPunchRequests />} />
           <Route path={HR_LEAVE} element={<HrLeave />} />
           <Route path={HR_HOLIDAYS} element={<HrHolidays />} />
           <Route path={HR_RECRUITMENT} element={<HrRecruitment />} />

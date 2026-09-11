@@ -1,5 +1,7 @@
 import {
   IconLocation,
+  IconClockEdit,
+  IconUserCheck,
   IconCircleArrowUpRight,
   IconBell,
   IconMessage2Exclamation,
@@ -86,6 +88,8 @@ export const SUPERADMIN_ALERT_MACHINE_DETAIL =
   "/superadmin/alert-system/machine/:machineCode";
 export const SUPERADMIN_ASK_CHATBOT = "/superadmin/askChatbot";
 export const SUPERADMIN_TEAM_MEMBERS = "/superadmin/team-members";
+// Final approval for missed-attendance requests HR has already approved.
+export const SUPERADMIN_ATTENDANCE_APPROVALS = "/superadmin/attendance-approvals";
 
 // ADMIN PATHS
 export const ADMIN_DASHBOARD = "/admin/dashboard";
@@ -162,6 +166,8 @@ export const HR_EMPLOYEE_ATTENDANCE = "/hr/attendance/employee/:id";
 export const hrEmployeeAttendancePath = (id: number | string) =>
   `/hr/attendance/employee/${id}`;
 export const HR_CHECKOUT_REQUESTS = "/hr/checkout-requests";
+// "I forgot to mark my attendance" — HR's first review.
+export const HR_MISSED_PUNCH_REQUESTS = "/hr/missed-punch-requests";
 export const HR_PAYROLL = "/hr/payroll";
 export const HR_RECRUITMENT = "/hr/recruitment";
 export const HR_ONBOARDING = "/hr/onboarding";
@@ -259,9 +265,15 @@ const PendingBadge = (count: number): React.ReactNode => {
  * Pass `activeRiderCount` (from a polling hook in AppSidebar) to show a live
  * pulsing badge on the "Rider Locations" entry. Defaults to 0 (no badge).
  */
-export const SUPER_ADMIN_SIDEBAR_ROUTES = (activeRiderCount = 0) => {
+export const SUPER_ADMIN_SIDEBAR_ROUTES = (activeRiderCount = 0, pendingAttendanceApprovals = 0) => {
   return [
     { title: "Dashboard", url: SUPERADMIN_DASHBOARD, icon: IconHome },
+    {
+      title: "Attendance Approvals",
+      url: SUPERADMIN_ATTENDANCE_APPROVALS,
+      icon: IconUserCheck,
+      badge: PendingBadge(pendingAttendanceApprovals),
+    },
     { title: "Create Roles", url: SUPERADMIN_ROLES, icon: IconUserPlus },
     // { title: "Corporate Clients", url: SUPERADMIN_CORPORATE, icon: IconUserStar },
     {
@@ -459,7 +471,7 @@ export const FINANCE_SIDEBAR_ROUTES = () => {
  * Payroll screen and ESS "My Payslips" are unrouted. The screens and the whole
  * backend are still in the tree — putting the two rows back is all it takes.
  */
-export const HR_SIDEBAR_ROUTES = (pendingCheckouts = 0) => {
+export const HR_SIDEBAR_ROUTES = (pendingCheckouts = 0, pendingMissedPunch = 0) => {
   return [
     { title: "Dashboard", url: HR_DASHBOARD, icon: IconHome },
     { title: "Employees", url: HR_EMPLOYEES, icon: IconUsers },
@@ -469,6 +481,12 @@ export const HR_SIDEBAR_ROUTES = (pendingCheckouts = 0) => {
       url: HR_CHECKOUT_REQUESTS,
       icon: IconLogout2,
       badge: PendingBadge(pendingCheckouts),
+    },
+    {
+      title: "Missed Attendance",
+      url: HR_MISSED_PUNCH_REQUESTS,
+      icon: IconClockEdit,
+      badge: PendingBadge(pendingMissedPunch),
     },
     { title: "Monthly Sheet", url: HR_MONTHLY_SHEET, icon: IconTable },
     { title: "Leave", url: HR_LEAVE, icon: IconCalendarStats },
