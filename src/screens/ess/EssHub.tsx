@@ -42,7 +42,7 @@ export function NotLinked({ message }: { message?: string }) {
           <p className="font-medium">Self service isn't set up for your account yet</p>
           <p className="mx-auto mt-1 max-w-md text-sm text-muted-foreground">
             {message ??
-              "Ask HR to link your dashboard login to your employee profile in Employee Management. Once linked, you can mark attendance, apply for leave and file expenses here."}
+              "Ask HR to link your dashboard login to your employee profile in Employee Management. Once linked, you can mark attendance and apply for leave here."}
           </p>
         </div>
       </CardContent>
@@ -210,10 +210,7 @@ const EssHub = () => {
           </CardHeader>
           <CardContent className="space-y-2">
             <Row label="Pending leave requests" value={data.pending.leave} onClick={() => navigate(ESS_LEAVE)} />
-            <Row label="Pending expense claims" value={data.pending.expense} onClick={() => navigate(ESS_REQUESTS)} />
-            <Row label="Open help desk tickets" value={data.pending.tickets} onClick={() => navigate(ESS_REQUESTS)} />
             <Row label="Onboarding tasks" value={data.pending.onboarding_tasks} onClick={() => navigate(ESS_REQUESTS)} />
-            <Row label="Assets in my custody" value={data.assets_held} onClick={() => navigate(ESS_REQUESTS)} />
           </CardContent>
         </Card>
 

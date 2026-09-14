@@ -4,18 +4,13 @@ import { HrPage, StatTile } from "@/components/hr/HrPage"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { IconLoader2, IconUsers, IconUserCheck, IconClockHour4, IconAlertTriangle, IconBriefcase, IconTicket } from "@tabler/icons-react"
+import { IconLoader2, IconUsers, IconUserCheck, IconClockHour4, IconAlertTriangle, IconBriefcase } from "@tabler/icons-react"
 import { toast } from "sonner"
 import { hrGet, errorMessage } from "@/components/hr/hr-api"
 import type { HrOverview } from "@/Types/hr"
 import {
   HR_LEAVE,
-  HR_EXPENSES,
-  HR_TRAVEL,
-  HR_MANPOWER,
-  HR_PIECE_WORK,
   HR_RECRUITMENT,
-  HR_HELPDESK,
   HR_ONBOARDING,
   HR_ATTENDANCE,
   HR_EMPLOYEES,
@@ -52,24 +47,17 @@ const HrDashboard = () => {
   const approvals = data?.pending_approvals
   const attendance = data?.attendance_today
 
-  const approvalLinks = [
-    { label: "Leave", count: approvals?.leave ?? 0, url: HR_LEAVE },
-    { label: "Expense", count: approvals?.expense ?? 0, url: HR_EXPENSES },
-    { label: "Travel", count: approvals?.travel ?? 0, url: HR_TRAVEL },
-    { label: "Manpower", count: approvals?.manpower ?? 0, url: HR_MANPOWER },
-    { label: "Piece Work", count: approvals?.piece_work ?? 0, url: HR_PIECE_WORK },
-  ]
+  const approvalLinks = [{ label: "Leave", count: approvals?.leave ?? 0, url: HR_LEAVE }]
 
   return (
     <HrPage title="Dashboard" description="Human Capital & Human Resource Management">
       {/* Headcount */}
-      <div className="grid gap-3 grid-cols-2 lg:grid-cols-6">
+      <div className="grid gap-3 grid-cols-2 lg:grid-cols-5">
         <StatTile label="Total Employees" value={data?.headcount.total ?? 0} icon={IconUsers} tone="teal" />
         <StatTile label="Active" value={data?.headcount.active ?? 0} icon={IconUserCheck} tone="emerald" />
         <StatTile label="On Probation" value={data?.headcount.probation ?? 0} tone="amber" />
         <StatTile label="Notice Period" value={data?.headcount.notice_period ?? 0} tone="amber" />
         <StatTile label="Joined This Month" value={data?.headcount.new_this_month ?? 0} tone="emerald" />
-        <StatTile label="Exits This Month" value={data?.headcount.separated_this_month ?? 0} tone="red" />
       </div>
 
       <div className="grid gap-4 lg:grid-cols-3">
@@ -138,7 +126,7 @@ const HrDashboard = () => {
       </div>
 
       {/* Other signals */}
-      <div className="grid gap-3 grid-cols-1 sm:grid-cols-3">
+      <div className="grid gap-3 grid-cols-1 sm:grid-cols-2">
         <button type="button" onClick={() => navigate(HR_RECRUITMENT)} className="text-left">
           <StatTile
             label="Open Positions"
@@ -146,15 +134,6 @@ const HrDashboard = () => {
             hint="Recruitment / ATS"
             icon={IconBriefcase}
             tone="teal"
-          />
-        </button>
-        <button type="button" onClick={() => navigate(HR_HELPDESK)} className="text-left">
-          <StatTile
-            label="Open Tickets"
-            value={data?.open_tickets ?? 0}
-            hint="HR help desk"
-            icon={IconTicket}
-            tone={data?.open_tickets ? "amber" : "default"}
           />
         </button>
         <button type="button" onClick={() => navigate(HR_ONBOARDING)} className="text-left">

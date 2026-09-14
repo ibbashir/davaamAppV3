@@ -71,12 +71,11 @@ const Analytics = () => {
   return (
     <HrPage
       title="Dashboards & Analytics"
-      description="Headcount, attendance, attrition and cost across the organisation."
+      description="Headcount, attendance and cost across the organisation."
     >
-      <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-3 grid-cols-2 lg:grid-cols-3">
         <StatTile label="Active Headcount" value={totalHeadcount} tone="teal" />
         <StatTile label="Candidates in ATS" value={data?.candidate_count ?? 0} />
-        <StatTile label="Trainings" value={data?.training_count ?? 0} />
         <StatTile label="Asset Value" value={formatMoney(data?.asset_value)} tone="emerald" />
       </div>
 
@@ -119,7 +118,6 @@ const Analytics = () => {
                   <Tooltip />
                   <Legend wrapperStyle={{ fontSize: 12 }} />
                   <Line type="monotone" dataKey="joiners" name="Joiners" stroke={PALETTE[0]} strokeWidth={2} />
-                  <Line type="monotone" dataKey="exits" name="Exits" stroke={PALETTE[4]} strokeWidth={2} />
                 </LineChart>
               </ResponsiveContainer>
             )}

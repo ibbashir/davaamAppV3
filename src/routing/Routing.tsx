@@ -92,17 +92,9 @@ import HrLeave from '@/screens/hr/leave/Leave'
 import HrHolidays from '@/screens/hr/holidays/Holidays'
 import HrRecruitment from '@/screens/hr/recruitment/Recruitment'
 import HrOnboarding from '@/screens/hr/onboarding/Onboarding'
-import HrPerformance from '@/screens/hr/performance/Performance'
-import HrTraining from '@/screens/hr/training/Training'
-import HrExpenses from '@/screens/hr/expenses/Expenses'
-import HrHelpdesk from '@/screens/hr/helpdesk/Helpdesk'
-import HrTravel from '@/screens/hr/travel/Travel'
-import HrSeparation from '@/screens/hr/separation/Separation'
 import HrLetters from '@/screens/hr/letters/Letters'
-import HrAlerts from '@/screens/hr/alerts/Alerts'
 import HrReports from '@/screens/hr/reports/Reports'
 import HrAssets from '@/screens/hr/assets/Assets'
-import HrManpower from '@/screens/hr/manpower/Manpower'
 import HrPieceWork from '@/screens/hr/piecework/PieceWork'
 import HrAnalytics from '@/screens/hr/analytics/Analytics'
 import HrOrgSetup from '@/screens/hr/orgSetup/OrgSetup'
@@ -220,17 +212,9 @@ import {
   HR_HOLIDAYS,
   HR_RECRUITMENT,
   HR_ONBOARDING,
-  HR_PERFORMANCE,
-  HR_TRAINING,
-  HR_EXPENSES,
-  HR_HELPDESK,
-  HR_TRAVEL,
-  HR_SEPARATION,
   HR_LETTERS,
-  HR_ALERTS,
   HR_REPORTS,
   HR_ASSETS,
-  HR_MANPOWER,
   HR_PIECE_WORK,
   HR_ANALYTICS,
   HR_ORG_SETUP,
@@ -417,17 +401,9 @@ const Routing = () => {
           <Route path={HR_HOLIDAYS} element={<HrHolidays />} />
           <Route path={HR_RECRUITMENT} element={<HrRecruitment />} />
           <Route path={HR_ONBOARDING} element={<HrOnboarding />} />
-          <Route path={HR_PERFORMANCE} element={<HrPerformance />} />
-          <Route path={HR_TRAINING} element={<HrTraining />} />
-          <Route path={HR_EXPENSES} element={<HrExpenses />} />
-          <Route path={HR_HELPDESK} element={<HrHelpdesk />} />
-          <Route path={HR_TRAVEL} element={<HrTravel />} />
-          <Route path={HR_SEPARATION} element={<HrSeparation />} />
           <Route path={HR_LETTERS} element={<HrLetters />} />
-          <Route path={HR_ALERTS} element={<HrAlerts />} />
           <Route path={HR_REPORTS} element={<HrReports />} />
           <Route path={HR_ASSETS} element={<HrAssets />} />
-          <Route path={HR_MANPOWER} element={<HrManpower />} />
           <Route path={HR_PIECE_WORK} element={<HrPieceWork />} />
           <Route path={HR_ANALYTICS} element={<HrAnalytics />} />
           <Route path={HR_ORG_SETUP} element={<HrOrgSetup />} />

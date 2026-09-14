@@ -75,7 +75,6 @@ export interface HrOverview {
     probation: number;
     notice_period: number;
     new_this_month: number;
-    separated_this_month: number;
   };
   attendance_today: Record<string, number> & {
     present: number;
@@ -84,14 +83,9 @@ export interface HrOverview {
   };
   pending_approvals: {
     leave: number;
-    expense: number;
-    travel: number;
-    manpower: number;
-    piece_work: number;
     total: number;
   };
   open_positions: number;
-  open_tickets: number;
   overdue_onboarding_tasks: number;
 }
 
@@ -99,7 +93,7 @@ export interface HrAnalytics {
   headcount_by_department: Array<{ department_id: number; count: number; department: { id: number; name: string } }>;
   headcount_by_type: Array<{ employment_type: string; count: number }>;
   gender_split: Array<{ gender: string | null; count: number }>;
-  trend: Array<{ label: string; joiners: number; exits: number; attendance_rate: number }>;
+  trend: Array<{ label: string; joiners: number; attendance_rate: number }>;
   leave_by_type: Array<{ leave_type_id: number; days: string }>;
   payroll_history: Array<{
     period_year: number;
@@ -109,7 +103,6 @@ export interface HrAnalytics {
     status: string;
   }>;
   asset_value: number;
-  training_count: number;
   candidate_count: number;
 }
 
@@ -211,8 +204,7 @@ export interface EssDashboard {
     enabled: boolean;
     sites: Array<{ id: string; label: string; lat: number; lng: number; radius_m: number }>;
   };
-  pending: { leave: number; expense: number; tickets: number; onboarding_tasks: number };
-  assets_held: number;
+  pending: { leave: number; onboarding_tasks: number };
   /** Company holidays from today onwards, soonest first. */
   holidays: Holiday[];
   is_manager: boolean;

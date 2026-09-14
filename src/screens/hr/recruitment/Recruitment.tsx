@@ -249,54 +249,6 @@ function CandidatesTab() {
   )
 }
 
-function InterviewsTab() {
-  const { options } = useHrOptions(["candidates", "employees"])
-
-  const fields: Field[] = [
-    {
-      name: "candidate_id",
-      label: "Candidate",
-      type: "select",
-      optionsKey: "candidates",
-      required: true,
-      render: (row: HrRow) => (row.candidate as { full_name?: string })?.full_name ?? "—",
-    },
-    { name: "round", label: "Round", type: "number", defaultValue: 1 },
-    { name: "scheduled_at", label: "Scheduled", type: "datetime-local" },
-    {
-      name: "interviewer_id",
-      label: "Interviewer",
-      type: "select",
-      optionsKey: "employees",
-      hideInTable: true,
-    },
-    { name: "mode", label: "Mode", type: "select", options: enumOptions(["onsite", "phone", "video"]), defaultValue: "onsite" },
-    {
-      name: "status",
-      label: "Status",
-      type: "select",
-      options: enumOptions(["scheduled", "completed", "cancelled", "no_show"]),
-      defaultValue: "scheduled",
-    },
-    { name: "score", label: "Score", type: "number" },
-    { name: "feedback", label: "Feedback", type: "textarea", hideInTable: true },
-  ]
-
-  return (
-    <ResourceScreen
-      embedded
-      title="Interviews"
-      singular="Interview"
-      endpoint="/interviews"
-      fields={fields}
-      optionSources={options}
-      filters={[
-        { name: "status", label: "Status", options: enumOptions(["scheduled", "completed", "cancelled", "no_show"]) },
-      ]}
-    />
-  )
-}
-
 const Recruitment = () => (
   <HrTabbedPage
     title="Recruitment / ATS"
@@ -305,7 +257,6 @@ const Recruitment = () => (
       { value: "pipeline", label: "Pipeline", content: <PipelineTab /> },
       { value: "candidates", label: "Candidates", content: <CandidatesTab /> },
       { value: "postings", label: "Job Postings", content: <PostingsTab /> },
-      { value: "interviews", label: "Interviews", content: <InterviewsTab /> },
     ]}
   />
 )

@@ -31,11 +31,6 @@ import {
 
   // IconBriefcase,
   // IconChecklist,
-  // IconTargetArrow,
-  // IconSchool,
-  // IconTicket,
-  // IconPlane,
-  // IconDoorExit,
   // IconDeviceLaptop,
   // IconHammer,
   // IconSettings,
@@ -168,20 +163,11 @@ export const hrEmployeeAttendancePath = (id: number | string) =>
 export const HR_CHECKOUT_REQUESTS = "/hr/checkout-requests";
 // "I forgot to mark my attendance" — HR's first review.
 export const HR_MISSED_PUNCH_REQUESTS = "/hr/missed-punch-requests";
-export const HR_PAYROLL = "/hr/payroll";
 export const HR_RECRUITMENT = "/hr/recruitment";
 export const HR_ONBOARDING = "/hr/onboarding";
-export const HR_PERFORMANCE = "/hr/performance";
-export const HR_TRAINING = "/hr/training";
-export const HR_EXPENSES = "/hr/expenses";
-export const HR_HELPDESK = "/hr/helpdesk";
-export const HR_TRAVEL = "/hr/travel";
-export const HR_SEPARATION = "/hr/separation";
 export const HR_LETTERS = "/hr/letters";
-export const HR_ALERTS = "/hr/scheduled-alerts";
-export const HR_REPORTS = "/hr/scheduled-reports";
+export const HR_REPORTS = "/hr/reports";
 export const HR_ASSETS = "/hr/assets";
-export const HR_MANPOWER = "/hr/manpower";
 export const HR_PIECE_WORK = "/hr/piece-work";
 export const HR_ANALYTICS = "/hr/analytics";
 export const HR_ORG_SETUP = "/hr/org-setup";
@@ -190,8 +176,6 @@ export const HR_ORG_SETUP = "/hr/org-setup";
 export const ESS_HUB = "/self-service";
 export const ESS_ATTENDANCE = "/self-service/attendance";
 export const ESS_LEAVE = "/self-service/leave";
-export const ESS_EXPENSES = "/self-service/expenses";
-export const ESS_PAYSLIPS = "/self-service/payslips";
 export const ESS_INSTRUCTIONS = "/self-service/how-to-mark-attendance";
 export const ESS_PROFILE = "/self-service/profile";
 export const ESS_REQUESTS = "/self-service/requests";
@@ -467,9 +451,6 @@ export const FINANCE_SIDEBAR_ROUTES = () => {
  * request from someone stuck outside the geofence is visible without HR having
  * to open the screen to find out.
  *
- * Payroll is deliberately absent: salary is not HR's to see here, so the
- * Payroll screen and ESS "My Payslips" are unrouted. The screens and the whole
- * backend are still in the tree — putting the two rows back is all it takes.
  */
 export const HR_SIDEBAR_ROUTES = (pendingCheckouts = 0, pendingMissedPunch = 0) => {
   return [
@@ -493,18 +474,10 @@ export const HR_SIDEBAR_ROUTES = (pendingCheckouts = 0, pendingMissedPunch = 0) 
     { title: "Holidays", url: HR_HOLIDAYS, icon: IconCalendarEvent },
     // { title: "Recruitment", url: HR_RECRUITMENT, icon: IconBriefcase },
     // { title: "Onboarding", url: HR_ONBOARDING, icon: IconChecklist },
-    // { title: "Performance", url: HR_PERFORMANCE, icon: IconTargetArrow },
-    // { title: "Training", url: HR_TRAINING, icon: IconSchool },
-    // { title: "Expenses", url: HR_EXPENSES, icon: IconReceipt },
-    // { title: "Help Desk", url: HR_HELPDESK, icon: IconTicket },
-    // { title: "Travel", url: HR_TRAVEL, icon: IconPlane },
-    // { title: "Separation", url: HR_SEPARATION, icon: IconDoorExit },
     // { title: "HR Letters", url: HR_LETTERS, icon: IconFileDescription },
     // { title: "Assets", url: HR_ASSETS, icon: IconDeviceLaptop },
-    // { title: "Manpower", url: HR_MANPOWER, icon: IconUsersGroup },
     // { title: "Piece Work", url: HR_PIECE_WORK, icon: IconHammer },
-    // { title: "Scheduled Alerts", url: HR_ALERTS, icon: IconBell },
-    // { title: "Scheduled Reports", url: HR_REPORTS, icon: IconReport },
+    // { title: "Reports", url: HR_REPORTS, icon: IconReport },
     // { title: "Analytics", url: HR_ANALYTICS, icon: IconChartBar },
     // { title: "Org Setup", url: HR_ORG_SETUP, icon: IconSettings },
   ];

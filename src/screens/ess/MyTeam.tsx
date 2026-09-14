@@ -23,7 +23,6 @@ import {
   humanise,
   formatDate,
   formatTime,
-  formatMoney,
   formatMinutes,
   todayISO,
   monthStartISO,
@@ -38,8 +37,6 @@ interface PendingItem {
 
 interface Approvals {
   leave: PendingItem[]
-  expense: PendingItem[]
-  travel: PendingItem[]
 }
 
 function NotAManager() {
@@ -149,14 +146,14 @@ function RosterTab({ onForbidden }: { onForbidden: () => void }) {
 }
 
 function ApprovalsTab() {
-  const [data, setData] = React.useState<Approvals>({ leave: [], expense: [], travel: [] })
+  const [data, setData] = React.useState<Approvals>({ leave: [] })
   const [loading, setLoading] = React.useState(true)
 
   const load = React.useCallback(async () => {
     setLoading(true)
     try {
       const res = await essGet<{ data: Approvals }>("/team/approvals")
-      setData(res.data ?? { leave: [], expense: [], travel: [] })
+      setData(res.data ?? { leave: [] })
     } catch (err) {
       toast.error(errorMessage(err, "Could not load pending approvals"))
     } finally {
@@ -186,7 +183,7 @@ function ApprovalsTab() {
     )
   }
 
-  const total = data.leave.length + data.expense.length + data.travel.length
+  const total = data.leave.length
   if (!total) {
     return (
       <Card>
@@ -254,18 +251,6 @@ function ApprovalsTab() {
         describe={(i) =>
           `${(i.leave_type as { name?: string })?.name ?? "Leave"} · ${formatDate(i.from_date)} → ${formatDate(i.to_date)} · ${i.days} day(s)`
         }
-      />
-      <Section
-        title="Expenses"
-        kind="expense"
-        items={data.expense}
-        describe={(i) => `${humanise(i.category)} · ${formatMoney(i.amount)} · ${formatDate(i.expense_date)}`}
-      />
-      <Section
-        title="Travel"
-        kind="travel"
-        items={data.travel}
-        describe={(i) => `${i.destination} · ${formatDate(i.from_date)} → ${formatDate(i.to_date)}`}
       />
     </div>
   )
