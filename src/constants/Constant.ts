@@ -28,6 +28,7 @@ import {
   IconUsersGroup,
   IconUserCircle,
   IconLogout2,
+  IconLayoutKanban,
 
   // IconBriefcase,
   // IconChecklist,
@@ -149,6 +150,9 @@ export const FINANCE_REPORT = "/finance/finance-report";
 export const FINANCE_MACHINE_STOCKS = "/finance/machine-stocks";
 
 // HR MANAGEMENT PATHS (HCM / HRM)
+/** Internal issue tracker — one shared path for superadmin, admin and ops. */
+export const TRACKER = "/tracker";
+
 export const HR_DASHBOARD = "/hr/dashboard";
 export const HR_EMPLOYEES = "/hr/employees";
 export const HR_ATTENDANCE = "/hr/attendance";
@@ -315,6 +319,7 @@ export const SUPER_ADMIN_SIDEBAR_ROUTES = (activeRiderCount = 0, pendingAttendan
       url: HR_ATTENDANCE,
       icon: IconClockHour4,
     },
+    { title: "Project Tracker", url: TRACKER, icon: IconLayoutKanban },
 
     // { title: "Delete Corporate Employees", url: SUPERADMIN_DELETE_EMPLOYEES, icon: IconHexagonMinus },
   ];
@@ -360,6 +365,7 @@ export const ADMIN_SIDEBAR_ROUTES = () => {
       icon: IconShare3,
     },
     { title: "Alert System", url: ADMIN_ALERT_SYSTEM, icon: IconClipboardList },
+    { title: "Project Tracker", url: TRACKER, icon: IconLayoutKanban },
   ];
 };
 
@@ -383,6 +389,7 @@ export const OPS_SIDEBAR_ROUTES = () => {
       icon: IconCashBanknote,
     },
     { title: "Alert System", url: OPS_ALERT_SYSTEM, icon: IconClipboardList },
+    { title: "Project Tracker", url: TRACKER, icon: IconLayoutKanban },
   ];
 };
 

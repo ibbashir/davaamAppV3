@@ -2,6 +2,7 @@ import type { ReactNode } from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
 import Layout from '@/layouts/layout'
 import PrivateRouting from './PrivateRouting'
+import Tracker from '@/screens/tracker/Tracker'
 import { useAuth } from '@/contexts/AuthContext'
 
 import Login from '@/screens/login/Login'
@@ -203,6 +204,7 @@ import {
   HR_DASHBOARD,
   HR_EMPLOYEES,
   HR_ATTENDANCE,
+  TRACKER,
   HR_MONTHLY_SHEET,
   HR_EMPLOYEE_ATTENDANCE,
   HR_CHECKOUT_REQUESTS,
@@ -434,6 +436,17 @@ const Routing = () => {
           <Route path={ESS_REQUESTS} element={<EssRequests />} />
           <Route path={ESS_PROFILE} element={<EssProfile />} />
           <Route path={MSS_TEAM} element={<MssTeam />} />
+        </Route>
+      </Route>
+
+      {/*
+        Internal issue tracker. One path shared by the three roles that run
+        delivery work, matching the `operations` guard on the backend
+        (role_code 0, 1, 2) so the UI and the API agree on who may see it.
+      */}
+      <Route element={<PrivateRouting allowedRoles={["superadmin", "admin", "ops"]} />}>
+        <Route element={<Layout />}>
+          <Route path={TRACKER} element={<Tracker />} />
         </Route>
       </Route>
 
