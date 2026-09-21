@@ -31,6 +31,7 @@ import {SuperAdminUserAnalysis} from '@/screens/superAdmin/usersAnalysis/UserAna
 import SurveyForm from '@/screens/superAdmin/SurveyForm/SurveyForm'
 import SuperAdminAskChatbot from '@/screens/superAdmin/AskChatbot/askChatbot'
 import SuperAdminTeamMembers from '@/screens/superAdmin/TeamMembers/teamMembers'
+import SuperAdminOutreach from '@/screens/superAdmin/Outreach/outreach'
 
 //admin screens
 import AdminDashboard from '@/screens/admin/dashboard/Dashboard'
@@ -206,6 +207,7 @@ import {
   OPS_ALERT_MACHINE_DETAIL,
   SUPERADMIN_ALERT_SYSTEM,
   SUPERADMIN_ASK_CHATBOT,
+  SUPERADMIN_OUTREACH,
   HR_DASHBOARD,
   HR_EMPLOYEES,
   HR_ATTENDANCE,
@@ -312,6 +314,7 @@ const Routing = () => {
           <Route path={SUPERADMIN_ALERT_MACHINE_DETAIL} element={<MachineAlertDetail />} />
           <Route path={SUPERADMIN_ASK_CHATBOT} element={<SuperAdminAskChatbot />} />
           <Route path={SUPERADMIN_TEAM_MEMBERS} element={<SuperAdminTeamMembers />} />
+          <Route path={SUPERADMIN_OUTREACH} element={<SuperAdminOutreach />} />
         </Route>
       </Route>
 
@@ -361,27 +364,47 @@ const Routing = () => {
         <Route element={<Layout />}>
           <Route path={FULFill_DASHBOARD} element={< FulfillDashboard />} />
           <Route path={FULFill_MACHINES} element={<FulfillMachines />} />
-          <Route path={FULFill_LOCATIONS} element={<FulfillLocations />} /> 
+          <Route path={FULFill_LOCATIONS} element={<FulfillLocations />} />
           <Route path={FULFill_TOPUP} element={<FulfillmentTopup />} />
           <Route path={FULFill_MACHINE_VISIT} element={<FulfillMachineVisit />} />
-          <Route path={FULLFiLL_MAINTAINCE} element={<AddMaintenanceSchedule />} />
-          <Route path={MAINTAINCE_REQUESTS} element={<AdminMaintenanceRequests />} />
           <Route path={CASH_COLLECTIONS} element={<CashCollectionPage />} />
           <Route path={FULFill_MACHINE_MAP} element={<FulfillMachineMap />} />
           <Route path={Fulfill_RIDER_LOCATION} element={<FulfillmentRiderLocation />}/>
         </Route>
       </Route>
 
+      {/*
+        Maintenance screens are also on the superadmin sidebar ("Fulfillment"
+        group), so they carry both roles rather than living in the
+        fulfill-only block above.
+      */}
+      <Route element={<PrivateRouting allowedRoles={["fulfill", "superadmin"]} />}>
+        <Route element={<Layout />}>
+          <Route path={FULLFiLL_MAINTAINCE} element={<AddMaintenanceSchedule />} />
+          <Route path={MAINTAINCE_REQUESTS} element={<AdminMaintenanceRequests />} />
+        </Route>
+      </Route>
+
       <Route element={<PrivateRouting allowedRoles={["finance"]} />}>
         <Route element={<Layout />}>
           <Route path={FINANCE_DASHBOARD} element={< FinanceDashboard />} />
-          <Route path={FINANCE_USER_WALLET_ACTIVITY} element={<UserWalletActivity />} />
           <Route path={FINANCE_MACHINES} element={<FinanceMachines />} />
           <Route path={FINANCE_LOCATIONS} element={<FinanceLocations />} />
           <Route path={FINANCE_TOPUP} element={<FinanceTopup />} />
           <Route path={FINANCE_MACHINE_VISIT} element={<FinanceMachineVisit />} />
           <Route path={FINANCE_CASH_COLLECTIONS} element={<FinanceCashCollectionPage />} />
           <Route path={FINANCE_MACHINE_MAP} element={<FinanceMachineMap />} />
+        </Route>
+      </Route>
+
+      {/*
+        These three finance report screens are also on the superadmin sidebar
+        ("Finance" group), so they carry both roles rather than living in the
+        finance-only block above.
+      */}
+      <Route element={<PrivateRouting allowedRoles={["finance", "superadmin"]} />}>
+        <Route element={<Layout />}>
+          <Route path={FINANCE_USER_WALLET_ACTIVITY} element={<UserWalletActivity />} />
           <Route path={FINANCE_REPORT} element={<FinanceReport />} />
           <Route path={FINANCE_MACHINE_STOCKS} element={<FinanceMachineStocks />} />
         </Route>

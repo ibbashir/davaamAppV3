@@ -3,7 +3,8 @@ import { Dialog, Transition } from "@headlessui/react";
 import { useForm } from "react-hook-form";
 import { Switch } from "@headlessui/react";
 import { postRequest, getRequest } from "@/Apis/Api";
-import { X, Cpu, ChevronDown } from "lucide-react";
+import { X, Cpu, ChevronDown, Wifi, Cable, Fingerprint } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 type Inputs = {
   machine_code: string;
@@ -78,6 +79,70 @@ interface ButterflyProduct {
   skin: string;
 }
 
+type ComponentsState = {
+  bodyType: "Old" | "New" | "";
+  pcb: "Old" | "New" | "";
+  connectivityModule: "Wifi" | "Ethernet" | "";
+  macAddress: string;
+  cashAcceptor: "Yes" | "No" | "";
+};
+
+const initialComponentsState: ComponentsState = {
+  bodyType: "",
+  pcb: "",
+  connectivityModule: "",
+  macAddress: "",
+  cashAcceptor: "",
+};
+
+const MAC_ADDRESS_PATTERN = /^([0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2}$/;
+
+function formatMacAddress(raw: string): string {
+  const hex = raw.replace(/[^0-9A-Fa-f]/g, "").toUpperCase().slice(0, 12);
+  return hex.match(/.{1,2}/g)?.join(":") ?? "";
+}
+
+function SegmentedToggle({
+  label,
+  value,
+  options,
+  onChange,
+  error,
+}: {
+  label: string;
+  value: string;
+  options: [string, string];
+  onChange: (value: string) => void;
+  error?: string;
+}) {
+  return (
+    <div>
+      <FieldLabel>{label}</FieldLabel>
+      <div className="grid grid-cols-2 gap-1 rounded-lg border border-gray-200 bg-gray-50 p-1 dark:border-gray-700 dark:bg-gray-800/50">
+        {options.map((option) => {
+          const selected = value === option;
+          return (
+            <button
+              key={option}
+              type="button"
+              onClick={() => onChange(option)}
+              className={cn(
+                "rounded-md px-3 py-1.5 text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-teal-500/20",
+                selected
+                  ? "bg-teal-600 text-white shadow-sm"
+                  : "text-gray-600 hover:bg-white hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-100",
+              )}
+            >
+              {option}
+            </button>
+          );
+        })}
+      </div>
+      <FieldError message={error} />
+    </div>
+  );
+}
+
 export default function AddMachine({
   open,
   setOpen,
@@ -93,6 +158,12 @@ export default function AddMachine({
   const [butterflyProducts, setButterflyProducts] = useState<
     ButterflyProduct[]
   >([]);
+  const [components, setComponents] = useState<ComponentsState>(
+    initialComponentsState,
+  );
+  const [componentsErrors, setComponentsErrors] = useState<
+    Partial<Record<keyof ComponentsState, string>>
+  >({});
 
   useEffect(() => {
     if (!open) return;
@@ -131,9 +202,33 @@ export default function AddMachine({
     );
   };
 
+  const updateComponent = (key: keyof ComponentsState, value: string) => {
+    setComponents((prev) => ({ ...prev, [key]: value }));
+    setComponentsErrors((prev) => ({ ...prev, [key]: undefined }));
+  };
+
+  const validateComponents = () => {
+    const errs: Partial<Record<keyof ComponentsState, string>> = {};
+    if (!components.bodyType) errs.bodyType = "Required.";
+    if (!components.pcb) errs.pcb = "Required.";
+    if (!components.connectivityModule)
+      errs.connectivityModule = "Required.";
+    if (!components.cashAcceptor) errs.cashAcceptor = "Required.";
+    if (!components.macAddress) {
+      errs.macAddress = "Required.";
+    } else if (!MAC_ADDRESS_PATTERN.test(components.macAddress)) {
+      errs.macAddress = "Format: AA:BB:CC:DD:EE:FF";
+    }
+    setComponentsErrors(errs);
+    return Object.keys(errs).length === 0;
+  };
+
   const onSubmit = async (data: Inputs) => {
     if (paymentMethods.length === 0) {
       setPaymentMethodError("Select at least one payment method.");
+      return;
+    }
+    if (!validateComponents()) {
       return;
     }
     setLoading(true);
@@ -154,6 +249,13 @@ export default function AddMachine({
         lng: data.lng,
         category: data.category,
         payment_method: paymentMethods,
+        components: {
+          bodyType: components.bodyType,
+          pcb: components.pcb,
+          connectivityModule: components.connectivityModule,
+          macAddress: components.macAddress.toUpperCase(),
+          cashAcceptor: components.cashAcceptor,
+        },
       });
 
       alert("Machine added successfully!");
@@ -161,6 +263,8 @@ export default function AddMachine({
       setEnabled(false);
       setPaymentMethods([]);
       setPaymentMethodError("");
+      setComponents(initialComponentsState);
+      setComponentsErrors({});
       setOpen(false);
       window.location.reload();
     } catch (error: unknown) {
@@ -351,6 +455,88 @@ export default function AddMachine({
                     {paymentMethodError && (
                       <p className="mt-1 text-xs text-red-500">{paymentMethodError}</p>
                     )}
+                  </div>
+
+                  <SectionHeading>Components</SectionHeading>
+
+                  <div className="space-y-3 rounded-xl border border-gray-100 bg-gray-50/60 p-4 dark:border-gray-700 dark:bg-gray-800/30">
+                    <div className="grid grid-cols-2 gap-3">
+                      <SegmentedToggle
+                        label="Body Type"
+                        value={components.bodyType}
+                        options={["Old", "New"]}
+                        onChange={(v) => updateComponent("bodyType", v)}
+                        error={componentsErrors.bodyType}
+                      />
+                      <SegmentedToggle
+                        label="PCB"
+                        value={components.pcb}
+                        options={["Old", "New"]}
+                        onChange={(v) => updateComponent("pcb", v)}
+                        error={componentsErrors.pcb}
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <FieldLabel>Connectivity Module</FieldLabel>
+                        <div className="grid grid-cols-2 gap-1 rounded-lg border border-gray-200 bg-gray-50 p-1 dark:border-gray-700 dark:bg-gray-800/50">
+                          {(["Wifi", "Ethernet"] as const).map((option) => {
+                            const selected =
+                              components.connectivityModule === option;
+                            const Icon = option === "Wifi" ? Wifi : Cable;
+                            return (
+                              <button
+                                key={option}
+                                type="button"
+                                onClick={() =>
+                                  updateComponent("connectivityModule", option)
+                                }
+                                className={cn(
+                                  "flex items-center justify-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-teal-500/20",
+                                  selected
+                                    ? "bg-teal-600 text-white shadow-sm"
+                                    : "text-gray-600 hover:bg-white hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-100",
+                                )}
+                              >
+                                <Icon className="h-3.5 w-3.5" />
+                                {option}
+                              </button>
+                            );
+                          })}
+                        </div>
+                        <FieldError message={componentsErrors.connectivityModule} />
+                      </div>
+
+                      <SegmentedToggle
+                        label="Cash Acceptor"
+                        value={components.cashAcceptor}
+                        options={["Yes", "No"]}
+                        onChange={(v) => updateComponent("cashAcceptor", v)}
+                        error={componentsErrors.cashAcceptor}
+                      />
+                    </div>
+
+                    <div>
+                      <FieldLabel>MAC Address</FieldLabel>
+                      <div className="relative">
+                        <Fingerprint className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400 dark:text-gray-500" />
+                        <input
+                          type="text"
+                          value={components.macAddress}
+                          onChange={(e) =>
+                            updateComponent(
+                              "macAddress",
+                              formatMacAddress(e.target.value),
+                            )
+                          }
+                          className={cn(inputClass, "pl-9 font-mono uppercase tracking-wide")}
+                          placeholder="AA:BB:CC:DD:EE:FF"
+                          maxLength={17}
+                        />
+                      </div>
+                      <FieldError message={componentsErrors.macAddress} />
+                    </div>
                   </div>
 
                   {!isButterfly && (

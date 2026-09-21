@@ -86,6 +86,7 @@ export const SUPERADMIN_ALERT_MACHINE_DETAIL =
   "/superadmin/alert-system/machine/:machineCode";
 export const SUPERADMIN_ASK_CHATBOT = "/superadmin/askChatbot";
 export const SUPERADMIN_TEAM_MEMBERS = "/superadmin/team-members";
+export const SUPERADMIN_OUTREACH = "/superadmin/outreach";
 
 // ADMIN PATHS
 export const ADMIN_DASHBOARD = "/admin/dashboard";
@@ -262,63 +263,106 @@ const PendingBadge = (count: number): React.ReactNode => {
 export const SUPER_ADMIN_SIDEBAR_ROUTES = (activeRiderCount = 0) => {
   return [
     { title: "Dashboard", url: SUPERADMIN_DASHBOARD, icon: IconHome },
-    { title: "Create Roles", url: SUPERADMIN_ROLES, icon: IconUserPlus },
     // { title: "Corporate Clients", url: SUPERADMIN_CORPORATE, icon: IconUserStar },
     {
-      title: "Send Notifications",
-      url: SUPERADMIN_NOTIFICATIONS,
-      icon: IconBell,
+      title: "Ops",
+      url: SUPERADMIN_ROLES,
+      icon: IconUsersGroup,
+      items: [
+        { title: "Create Roles", url: SUPERADMIN_ROLES, icon: IconUserPlus },
+        {
+          title: "Send Notifications",
+          url: SUPERADMIN_NOTIFICATIONS,
+          icon: IconBell,
+        },
+        { title: "Machines", url: SUPERADMIN_MACHINES, icon: IconChartBar },
+        { title: "Points Share", url: SUPERADMIN_POINTS, icon: IconShare3 },
+        { title: "Locations", url: SUPERADMIN_LOCATIONS, icon: IconLocation },
+        { title: "Topup", url: SUPERADMIN_TOPUP, icon: IconCircleArrowUpRight },
+        {
+          title: "App Feedback",
+          url: SUPERADMIN_FEEDBACK,
+          icon: IconMessage2Exclamation,
+        },
+        {
+          title: "Corporate Topup",
+          url: SUPERADMIN_CORPORATE_TOPUP,
+          icon: IconCashBanknote,
+        }, 
+      { title: "Map Machines", url: SUPERADMIN_MACHINE_MAP, icon: IconMapPin },
+    { title: "Team Members", url: SUPERADMIN_TEAM_MEMBERS, icon: IconUsers },
+      ],
     },
-    { title: "Machines", url: SUPERADMIN_MACHINES, icon: IconChartBar },
-    { title: "Points Share", url: SUPERADMIN_POINTS, icon: IconShare3 },
-    { title: "Locations", url: SUPERADMIN_LOCATIONS, icon: IconLocation },
-    { title: "Topup", url: SUPERADMIN_TOPUP, icon: IconCircleArrowUpRight },
     {
-      title: "App Feedback",
-      url: SUPERADMIN_FEEDBACK,
-      icon: IconMessage2Exclamation,
-    },
-    {
-      title: "Corporate Topup",
-      url: SUPERADMIN_CORPORATE_TOPUP,
-      icon: IconCashBanknote,
-    },
-    { title: "Map Machines", url: SUPERADMIN_MACHINE_MAP, icon: IconMapPin },
-    {
-      title: "Cash Collection",
+      title: "Reports & Analysis",
       url: SUPERADMIN_CASH_COLLECTION,
-      icon: IconCashBanknote,
-    },
-    {
-      title: "User Analysis Report",
-      url: SUPERADMIN_USER_ANALYSIS,
       icon: IconReport,
+      items: [
+        {
+          title: "Cash Collection",
+          url: SUPERADMIN_CASH_COLLECTION,
+          icon: IconCashBanknote,
+        },
+        {
+          title: "User Analysis Report",
+          url: SUPERADMIN_USER_ANALYSIS,
+          icon: IconReport,
+        },
+        {
+          title: "Survey Forms",
+          url: SUPERADMIN_SURVEY_FORM,
+          icon: IconClipboardList,
+        },
+        {
+          title: "Alert System",
+          url: SUPERADMIN_ALERT_SYSTEM,
+          icon: IconClipboardList,
+        },
+      ],
     },
     {
-      title: "Rider Locations",
-      url: SUPERADMIN_RIDER_LOCATION,
-      icon: IconHexagonPlus,
-      badge: LiveRiderBadge(activeRiderCount), // ← pulsing pill when riders are live
+      title: "Finance",
+      url: FINANCE_REPORT,
+      icon: IconReport,
+      items: [
+        { title: "Finance Report", url: FINANCE_REPORT, icon: IconReport },
+        {
+          title: "Machine Stocks",
+          url: FINANCE_MACHINE_STOCKS,
+          icon: IconClipboardList,
+        },
+        {
+          title: "User Wallet Activity",
+          url: FINANCE_USER_WALLET_ACTIVITY,
+          icon: IconReport,
+        },
+      ],
     },
     {
-      title: "Survey Forms",
-      url: SUPERADMIN_SURVEY_FORM,
-      icon: IconClipboardList,
-    },
-    {
-      title: "Alert System",
-      url: SUPERADMIN_ALERT_SYSTEM,
-      icon: IconClipboardList,
+      title: "Fulfillment",
+      url: FULLFiLL_MAINTAINCE,
+      icon: IconCircleArrowUpRight,
+      items: [
+        {
+          title: "Maintaince",
+          url: FULLFiLL_MAINTAINCE,
+          icon: IconCircleArrowUpRight,
+        },
+        {
+          title: "Maintaince Requests",
+          url: MAINTAINCE_REQUESTS,
+          icon: IconCircleArrowUpRight,
+        },
+        {
+        title: "Rider Locations",
+        url: SUPERADMIN_RIDER_LOCATION,
+        icon: IconHexagonPlus,
+        badge: LiveRiderBadge(activeRiderCount), // ← pulsing pill when riders are live
+      },
+      ],
     },
     { title: "Ask Chatbot", url: SUPERADMIN_ASK_CHATBOT, icon: IconRobot },
-    { title: "Team Members", url: SUPERADMIN_TEAM_MEMBERS, icon: IconUsers },
-    // The HR attendance module, roster tab only. Named in full so it is not
-    // mistaken for "My Attendance" under Self Service, which is this user's own.
-    {
-      title: "Attendance Management",
-      url: HR_ATTENDANCE,
-      icon: IconClockHour4,
-    },
+    { title: "Outreach Events", url: SUPERADMIN_OUTREACH, icon: IconCalendarEvent },
 
     // { title: "Delete Corporate Employees", url: SUPERADMIN_DELETE_EMPLOYEES, icon: IconHexagonMinus },
   ];
@@ -327,43 +371,57 @@ export const SUPER_ADMIN_SIDEBAR_ROUTES = (activeRiderCount = 0) => {
 export const ADMIN_SIDEBAR_ROUTES = () => {
   return [
     { title: "Dashboard", url: ADMIN_DASHBOARD, icon: IconHome },
-    { title: "Send Notifications", url: ADMIN_NOTIFICATIONS, icon: IconBell },
-    { title: "Machines", url: ADMIN_MACHINES, icon: IconChartBar },
-    { title: "Points Share", url: ADMIN_POINTS, icon: IconShare3 },
-    { title: "Locations", url: ADMIN_LOCATIONS, icon: IconLocation },
-    { title: "Topup", url: ADMIN_TOPUP, icon: IconCircleArrowUpRight },
     {
-      title: "App Feedback",
-      url: ADMIN_FEEDBACK,
-      icon: IconMessage2Exclamation,
+      title: "Ops",
+      url: ADMIN_MACHINES,
+      icon: IconUsersGroup,
+      items: [
+        { title: "Send Notifications", url: ADMIN_NOTIFICATIONS, icon: IconBell },
+        { title: "Machines", url: ADMIN_MACHINES, icon: IconChartBar },
+        { title: "Points Share", url: ADMIN_POINTS, icon: IconShare3 },
+        { title: "Locations", url: ADMIN_LOCATIONS, icon: IconLocation },
+        { title: "Topup", url: ADMIN_TOPUP, icon: IconCircleArrowUpRight },
+        {
+          title: "App Feedback",
+          url: ADMIN_FEEDBACK,
+          icon: IconMessage2Exclamation,
+        },
+        {
+          title: "Corporate Topup",
+          url: ADMIN_CORPORATE_TOPUP,
+          icon: IconCircleArrowUpRight,
+        },
+        { title: "Map Machines", url: ADMIN_MACHINE_MAP, icon: IconMapPin },
+        {
+          title: "Rider Locations",
+          url: ADMIN_RIDER_LOCATION,
+          icon: IconHexagonPlus,
+        },
+      ],
     },
     {
-      title: "Corporate Topup",
-      url: ADMIN_CORPORATE_TOPUP,
-      icon: IconCircleArrowUpRight,
-    },
-    { title: "Map Machines", url: ADMIN_MACHINE_MAP, icon: IconMapPin },
-    {
-      title: "Rider Locations",
-      url: ADMIN_RIDER_LOCATION,
-      icon: IconHexagonPlus,
-    },
-    {
-      title: "Cash Collection",
+      title: "Reports & Analysis",
       url: ADMIN_CASH_COLLECTION,
-      icon: IconCashBanknote,
-    },
-    {
-      title: "User Analysis Report",
-      url: ADMIN_USER_ANALYSIS,
       icon: IconReport,
+      items: [
+        {
+          title: "Cash Collection",
+          url: ADMIN_CASH_COLLECTION,
+          icon: IconCashBanknote,
+        },
+        {
+          title: "User Analysis Report",
+          url: ADMIN_USER_ANALYSIS,
+          icon: IconReport,
+        },
+        { title: "Alert System", url: ADMIN_ALERT_SYSTEM, icon: IconClipboardList },
+      ],
     },
     {
       title: "Butterfly Products",
       url: ADMIN_BUTTERFLY_PRODUCTS,
       icon: IconShare3,
     },
-    { title: "Alert System", url: ADMIN_ALERT_SYSTEM, icon: IconClipboardList },
   ];
 };
 
@@ -382,11 +440,18 @@ export const OPS_SIDEBAR_ROUTES = () => {
       icon: IconHexagonPlus,
     },
     {
-      title: "Cash Collection",
+      title: "Reports & Analysis",
       url: OPS_CASH_COLLECTION,
-      icon: IconCashBanknote,
+      icon: IconReport,
+      items: [
+        {
+          title: "Cash Collection",
+          url: OPS_CASH_COLLECTION,
+          icon: IconCashBanknote,
+        },
+        { title: "Alert System", url: OPS_ALERT_SYSTEM, icon: IconClipboardList },
+      ],
     },
-    { title: "Alert System", url: OPS_ALERT_SYSTEM, icon: IconClipboardList },
   ];
 };
 
@@ -397,14 +462,21 @@ export const FULFILL_SIDEBAR_ROUTES = () => {
     { title: "Locations", url: FULFill_LOCATIONS, icon: IconLocation },
     { title: "Topup", url: FULFill_TOPUP, icon: IconCircleArrowUpRight },
     {
-      title: "Maintaince",
+      title: "Maintenance",
       url: FULLFiLL_MAINTAINCE,
       icon: IconCircleArrowUpRight,
-    },
-    {
-      title: "Maintaince Requests",
-      url: MAINTAINCE_REQUESTS,
-      icon: IconCircleArrowUpRight,
+      items: [
+        {
+          title: "Maintaince",
+          url: FULLFiLL_MAINTAINCE,
+          icon: IconCircleArrowUpRight,
+        },
+        {
+          title: "Maintaince Requests",
+          url: MAINTAINCE_REQUESTS,
+          icon: IconCircleArrowUpRight,
+        },
+      ],
     },
     { title: "Map Machines", url: FULFill_MACHINE_MAP, icon: IconMapPin },
     {
@@ -426,22 +498,29 @@ export const FINANCE_SIDEBAR_ROUTES = () => {
     { title: "Machines", url: FINANCE_MACHINES, icon: IconChartBar },
     { title: "Locations", url: FINANCE_LOCATIONS, icon: IconLocation },
     { title: "Topup", url: FINANCE_TOPUP, icon: IconCircleArrowUpRight },
-    {
-      title: "Cash Collections",
-      url: FINANCE_CASH_COLLECTIONS,
-      icon: IconCashBanknote,
-    },
     { title: "Map Machines", url: FINANCE_MACHINE_MAP, icon: IconMapPin },
-    { title: "Finance Report", url: FINANCE_REPORT, icon: IconReport },
     {
-      title: "Machine Stocks",
-      url: FINANCE_MACHINE_STOCKS,
-      icon: IconClipboardList,
-    },
-    {
-      title: "User Wallet Activity",
-      url: FINANCE_USER_WALLET_ACTIVITY,
+      title: "Reports & Analysis",
+      url: FINANCE_REPORT,
       icon: IconReport,
+      items: [
+        {
+          title: "Cash Collections",
+          url: FINANCE_CASH_COLLECTIONS,
+          icon: IconCashBanknote,
+        },
+        { title: "Finance Report", url: FINANCE_REPORT, icon: IconReport },
+        {
+          title: "Machine Stocks",
+          url: FINANCE_MACHINE_STOCKS,
+          icon: IconClipboardList,
+        },
+        {
+          title: "User Wallet Activity",
+          url: FINANCE_USER_WALLET_ACTIVITY,
+          icon: IconReport,
+        },
+      ],
     },
   ];
 };
@@ -501,8 +580,15 @@ export const HR_SIDEBAR_ROUTES = (pendingCheckouts = 0) => {
  * seven slots in a sidebar that already belongs to the role's own work.
  *
  * "My Team" only appears for users who actually have direct reports.
+ *
+ * "Attendance Management" (the HR roster tab, not this user's own attendance)
+ * is nested here for superadmin only — named in full so it isn't mistaken for
+ * "My Attendance" just above it.
  */
-export const SELF_SERVICE_ROUTES = (isManager = false): NavItem[] => {
+export const SELF_SERVICE_ROUTES = (
+  isManager = false,
+  isSuperAdmin = false,
+): NavItem[] => {
   const pages: NavItem[] = [
     // exact: "/self-service" prefixes every entry below it
     { title: "My Hub", url: ESS_HUB, icon: IconUserCircle, exact: true },
@@ -515,10 +601,17 @@ export const SELF_SERVICE_ROUTES = (isManager = false): NavItem[] => {
   if (isManager) {
     pages.push({ title: "My Team", url: MSS_TEAM, icon: IconUsersGroup });
   }
+  if (isSuperAdmin) {
+    pages.push({
+      title: "Attendance Management",
+      url: HR_ATTENDANCE,
+      icon: IconClockHour4,
+    });
+  }
 
   return [
     {
-      title: "Self Service",
+      title: "Attendance Portal",
       url: ESS_HUB,
       icon: IconUserCircle,
       items: pages,

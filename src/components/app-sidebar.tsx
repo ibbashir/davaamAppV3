@@ -135,7 +135,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     // Corporate (company) logins are external clients — no self-service for them
     if (!ess.linked || role === "company") return roleRoutes
 
-    return [...roleRoutes, ...SELF_SERVICE_ROUTES(ess.isManager)]
+    return [...roleRoutes, ...SELF_SERVICE_ROUTES(ess.isManager, role === "superadmin")]
   }, [role, state.user?.first_name, activeRiderCount, pendingCheckouts, ess])
 
   const userData = {

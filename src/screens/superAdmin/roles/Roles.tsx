@@ -132,8 +132,8 @@ const ROLE_OPTIONS = [
 ];
 
 const MACHINE_TYPE_OPTIONS = [
-  { value: "liquid", label: "Liquid" },
-  { value: "product", label: "Product" },
+  { value: "sanitary", label: "Sanitary" },
+  { value: "dispensing", label: "Refill" },
 ];
 
 // Pure helpers
