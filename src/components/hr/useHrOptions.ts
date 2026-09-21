@@ -21,14 +21,10 @@ export type OptionKey =
   | "leaveTypes"
   | "jobPostings"
   | "candidates"
-  | "trainings"
-  | "reviewCycles"
   | "assets"
   | "pieceWorkRates"
   | "letterTemplates"
   | "payrollRuns"
-  | "separations"
-  | "travelRequests"
 
 const ENDPOINTS: Record<Exclude<OptionKey, "employees" | "managers" | "reportsTo">, { path: string; label: (r: Record<string, unknown>) => string }> = {
   departments: { path: "/departments", label: (r) => String(r.name ?? "") },
@@ -40,8 +36,6 @@ const ENDPOINTS: Record<Exclude<OptionKey, "employees" | "managers" | "reportsTo
   leaveTypes: { path: "/leave-types", label: (r) => String(r.name ?? "") },
   jobPostings: { path: "/job-postings", label: (r) => String(r.title ?? "") },
   candidates: { path: "/candidates", label: (r) => String(r.full_name ?? "") },
-  trainings: { path: "/trainings", label: (r) => String(r.title ?? "") },
-  reviewCycles: { path: "/review-cycles", label: (r) => String(r.name ?? "") },
   assets: {
     path: "/assets",
     label: (r) => `${r.asset_code} — ${r.name}`,
@@ -54,11 +48,6 @@ const ENDPOINTS: Record<Exclude<OptionKey, "employees" | "managers" | "reportsTo
   payrollRuns: {
     path: "/payroll-runs",
     label: (r) => `${String(r.period_month).padStart(2, "0")}/${r.period_year}`,
-  },
-  separations: { path: "/separations", label: (r) => `Separation #${r.id}` },
-  travelRequests: {
-    path: "/travel-requests",
-    label: (r) => `${r.request_code ?? r.id} — ${r.destination ?? ""}`,
   },
 }
 

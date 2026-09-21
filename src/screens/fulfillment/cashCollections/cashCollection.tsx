@@ -1,3 +1,4 @@
+import { SiteHeader } from "@/components/fulfillment/site-header";
 import React, { useState, useEffect } from "react";
 import CashCollectionTable from "./components/cashCollectionTable";
 import { getRequest, postRequest } from "@/Apis/Api";
@@ -595,8 +596,12 @@ const FulfillmentCashCollectionPage: React.FC = () => {
   const isNoCollectionTab = activeMachineTab === "no-collection";
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <>
+      <SiteHeader title="Cash Collection" />
+      {/* Full width, matching the Machine Alert System page: the old
+          `max-w-7xl mx-auto` capped this at 1280px and centred it, which left
+          wide screens with empty gutters while the tables scrolled inside. */}
+      <div className="flex flex-col gap-4 p-4 md:p-6">
         {/* Header */}
         <div className="mb-8">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -625,7 +630,7 @@ const FulfillmentCashCollectionPage: React.FC = () => {
               <button
                 onClick={() => handleExport(data)}
                 disabled={loading || data.length === 0}
-                className="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                className="inline-flex items-center gap-2 px-4 py-2.5 bg-teal-600 text-white rounded-lg hover:bg-teal-700 shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <Download className="h-4 w-4" />
                 Export All
@@ -642,7 +647,7 @@ const FulfillmentCashCollectionPage: React.FC = () => {
                 onClick={() => setActiveTab("reports")}
                 className={`py-3 px-1 border-b-2 font-medium text-sm transition-all flex items-center gap-2 ${
                   activeTab === "reports"
-                    ? "border-blue-500 text-blue-600"
+                    ? "border-teal-500 text-teal-600"
                     : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
                 }`}
               >
@@ -653,7 +658,7 @@ const FulfillmentCashCollectionPage: React.FC = () => {
                 onClick={() => setActiveTab("table")}
                 className={`py-3 px-1 border-b-2 font-medium text-sm transition-all flex items-center gap-2 ${
                   activeTab === "table"
-                    ? "border-blue-500 text-blue-600"
+                    ? "border-teal-500 text-teal-600"
                     : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
                 }`}
               >
@@ -700,7 +705,7 @@ const FulfillmentCashCollectionPage: React.FC = () => {
                       value={selectedMonth}
                       onChange={(e) => setSelectedMonth(e.target.value)}
                       disabled={reportLoading}
-                      className="pl-10 pr-8 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none appearance-none bg-white disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="pl-10 pr-8 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none appearance-none bg-white disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       {months.map((month) => (
                         <option key={month.value} value={month.value}>
@@ -723,7 +728,7 @@ const FulfillmentCashCollectionPage: React.FC = () => {
                       value={selectedYear}
                       onChange={(e) => setSelectedYear(e.target.value)}
                       disabled={reportLoading}
-                      className="pl-10 pr-8 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none appearance-none bg-white disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="pl-10 pr-8 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none appearance-none bg-white disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       {years.map((year) => (
                         <option key={year} value={year}>
@@ -751,7 +756,7 @@ const FulfillmentCashCollectionPage: React.FC = () => {
                         setMachineCode(e.target.value.trim() || null)
                       }
                       disabled={reportLoading}
-                      className="pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white w-full"
+                      className="pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none bg-white w-full"
                     />
                     <datalist id="machineList">
                       {machines.map((m) => (
@@ -770,7 +775,7 @@ const FulfillmentCashCollectionPage: React.FC = () => {
                   <button
                     onClick={handleGenerateReport}
                     disabled={reportLoading}
-                    className="px-4 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 flex items-center gap-2 transition-colors"
+                    className="px-4 py-2.5 bg-teal-600 text-white rounded-lg hover:bg-teal-700 disabled:opacity-50 flex items-center gap-2 transition-colors"
                   >
                     <RefreshCw
                       className={`h-4 w-4 ${reportLoading ? "animate-spin" : ""}`}
@@ -794,8 +799,8 @@ const FulfillmentCashCollectionPage: React.FC = () => {
             {reportLoading && (
               <div className="flex flex-col items-center justify-center py-12">
                 <div className="relative">
-                  <div className="w-16 h-16 border-4 border-blue-100 rounded-full"></div>
-                  <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin absolute top-0 left-0"></div>
+                  <div className="w-16 h-16 border-4 border-teal-100 rounded-full"></div>
+                  <div className="w-16 h-16 border-4 border-teal-500 border-t-transparent rounded-full animate-spin absolute top-0 left-0"></div>
                 </div>
                 <p className="mt-4 text-gray-600 font-medium">
                   Generating report...
@@ -826,13 +831,13 @@ const FulfillmentCashCollectionPage: React.FC = () => {
                 <>
                   {/* Summary Stats */}
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                    {/* Total Collection — Deep Blue */}
-                    <div className="bg-gradient-to-br from-blue-600 to-blue-800 rounded-xl p-6 shadow-lg">
+                    {/* Total Collection — Deep teal */}
+                    <div className="bg-gradient-to-br from-teal-600 to-teal-800 rounded-xl p-6 shadow-lg">
                       <div className="flex items-center justify-between mb-3">
-                        <p className="text-sm text-blue-100 font-medium">
+                        <p className="text-sm text-teal-100 font-medium">
                           Total Collection
                         </p>
-                        <div className="bg-blue-500/40 p-2 rounded-lg">
+                        <div className="bg-teal-500/40 p-2 rounded-lg">
                           <Wallet className="h-5 w-5 text-white" />
                         </div>
                       </div>
@@ -842,7 +847,7 @@ const FulfillmentCashCollectionPage: React.FC = () => {
                           rawApiResponse.summary.overall_cash_collected || "0",
                         ).toLocaleString("en-IN", { minimumFractionDigits: 2 })}
                       </p>
-                      <p className="text-xs text-blue-200 mt-2">
+                      <p className="text-xs text-teal-200 mt-2">
                         Across all machines
                       </p>
                     </div>
@@ -1095,7 +1100,7 @@ const FulfillmentCashCollectionPage: React.FC = () => {
                             onClick={() => setActiveMachineTab(tab.id)}
                             className={`px-6 py-3 text-sm font-medium whitespace-nowrap border-b-2 ${
                               activeMachineTab === tab.id
-                                ? "border-blue-500 text-blue-600"
+                                ? "border-teal-500 text-teal-600"
                                 : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
                             }`}
                           >
@@ -1103,7 +1108,7 @@ const FulfillmentCashCollectionPage: React.FC = () => {
                             <span
                               className={`ml-2 px-2 py-0.5 text-xs rounded-full ${
                                 activeMachineTab === tab.id
-                                  ? "bg-blue-100 text-blue-800"
+                                  ? "bg-teal-100 text-teal-800"
                                   : "bg-gray-100 text-gray-600"
                               }`}
                             >
@@ -1249,8 +1254,8 @@ const FulfillmentCashCollectionPage: React.FC = () => {
                                   diffBgColor = "bg-red-50";
                                   DiffIcon = TrendingDown;
                                 } else {
-                                  diffColor = "text-blue-600";
-                                  diffBgColor = "bg-blue-50";
+                                  diffColor = "text-teal-600";
+                                  diffBgColor = "bg-teal-50";
                                   DiffIcon = CheckCircle;
                                 }
 
@@ -1372,7 +1377,7 @@ const FulfillmentCashCollectionPage: React.FC = () => {
                                             );
                                           }
                                         }}
-                                        className="text-blue-600 hover:text-blue-800 flex items-center gap-1"
+                                        className="text-teal-600 hover:text-teal-800 flex items-center gap-1"
                                       >
                                         <Eye className="h-4 w-4" />
                                         View Details
@@ -1497,7 +1502,7 @@ const FulfillmentCashCollectionPage: React.FC = () => {
           </div>
         )}
       </div>
-    </div>
+    </>
   );
 };
 

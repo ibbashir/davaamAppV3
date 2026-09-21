@@ -169,6 +169,8 @@ const STATUS_CLASSES: Record<string, string> = {
   fulfilled: "bg-emerald-100 text-emerald-700 border-emerald-200",
   // waiting
   pending: "bg-amber-100 text-amber-700 border-amber-200",
+  pending_hr: "bg-amber-100 text-amber-700 border-amber-200",
+  pending_superadmin: "bg-amber-100 text-amber-700 border-amber-200",
   probation: "bg-amber-100 text-amber-700 border-amber-200",
   draft: "bg-amber-100 text-amber-700 border-amber-200",
   in_progress: "bg-amber-100 text-amber-700 border-amber-200",

@@ -2,6 +2,7 @@ import type { ReactNode } from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
 import Layout from '@/layouts/layout'
 import PrivateRouting from './PrivateRouting'
+import Tracker from '@/screens/tracker/Tracker'
 import { useAuth } from '@/contexts/AuthContext'
 
 import Login from '@/screens/login/Login'
@@ -87,21 +88,15 @@ import HrAttendance from '@/screens/hr/attendance/Attendance'
 import HrMonthlySheet from '@/screens/hr/attendance/MonthlySheet'
 import HrEmployeeAttendance from '@/screens/hr/attendance/EmployeeAttendance'
 import HrCheckoutRequests from '@/screens/hr/attendance/CheckoutRequests'
+import HrMissedPunchRequests from '@/screens/hr/attendance/MissedPunchRequests'
+import SuperAdminAttendanceApprovals from '@/screens/superAdmin/attendanceApprovals/AttendanceApprovals'
 import HrLeave from '@/screens/hr/leave/Leave'
 import HrHolidays from '@/screens/hr/holidays/Holidays'
 import HrRecruitment from '@/screens/hr/recruitment/Recruitment'
 import HrOnboarding from '@/screens/hr/onboarding/Onboarding'
-import HrPerformance from '@/screens/hr/performance/Performance'
-import HrTraining from '@/screens/hr/training/Training'
-import HrExpenses from '@/screens/hr/expenses/Expenses'
-import HrHelpdesk from '@/screens/hr/helpdesk/Helpdesk'
-import HrTravel from '@/screens/hr/travel/Travel'
-import HrSeparation from '@/screens/hr/separation/Separation'
 import HrLetters from '@/screens/hr/letters/Letters'
-import HrAlerts from '@/screens/hr/alerts/Alerts'
 import HrReports from '@/screens/hr/reports/Reports'
 import HrAssets from '@/screens/hr/assets/Assets'
-import HrManpower from '@/screens/hr/manpower/Manpower'
 import HrPieceWork from '@/screens/hr/piecework/PieceWork'
 import HrAnalytics from '@/screens/hr/analytics/Analytics'
 import HrOrgSetup from '@/screens/hr/orgSetup/OrgSetup'
@@ -211,24 +206,19 @@ import {
   HR_DASHBOARD,
   HR_EMPLOYEES,
   HR_ATTENDANCE,
+  TRACKER,
   HR_MONTHLY_SHEET,
   HR_EMPLOYEE_ATTENDANCE,
   HR_CHECKOUT_REQUESTS,
+  HR_MISSED_PUNCH_REQUESTS,
+  SUPERADMIN_ATTENDANCE_APPROVALS,
   HR_LEAVE,
   HR_HOLIDAYS,
   HR_RECRUITMENT,
   HR_ONBOARDING,
-  HR_PERFORMANCE,
-  HR_TRAINING,
-  HR_EXPENSES,
-  HR_HELPDESK,
-  HR_TRAVEL,
-  HR_SEPARATION,
   HR_LETTERS,
-  HR_ALERTS,
   HR_REPORTS,
   HR_ASSETS,
-  HR_MANPOWER,
   HR_PIECE_WORK,
   HR_ANALYTICS,
   HR_ORG_SETUP,
@@ -290,6 +280,7 @@ const Routing = () => {
       <Route element={<PrivateRouting allowedRoles={["superadmin"]} />}>
         <Route element={<Layout />}>
           <Route path={SUPERADMIN_DASHBOARD} element={<Dashboard />} />
+          <Route path={SUPERADMIN_ATTENDANCE_APPROVALS} element={<SuperAdminAttendanceApprovals />} />
           <Route path={SUPERADMIN_MACHINES} element={<Machines />} />
           <Route path={SUPERADMIN_ROLES} element={<Roles />} />
           <Route path={SUPERADMIN_POINTS} element={<PointShare />} />
@@ -430,21 +421,14 @@ const Routing = () => {
           <Route path={HR_DASHBOARD} element={<HrDashboard />} />
           <Route path={HR_EMPLOYEES} element={<HrEmployees />} />
           <Route path={HR_CHECKOUT_REQUESTS} element={<HrCheckoutRequests />} />
+          <Route path={HR_MISSED_PUNCH_REQUESTS} element={<HrMissedPunchRequests />} />
           <Route path={HR_LEAVE} element={<HrLeave />} />
           <Route path={HR_HOLIDAYS} element={<HrHolidays />} />
           <Route path={HR_RECRUITMENT} element={<HrRecruitment />} />
           <Route path={HR_ONBOARDING} element={<HrOnboarding />} />
-          <Route path={HR_PERFORMANCE} element={<HrPerformance />} />
-          <Route path={HR_TRAINING} element={<HrTraining />} />
-          <Route path={HR_EXPENSES} element={<HrExpenses />} />
-          <Route path={HR_HELPDESK} element={<HrHelpdesk />} />
-          <Route path={HR_TRAVEL} element={<HrTravel />} />
-          <Route path={HR_SEPARATION} element={<HrSeparation />} />
           <Route path={HR_LETTERS} element={<HrLetters />} />
-          <Route path={HR_ALERTS} element={<HrAlerts />} />
           <Route path={HR_REPORTS} element={<HrReports />} />
           <Route path={HR_ASSETS} element={<HrAssets />} />
-          <Route path={HR_MANPOWER} element={<HrManpower />} />
           <Route path={HR_PIECE_WORK} element={<HrPieceWork />} />
           <Route path={HR_ANALYTICS} element={<HrAnalytics />} />
           <Route path={HR_ORG_SETUP} element={<HrOrgSetup />} />
@@ -475,6 +459,17 @@ const Routing = () => {
           <Route path={ESS_REQUESTS} element={<EssRequests />} />
           <Route path={ESS_PROFILE} element={<EssProfile />} />
           <Route path={MSS_TEAM} element={<MssTeam />} />
+        </Route>
+      </Route>
+
+      {/*
+        Internal issue tracker. One path shared by the three roles that run
+        delivery work, matching the `operations` guard on the backend
+        (role_code 0, 1, 2) so the UI and the API agree on who may see it.
+      */}
+      <Route element={<PrivateRouting allowedRoles={["superadmin", "admin", "ops"]} />}>
+        <Route element={<Layout />}>
+          <Route path={TRACKER} element={<Tracker />} />
         </Route>
       </Route>
 

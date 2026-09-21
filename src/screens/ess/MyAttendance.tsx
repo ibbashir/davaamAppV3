@@ -30,6 +30,7 @@ import {
 import { usePunch, type Geofence } from "@/components/hr/use-punch"
 import { GeofenceNotice } from "@/components/hr/GeofenceNotice"
 import { RemoteCheckoutButton } from "@/components/hr/RemoteCheckout"
+import { MissedPunchButton } from "@/components/hr/MissedPunch"
 import type { CheckoutRequest } from "@/Types/hr"
 
 interface AttendanceRow {
@@ -152,6 +153,8 @@ const MyAttendance = () => {
           </div>
           {/* Only mid-shift — there is nothing to ask HR for otherwise. */}
           {shiftRunning && <RemoteCheckoutButton pending={checkoutRequest} onDone={load} />}
+          {/* Always offered: a forgotten punch is usually noticed a day later. */}
+          <MissedPunchButton onDone={load} />
 
           <div className="max-w-md sm:text-right">
             <GeofenceNotice geofence={geofence} />

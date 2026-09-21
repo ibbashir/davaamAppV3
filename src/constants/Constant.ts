@@ -1,5 +1,7 @@
 import {
   IconLocation,
+  IconClockEdit,
+  IconUserCheck,
   IconCircleArrowUpRight,
   IconBell,
   IconMessage2Exclamation,
@@ -26,14 +28,10 @@ import {
   IconUsersGroup,
   IconUserCircle,
   IconLogout2,
+  IconLayoutKanban,
 
   // IconBriefcase,
   // IconChecklist,
-  // IconTargetArrow,
-  // IconSchool,
-  // IconTicket,
-  // IconPlane,
-  // IconDoorExit,
   // IconDeviceLaptop,
   // IconHammer,
   // IconSettings,
@@ -87,6 +85,8 @@ export const SUPERADMIN_ALERT_MACHINE_DETAIL =
 export const SUPERADMIN_ASK_CHATBOT = "/superadmin/askChatbot";
 export const SUPERADMIN_TEAM_MEMBERS = "/superadmin/team-members";
 export const SUPERADMIN_OUTREACH = "/superadmin/outreach";
+// Final approval for missed-attendance requests HR has already approved.
+export const SUPERADMIN_ATTENDANCE_APPROVALS = "/superadmin/attendance-approvals";
 
 // ADMIN PATHS
 export const ADMIN_DASHBOARD = "/admin/dashboard";
@@ -151,6 +151,9 @@ export const FINANCE_REPORT = "/finance/finance-report";
 export const FINANCE_MACHINE_STOCKS = "/finance/machine-stocks";
 
 // HR MANAGEMENT PATHS (HCM / HRM)
+/** Internal issue tracker — one shared path for superadmin, admin and ops. */
+export const TRACKER = "/tracker";
+
 export const HR_DASHBOARD = "/hr/dashboard";
 export const HR_EMPLOYEES = "/hr/employees";
 export const HR_ATTENDANCE = "/hr/attendance";
@@ -163,20 +166,13 @@ export const HR_EMPLOYEE_ATTENDANCE = "/hr/attendance/employee/:id";
 export const hrEmployeeAttendancePath = (id: number | string) =>
   `/hr/attendance/employee/${id}`;
 export const HR_CHECKOUT_REQUESTS = "/hr/checkout-requests";
-export const HR_PAYROLL = "/hr/payroll";
+// "I forgot to mark my attendance" — HR's first review.
+export const HR_MISSED_PUNCH_REQUESTS = "/hr/missed-punch-requests";
 export const HR_RECRUITMENT = "/hr/recruitment";
 export const HR_ONBOARDING = "/hr/onboarding";
-export const HR_PERFORMANCE = "/hr/performance";
-export const HR_TRAINING = "/hr/training";
-export const HR_EXPENSES = "/hr/expenses";
-export const HR_HELPDESK = "/hr/helpdesk";
-export const HR_TRAVEL = "/hr/travel";
-export const HR_SEPARATION = "/hr/separation";
 export const HR_LETTERS = "/hr/letters";
-export const HR_ALERTS = "/hr/scheduled-alerts";
-export const HR_REPORTS = "/hr/scheduled-reports";
+export const HR_REPORTS = "/hr/reports";
 export const HR_ASSETS = "/hr/assets";
-export const HR_MANPOWER = "/hr/manpower";
 export const HR_PIECE_WORK = "/hr/piece-work";
 export const HR_ANALYTICS = "/hr/analytics";
 export const HR_ORG_SETUP = "/hr/org-setup";
@@ -185,8 +181,6 @@ export const HR_ORG_SETUP = "/hr/org-setup";
 export const ESS_HUB = "/self-service";
 export const ESS_ATTENDANCE = "/self-service/attendance";
 export const ESS_LEAVE = "/self-service/leave";
-export const ESS_EXPENSES = "/self-service/expenses";
-export const ESS_PAYSLIPS = "/self-service/payslips";
 export const ESS_INSTRUCTIONS = "/self-service/how-to-mark-attendance";
 export const ESS_PROFILE = "/self-service/profile";
 export const ESS_REQUESTS = "/self-service/requests";
@@ -263,6 +257,8 @@ const PendingBadge = (count: number): React.ReactNode => {
 export const SUPER_ADMIN_SIDEBAR_ROUTES = (activeRiderCount = 0) => {
   return [
     { title: "Dashboard", url: SUPERADMIN_DASHBOARD, icon: IconHome },
+    
+    { title: "Create Roles", url: SUPERADMIN_ROLES, icon: IconUserPlus },
     // { title: "Corporate Clients", url: SUPERADMIN_CORPORATE, icon: IconUserStar },
     {
       title: "Ops",
@@ -363,6 +359,9 @@ export const SUPER_ADMIN_SIDEBAR_ROUTES = (activeRiderCount = 0) => {
     },
     { title: "Ask Chatbot", url: SUPERADMIN_ASK_CHATBOT, icon: IconRobot },
     { title: "Outreach Events", url: SUPERADMIN_OUTREACH, icon: IconCalendarEvent },
+    // The HR attendance module, roster tab only. Named in full so it is not
+    // mistaken for "My Attendance" under Self Service, which is this user's own.
+    { title: "Project Tracker", url: TRACKER, icon: IconLayoutKanban },
 
     // { title: "Delete Corporate Employees", url: SUPERADMIN_DELETE_EMPLOYEES, icon: IconHexagonMinus },
   ];
@@ -422,6 +421,8 @@ export const ADMIN_SIDEBAR_ROUTES = () => {
       url: ADMIN_BUTTERFLY_PRODUCTS,
       icon: IconShare3,
     },
+    { title: "Alert System", url: ADMIN_ALERT_SYSTEM, icon: IconClipboardList },
+    { title: "Project Tracker", url: TRACKER, icon: IconLayoutKanban },
   ];
 };
 
@@ -452,6 +453,8 @@ export const OPS_SIDEBAR_ROUTES = () => {
         { title: "Alert System", url: OPS_ALERT_SYSTEM, icon: IconClipboardList },
       ],
     },
+    { title: "Alert System", url: OPS_ALERT_SYSTEM, icon: IconClipboardList },
+    { title: "Project Tracker", url: TRACKER, icon: IconLayoutKanban },
   ];
 };
 
@@ -534,11 +537,8 @@ export const FINANCE_SIDEBAR_ROUTES = () => {
  * request from someone stuck outside the geofence is visible without HR having
  * to open the screen to find out.
  *
- * Payroll is deliberately absent: salary is not HR's to see here, so the
- * Payroll screen and ESS "My Payslips" are unrouted. The screens and the whole
- * backend are still in the tree — putting the two rows back is all it takes.
  */
-export const HR_SIDEBAR_ROUTES = (pendingCheckouts = 0) => {
+export const HR_SIDEBAR_ROUTES = (pendingCheckouts = 0, pendingMissedPunch = 0) => {
   return [
     { title: "Dashboard", url: HR_DASHBOARD, icon: IconHome },
     { title: "Employees", url: HR_EMPLOYEES, icon: IconUsers },
@@ -549,23 +549,21 @@ export const HR_SIDEBAR_ROUTES = (pendingCheckouts = 0) => {
       icon: IconLogout2,
       badge: PendingBadge(pendingCheckouts),
     },
+    {
+      title: "Missed Attendance",
+      url: HR_MISSED_PUNCH_REQUESTS,
+      icon: IconClockEdit,
+      badge: PendingBadge(pendingMissedPunch),
+    },
     { title: "Monthly Sheet", url: HR_MONTHLY_SHEET, icon: IconTable },
     { title: "Leave", url: HR_LEAVE, icon: IconCalendarStats },
     { title: "Holidays", url: HR_HOLIDAYS, icon: IconCalendarEvent },
     // { title: "Recruitment", url: HR_RECRUITMENT, icon: IconBriefcase },
     // { title: "Onboarding", url: HR_ONBOARDING, icon: IconChecklist },
-    // { title: "Performance", url: HR_PERFORMANCE, icon: IconTargetArrow },
-    // { title: "Training", url: HR_TRAINING, icon: IconSchool },
-    // { title: "Expenses", url: HR_EXPENSES, icon: IconReceipt },
-    // { title: "Help Desk", url: HR_HELPDESK, icon: IconTicket },
-    // { title: "Travel", url: HR_TRAVEL, icon: IconPlane },
-    // { title: "Separation", url: HR_SEPARATION, icon: IconDoorExit },
     // { title: "HR Letters", url: HR_LETTERS, icon: IconFileDescription },
     // { title: "Assets", url: HR_ASSETS, icon: IconDeviceLaptop },
-    // { title: "Manpower", url: HR_MANPOWER, icon: IconUsersGroup },
     // { title: "Piece Work", url: HR_PIECE_WORK, icon: IconHammer },
-    // { title: "Scheduled Alerts", url: HR_ALERTS, icon: IconBell },
-    // { title: "Scheduled Reports", url: HR_REPORTS, icon: IconReport },
+    // { title: "Reports", url: HR_REPORTS, icon: IconReport },
     // { title: "Analytics", url: HR_ANALYTICS, icon: IconChartBar },
     // { title: "Org Setup", url: HR_ORG_SETUP, icon: IconSettings },
   ];
@@ -588,6 +586,7 @@ export const HR_SIDEBAR_ROUTES = (pendingCheckouts = 0) => {
 export const SELF_SERVICE_ROUTES = (
   isManager = false,
   isSuperAdmin = false,
+  pendingAttendanceApprovals = 0,
 ): NavItem[] => {
   const pages: NavItem[] = [
     // exact: "/self-service" prefixes every entry below it
@@ -606,7 +605,12 @@ export const SELF_SERVICE_ROUTES = (
       title: "Attendance Management",
       url: HR_ATTENDANCE,
       icon: IconClockHour4,
-    });
+    },{
+      title: "Attendance Approvals",
+      url: SUPERADMIN_ATTENDANCE_APPROVALS,
+      icon: IconUserCheck,
+      badge: PendingBadge(pendingAttendanceApprovals),
+    },);
   }
 
   return [

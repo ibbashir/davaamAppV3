@@ -36,6 +36,19 @@ export const putRequest = async <T>(
   }
 };
 
+export const patchRequest = async <T>(
+  endpoint: string,
+  data: object
+): Promise<T> => {
+  try {
+    const response = await api.patch<T>(endpoint, data);
+    return response.data;
+  } catch (error) {
+    console.error("PATCH request failed", error);
+    throw error;
+  }
+};
+
 export const deleteRequest = async <T>(endpoint: string, data?: object): Promise<T> => {
   try {
     const response = await api.delete<T>(endpoint, { data });
