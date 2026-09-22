@@ -689,7 +689,10 @@ const AskChatbot = () => {
     <>
       <SiteHeader title="Ask Chatbot" />
       <div className="flex flex-1 flex-col overflow-hidden bg-gradient-to-b from-muted/30 to-transparent">
-        <div className="flex flex-1 flex-col mx-auto w-full max-w-4xl overflow-hidden px-3 sm:px-4 lg:px-6 py-4 md:py-6">
+        {/* Full width, matching the other screens. The old `mx-auto max-w-4xl`
+            capped the chat at 896px and centred it, so the page read as a
+            narrow column while everything around it used the whole width. */}
+        <div className="flex w-full flex-1 flex-col overflow-hidden p-4 md:p-6">
           {/* Card container */}
           <div className="flex flex-1 flex-col overflow-hidden rounded-2xl border border-border bg-background shadow-md">
             {/* Header */}

@@ -3,6 +3,7 @@ import { Routes, Route, Navigate } from 'react-router-dom'
 import Layout from '@/layouts/layout'
 import PrivateRouting from './PrivateRouting'
 import Tracker from '@/screens/tracker/Tracker'
+import SuperAdminCardUsers from '@/screens/superAdmin/cardUsers/CardUsers'
 import { useAuth } from '@/contexts/AuthContext'
 
 import Login from '@/screens/login/Login'
@@ -203,6 +204,7 @@ import {
   SUPERADMIN_ALERT_SYSTEM,
   SUPERADMIN_ASK_CHATBOT,
   SUPERADMIN_OUTREACH,
+  SUPERADMIN_CARD_USERS,
   HR_DASHBOARD,
   HR_EMPLOYEES,
   HR_ATTENDANCE,
@@ -304,6 +306,7 @@ const Routing = () => {
           <Route path={SUPERADMIN_ALERT_SYSTEM} element={<AlertSystem />} />
           <Route path={SUPERADMIN_ALERT_MACHINE_DETAIL} element={<MachineAlertDetail />} />
           <Route path={SUPERADMIN_ASK_CHATBOT} element={<SuperAdminAskChatbot />} />
+          <Route path={SUPERADMIN_CARD_USERS} element={<SuperAdminCardUsers />} />
           <Route path={SUPERADMIN_TEAM_MEMBERS} element={<SuperAdminTeamMembers />} />
           <Route path={SUPERADMIN_OUTREACH} element={<SuperAdminOutreach />} />
         </Route>

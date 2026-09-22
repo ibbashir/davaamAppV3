@@ -55,7 +55,7 @@ const formatLTV = (raw: number): { display: string; suffix: string } => {
 
 // ─── Card Configs ─────────────────────────────────────────────────────────────
 const CARD_CONFIGS = [
-  { key: "totalCorporateUsers", label: "Corporate Users",      icon: BuildingIcon,   accent: "#8B5CF6", bg: "#F5F3FF" },
+  { key: "totalCorporateUsers", label: "Corporate Users",      icon: BuildingIcon,   accent: "#2DD4BF", bg: "#F0FDFA" },
   { key: "totalCashUsers",      label: "Cash Users",           icon: Banknote,       accent: "#059669", bg: "#ECFDF5" },
   { key: "overallUsers",        label: "Total Unique Users",   icon: UsersIcon,      accent: "#F97316", bg: "#FFF7ED" },
   { key: "overAllTransactions", label: "Total Transactions",   icon: CreditCardIcon, accent: "#0EA5E9", bg: "#F0F9FF" },
@@ -135,11 +135,11 @@ const MachineMultiSelect = ({
         onClick={() => setOpen((v) => !v)}
         style={{
           display: "flex", alignItems: "center", gap: 6,
-          background: selected.length > 0 ? "#EEF2FF" : "#F8FAFC",
-          border: `1px solid ${selected.length > 0 ? "#C7D2FE" : "#E2E8F0"}`,
+          background: selected.length > 0 ? "#F0FDFA" : "#F8FAFC",
+          border: `1px solid ${selected.length > 0 ? "#99F6E4" : "#E2E8F0"}`,
           borderRadius: 8, padding: "3px 10px", height: 32,
           cursor: "pointer", fontSize: 12, fontWeight: 600,
-          color: selected.length > 0 ? "#4F46E5" : "#1E293B",
+          color: selected.length > 0 ? "#0F766E" : "#1E293B",
           whiteSpace: "nowrap", maxWidth: isMobile ? 140 : 200,
         }}
       >
@@ -147,7 +147,7 @@ const MachineMultiSelect = ({
         <span style={{ overflow: "hidden", textOverflow: "ellipsis" }}>{label}</span>
         {selected.length > 0 && (
           <span style={{
-            background: "#6366F1", color: "#fff", borderRadius: 10,
+            background: "#0D9488", color: "#fff", borderRadius: 10,
             fontSize: 9, fontWeight: 800, padding: "1px 5px", flexShrink: 0,
           }}>
             {selected.length}
@@ -202,14 +202,14 @@ const MachineMultiSelect = ({
                     style={{
                       display: "flex", alignItems: "center", gap: 8,
                       padding: "7px 10px", cursor: "pointer",
-                      background: isSelected ? "#F5F3FF" : "transparent",
+                      background: isSelected ? "#F0FDFA" : "transparent",
                       borderBottom: "1px solid #F8FAFC", transition: "background .1s",
                     }}
                   >
                     <div style={{
                       width: 15, height: 15, borderRadius: 4, flexShrink: 0,
-                      border: `2px solid ${isSelected ? "#6366F1" : "#D1D5DB"}`,
-                      background: isSelected ? "#6366F1" : "#fff",
+                      border: `2px solid ${isSelected ? "#0D9488" : "#D1D5DB"}`,
+                      background: isSelected ? "#0D9488" : "#fff",
                       display: "flex", alignItems: "center", justifyContent: "center",
                       transition: "all .1s",
                     }}>
@@ -231,7 +231,7 @@ const MachineMultiSelect = ({
               display: "flex", alignItems: "center", justifyContent: "space-between",
               background: "#FAFAFA",
             }}>
-              <span style={{ fontSize: 11, color: "#6366F1", fontWeight: 600 }}>{selected.length} selected</span>
+              <span style={{ fontSize: 11, color: "#0D9488", fontWeight: 600 }}>{selected.length} selected</span>
               <button onClick={clearAll} style={{ display: "flex", alignItems: "center", gap: 4, border: "none", background: "none", cursor: "pointer", fontSize: 11, color: "#EF4444", fontWeight: 600, padding: 0 }}>
                 <XIcon style={{ width: 10, height: 10 }} /> Clear all
               </button>
@@ -740,8 +740,8 @@ export function AdminUserAnalysis() {
   }));
 
   const usersSeries = [
-    { key: "App Users",       label: "App",       color: "#6366F1" },
-    { key: "Corporate Users", label: "Corporate", color: "#8B5CF6" },
+    { key: "App Users",       label: "App",       color: "#0D9488" },
+    { key: "Corporate Users", label: "Corporate", color: "#2DD4BF" },
     { key: "Cash Users",      label: "Cash",      color: "#059669" },
   ];
   const txSeries = [
@@ -784,7 +784,7 @@ export function AdminUserAnalysis() {
                     :                            "All Time";
 
   return (
-    <div style={{ minHeight: "100vh", background: "#F8FAFC" }}>
+    <>
       <style>{`
         @keyframes spin { to { transform: rotate(360deg); } }
         * { box-sizing: border-box; }
@@ -793,8 +793,12 @@ export function AdminUserAnalysis() {
         select option { background: #fff; color: #1E293B; }
       `}</style>
 
-      <div style={{ maxWidth: 1400, margin: "0 auto", padding: `16px ${px}px` }}>
-        <SiteHeader title="User Analysis" />
+      {/* The header sits outside the padded container so it spans the full
+          width, the way every other screen's does. It used to be nested inside
+          it, which indented the title bar and capped it at 1400px. */}
+      <SiteHeader title="User Analysis" />
+
+      <div style={{ padding: `16px ${px}px` }}>
 
         {/* ── Controls Bar ── */}
         <div style={{
@@ -811,7 +815,7 @@ export function AdminUserAnalysis() {
                 <ChevronLeftIcon style={{ width: 14, height: 14 }} />
               </button>
               <div style={{ display: "flex", alignItems: "center", gap: 5, padding: "0 6px" }}>
-                {year === null ? <Globe style={{ width: 13, height: 13, color: "#6366F1" }} /> : <CalendarIcon style={{ width: 13, height: 13, color: "#6366F1" }} />}
+                {year === null ? <Globe style={{ width: 13, height: 13, color: "#0D9488" }} /> : <CalendarIcon style={{ width: 13, height: 13, color: "#0D9488" }} />}
                 <select value={year === null ? "overall" : year} onChange={(e) => handleYearSelect(e.target.value)} style={{ background: "none", border: "none", fontWeight: 700, fontSize: 13, color: "#1E293B", cursor: "pointer", outline: "none" }}>
                   <option value="overall">Overall</option>
                   {Array.from({ length: currentYear - 2019 }, (_, i) => currentYear - i).map((y) => <option key={y} value={y}>{y}</option>)}
@@ -825,7 +829,7 @@ export function AdminUserAnalysis() {
             {/* Month selector */}
             {year !== null && (
               <div style={{ display: "flex", alignItems: "center", gap: 5, background: "#F8FAFC", borderRadius: 8, padding: "3px 10px", border: "1px solid #E2E8F0", height: 32 }}>
-                <CalendarIcon style={{ width: 12, height: 12, color: "#8B5CF6" }} />
+                <CalendarIcon style={{ width: 12, height: 12, color: "#2DD4BF" }} />
                 <select value={month ?? ""} onChange={(e) => handleMonth(e.target.value)} style={{ background: "none", border: "none", fontWeight: 600, fontSize: 12, color: "#1E293B", cursor: "pointer", outline: "none" }}>
                   <option value="">All Months</option>
                   {MONTH_FULL.map((name, i) => <option key={i + 1} value={i + 1}>{name}</option>)}
@@ -836,7 +840,7 @@ export function AdminUserAnalysis() {
             {/* Machine multi-select */}
             {machinesLoading ? (
               <div style={{ display: "flex", alignItems: "center", gap: 6, height: 32, background: "#F8FAFC", borderRadius: 8, padding: "3px 10px", border: "1px solid #E2E8F0", fontSize: 12, color: "#94A3B8" }}>
-                <div style={{ width: 12, height: 12, border: "2px solid #E2E8F0", borderTopColor: "#6366F1", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
+                <div style={{ width: 12, height: 12, border: "2px solid #E2E8F0", borderTopColor: "#0D9488", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
                 Loading…
               </div>
             ) : machines.length > 0 ? (
@@ -844,7 +848,7 @@ export function AdminUserAnalysis() {
             ) : null}
 
             {/* Period badge */}
-            <span style={{ fontSize: 11, fontWeight: 700, color: "#6366F1", background: "#EEF2FF", borderRadius: 6, padding: "3px 10px", border: "1px solid #C7D2FE" }}>
+            <span style={{ fontSize: 11, fontWeight: 700, color: "#0D9488", background: "#F0FDFA", borderRadius: 6, padding: "3px 10px", border: "1px solid #99F6E4" }}>
               {periodLabel}
             </span>
 
@@ -856,7 +860,7 @@ export function AdminUserAnalysis() {
                   padding: isMobile ? "4px 10px" : "4px 12px",
                   borderRadius: 6, border: "none", cursor: "pointer",
                   fontSize: 12, fontWeight: 600,
-                  background: chartType === id ? "#6366F1" : "transparent",
+                  background: chartType === id ? "#0D9488" : "transparent",
                   color: chartType === id ? "#fff" : "#64748B",
                   transition: "all .15s",
                 }}>
@@ -881,10 +885,10 @@ export function AdminUserAnalysis() {
             {selectedMachines.map((code) => {
               const machine = machines.find((m) => m.machine_code === code);
               return (
-                <span key={code} style={{ display: "inline-flex", alignItems: "center", gap: 5, background: "#EEF2FF", border: "1px solid #C7D2FE", borderRadius: 20, padding: "2px 8px 2px 10px", fontSize: 11, fontWeight: 600, color: "#4F46E5" }}>
+                <span key={code} style={{ display: "inline-flex", alignItems: "center", gap: 5, background: "#F0FDFA", border: "1px solid #99F6E4", borderRadius: 20, padding: "2px 8px 2px 10px", fontSize: 11, fontWeight: 600, color: "#0F766E" }}>
                   {machine?.machine_name ?? code}
                   <span style={{ fontSize: 9, color: "#94A3B8", fontFamily: "monospace" }}>#{code}</span>
-                  <button onClick={() => handleMachinesChange(selectedMachines.filter((c) => c !== code))} style={{ border: "none", background: "none", cursor: "pointer", padding: 0, display: "flex", alignItems: "center", color: "#A5B4FC" }}>
+                  <button onClick={() => handleMachinesChange(selectedMachines.filter((c) => c !== code))} style={{ border: "none", background: "none", cursor: "pointer", padding: 0, display: "flex", alignItems: "center", color: "#5EEAD4" }}>
                     <XIcon style={{ width: 10, height: 10 }} />
                   </button>
                 </span>
@@ -899,7 +903,7 @@ export function AdminUserAnalysis() {
         {/* Loader */}
         {loading && (
           <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "70px 0", gap: 12 }}>
-            <div style={{ width: 34, height: 34, border: "3px solid #E2E8F0", borderTopColor: "#6366F1", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
+            <div style={{ width: 34, height: 34, border: "3px solid #E2E8F0", borderTopColor: "#0D9488", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
             <p style={{ fontSize: 13, color: "#94A3B8", fontWeight: 500 }}>Loading…</p>
           </div>
         )}
@@ -938,22 +942,22 @@ export function AdminUserAnalysis() {
 
             {/* Section Panels */}
             <div style={{ display: "grid", gridTemplateColumns: sectionCols, gap, marginBottom: gap + 4 }}>
-              <SectionPanel label="Corporate Users"        data={analysis.corporateUsers}        accent="#8B5CF6" gradId="g-cu"  chartType={chartType} isMobile={isMobile} timeKey={timeKey} />
+              <SectionPanel label="Corporate Users"        data={analysis.corporateUsers}        accent="#2DD4BF" gradId="g-cu"  chartType={chartType} isMobile={isMobile} timeKey={timeKey} />
               <SectionPanel label="Corporate Transactions" data={analysis.corporateTransactions} accent="#EC4899" gradId="g-ct"  chartType={chartType} isMobile={isMobile} timeKey={timeKey} />
               <SectionPanel label="Cash Users"             data={analysis.cashCollectionUsers}   accent="#059669" gradId="g-cc"  chartType={chartType} isMobile={isMobile} timeKey={timeKey} />
               <SectionPanel label="Cash Transactions"      data={analysis.cashCollectionUsers}   accent="#F59E0B" gradId="g-cst" chartType={chartType} isMobile={isMobile} timeKey={timeKey} />
-              <SectionPanel label="App Users"              data={analysis.appUsers}              accent="#6366F1" gradId="g-au"  chartType={chartType} isMobile={isMobile} timeKey={timeKey} />
+              <SectionPanel label="App Users"              data={analysis.appUsers}              accent="#0D9488" gradId="g-au"  chartType={chartType} isMobile={isMobile} timeKey={timeKey} />
               <SectionPanel label="App Transactions"       data={analysis.appTransactions}       accent="#3B82F6" gradId="g-at"  chartType={chartType} isMobile={isMobile} timeKey={timeKey} />
             </div>
 
             {/* Top 5 Tables */}
             <div style={{ display: "grid", gridTemplateColumns: sectionCols, gap, marginBottom: gap + 4 }}>
-              <Top5Table title="Top 5 App Users"       data={analysis.top5AppUsers}       accent="#6366F1" isMobile={isMobile} />
-              <Top5Table title="Top 5 Corporate Users" data={analysis.top5CorporateUsers} accent="#8B5CF6" isMobile={isMobile} />
+              <Top5Table title="Top 5 App Users"       data={analysis.top5AppUsers}       accent="#0D9488" isMobile={isMobile} />
+              <Top5Table title="Top 5 Corporate Users" data={analysis.top5CorporateUsers} accent="#2DD4BF" isMobile={isMobile} />
             </div>
           </>
         )}
       </div>
-    </div>
+    </>
   );
 }

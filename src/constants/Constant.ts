@@ -29,6 +29,7 @@ import {
   IconUserCircle,
   IconLogout2,
   IconLayoutKanban,
+  IconIdBadge2,
 
   // IconBriefcase,
   // IconChecklist,
@@ -83,6 +84,8 @@ export const SUPERADMIN_ALERT_SYSTEM = "/superadmin/alert-system";
 export const SUPERADMIN_ALERT_MACHINE_DETAIL =
   "/superadmin/alert-system/machine/:machineCode";
 export const SUPERADMIN_ASK_CHATBOT = "/superadmin/askChatbot";
+/** Card user admin — davaam_cards. Superadmin only: it is the wallet table. */
+export const SUPERADMIN_CARD_USERS = "/superadmin/cardUsers";
 export const SUPERADMIN_TEAM_MEMBERS = "/superadmin/team-members";
 export const SUPERADMIN_OUTREACH = "/superadmin/outreach";
 // Final approval for missed-attendance requests HR has already approved.
@@ -360,6 +363,7 @@ export const SUPER_ADMIN_SIDEBAR_ROUTES = (activeRiderCount = 0) => {
     // The HR attendance module, roster tab only. Named in full so it is not
     // mistaken for "My Attendance" under Self Service, which is this user's own.
     { title: "Project Tracker", url: TRACKER, icon: IconLayoutKanban },
+    { title: "Card Users", url: SUPERADMIN_CARD_USERS, icon: IconIdBadge2 },
 
     // { title: "Delete Corporate Employees", url: SUPERADMIN_DELETE_EMPLOYEES, icon: IconHexagonMinus },
   ];
