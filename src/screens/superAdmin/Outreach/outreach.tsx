@@ -8,6 +8,8 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
+import { Checkbox } from "@/components/ui/checkbox"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Label } from "@/components/ui/label"
@@ -53,6 +55,7 @@ import {
   IconX,
   IconPencil,
   IconTrash,
+  IconUsers,
 } from "@tabler/icons-react"
 
 // Confirmed against the getOutreach / postOutreach controllers: `id` and
@@ -67,6 +70,11 @@ interface Outreach {
   event_location?: string
   event_gallery?: string[] | string | null
   event_sponsored?: string | boolean
+  description?: string
+  male_attendants?: number | string
+  female_attendants?: number | string
+  total_attendants?: number | string
+  attendant_include?: boolean
   created_at?: string
   updated_at?: string
   [key: string]: unknown
@@ -77,6 +85,8 @@ interface OutreachApiResponse {
   limit: number
   totalCount: number
   totalPages: number
+  totalEvents: number
+  totalAttendants: number
   outreach: Outreach[]
 }
 
@@ -89,6 +99,11 @@ const KNOWN_KEYS = new Set([
   "event_location",
   "event_gallery",
   "event_sponsored",
+  "description",
+  "male_attendants",
+  "female_attendants",
+  "total_attendants",
+  "attendant_include",
   "created_at",
   "updated_at",
   "createdAt",
@@ -138,6 +153,11 @@ const emptyForm = {
   event_location: "",
   event_datetime: "",
   event_sponsored: "",
+  description: "",
+  male_attendants: "",
+  female_attendants: "",
+  total_attendants: "",
+  attendant_include: false,
 }
 
 interface GalleryItem {
@@ -180,6 +200,8 @@ export default function Outreach() {
   const [calendarLoading, setCalendarLoading] = useState(false)
   const [currentMonth, setCurrentMonth] = useState(() => moment().startOf("month"))
   const [selectedDay, setSelectedDay] = useState(() => moment().startOf("day"))
+  const [totalEventsCount, setTotalEventsCount] = useState(0)
+  const [totalAttendantsCount, setTotalAttendantsCount] = useState(0)
 
   const fetchCalendarEvents = useCallback(async () => {
     setCalendarLoading(true)
@@ -188,9 +210,13 @@ export default function Outreach() {
         `${OUTREACH_ENDPOINT}?page=1&limit=${calendarLimit}`
       )
       setCalendarEvents(res.outreach ?? [])
+      setTotalEventsCount(res.totalEvents ?? 0)
+      setTotalAttendantsCount(res.totalAttendants ?? 0)
     } catch (err) {
       console.error("Failed to fetch outreach events:", err)
       setCalendarEvents([])
+      setTotalEventsCount(0)
+      setTotalAttendantsCount(0)
     } finally {
       setCalendarLoading(false)
     }
@@ -325,6 +351,11 @@ export default function Outreach() {
       event_location: ev.event_location ?? "",
       event_datetime: ev.event_datetime ? moment(ev.event_datetime).format("YYYY-MM-DDTHH:mm") : "",
       event_sponsored: typeof ev.event_sponsored === "string" ? ev.event_sponsored : "",
+      description: ev.description ?? "",
+      male_attendants: ev.male_attendants != null ? String(ev.male_attendants) : "",
+      female_attendants: ev.female_attendants != null ? String(ev.female_attendants) : "",
+      total_attendants: ev.total_attendants != null ? String(ev.total_attendants) : "",
+      attendant_include: !!ev.attendant_include,
     })
     setGalleryItems(
       eventGalleryUrls(ev).map((url, i) => ({
@@ -368,6 +399,11 @@ export default function Outreach() {
         event_datetime: moment(form.event_datetime).toISOString(),
         event_gallery,
         event_sponsored: form.event_sponsored.trim(),
+        description: form.description.trim(),
+        male_attendants: form.male_attendants ? Number(form.male_attendants) : 0,
+        female_attendants: form.female_attendants ? Number(form.female_attendants) : 0,
+        total_attendants: form.total_attendants ? Number(form.total_attendants) : 0,
+        attendant_include: form.attendant_include,
       }
 
       if (editingEvent) {
@@ -440,6 +476,31 @@ export default function Outreach() {
               Post Outreach
             </Button>
           </div>
+        </div>
+
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <Card>
+            <CardContent className="flex items-center gap-4 p-4">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-teal-100 text-teal-700">
+                <IconCalendarEvent className="h-5 w-5" />
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Total Events</p>
+                <p className="text-2xl font-semibold">{totalEventsCount}</p>
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="flex items-center gap-4 p-4">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-amber-100 text-amber-700">
+                <IconUsers className="h-5 w-5" />
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Total Attendants</p>
+                <p className="text-2xl font-semibold">{totalAttendantsCount}</p>
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
         {view === "calendar" ? (
@@ -844,16 +905,71 @@ export default function Outreach() {
                   </div>
                 )}
 
-                {sponsoredLabel(detailEvent) && (
+                {sponsoredLabel(detailEvent) ? (
                   <SponsoredBadge label={sponsoredLabel(detailEvent)!} className="w-fit" />
+                ) : (
+                  <Badge variant="outline" className="w-fit text-muted-foreground">
+                    Not sponsored
+                  </Badge>
                 )}
 
-                {eventLocationText(detailEvent) && (
-                  <div className="flex items-start gap-2 text-sm">
-                    <IconMapPin className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
-                    <span>{eventLocationText(detailEvent)}</span>
+                <div className="flex items-start gap-2 text-sm">
+                  <IconMapPin className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
+                  <span>{eventLocationText(detailEvent) ?? "No location provided"}</span>
+                </div>
+
+                <p className="text-sm text-muted-foreground">
+                  {detailEvent.description || "No description provided"}
+                </p>
+
+                <div className="rounded-md border p-3 text-xs">
+                  <div className="mb-2 flex items-center justify-between">
+                    <span className="flex items-center gap-1.5 font-medium">
+                      <IconUsers className="h-3.5 w-3.5 text-muted-foreground" />
+                      Attendants
+                    </span>
+                    <Badge variant={detailEvent.attendant_include ? "default" : "outline"} className="text-[10px]">
+                      {detailEvent.attendant_include ? "Included" : "Not included"}
+                    </Badge>
                   </div>
-                )}
+                  <div className="grid grid-cols-3 gap-2 text-center">
+                    <div>
+                      <div className="text-base font-semibold">{detailEvent.male_attendants ?? 0}</div>
+                      <div className="text-muted-foreground">Male</div>
+                    </div>
+                    <div>
+                      <div className="text-base font-semibold">{detailEvent.female_attendants ?? 0}</div>
+                      <div className="text-muted-foreground">Female</div>
+                    </div>
+                    <div>
+                      <div className="text-base font-semibold">{detailEvent.total_attendants ?? 0}</div>
+                      <div className="text-muted-foreground">Total</div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 rounded-md border p-3 text-xs">
+                  <div className="col-span-2 grid grid-cols-2 gap-2 sm:col-span-1">
+                    <span className="text-muted-foreground">Event ID</span>
+                    <span className="truncate font-medium">{detailEvent.id}</span>
+                  </div>
+                  {detailEvent.created_at && (
+                    <div className="col-span-2 grid grid-cols-2 gap-2 sm:col-span-1">
+                      <span className="text-muted-foreground">Created</span>
+                      <span className="truncate font-medium">
+                        {moment(detailEvent.created_at).format("MMM D, YYYY h:mm A")}
+                      </span>
+                    </div>
+                  )}
+                  {detailEvent.updated_at && (
+                    <div className="col-span-2 grid grid-cols-2 gap-2 sm:col-span-1">
+                      <span className="text-muted-foreground">Updated</span>
+                      <span className="truncate font-medium">
+                        {moment(detailEvent.updated_at).format("MMM D, YYYY h:mm A")}
+                      </span>
+                    </div>
+                  )}
+                </div>
 
                 {extraEntries(detailEvent).length > 0 && (
                   <div className="mt-1 grid grid-cols-2 gap-x-4 gap-y-1.5 rounded-md border p-3 text-xs">
@@ -956,6 +1072,88 @@ export default function Outreach() {
                 onChange={(e) => setForm((f) => ({ ...f, event_sponsored: e.target.value }))}
                 placeholder="e.g. Acme Corp (leave blank if not sponsored)"
               />
+            </div>
+
+            <div className="grid gap-1.5">
+              <Label htmlFor="description">Description</Label>
+              <Textarea
+                id="description"
+                value={form.description}
+                onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
+                placeholder="Brief description of the event"
+                rows={3}
+              />
+            </div>
+
+            <div className="grid grid-cols-3 gap-3">
+              <div className="grid gap-1.5">
+                <Label htmlFor="male_attendants">Male Attendants</Label>
+                <Input
+                  id="male_attendants"
+                  type="number"
+                  min={0}
+                  value={form.male_attendants}
+                  onChange={(e) =>
+                    setForm((f) => {
+                      const male_attendants = e.target.value
+                      return {
+                        ...f,
+                        male_attendants,
+                        total_attendants: String(
+                          (Number(male_attendants) || 0) + (Number(f.female_attendants) || 0)
+                        ),
+                      }
+                    })
+                  }
+                  placeholder="0"
+                />
+              </div>
+              <div className="grid gap-1.5">
+                <Label htmlFor="female_attendants">Female Attendants</Label>
+                <Input
+                  id="female_attendants"
+                  type="number"
+                  min={0}
+                  value={form.female_attendants}
+                  onChange={(e) =>
+                    setForm((f) => {
+                      const female_attendants = e.target.value
+                      return {
+                        ...f,
+                        female_attendants,
+                        total_attendants: String(
+                          (Number(f.male_attendants) || 0) + (Number(female_attendants) || 0)
+                        ),
+                      }
+                    })
+                  }
+                  placeholder="0"
+                />
+              </div>
+              <div className="grid gap-1.5">
+                <Label htmlFor="total_attendants">Total Attendants</Label>
+                <Input
+                  id="total_attendants"
+                  type="number"
+                  value={form.total_attendants}
+                  readOnly
+                  disabled
+                  placeholder="0"
+                />
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <Checkbox
+                id="attendant_include"
+                checked={form.attendant_include}
+                onCheckedChange={(checked) =>
+                  setForm((f) => ({ ...f, attendant_include: checked === true }))
+                }
+              />
+              <Label htmlFor="attendant_include" className="font-normal">
+                Include attendants count for this event
+              </Label>
             </div>
 
             <div className="grid gap-1.5">
