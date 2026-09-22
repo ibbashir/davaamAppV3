@@ -257,8 +257,6 @@ const PendingBadge = (count: number): React.ReactNode => {
 export const SUPER_ADMIN_SIDEBAR_ROUTES = (activeRiderCount = 0) => {
   return [
     { title: "Dashboard", url: SUPERADMIN_DASHBOARD, icon: IconHome },
-    
-    { title: "Create Roles", url: SUPERADMIN_ROLES, icon: IconUserPlus },
     // { title: "Corporate Clients", url: SUPERADMIN_CORPORATE, icon: IconUserStar },
     {
       title: "Ops",
