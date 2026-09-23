@@ -1,8 +1,19 @@
 import { initializeApp} from "firebase/app";
 import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
 
-// Values come from a local .env (gitignored) — see .env.example for the keys
-// to fill in from the Firebase console (Project settings > General > Your apps).
+// Firebase's *web* config (Firebase console > Project settings > General).
+//
+// These are checked in on purpose. Unlike a server key, the web config is a
+// public client identifier: Firebase inlines it into the browser bundle, so it
+// is readable by anyone using the site whatever we do here, and moving it to a
+// VITE_ env var would only inline the same string from somewhere else. The
+// project is protected by the Storage rules and the API key restrictions in the
+// Google Cloud console instead.
+//
+// Netlify's secret scanner flags the apiKey anyway; netlify.toml exempts that
+// one value. The service-account key for the *admin* SDK is a real secret and
+// belongs nowhere near this file.
+//
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,

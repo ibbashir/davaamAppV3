@@ -9,6 +9,24 @@ import type {
 
 export const TRACKER = `${BASE_URL}/tracker`;
 
+/**
+ * Who may create projects and tasks and hand work out.
+ *
+ * This is the affordance only — the API enforces the same list and is the
+ * actual gate, so a stale copy here hides a button but never opens a door.
+ * Keep in step with
+ * backend/src/controllers/DavaamDashboard/Tracker/permissions.js.
+ */
+export const TRACKER_MANAGER_EMAILS = [
+  "salman@davaam.pk",
+  "fizzah.jawad@davaam.pk",
+  "m.abdullah@davaam.pk",
+  "hassan.haroon@davaam.pk",
+];
+
+export const isTrackerManager = (email?: string | null) =>
+  TRACKER_MANAGER_EMAILS.includes(String(email ?? "").trim().toLowerCase());
+
 const get = <T>(path: string, params?: Record<string, unknown>) =>
   getRequest<TrackerResponse<T>>(`${TRACKER}${path}${qs(params)}`);
 
@@ -55,7 +73,14 @@ export const updateSprint = (id: number, body: object) =>
 export const deleteSprint = (id: number) =>
   deleteRequest<TrackerResponse<null>>(`${TRACKER}/sprints/${id}`);
 
-export const fetchUsers = () => get<TrackerUser[]>("/users");
+/**
+ * People who can be given work.
+ *
+ * With a project_id this is narrowed to that project's team when the project is
+ * team-only. Called with no argument it is everyone assignable, which is what
+ * the new-project dialog needs — there is no project to scope to yet.
+ */
+export const fetchUsers = (p?: Record<string, unknown>) => get<TrackerUser[]>("/users", p);
 
 // ─── Issues ──────────────────────────────────────────────────────────────────
 export const fetchIssues = (p?: Record<string, unknown>) => get<Issue[]>("/issues", p);

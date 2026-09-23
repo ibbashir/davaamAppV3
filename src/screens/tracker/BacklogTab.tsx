@@ -12,11 +12,10 @@ import { IconLoader2, IconPlus, IconTrash } from "@tabler/icons-react"
 import { toast } from "sonner"
 import { errorMessage } from "@/components/hr/hr-api"
 import {
-  fetchBacklog, createSprint, updateSprint, deleteSprint, moveIssue,
+  fetchBacklog, createSprint, updateSprint, deleteSprint, moveIssue, isTrackerManager,
 } from "@/components/tracker/tracker-api"
-import {
-  TypeBadge, PriorityBadge, StatusBadge, Avatar, IssueKey, DueDate, Points, Empty,
-} from "@/components/tracker/IssueBits"
+import { useAuth } from "@/contexts/AuthContext"
+import { TypeBadge, PriorityBadge, StatusBadge, IssueKey, DueDate, Points, Empty, AssigneeStack } from "@/components/tracker/IssueBits"
 import { IssueDialog } from "@/components/tracker/IssueDialog"
 import { cn } from "@/lib/utils"
 import type { BacklogData, Issue, Sprint, TrackerUser, SprintStatus } from "@/Types/tracker"
@@ -45,7 +44,7 @@ function Row({ issue, sprints, onOpen, onMove }: {
         <DueDate issue={issue} />
         <PriorityBadge priority={issue.priority} />
         <StatusBadge status={issue.status} />
-        <Avatar user={issue.assignee} />
+        <AssigneeStack issue={issue} />
         {/* Moving between sprints is the whole job of this screen, so it is a
             one-click control here rather than buried in the issue dialog. */}
         <Select
@@ -125,6 +124,10 @@ export default function BacklogTab({
   const [sprintOpen, setSprintOpen] = React.useState(false)
   const [editing, setEditing] = React.useState<Issue | null>(null)
   const [createSprintId, setCreateSprintId] = React.useState<string>("backlog")
+
+  // Creating tasks is limited to the project leads; the API enforces it too.
+  const { state } = useAuth()
+  const canCreate = isTrackerManager(state?.user?.email)
 
   const load = React.useCallback(() => {
     setLoading(true)
@@ -223,10 +226,12 @@ export default function BacklogTab({
                   onMove={(s) => move(i, s)} />
               ))
             )}
-            <Button variant="ghost" size="sm" className="ml-3 mt-1 text-muted-foreground"
-              onClick={() => openCreate(String(sprint.id))}>
-              <IconPlus className="mr-1 h-4 w-4" /> Add issue
-            </Button>
+            {canCreate && (
+              <Button variant="ghost" size="sm" className="ml-3 mt-1 text-muted-foreground"
+                onClick={() => openCreate(String(sprint.id))}>
+                <IconPlus className="mr-1 h-4 w-4" /> Add issue
+              </Button>
+            )}
           </CardContent>
         </Card>
       ))}
@@ -246,10 +251,12 @@ export default function BacklogTab({
                 onMove={(s) => move(i, s)} />
             ))
           )}
-          <Button variant="ghost" size="sm" className="ml-3 mt-1 text-muted-foreground"
-            onClick={() => openCreate("backlog")}>
-            <IconPlus className="mr-1 h-4 w-4" /> Add issue
-          </Button>
+          {canCreate && (
+            <Button variant="ghost" size="sm" className="ml-3 mt-1 text-muted-foreground"
+              onClick={() => openCreate("backlog")}>
+              <IconPlus className="mr-1 h-4 w-4" /> Add issue
+            </Button>
+          )}
         </CardContent>
       </Card>
 

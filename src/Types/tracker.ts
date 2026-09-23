@@ -22,9 +22,15 @@ export interface TrackerProject {
   name: string;
   description: string | null;
   lead_id: number | null;
+  /** "all" = everyone with tracker access; "team" = `members` only. */
+  visibility: ProjectVisibility;
   is_active: boolean;
   lead?: TrackerUser | null;
+  /** Only meaningful while `visibility` is "team". */
+  members?: TrackerUser[];
 }
+
+export type ProjectVisibility = "all" | "team";
 
 export interface Sprint {
   id: number;
@@ -109,7 +115,10 @@ export interface Issue {
   resolved_at: string | null;
   created_at: string;
   updated_at: string;
+  /** The first of `assignees`. Kept for the board filters and the summary. */
   assignee?: TrackerUser | null;
+  /** Everyone the task is assigned to; a task can be shared. */
+  assignees?: TrackerUser[];
   reporter?: TrackerUser | null;
   sprint?: Pick<Sprint, "id" | "name" | "status"> | null;
   project?: Pick<TrackerProject, "id" | "key" | "name"> | null;

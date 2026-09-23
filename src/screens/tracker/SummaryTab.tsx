@@ -5,7 +5,7 @@ import { IconLoader2, IconChecklist, IconAlertTriangle, IconUserOff } from "@tab
 import { toast } from "sonner"
 import { errorMessage } from "@/components/hr/hr-api"
 import { fetchSummary, STATUS_LABEL, PRIORITY_STYLE, userName, COLOR_BADGE, statusColor } from "@/components/tracker/tracker-api"
-import { TypeBadge, StatusBadge, Avatar, IssueKey, Empty } from "@/components/tracker/IssueBits"
+import { TypeBadge, StatusBadge, IssueKey, Empty, AssigneeStack } from "@/components/tracker/IssueBits"
 import { cn } from "@/lib/utils"
 import type { SummaryData } from "@/Types/tracker"
 
@@ -130,7 +130,7 @@ export default function SummaryTab({ projectId, refreshKey }: { projectId?: numb
             {data.recent.length === 0 && <p className="text-sm text-muted-foreground">Nothing updated yet.</p>}
             {data.recent.map((i) => (
               <div key={i.id} className="flex items-start gap-2.5">
-                <Avatar user={i.assignee} />
+                <AssigneeStack issue={i} />
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-1.5">
                     <IssueKey issue={i} />

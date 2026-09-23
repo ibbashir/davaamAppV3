@@ -5,9 +5,7 @@ import { IconLoader2, IconGitBranch, IconGitPullRequest, IconAlertTriangle } fro
 import { toast } from "sonner"
 import { errorMessage } from "@/components/hr/hr-api"
 import { fetchDevelopment, userName } from "@/components/tracker/tracker-api"
-import {
-  TypeBadge, StatusBadge, PriorityBadge, Avatar, IssueKey, Empty,
-} from "@/components/tracker/IssueBits"
+import { TypeBadge, StatusBadge, PriorityBadge, IssueKey, Empty, AssigneeStack } from "@/components/tracker/IssueBits"
 import { IssueDialog } from "@/components/tracker/IssueDialog"
 import type { DevelopmentData, Issue, Sprint, TrackerUser } from "@/Types/tracker"
 
@@ -55,7 +53,7 @@ function DevRow({ issue, onOpen }: { issue: Issue; onOpen: () => void }) {
       </button>
       <div className="flex shrink-0 items-center gap-2">
         <span className="hidden text-xs text-muted-foreground sm:inline">{userName(issue.assignee)}</span>
-        <Avatar user={issue.assignee} />
+        <AssigneeStack issue={issue} />
       </div>
     </div>
   )
