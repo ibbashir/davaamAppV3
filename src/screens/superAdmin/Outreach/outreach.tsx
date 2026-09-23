@@ -865,19 +865,19 @@ export default function Outreach() {
 
       {/* Event details dialog */}
       <Dialog open={!!detailEvent} onOpenChange={(open) => !open && setDetailEvent(null)}>
-        <DialogContent className="sm:max-w-lg">
+        <DialogContent className="sm:max-w-3xl">
           {detailEvent && (
             <>
               <DialogHeader>
-                <DialogTitle>{eventTitle(detailEvent)}</DialogTitle>
+                <DialogTitle className="text-xl">{eventTitle(detailEvent)}</DialogTitle>
                 <DialogDescription>
                   {moment(detailEvent.event_datetime).format("dddd, MMMM D, YYYY [at] h:mm A")}
                 </DialogDescription>
               </DialogHeader>
 
-              <div className="flex flex-col gap-3">
+              <div className="flex flex-col gap-4">
                 {eventGalleryUrls(detailEvent).length > 0 && (
-                  <div className="grid grid-cols-3 gap-1.5">
+                  <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
                     {eventGalleryUrls(detailEvent)
                       .slice(0, 6)
                       .map((url, i) => {
@@ -887,15 +887,15 @@ export default function Outreach() {
                             key={url}
                             type="button"
                             onClick={() => setLightbox({ images: gallery, index: i })}
-                            className="relative block overflow-hidden rounded-md"
+                            className="relative block overflow-hidden rounded-lg"
                           >
                             <img
                               src={url}
                               alt={`${eventTitle(detailEvent)} ${i + 1}`}
-                              className="h-20 w-full object-cover transition-transform hover:scale-105"
+                              className="h-40 w-full object-cover transition-transform hover:scale-105 sm:h-48"
                             />
                             {i === 5 && gallery.length > 6 && (
-                              <span className="absolute inset-0 flex items-center justify-center bg-black/50 text-sm font-medium text-white">
+                              <span className="absolute inset-0 flex items-center justify-center bg-black/50 text-base font-medium text-white">
                                 +{gallery.length - 6} more
                               </span>
                             )}
@@ -946,29 +946,6 @@ export default function Outreach() {
                       <div className="text-muted-foreground">Total</div>
                     </div>
                   </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 rounded-md border p-3 text-xs">
-                  <div className="col-span-2 grid grid-cols-2 gap-2 sm:col-span-1">
-                    <span className="text-muted-foreground">Event ID</span>
-                    <span className="truncate font-medium">{detailEvent.id}</span>
-                  </div>
-                  {detailEvent.created_at && (
-                    <div className="col-span-2 grid grid-cols-2 gap-2 sm:col-span-1">
-                      <span className="text-muted-foreground">Created</span>
-                      <span className="truncate font-medium">
-                        {moment(detailEvent.created_at).format("MMM D, YYYY h:mm A")}
-                      </span>
-                    </div>
-                  )}
-                  {detailEvent.updated_at && (
-                    <div className="col-span-2 grid grid-cols-2 gap-2 sm:col-span-1">
-                      <span className="text-muted-foreground">Updated</span>
-                      <span className="truncate font-medium">
-                        {moment(detailEvent.updated_at).format("MMM D, YYYY h:mm A")}
-                      </span>
-                    </div>
-                  )}
                 </div>
 
                 {extraEntries(detailEvent).length > 0 && (
@@ -1252,7 +1229,7 @@ export default function Outreach() {
       <Dialog open={!!lightbox} onOpenChange={(open) => !open && setLightbox(null)}>
         <DialogContent
           showCloseButton={false}
-          className="max-w-3xl border-none bg-transparent p-0 shadow-none sm:max-w-3xl"
+          className="max-w-5xl border-none bg-transparent p-0 shadow-none sm:max-w-5xl"
         >
           <DialogTitle className="sr-only">Gallery image</DialogTitle>
           {lightbox && (
@@ -1260,7 +1237,7 @@ export default function Outreach() {
               <img
                 src={lightbox.images[lightbox.index]}
                 alt={`Gallery image ${lightbox.index + 1} of ${lightbox.images.length}`}
-                className="max-h-[80vh] w-full rounded-md object-contain"
+                className="max-h-[85vh] w-full rounded-md object-contain"
               />
 
               <button

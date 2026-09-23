@@ -5,13 +5,12 @@ import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
 // to fill in from the Firebase console (Project settings > General > Your apps).
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
-  apiKey: "AIzaSyBRVg4hfeqd1-9VLInPNpsU3BTRasgmSeI",
-  authDomain: "davaamlife-33233.firebaseapp.com",
-  projectId: "davaamlife-33233",
-  storageBucket: "davaamlife-33233.appspot.com",
-  messagingSenderId: "359523720294",
-  appId: "1:359523720294:web:d32dc42ccd00b451fa61a7",
-  measurementId: "G-Z45CQ1J9CW"
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
 };
 
 

@@ -1,3 +1,9 @@
+[build.environment]
+    # Firebase web config is client-side, non-secret config (scoped by Firebase
+    # security rules, not secrecy), but Vite inlines it into the build output,
+    # which trips Netlify's secrets scanner. Exclude these keys from that scan.
+    SECRETS_SCAN_OMIT_KEYS = "VITE_FIREBASE_API_KEY,VITE_FIREBASE_AUTH_DOMAIN,VITE_FIREBASE_PROJECT_ID,VITE_FIREBASE_STORAGE_BUCKET,VITE_FIREBASE_MESSAGING_SENDER_ID,VITE_FIREBASE_APP_ID"
+
 [[redirects]]
     from = "/*"
     to = "/index.html"
