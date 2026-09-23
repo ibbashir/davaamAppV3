@@ -3,6 +3,7 @@ import { getRequest, postRequest, putRequest, deleteRequest } from "@/Apis/Api";
 import { Plus, Pencil, Trash2, RefreshCw, X, PlusCircle, MinusCircle, GripVertical } from "lucide-react";
 import { toast } from "sonner";
 import { DndContext, closestCenter, PointerSensor, useSensor, useSensors } from "@dnd-kit/core";
+import type { DragEndEvent } from "@dnd-kit/core";
 import { SortableContext, verticalListSortingStrategy, useSortable, arrayMove } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { Button } from "@/components/ui/button";

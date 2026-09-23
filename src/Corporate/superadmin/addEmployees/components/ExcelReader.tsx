@@ -4,7 +4,16 @@ import { FaFileExcel, FaUpload, FaTimes, FaInfoCircle, FaSpinner } from 'react-i
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
-const ExcelReader: React.FC<ExcelReaderProps> = ({ 
+interface ExcelReaderProps {
+  onFileRead: (data: unknown, name: string) => void;
+  onReset: () => void;
+  currentFile: string;
+  // Optional: the component falls back to local processing when it is absent.
+  onBulkUpload?: (file: File, machineCode: string) => Promise<void>;
+  uploadStatus: 'idle' | 'uploading' | 'success' | 'error';
+}
+
+const ExcelReader: React.FC<ExcelReaderProps> = ({
   onFileRead, 
   onReset,
   currentFile,
