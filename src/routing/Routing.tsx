@@ -34,6 +34,8 @@ import SurveyForm from '@/screens/superAdmin/SurveyForm/SurveyForm'
 import SuperAdminAskChatbot from '@/screens/superAdmin/AskChatbot/askChatbot'
 import SuperAdminTeamMembers from '@/screens/superAdmin/TeamMembers/teamMembers'
 import SuperAdminOutreach from '@/screens/superAdmin/Outreach/outreach'
+import AdminOutreach from '@/screens/admin/Outreach/outreach'
+import CorporateOutreach from '@/screens/corporate/Outreach/outreach'
 
 //admin screens
 import AdminDashboard from '@/screens/admin/dashboard/Dashboard'
@@ -235,6 +237,8 @@ import {
   SUPERADMIN_TEAM_MEMBERS,
   ADMIN_USER_ANALYSIS,
   COMPANY_USER_ANALYSIS,
+  ADMIN_OUTREACH,
+  COMPANY_OUTREACH,
 } from '@/constants/Constant'
 
 import ResetPassword from '@/screens/forgetPassword/ResetPassword'
@@ -332,6 +336,7 @@ const Routing = () => {
           <Route path={ADMIN_ALERT_SYSTEM} element={<AlertSystem />} />
           <Route path={ADMIN_ALERT_MACHINE_DETAIL} element={<MachineAlertDetail />} />
           <Route path={ADMIN_USER_ANALYSIS} element={<AdminUserAnalysis />} />
+          <Route path={ADMIN_OUTREACH} element={<AdminOutreach />} />
         </Route>
       </Route>
 
@@ -488,6 +493,7 @@ const Routing = () => {
           <Route path={DELETE_EMPLOYEES} element={<MobilinkOnly><BulkDelete /></MobilinkOnly>} />
           <Route path={CORPORATE_CASH_COLLECTION} element={<ButterflyOnly><CorporateCashCollectionPage /></ButterflyOnly>} />
           <Route path={COMPANY_USER_ANALYSIS} element={<ButterflyOnly><CompanyUserAnalysis /></ButterflyOnly>} />
+          <Route path={COMPANY_OUTREACH} element={<ButterflyOnly><CorporateOutreach /></ButterflyOnly>} />
         </Route>
       </Route>
 

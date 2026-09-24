@@ -110,6 +110,7 @@ export const ADMIN_BUTTERFLY_PRODUCTS = "/admin/butterflyProducts";
 export const ADMIN_ALERT_SYSTEM = "/admin/alert-system";
 export const ADMIN_ALERT_MACHINE_DETAIL = "/admin/alert-system/machine/:machineCode";
 export const ADMIN_USER_ANALYSIS = "/admin/userAnalysis";
+export const ADMIN_OUTREACH = "/admin/outreach";
 
 //OPS PATHS
 export const OPS_DASHBOARD = "/ops/dashboard";
@@ -206,6 +207,7 @@ export const DELETE_EMPLOYEES = "/company/delete-employees";
 export const USERS = "/company/users";
 export const CORPORATE_CASH_COLLECTION = "/company/cashCollection";
 export const COMPANY_USER_ANALYSIS = "/company/userAnalysis";
+export const COMPANY_OUTREACH = "/company/outreach";
 
 // ─── Live rider badge helper ──────────────────────────────────────────────────
 // Renders a teal pulsing pill showing the active rider count.
@@ -423,6 +425,8 @@ export const ADMIN_SIDEBAR_ROUTES = () => {
       url: ADMIN_BUTTERFLY_PRODUCTS,
       icon: IconShare3,
     },
+    
+    { title: "Outreach Events", url: ADMIN_OUTREACH, icon: IconCalendarEvent },
     { title: "Alert System", url: ADMIN_ALERT_SYSTEM, icon: IconClipboardList },
     { title: "Project Tracker", url: TRACKER, icon: IconLayoutKanban },
   ];
@@ -642,7 +646,8 @@ export const MACHINES_SIDEBAR_ROUTES = (firstName: string) => {
       title: "User Analysis",
       url: COMPANY_USER_ANALYSIS,
       icon: IconFileDescription,
-    }
+    },
+    { title: "Outreach Events", url: COMPANY_OUTREACH, icon: IconCalendarEvent },
     );
   }
   if (firstName === "Mobilink") {
