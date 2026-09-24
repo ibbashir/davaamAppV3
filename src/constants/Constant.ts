@@ -134,9 +134,9 @@ export const FULFill_DASHBOARD = "/fulfill/dashboard";
 export const FULFill_MACHINES = "/fulfill/machines";
 export const FULFill_LOCATIONS = "/fulfill/locations";
 export const FULFill_TOPUP = "/fulfill/topup";
-export const FULLFiLL_MAINTAINCE = "/fulfill/maintaince";
+export const FULLFiLL_MAINTAINCE = "/fulfill/maintenance";
 export const FULFill_MACHINE_VISIT = "/fulfill/machine-details/:id";
-export const MAINTAINCE_REQUESTS = "/fulfill/maintaince-requests";
+export const MAINTAINCE_REQUESTS = "/fulfill/maintenance-requests";
 export const CASH_COLLECTIONS = "/fulfill/cashCollection";
 export const FULFill_MACHINE_MAP = "/fulfill/machine-map";
 export const Fulfill_RIDER_LOCATION = "/fulfill/riderLocation";
@@ -147,7 +147,7 @@ export const FINANCE_USER_WALLET_ACTIVITY = "/finance/userWalletActivity";
 export const FINANCE_MACHINES = "/finance/machines";
 export const FINANCE_LOCATIONS = "/finance/locations";
 export const FINANCE_TOPUP = "/finance/topup";
-export const FINANCE_MAINTAINCE = "/finance/maintaince";
+export const FINANCE_MAINTAINCE = "/finance/maintenance";
 export const FINANCE_MACHINE_VISIT = "/finance/machine-details/:id";
 export const FINANCE_CASH_COLLECTIONS = "/finance/cashCollection";
 export const FINANCE_MACHINE_MAP = "/finance/machine-map";
@@ -343,12 +343,12 @@ export const SUPER_ADMIN_SIDEBAR_ROUTES = (activeRiderCount = 0) => {
       icon: IconCircleArrowUpRight,
       items: [
         {
-          title: "Maintaince",
+          title: "Maintenance",
           url: FULLFiLL_MAINTAINCE,
           icon: IconCircleArrowUpRight,
         },
         {
-          title: "Maintaince Requests",
+          title: "Maintenance Requests",
           url: MAINTAINCE_REQUESTS,
           icon: IconCircleArrowUpRight,
         },
@@ -476,12 +476,12 @@ export const FULFILL_SIDEBAR_ROUTES = () => {
       icon: IconCircleArrowUpRight,
       items: [
         {
-          title: "Maintaince",
+          title: "maintenance",
           url: FULLFiLL_MAINTAINCE,
           icon: IconCircleArrowUpRight,
         },
         {
-          title: "Maintaince Requests",
+          title: "maintenance Requests",
           url: MAINTAINCE_REQUESTS,
           icon: IconCircleArrowUpRight,
         },

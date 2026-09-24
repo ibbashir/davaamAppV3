@@ -115,8 +115,8 @@ const AddMaintenanceSchedule = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 p-4 md:p-8">
-      <div className="max-w-4xl mx-auto">
+    <div className="w-full bg-gradient-to-br from-gray-50 to-blue-50 p-4">
+      <div className="mx-auto">
         {/* Header */}
         <div className="mb-8">
           <div className="flex flex-col md:flex-row md:items-center justify-between mb-6">
@@ -221,7 +221,7 @@ const AddMaintenanceSchedule = () => {
 
         {/* Main Form Card */}
         <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
-          <div className="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-4">
+          <div className="bg-gradient-to-r from-teal-600 to-teal-700 px-6 py-4">
             <div className="flex items-center gap-3">
               <div className="p-2 bg-white/20 rounded-lg">
                 <Calendar className="w-6 h-6 text-white" />
@@ -405,7 +405,7 @@ const AddMaintenanceSchedule = () => {
                 className={`w-full py-3.5 px-4 rounded-xl font-medium text-white transition-all flex items-center justify-center gap-3 ${
                   loading || isSubmitted
                     ? "bg-blue-400 cursor-not-allowed"
-                    : "bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 hover:shadow-lg"
+                    : "bg-gradient-to-r from-teal-600 to-teal-700 hover:from-teal-700 hover:to-teal-800 hover:shadow-lg"
                 }`}
               >
                 {loading ? (
