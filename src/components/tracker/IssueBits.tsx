@@ -36,6 +36,51 @@ export const Avatar = ({ user }: { user?: TrackerUser | null }) => (
   </span>
 )
 
+/**
+ * Everyone a task is assigned to, overlapped so a shared task reads as one
+ * unit at a glance. Falls back to the single `assignee` for issues created
+ * before tasks could be shared, and to one empty chip when nobody holds it —
+ * the row keeps its shape either way.
+ *
+ * Caps at three so a widely shared task cannot push the card's other fields
+ * off; the rest are counted in a "+N" chip, and the title lists everybody.
+ */
+export const AssigneeStack = ({
+  issue,
+  max = 3,
+}: {
+  issue: Pick<Issue, "assignee" | "assignees">
+  max?: number
+}) => {
+  const people = issue.assignees?.length
+    ? issue.assignees
+    : issue.assignee
+      ? [issue.assignee]
+      : []
+
+  if (!people.length) return <Avatar user={null} />
+
+  const shown = people.slice(0, max)
+  const extra = people.length - shown.length
+
+  return (
+    <span className="inline-flex items-center" title={people.map(userName).join(", ")}>
+      {shown.map((user, i) => (
+        <span key={user.id} className={cn(i > 0 && "-ml-1.5")}>
+          <span className="block rounded-full ring-2 ring-white">
+            <Avatar user={user} />
+          </span>
+        </span>
+      ))}
+      {extra > 0 && (
+        <span className="-ml-1.5 inline-flex h-6 min-w-6 shrink-0 items-center justify-center rounded-full bg-slate-200 px-1 text-[10px] font-semibold text-slate-600 ring-2 ring-white">
+          +{extra}
+        </span>
+      )}
+    </span>
+  )
+}
+
 /** The issue key, styled as the identifier people quote in chat. */
 export const IssueKey = ({ issue }: { issue: Pick<Issue, "issue_key"> }) => (
   <span className="font-mono text-xs font-semibold text-muted-foreground">{issue.issue_key}</span>

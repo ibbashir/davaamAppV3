@@ -5,8 +5,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { IconLoader2, IconPlus, IconPencil, IconLayoutColumns, IconColumns3 } from "@tabler/icons-react"
 import { toast } from "sonner"
 import { errorMessage } from "@/components/hr/hr-api"
-import { fetchBoard, moveIssue, userName, boardFilterSummary, COLOR_ACCENT } from "@/components/tracker/tracker-api"
-import { TypeBadge, PriorityBadge, Avatar, IssueKey, DueDate, Points } from "@/components/tracker/IssueBits"
+import {
+  fetchBoard, moveIssue, userName, boardFilterSummary, COLOR_ACCENT, isTrackerManager,
+} from "@/components/tracker/tracker-api"
+import { useAuth } from "@/contexts/AuthContext"
+import { TypeBadge, PriorityBadge, IssueKey, DueDate, Points, AssigneeStack } from "@/components/tracker/IssueBits"
 import { IssueDialog } from "@/components/tracker/IssueDialog"
 import { BoardDialog } from "@/components/tracker/BoardDialog"
 import { ColumnDialog } from "@/components/tracker/ColumnDialog"
@@ -37,7 +40,7 @@ function IssueCard({ issue, onOpen, onDragStart }: {
         </div>
         <div className="flex items-center gap-2">
           <DueDate issue={issue} />
-          <Avatar user={issue.assignee} />
+          <AssigneeStack issue={issue} />
         </div>
       </div>
     </Card>
@@ -57,6 +60,10 @@ export default function BoardTab({
   const [loading, setLoading] = React.useState(true)
   const [sprintFilter, setSprintFilter] = React.useState("all")
   const [assigneeFilter, setAssigneeFilter] = React.useState("all")
+  // Creating tasks is limited to the project leads; the API enforces it too.
+  const { state } = useAuth()
+  const canCreate = isTrackerManager(state?.user?.email)
+
   const [dialogOpen, setDialogOpen] = React.useState(false)
   const [editing, setEditing] = React.useState<Issue | null>(null)
   const [createIn, setCreateIn] = React.useState<IssueStatus>("todo")
@@ -234,13 +241,15 @@ export default function BoardTab({
                 ))}
               </div>
 
-              <Button
-                variant="ghost" size="sm"
-                className="mt-2 w-full justify-start text-muted-foreground"
-                onClick={() => { setEditing(null); setCreateIn(col.status); setDialogOpen(true) }}
-              >
-                <IconPlus className="mr-1 h-4 w-4" /> Add issue
-              </Button>
+              {canCreate && (
+                <Button
+                  variant="ghost" size="sm"
+                  className="mt-2 w-full justify-start text-muted-foreground"
+                  onClick={() => { setEditing(null); setCreateIn(col.status); setDialogOpen(true) }}
+                >
+                  <IconPlus className="mr-1 h-4 w-4" /> Add issue
+                </Button>
+              )}
             </div>
           )
         })}

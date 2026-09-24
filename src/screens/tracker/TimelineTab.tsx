@@ -4,7 +4,7 @@ import { IconLoader2 } from "@tabler/icons-react"
 import { toast } from "sonner"
 import { errorMessage } from "@/components/hr/hr-api"
 import { fetchTimeline, STATUS_LABEL, userName, isOverdue } from "@/components/tracker/tracker-api"
-import { TypeBadge, Avatar, IssueKey, Empty } from "@/components/tracker/IssueBits"
+import { TypeBadge, IssueKey, Empty, AssigneeStack } from "@/components/tracker/IssueBits"
 import { IssueDialog } from "@/components/tracker/IssueDialog"
 import { cn } from "@/lib/utils"
 import type { TimelineData, Issue, IssueStatus, Sprint, TrackerUser } from "@/Types/tracker"
@@ -277,7 +277,7 @@ export default function TimelineTab({
                       onClick={() => { setEditing(row); setOpen(true) }}
                       className="flex min-w-0 items-center gap-1.5 pr-3 text-left"
                     >
-                      <Avatar user={row.assignee} />
+                      <AssigneeStack issue={row} />
                       <IssueKey issue={row} />
                       <span className="min-w-0 flex-1 truncate text-xs">{row.title}</span>
                       <TypeBadge type={row.type} />
