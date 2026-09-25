@@ -16,12 +16,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import {
   IconLoader2, IconPlus, IconSearch, IconTrash, IconPencil, IconRefresh,
   IconUsers, IconUserCheck, IconUserOff, IconWallet, IconChevronLeft, IconChevronRight,
-  IconAlertTriangle, IconArrowUp, IconArrowDown,
+  IconAlertTriangle, IconArrowUp, IconArrowDown, IconTableImport,
 } from "@tabler/icons-react"
 import { toast } from "sonner"
 import { getRequest, postRequest, putRequest, deleteRequest } from "@/Apis/Api"
 import { BASE_URL } from "@/constants/Constant"
 import { cn } from "@/lib/utils"
+import { CardUsersBulkDialog } from "@/components/superAdmin/card-users-bulk-dialog"
 
 const API = `${BASE_URL}/superadmin/cardUsers`
 
@@ -229,6 +230,7 @@ const CardUsers = () => {
   const [sortDir, setSortDir] = React.useState<"ASC" | "DESC">("DESC")
   const [dialogOpen, setDialogOpen] = React.useState(false)
   const [editing, setEditing] = React.useState<CardUser | null>(null)
+  const [bulkOpen, setBulkOpen] = React.useState(false)
   // Set when a delete is refused because the card carries transaction history.
   const [pendingDelete, setPendingDelete] = React.useState<
     { user: CardUser; count: number; balance: number } | null
@@ -343,6 +345,9 @@ const CardUsers = () => {
           <div className="flex items-center gap-2">
             <Button variant="outline" size="sm" onClick={refresh} disabled={loading}>
               <IconRefresh className={cn("mr-1 h-4 w-4", loading && "animate-spin")} /> Refresh
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => setBulkOpen(true)}>
+              <IconTableImport className="mr-1 h-4 w-4" /> Bulk add
             </Button>
             <Button
               size="sm"
@@ -531,6 +536,7 @@ const CardUsers = () => {
         user={editing}
         onSaved={refresh}
       />
+      <CardUsersBulkDialog open={bulkOpen} onOpenChange={setBulkOpen} onImported={refresh} />
     </>
   )
 }
