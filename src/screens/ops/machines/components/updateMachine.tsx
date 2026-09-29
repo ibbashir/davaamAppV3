@@ -2,7 +2,7 @@ import { Fragment, forwardRef, useRef, useState, useEffect } from "react";
 import { Dialog, Transition } from "@headlessui/react";
 import { useForm, useWatch } from "react-hook-form";
 import { Switch } from "@headlessui/react";
-import { putRequest, getRequest } from "@/Apis/Api";
+import { putRequest, getRequest, postRequest } from "@/Apis/Api";
 import { X, Cpu, ChevronDown } from "lucide-react";
 import type { ApiMachine } from "../Types";
 
@@ -16,6 +16,13 @@ type UpdateInputs = {
   lat: number;
   lng: number;
   price: number;
+};
+
+type StockRow = {
+  brandId: number | string;
+  name: string;
+  currentStock?: number | string | null;
+  rowNum: number;
 };
 
 const GOOGLE_MAPS_PATTERNS = [
@@ -92,6 +99,9 @@ export default function UpdateMachine({
   const [paymentMethodError, setPaymentMethodError] = useState("");
   const [butterflyProducts, setButterflyProducts] = useState<ButterflyProduct[]>([]);
   const [productsLoading, setProductsLoading] = useState(false);
+  const [stockRows, setStockRows] = useState<StockRow[]>([]);
+  const [stockRowsLoading, setStockRowsLoading] = useState(false);
+  const [rowStockValues, setRowStockValues] = useState<Record<string, string>>({});
 
   const isButterfly = machine?.machine_code?.startsWith("3") ?? false;
 
@@ -148,6 +158,95 @@ export default function UpdateMachine({
     setPaymentMethods(Array.isArray(methods) ? methods : []);
     setPaymentMethodError("");
   }, [machine, open, reset, butterflyProducts, productsLoading, isButterfly]);
+
+  // Fetch each product row's last known stock when the modal opens.
+  // `brands` carries the real brand id; `fillings` carries the last stock
+  // value. Fillings are matched to brands by id first (brand_id / brandId /
+  // id, whichever the API actually sends), falling back to name matching.
+  useEffect(() => {
+    if (!open || !machine) return;
+    setStockRowsLoading(true);
+    postRequest<{
+      brands?: { id: number | string; name: string; row_num?: number }[];
+      fillings?: Record<string, unknown>[];
+    }>("/ops/machineDetailsWithMachineCode", { machine_code: machine.machine_code })
+      .then((result) => {
+        const brands = result?.brands ?? [];
+        const fillings = result?.fillings ?? [];
+        console.log("[UpdateMachine] machineDetailsWithMachineCode:", { brands, fillings });
+
+        const norm = (v: unknown) => String(v ?? "").trim().toLowerCase();
+
+        const rows: StockRow[] = brands.map((brand, index) => {
+          const filling = fillings.find((f) => {
+            const fBrandId = f.brand_id ?? f.brandId ?? f.id;
+            if (fBrandId !== undefined && String(fBrandId) === String(brand.id)) return true;
+            return norm(f.name) === norm(brand.name);
+          });
+          const currentStock =
+            (filling?.currentStock as number | string | undefined) ??
+            (filling?.quantity as number | string | undefined) ??
+            (filling?.litres as number | string | undefined);
+          return {
+            brandId: brand.id,
+            name: brand.name,
+            currentStock,
+            rowNum: brand.row_num ?? index + 1,
+          };
+        });
+        setStockRows(rows);
+        const initial: Record<string, string> = {};
+        rows.forEach((row) => {
+          initial[String(row.brandId)] =
+            row.currentStock != null ? String(row.currentStock) : "";
+        });
+        setRowStockValues(initial);
+      })
+      .catch(() => {
+        setStockRows([]);
+        setRowStockValues({});
+      })
+      .finally(() => setStockRowsLoading(false));
+  }, [open, machine]);
+
+  const [stockSaving, setStockSaving] = useState(false);
+
+  const saveStock = async () => {
+    if (!machine) return;
+
+    const updates: { brandId: number | string; currentStock: number }[] = [];
+    for (const row of stockRows) {
+      const raw = rowStockValues[String(row.brandId)];
+      if (raw === undefined || raw.trim() === "") continue;
+      if (isNaN(Number(raw)) || Number(raw) < 0) {
+        alert(`Enter a valid non-negative stock value for ${row.name}.`);
+        return;
+      }
+      updates.push({ brandId: row.brandId, currentStock: Number(raw) });
+    }
+
+    if (updates.length === 0) {
+      alert("Enter at least one stock value to save.");
+      return;
+    }
+
+    setStockSaving(true);
+    try {
+      await putRequest(`/ops/updateMachine/${machine.machine_code}`, {
+        currentStock: updates,
+      });
+      alert("Stock updated successfully!");
+    } catch (error: unknown) {
+      const message =
+        error instanceof Error
+          ? ((error as { response?: { data?: { message?: string } } }).response
+              ?.data?.message ?? error.message)
+          : "Failed to update stock.";
+      alert(`Error: ${message}`);
+    } finally {
+      setStockSaving(false);
+    }
+  };
 
   const togglePaymentMethod = (method: string) => {
     setPaymentMethodError("");
@@ -359,6 +458,59 @@ export default function UpdateMachine({
                         />
                         <FieldError message={errors.price?.message} />
                       </div>
+                    </>
+                  )}
+
+                  <SectionHeading>Stock</SectionHeading>
+                  <p className="text-xs text-gray-400 dark:text-gray-500">
+                    Current stock is shown per row. Edit the values you want to correct, then click Save Stock to submit them together.
+                  </p>
+                  {stockRowsLoading ? (
+                    <p className="text-xs text-gray-400 dark:text-gray-500">Loading stock…</p>
+                  ) : stockRows.length === 0 ? (
+                    <p className="text-xs text-gray-400 dark:text-gray-500">No product rows found for this machine.</p>
+                  ) : (
+                    <>
+                      <div className="grid grid-cols-4 gap-2">
+                        {stockRows.map((row) => (
+                          <div
+                            key={row.brandId}
+                            className="rounded-lg border border-gray-100 bg-gray-50 px-2 py-2 dark:border-gray-700 dark:bg-gray-800/40"
+                          >
+                            <span className="block text-xs font-semibold text-teal-600 dark:text-teal-400">
+                              Row {row.rowNum}
+                            </span>
+                            <p
+                              className="truncate text-xs font-medium text-gray-700 dark:text-gray-300"
+                              title={row.name}
+                            >
+                              {row.name}
+                            </p>
+                            <input
+                              type="number"
+                              step="1"
+                              min="0"
+                              value={rowStockValues[String(row.brandId)] ?? ""}
+                              onChange={(e) =>
+                                setRowStockValues((prev) => ({
+                                  ...prev,
+                                  [String(row.brandId)]: e.target.value,
+                                }))
+                              }
+                              className={`${inputClass} mt-1 w-full`}
+                              placeholder="New"
+                            />
+                          </div>
+                        ))}
+                      </div>
+                      <button
+                        type="button"
+                        disabled={stockSaving}
+                        onClick={saveStock}
+                        className="rounded-lg bg-teal-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-teal-700 disabled:opacity-60"
+                      >
+                        {stockSaving ? "Saving Stock…" : "Save Stock"}
+                      </button>
                     </>
                   )}
 

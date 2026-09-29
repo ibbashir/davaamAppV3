@@ -195,11 +195,19 @@ export default function AddMachine({
     setValue("machine_type", machineCode.startsWith("3") ? "sanitary" : "dispensing");
   }, [machineCode, setValue]);
 
+  const isCashOnly = paymentMethods.length === 1 && paymentMethods[0] === "Cash";
+
   const togglePaymentMethod = (method: string) => {
     setPaymentMethodError("");
+    const isSelecting = !paymentMethods.includes(method);
     setPaymentMethods((prev) =>
       prev.includes(method) ? prev.filter((m) => m !== method) : [...prev, method],
     );
+    // Selecting Cash implies the machine has a cash acceptor.
+    if (method === "Cash" && isSelecting) {
+      setComponents((prev) => ({ ...prev, cashAcceptor: "Yes" }));
+      setComponentsErrors((prev) => ({ ...prev, cashAcceptor: undefined }));
+    }
   };
 
   const updateComponent = (key: keyof ComponentsState, value: string) => {
@@ -211,13 +219,16 @@ export default function AddMachine({
     const errs: Partial<Record<keyof ComponentsState, string>> = {};
     if (!components.bodyType) errs.bodyType = "Required.";
     if (!components.pcb) errs.pcb = "Required.";
-    if (!components.connectivityModule)
-      errs.connectivityModule = "Required.";
     if (!components.cashAcceptor) errs.cashAcceptor = "Required.";
-    if (!components.macAddress) {
-      errs.macAddress = "Required.";
-    } else if (!MAC_ADDRESS_PATTERN.test(components.macAddress)) {
-      errs.macAddress = "Format: AA:BB:CC:DD:EE:FF";
+    // Cash-only machines don't need network hardware documented.
+    if (!isCashOnly) {
+      if (!components.connectivityModule)
+        errs.connectivityModule = "Required.";
+      if (!components.macAddress) {
+        errs.macAddress = "Required.";
+      } else if (!MAC_ADDRESS_PATTERN.test(components.macAddress)) {
+        errs.macAddress = "Format: AA:BB:CC:DD:EE:FF";
+      }
     }
     setComponentsErrors(errs);
     return Object.keys(errs).length === 0;
@@ -477,36 +488,38 @@ export default function AddMachine({
                       />
                     </div>
 
-                    <div className="grid grid-cols-2 gap-3">
-                      <div>
-                        <FieldLabel>Connectivity Module</FieldLabel>
-                        <div className="grid grid-cols-2 gap-1 rounded-lg border border-gray-200 bg-gray-50 p-1 dark:border-gray-700 dark:bg-gray-800/50">
-                          {(["Wifi", "Ethernet"] as const).map((option) => {
-                            const selected =
-                              components.connectivityModule === option;
-                            const Icon = option === "Wifi" ? Wifi : Cable;
-                            return (
-                              <button
-                                key={option}
-                                type="button"
-                                onClick={() =>
-                                  updateComponent("connectivityModule", option)
-                                }
-                                className={cn(
-                                  "flex items-center justify-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-teal-500/20",
-                                  selected
-                                    ? "bg-teal-600 text-white shadow-sm"
-                                    : "text-gray-600 hover:bg-white hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-100",
-                                )}
-                              >
-                                <Icon className="h-3.5 w-3.5" />
-                                {option}
-                              </button>
-                            );
-                          })}
+                    <div className={isCashOnly ? "grid grid-cols-1 gap-3" : "grid grid-cols-2 gap-3"}>
+                      {!isCashOnly && (
+                        <div>
+                          <FieldLabel>Connectivity Module</FieldLabel>
+                          <div className="grid grid-cols-2 gap-1 rounded-lg border border-gray-200 bg-gray-50 p-1 dark:border-gray-700 dark:bg-gray-800/50">
+                            {(["Wifi", "Ethernet"] as const).map((option) => {
+                              const selected =
+                                components.connectivityModule === option;
+                              const Icon = option === "Wifi" ? Wifi : Cable;
+                              return (
+                                <button
+                                  key={option}
+                                  type="button"
+                                  onClick={() =>
+                                    updateComponent("connectivityModule", option)
+                                  }
+                                  className={cn(
+                                    "flex items-center justify-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-teal-500/20",
+                                    selected
+                                      ? "bg-teal-600 text-white shadow-sm"
+                                      : "text-gray-600 hover:bg-white hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-100",
+                                  )}
+                                >
+                                  <Icon className="h-3.5 w-3.5" />
+                                  {option}
+                                </button>
+                              );
+                            })}
+                          </div>
+                          <FieldError message={componentsErrors.connectivityModule} />
                         </div>
-                        <FieldError message={componentsErrors.connectivityModule} />
-                      </div>
+                      )}
 
                       <SegmentedToggle
                         label="Cash Acceptor"
@@ -517,26 +530,28 @@ export default function AddMachine({
                       />
                     </div>
 
-                    <div>
-                      <FieldLabel>MAC Address</FieldLabel>
-                      <div className="relative">
-                        <Fingerprint className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400 dark:text-gray-500" />
-                        <input
-                          type="text"
-                          value={components.macAddress}
-                          onChange={(e) =>
-                            updateComponent(
-                              "macAddress",
-                              formatMacAddress(e.target.value),
-                            )
-                          }
-                          className={cn(inputClass, "pl-9 font-mono uppercase tracking-wide")}
-                          placeholder="AA:BB:CC:DD:EE:FF"
-                          maxLength={17}
-                        />
+                    {!isCashOnly && (
+                      <div>
+                        <FieldLabel>MAC Address</FieldLabel>
+                        <div className="relative">
+                          <Fingerprint className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400 dark:text-gray-500" />
+                          <input
+                            type="text"
+                            value={components.macAddress}
+                            onChange={(e) =>
+                              updateComponent(
+                                "macAddress",
+                                formatMacAddress(e.target.value),
+                              )
+                            }
+                            className={cn(inputClass, "pl-9 font-mono uppercase tracking-wide")}
+                            placeholder="AA:BB:CC:DD:EE:FF"
+                            maxLength={17}
+                          />
+                        </div>
+                        <FieldError message={componentsErrors.macAddress} />
                       </div>
-                      <FieldError message={componentsErrors.macAddress} />
-                    </div>
+                    )}
                   </div>
 
                   {!isButterfly && (
@@ -642,6 +657,8 @@ export default function AddMachine({
                         <option value="lahore">Lahore</option>
                         <option value="islamabad">Islamabad</option>
                         <option value="multan">Multan</option>
+                        <option value="faisalabad">Faisalabad</option>
+                        <option value="faisalabad">Raiwand</option>
                       </SelectField>
                       <FieldError message={errors.machine_city?.message} />
                     </div>
