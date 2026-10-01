@@ -76,29 +76,29 @@ const MonthlySheet = () => {
     }
   }, [month, year, departmentId])
 
-  /** One row per employee, one column per day, plus every total. */
+  /** One row per employee: the totals first, then one column per day. */
   const downloadCsv = () => {
     if (!sheet) return
     const days = sheet.period.days
     const header = [
       "Employee Code", "Name", "Department", "Designation",
-      ...days.map((d) => `${d.day} ${d.label}`),
       "Working Days", "Present", "Late", "Half Days", "Leave", "Absent",
       "Worked Hours", "Expected Hours", "Overtime Hours",
       "Late Minutes", "Late Penalty (days)", "Payable Days", "Attendance %",
+      ...days.map((d) => `${d.day} ${d.label}`),
     ]
     const rows = sheet.data.map((r) => [
       r.employee_code, r.name, r.department ?? "", r.designation ?? "",
-      ...days.map((d) => {
-        const cell = r.days[d.date]
-        if (!cell?.status) return ""
-        return CELL[cell.status]?.label ?? cell.status
-      }),
       r.totals.working_days, r.totals.present_days, r.totals.late_days,
       r.totals.half_days, r.totals.leave_days, r.totals.absent_days,
       r.totals.worked_hours, r.totals.expected_hours, r.totals.overtime_hours,
       r.totals.late_minutes, r.totals.late_penalty_days, r.totals.payable_days,
       r.totals.attendance_rate,
+      ...days.map((d) => {
+        const cell = r.days[d.date]
+        if (!cell?.status) return ""
+        return CELL[cell.status]?.label ?? cell.status
+      }),
     ])
 
     const csv = [header, ...rows].map((line) => line.map(csvCell).join(",")).join("\n")
