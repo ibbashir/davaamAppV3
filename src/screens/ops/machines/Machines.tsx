@@ -181,16 +181,52 @@ function PaymentMethodBadges({ methods }: { methods?: string[] | null }) {
   );
 }
 
+const FILTERS_KEY = "ops-machines-filters";
+
 const Machines = () => {
   const navigate = useNavigate();
 
-  const [searchTerm, setSearchTerm] = useState("");
-  const [debouncedSearch, setDebouncedSearch] = useState("");
-  const [activeCategory, setActiveCategory] = useState("Butterfly");
+  const [savedFilters] = useState(() => {
+    try {
+      return JSON.parse(sessionStorage.getItem(FILTERS_KEY) || "{}");
+    } catch {
+      return {};
+    }
+  });
+  const [searchTerm, setSearchTerm] = useState<string>(
+    savedFilters.searchTerm ?? "",
+  );
+  const [debouncedSearch, setDebouncedSearch] = useState<string>(
+    savedFilters.searchTerm ?? "",
+  );
+  const [activeCategory, setActiveCategory] = useState<string>(
+    savedFilters.activeCategory ?? "Butterfly",
+  );
   const [isShowCleaningProducts, setIsShowCleaningProducts] = useState(false);
 
-  const [statusFilter, setStatusFilter] = useState<StatusFilter>(null);
-  const [stockFilter, setStockFilter] = useState<StockFilter>(null);
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>(
+    savedFilters.statusFilter ?? null,
+  );
+  const [stockFilter, setStockFilter] = useState<StockFilter>(
+    savedFilters.stockFilter ?? null,
+  );
+
+  // Persist filters so they survive navigating to a machine and back
+  useEffect(() => {
+    try {
+      sessionStorage.setItem(
+        FILTERS_KEY,
+        JSON.stringify({
+          searchTerm,
+          activeCategory,
+          statusFilter,
+          stockFilter,
+        }),
+      );
+    } catch {
+      /* ignore storage errors */
+    }
+  }, [searchTerm, activeCategory, statusFilter, stockFilter]);
 
   const [open, setOpen] = useState(false);
   const [openDelete, setOpenDelete] = useState(false);

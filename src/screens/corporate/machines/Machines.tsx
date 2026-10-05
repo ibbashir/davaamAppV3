@@ -29,6 +29,8 @@ import { postRequest } from "@/Apis/Api"
 import { useAuth } from "@/contexts/AuthContext"
 import { formatUnixTimestamp } from "@/utils/formatters"
 
+const FILTERS_KEY = "corporate-machines-filters"
+
 const CorporateMachines = () => {
   const navigate = useNavigate()
   const { state } = useAuth()
@@ -42,8 +44,26 @@ const CorporateMachines = () => {
     [user?.machines]
   )
 
-  const [searchTerm, setSearchTerm] = useState("")
-  const [activeCategory, setActiveCategory] = useState("Butterfly")
+  const [savedFilters] = useState(() => {
+    try {
+      return JSON.parse(sessionStorage.getItem(FILTERS_KEY) || "{}")
+    } catch {
+      return {}
+    }
+  })
+  const [searchTerm, setSearchTerm] = useState<string>(savedFilters.searchTerm ?? "")
+  const [activeCategory, setActiveCategory] = useState<string>(
+    savedFilters.activeCategory ?? "Butterfly"
+  )
+
+  // Persist filters so they survive navigating to a machine and back
+  useEffect(() => {
+    try {
+      sessionStorage.setItem(FILTERS_KEY, JSON.stringify({ searchTerm, activeCategory }))
+    } catch {
+      /* ignore storage errors */
+    }
+  }, [searchTerm, activeCategory])
   const [currentPage, setCurrentPage] = useState(1)
   const [machinesData, setMachinesData] = useState<{ [category: string]: ApiMachine[] } | null>(null)
   const [machineStockMap, setMachineStockMap] = useState<{ [code: string]: string }>({})

@@ -314,18 +314,54 @@ function PaymentMethodBadges({ methods }: { methods?: string[] }) {
   );
 }
 
+const FILTERS_KEY = "superadmin-machines-filters";
+
 // ── Main component ────────────────────────────────────────────────────────────
 const Machines = () => {
   const navigate = useNavigate();
 
   const [pageSize, setPageSize] = useState(10);
 
-  const [searchTerm, setSearchTerm] = useState("");
-  const [debouncedSearch, setDebouncedSearch] = useState("");
-  const [activeCategory, setActiveCategory] = useState("Butterfly");
+  const [savedFilters] = useState(() => {
+    try {
+      return JSON.parse(sessionStorage.getItem(FILTERS_KEY) || "{}");
+    } catch {
+      return {};
+    }
+  });
+  const [searchTerm, setSearchTerm] = useState<string>(
+    savedFilters.searchTerm ?? "",
+  );
+  const [debouncedSearch, setDebouncedSearch] = useState<string>(
+    savedFilters.searchTerm ?? "",
+  );
+  const [activeCategory, setActiveCategory] = useState<string>(
+    savedFilters.activeCategory ?? "Butterfly",
+  );
   const [isShowCleaningProducts, setIsShowCleaningProducts] = useState(false);
-  const [statusFilter, setStatusFilter] = useState<StatusFilter>(null);
-  const [stockFilter, setStockFilter] = useState<StockFilter>(null);
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>(
+    savedFilters.statusFilter ?? null,
+  );
+  const [stockFilter, setStockFilter] = useState<StockFilter>(
+    savedFilters.stockFilter ?? null,
+  );
+
+  // Persist filters so they survive navigating to a machine and back
+  useEffect(() => {
+    try {
+      sessionStorage.setItem(
+        FILTERS_KEY,
+        JSON.stringify({
+          searchTerm,
+          activeCategory,
+          statusFilter,
+          stockFilter,
+        }),
+      );
+    } catch {
+      /* ignore storage errors */
+    }
+  }, [searchTerm, activeCategory, statusFilter, stockFilter]);
   const [currentPage, setCurrentPage] = useState(1);
   const [serverTotalPages, setServerTotalPages] = useState(1);
   const [serverTotalItems, setServerTotalItems] = useState(0);
