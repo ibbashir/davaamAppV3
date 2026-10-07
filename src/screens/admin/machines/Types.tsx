@@ -15,6 +15,7 @@ type ApiMachine = {
     lastUpdated: number | null
     map_link?: string | null
     payment_methods?: string[] | null
+    women_access?: number | string | null
 }
 
 // Brand types

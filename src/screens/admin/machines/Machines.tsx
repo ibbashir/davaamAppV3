@@ -1,5 +1,14 @@
 import { useState, useEffect } from "react";
-import { getRequest } from "@/Apis/Api";
+import { getRequest, postRequest, putRequest } from "@/Apis/Api";
+import { toast } from "sonner";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { SiteHeader } from "@/components/admin/site-header";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
@@ -22,6 +31,7 @@ import {
   Package,
   Activity,
   CreditCard,
+  Pencil,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -111,6 +121,7 @@ const TABLE_COLUMNS: TableColumn[] = [
   { label: "Stock" },
   { label: "Forecast" },
   { label: "Status" },
+  { label: "Women Access" },
 ];
 
 const STATUS_FILTERS: { value: StatusFilter; label: string; dot: string }[] = [
@@ -136,6 +147,18 @@ const STOCK_COLORS: Record<string, string> = {
   "Out of Stock": "bg-red-100 text-red-800",
   Unknown: "bg-gray-100 text-gray-800",
 };
+
+function WomenAccessBadge({ value }: { value: ApiMachine["women_access"] }) {
+  const num = Number(value);
+  if (value === null || value === undefined || value === "" || Number.isNaN(num)) {
+    return <span className="text-gray-400 text-xs">—</span>;
+  }
+  return (
+    <Badge className="bg-blue-300 text-blue-800 tabular-nums">
+      {num.toLocaleString()}
+    </Badge>
+  );
+}
 
 const PAYMENT_METHOD_ICONS: Record<
   string,
@@ -608,6 +631,58 @@ const Machines = () => {
       state: { machine },
     });
 
+  const [womenEditTarget, setWomenEditTarget] = useState<ApiMachine | null>(
+    null,
+  );
+  const [womenEditValue, setWomenEditValue] = useState("");
+  const [womenSaving, setWomenSaving] = useState(false);
+
+  const openWomenEdit = (machine: ApiMachine) => {
+    setWomenEditTarget(machine);
+    setWomenEditValue(
+      machine.women_access === null || machine.women_access === undefined
+        ? ""
+        : String(machine.women_access),
+    );
+  };
+
+  const handleSaveWomenAccess = async () => {
+    if (!womenEditTarget) return;
+    const womenAccess = Number(womenEditValue);
+    if (womenEditValue.trim() === "" || Number.isNaN(womenAccess) || womenAccess < 0) {
+      toast.error("Enter a valid non-negative number");
+      return;
+    }
+    const code = womenEditTarget.machine_code;
+    setWomenSaving(true);
+    try {
+      await putRequest(
+        `/admin/updateWomenAccess?machineCode=${encodeURIComponent(code)}`,
+        { womenAccess },
+      );
+      setMachinesData((prev) =>
+        prev
+          ? Object.fromEntries(
+              Object.entries(prev).map(([category, list]) => [
+                category,
+                list.map((m) =>
+                  m.machine_code === code
+                    ? { ...m, women_access: womenAccess }
+                    : m,
+                ),
+              ]),
+            )
+          : prev,
+      );
+      toast.success("Women access updated");
+      setWomenEditTarget(null);
+    } catch {
+      toast.error("Failed to update women access");
+    } finally {
+      setWomenSaving(false);
+    }
+  };
+
   return (
     <div>
       <SiteHeader title="Deployed Machines" />
@@ -986,6 +1061,19 @@ const Machines = () => {
                                 {machine.status}
                               </Badge>
                             </td>
+                            <td className="px-4 py-3 whitespace-nowrap text-center">
+                              <div className="flex items-center justify-center gap-2">
+                                <WomenAccessBadge value={machine.women_access} />
+                                <button
+                                  type="button"
+                                  aria-label={`Edit women access for ${machine.machine_code}`}
+                                  className="rounded p-1 text-gray-500 hover:bg-teal-50 hover:text-teal-700"
+                                  onClick={() => openWomenEdit(machine)}
+                                >
+                                  <Pencil className="h-4 w-4" />
+                                </button>
+                              </div>
+                            </td>
                             <td className="px-4 py-3 text-center">
                               <Button
                                 size="sm"
@@ -1099,6 +1187,45 @@ const Machines = () => {
           </div>
         )}
       </div>
+
+      <Dialog
+        open={womenEditTarget !== null}
+        onOpenChange={(open) => !open && !womenSaving && setWomenEditTarget(null)}
+      >
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Edit Women Access</DialogTitle>
+            <DialogDescription>
+              {womenEditTarget?.machine_name} ({womenEditTarget?.machine_code})
+            </DialogDescription>
+          </DialogHeader>
+          <Input
+            type="number"
+            min={0}
+            value={womenEditValue}
+            onChange={(e) => setWomenEditValue(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && handleSaveWomenAccess()}
+            placeholder="Women access"
+            autoFocus
+          />
+          <DialogFooter>
+            <Button
+              variant="outline"
+              disabled={womenSaving}
+              onClick={() => setWomenEditTarget(null)}
+            >
+              Cancel
+            </Button>
+            <Button
+              className="bg-teal-600 hover:bg-teal-700"
+              disabled={womenSaving}
+              onClick={handleSaveWomenAccess}
+            >
+              {womenSaving ? "Saving..." : "Save"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
