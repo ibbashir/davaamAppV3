@@ -41,6 +41,16 @@ export const fetchTimeline = (p?: Record<string, unknown>) => get<TimelineData>(
 export const fetchProjects = () => get<TrackerProject[]>("/projects");
 export const createProject = (body: object) =>
   postRequest<TrackerResponse<TrackerProject>>(`${TRACKER}/projects`, body);
+/** Team projects only — an "all" project has no member list. */
+export const addProjectMembers = (projectId: number, adminIds: number[]) =>
+  postRequest<TrackerResponse<TrackerProject>>(`${TRACKER}/projects/${projectId}/members`, { admin_ids: adminIds });
+export const removeProjectMember = (projectId: number, adminId: number) =>
+  deleteRequest<TrackerResponse<TrackerProject>>(`${TRACKER}/projects/${projectId}/members/${adminId}`);
+
+/** Dashboard role codes that can be on a project, as people know them. */
+export const ROLE_LABEL: Record<string, string> = {
+  "0": "Super admin", "1": "Admin", "2": "Ops", "4": "Fulfillment",
+};
 
 // ─── Boards (saved views) ────────────────────────────────────────────────────
 // ─── Columns (workflow states) ───────────────────────────────────────────────

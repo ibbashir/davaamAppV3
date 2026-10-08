@@ -6,8 +6,9 @@ import { toast } from "sonner"
 import { errorMessage } from "@/components/hr/hr-api"
 import { fetchSummary, STATUS_LABEL, PRIORITY_STYLE, userName, COLOR_BADGE, statusColor } from "@/components/tracker/tracker-api"
 import { TypeBadge, StatusBadge, IssueKey, Empty, AssigneeStack } from "@/components/tracker/IssueBits"
+import { ProjectMembersCard } from "@/components/tracker/ProjectMembers"
 import { cn } from "@/lib/utils"
-import type { SummaryData } from "@/Types/tracker"
+import type { SummaryData, TrackerProject, TrackerUser } from "@/Types/tracker"
 
 /** Horizontal proportion bar — one segment per bucket, zero-count ones dropped. */
 function Bar({ items, styles, labels = {} }: {
@@ -45,7 +46,17 @@ function Bar({ items, styles, labels = {} }: {
   )
 }
 
-export default function SummaryTab({ projectId, refreshKey }: { projectId?: number; refreshKey: number }) {
+export default function SummaryTab({
+  projectId, refreshKey, project, allUsers, canManage, currentUserId, onProjectChanged,
+}: {
+  projectId?: number
+  refreshKey: number
+  project?: TrackerProject
+  allUsers: TrackerUser[]
+  canManage: boolean
+  currentUserId?: number
+  onProjectChanged: (project: TrackerProject) => void
+}) {
   const [data, setData] = React.useState<SummaryData | null>(null)
   const [loading, setLoading] = React.useState(true)
 
@@ -62,8 +73,25 @@ export default function SummaryTab({ projectId, refreshKey }: { projectId?: numb
   if (loading) {
     return <div className="flex h-56 items-center justify-center"><IconLoader2 className="h-6 w-6 animate-spin text-teal-600" /></div>
   }
+  // Below the numbers, and still shown before there are any — a new project's
+  // first job is usually getting the right people onto it.
+  const members = project && (
+    <ProjectMembersCard
+      project={project}
+      allUsers={allUsers}
+      canManage={canManage}
+      currentUserId={currentUserId}
+      onChanged={onProjectChanged}
+    />
+  )
+
   if (!data?.totals?.total && !data?.recent?.length) {
-    return <Empty message="No issues yet. Create one from the Backlog or Board tab." />
+    return (
+      <div className="flex flex-col gap-4">
+        <Empty message="No issues yet. Create one from the Backlog or Board tab." />
+        {members}
+      </div>
+    )
   }
 
   const t = data.totals
@@ -147,6 +175,8 @@ export default function SummaryTab({ projectId, refreshKey }: { projectId?: numb
           </CardContent>
         </Card>
       </div>
+
+      {members}
     </div>
   )
 }

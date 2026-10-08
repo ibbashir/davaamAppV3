@@ -264,6 +264,26 @@ const Tracker = () => {
   }, [])
 
   const shared = { projectId, sprints, users, refreshKey, onChanged: bump }
+  const currentUserId = state?.user?.id
+  const project = projects.find((p) => p.id === projectId)
+
+  /**
+   * After the member list changes. Leaving a team project means it is no
+   * longer visible, so it drops out of the switcher; otherwise the fresh copy
+   * replaces the old one and the per-project assignee list is re-fetched.
+   */
+  const onProjectChanged = (updated: TrackerProject) => {
+    const stillVisible =
+      updated.visibility !== "team" || (updated.members ?? []).some((m) => m.id === currentUserId)
+    if (!stillVisible) {
+      const rest = projects.filter((p) => p.id !== updated.id)
+      setProjects(rest)
+      setProjectId(rest[0]?.id)
+    } else {
+      setProjects((cur) => cur.map((p) => (p.id === updated.id ? updated : p)))
+    }
+    bump()
+  }
 
   if (loading) {
     return (
@@ -344,7 +364,15 @@ const Tracker = () => {
               </TabsList>
 
               <TabsContent value="summary" className="mt-4">
-                <SummaryTab projectId={projectId} refreshKey={refreshKey} />
+                <SummaryTab
+                  projectId={projectId}
+                  refreshKey={refreshKey}
+                  project={project}
+                  allUsers={allUsers}
+                  canManage={canManage}
+                  currentUserId={currentUserId}
+                  onProjectChanged={onProjectChanged}
+                />
               </TabsContent>
               <TabsContent value="backlog" className="mt-4"><BacklogTab {...shared} /></TabsContent>
               <TabsContent value="board" className="mt-4"><BoardTab {...shared} /></TabsContent>
