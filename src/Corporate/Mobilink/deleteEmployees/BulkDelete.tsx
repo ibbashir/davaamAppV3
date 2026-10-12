@@ -110,6 +110,7 @@ const BulkDelete = () => {
     try {
       const response = await fetch(`${BASE_URL}/corporates/deleteBulkCorporateUsers`, {
         method: 'DELETE',
+        credentials: 'include', // the API checks the login cookie
         body: formData,
       });
 

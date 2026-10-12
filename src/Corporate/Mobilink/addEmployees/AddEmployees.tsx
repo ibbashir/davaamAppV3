@@ -187,6 +187,7 @@ function AddEmployees() {
     try {
       const response = await fetch(`${BASE_URL}/corporates/addBulkCorporateUsers`, {
         method: 'POST',
+        credentials: 'include', // the API checks the login cookie
         body: formData,
       });
 

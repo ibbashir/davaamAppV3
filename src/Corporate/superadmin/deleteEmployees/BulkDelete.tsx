@@ -110,6 +110,7 @@ const SuperAdminBulkDelete = () => {
     try {
       const response = await fetch(`${BASE_URL}/superadmin/deleteBulkCorporateUsers`, {
         method: 'DELETE',
+        credentials: 'include', // the API checks the login cookie
         body: formData,
       });
 
