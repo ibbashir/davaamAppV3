@@ -60,6 +60,30 @@ export interface LeadSettings {
   agent_notes: string
 }
 
+export interface SchedulePhase {
+  label: string
+  hours_utc: number[]
+  from: number | null
+  until: number | null
+}
+
+export interface AgentSchedule {
+  cron_utc: string
+  /** Hours (UTC) the agent runs in the phase in force now */
+  hours_utc: number[]
+  phases: SchedulePhase[]
+  current_phase: string
+  switch_at: number
+  minute: number
+  routine_url: string
+  max_runs_per_day: number
+  min_interval_hours: number
+  next_runs: number[]
+  server_time: number
+}
+
+export type TodayRun = Pick<LeadRun, "id" | "kind" | "new_count" | "emailed_count" | "email_status" | "created_at">
+
 export interface Overview {
   total: number
   last24h: number
@@ -70,6 +94,8 @@ export interface Overview {
   byCategory: Record<string, number>
   lastRun: LeadRun | null
   lastAgentRun: LeadRun | null
+  todayRuns: TodayRun[]
+  schedule: AgentSchedule
 }
 
 interface Res<T> { statusCode: number; message: string; data: T }

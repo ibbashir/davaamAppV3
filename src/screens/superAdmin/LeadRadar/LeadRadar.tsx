@@ -12,6 +12,7 @@ import { fetchOverview, fmtTime, EMAIL_STYLE, type Overview } from "./api"
 import { LeadsTab, Pill } from "./LeadsTab"
 import { RunsTab } from "./RunsTab"
 import { SettingsTab } from "./SettingsTab"
+import { ScheduleCard } from "./ScheduleCard"
 
 const ROUTINE_URL = "https://claude.ai/code/routines/trig_01N9T4iBvi3fGLF65yARiCSr"
 
@@ -44,7 +45,7 @@ export default function LeadRadar() {
               <IconRadar className="h-5 w-5 text-teal-600" /> Lead Radar
             </h1>
             <p className="text-sm text-muted-foreground">
-              Tenders and project posts for software, AI and vending, found daily at 1:00 am by the cloud agent.
+              Tenders and project posts for software, AI and vending, found by the daily cloud agent.
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -77,6 +78,8 @@ export default function LeadRadar() {
             hint={last ? `${last.new_count} new · ${lastEmail?.label ?? last.email_status}` : "Runs daily at 1:00 am"}
           />
         </div>
+
+        {overview?.schedule && <ScheduleCard schedule={overview.schedule} todayRuns={overview.todayRuns ?? []} />}
 
         {last?.email_status === "failed" && (
           <div className="flex flex-wrap items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">
