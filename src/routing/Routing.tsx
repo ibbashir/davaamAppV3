@@ -204,6 +204,7 @@ import {
   OPS_ALERT_SYSTEM,
   OPS_ALERT_MACHINE_DETAIL,
   SUPERADMIN_ALERT_SYSTEM,
+  SUPERADMIN_LEAD_RADAR,
   SUPERADMIN_ASK_CHATBOT,
   SUPERADMIN_OUTREACH,
   SUPERADMIN_CARD_USERS,
@@ -250,6 +251,7 @@ import ButterflyProducts from '@/screens/admin/butterflyProducts/butterflyProduc
 import OpsRiderLocation from '@/screens/ops/RiderLocation/OpsRiderLocation'
 import FulfillmentRiderLocation from '@/screens/fulfillment/RiderLocation/FulfilmentRiderLocation'
 import { AlertSystem } from '@/screens/superAdmin/AlertSystem/AlertSystem'
+import LeadRadar from '@/screens/superAdmin/LeadRadar/LeadRadar'
 import { MachineAlertDetail } from '@/screens/superAdmin/AlertSystem/MachineAlertDetail'
 import { AdminUserAnalysis } from '@/screens/admin/usersAnalysis/UserAnalysis'
 import { CompanyUserAnalysis } from '@/screens/corporate/usersAnalysis/UserAnalysis'
@@ -308,6 +310,7 @@ const Routing = () => {
           <Route path={SUPERADMIN_USER_ANALYSIS} element={<SuperAdminUserAnalysis />} />
           <Route path={SUPERADMIN_SURVEY_FORM} element={<SurveyForm />} />
           <Route path={SUPERADMIN_ALERT_SYSTEM} element={<AlertSystem />} />
+          <Route path={SUPERADMIN_LEAD_RADAR} element={<LeadRadar />} />
           <Route path={SUPERADMIN_ALERT_MACHINE_DETAIL} element={<MachineAlertDetail />} />
           <Route path={SUPERADMIN_ASK_CHATBOT} element={<SuperAdminAskChatbot />} />
           <Route path={SUPERADMIN_CARD_USERS} element={<SuperAdminCardUsers />} />
