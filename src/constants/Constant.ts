@@ -208,6 +208,7 @@ export const USERS = "/company/users";
 export const CORPORATE_CASH_COLLECTION = "/company/cashCollection";
 export const COMPANY_USER_ANALYSIS = "/company/userAnalysis";
 export const COMPANY_OUTREACH = "/company/outreach";
+export const COMPANY_COMPLAINT = "/company/complaint";
 
 // ─── Live rider badge helper ──────────────────────────────────────────────────
 // Renders a teal pulsing pill showing the active rider count.
@@ -634,6 +635,7 @@ export const MACHINES_SIDEBAR_ROUTES = (firstName: string) => {
     { title: "Dashboard", url: MACHINE_DASHBOARD, icon: IconHome },
     { title: "Machines", url: MACHINE_MACHINES, icon: IconChartBar },
     { title: "Reports", url: REPORT, icon: IconFileDescription },
+    { title: "Complaints", url: COMPANY_COMPLAINT, icon: IconFileDescription },
   ];
   if (firstName === "Butterfly") {
     routes.push(

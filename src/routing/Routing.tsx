@@ -36,6 +36,7 @@ import SuperAdminTeamMembers from '@/screens/superAdmin/TeamMembers/teamMembers'
 import SuperAdminOutreach from '@/screens/superAdmin/Outreach/outreach'
 import AdminOutreach from '@/screens/admin/Outreach/outreach'
 import CorporateOutreach from '@/screens/corporate/Outreach/outreach'
+import CorporateComplaint from '@/screens/corporate/complaint/complaint'
 
 //admin screens
 import AdminDashboard from '@/screens/admin/dashboard/Dashboard'
@@ -239,6 +240,7 @@ import {
   COMPANY_USER_ANALYSIS,
   ADMIN_OUTREACH,
   COMPANY_OUTREACH,
+  COMPANY_COMPLAINT,
 } from '@/constants/Constant'
 
 import ResetPassword from '@/screens/forgetPassword/ResetPassword'
@@ -494,6 +496,7 @@ const Routing = () => {
           <Route path={CORPORATE_CASH_COLLECTION} element={<ButterflyOnly><CorporateCashCollectionPage /></ButterflyOnly>} />
           <Route path={COMPANY_USER_ANALYSIS} element={<ButterflyOnly><CompanyUserAnalysis /></ButterflyOnly>} />
           <Route path={COMPANY_OUTREACH} element={<ButterflyOnly><CorporateOutreach /></ButterflyOnly>} />
+          <Route path={COMPANY_COMPLAINT} element={<CorporateComplaint />} />
         </Route>
       </Route>
 

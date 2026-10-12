@@ -22,6 +22,7 @@ export const TRACKER_MANAGER_EMAILS = [
   "fizzah.jawad@davaam.pk",
   "m.abdullah@davaam.pk",
   "hassan.haroon@davaam.pk",
+  "adnanalikunbher3@gmail.com"
 ];
 
 export const isTrackerManager = (email?: string | null) =>

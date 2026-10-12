@@ -148,6 +148,57 @@ function SponsoredBadge({ label, className = "" }: { label: string; className?: 
   )
 }
 
+const MIN_LOADER_MS = 600
+
+/** Image that shows a pulsing placeholder + spinner until it has loaded (or failed). */
+function PulseImage({
+  src,
+  alt,
+  className = "",
+  wrapperClassName = "",
+}: {
+  src: string
+  alt: string
+  className?: string
+  wrapperClassName?: string
+}) {
+  const [settledSrc, setSettledSrc] = useState<string | null>(null)
+  const loading = settledSrc !== src
+  const startedAt = useRef(Date.now())
+  const timer = useRef<ReturnType<typeof setTimeout>>(undefined)
+
+  // Restart the clock whenever the image changes (e.g. lightbox navigation).
+  useEffect(() => {
+    startedAt.current = Date.now()
+    return () => clearTimeout(timer.current)
+  }, [src])
+
+  // Keep the loader up for at least MIN_LOADER_MS so cached images don't skip it.
+  const settle = () => {
+    const wait = Math.max(0, MIN_LOADER_MS - (Date.now() - startedAt.current))
+    clearTimeout(timer.current)
+    timer.current = setTimeout(() => setSettledSrc(src), wait)
+  }
+
+  return (
+    <div className={`relative ${wrapperClassName}`}>
+      {loading && (
+        <div className="absolute inset-0 flex items-center justify-center bg-teal-100">
+          <div className="absolute inset-0 animate-pulse bg-teal-200/70" />
+          <IconLoader2 className="relative h-7 w-7 animate-spin text-teal-700" />
+        </div>
+      )}
+      <img
+        src={src}
+        alt={alt}
+        onLoad={settle}
+        onError={settle}
+        className={`${className} ${loading ? "opacity-0" : ""}`}
+      />
+    </div>
+  )
+}
+
 const emptyForm = {
   event_name: "",
   event_location: "",
@@ -889,10 +940,11 @@ export default function Outreach() {
                             onClick={() => setLightbox({ images: gallery, index: i })}
                             className="relative block overflow-hidden rounded-lg"
                           >
-                            <img
+                            <PulseImage
                               src={url}
                               alt={`${eventTitle(detailEvent)} ${i + 1}`}
-                              className="h-40 w-full object-cover transition-transform hover:scale-105 sm:h-48"
+                              wrapperClassName="h-40 w-full sm:h-48"
+                              className="h-full w-full object-cover transition-transform hover:scale-105"
                             />
                             {i === 5 && gallery.length > 6 && (
                               <span className="absolute inset-0 flex items-center justify-center bg-black/50 text-base font-medium text-white">
@@ -1151,9 +1203,10 @@ export default function Outreach() {
                       item.status === "error" ? "border-red-400" : ""
                     }`}
                   >
-                    <img
+                    <PulseImage
                       src={item.previewUrl}
                       alt={`Selected ${i + 1}`}
+                      wrapperClassName="h-full w-full"
                       className={`h-full w-full object-cover ${item.status === "uploading" ? "opacity-50" : ""}`}
                     />
                     {item.status === "uploading" && (
@@ -1234,10 +1287,11 @@ export default function Outreach() {
           <DialogTitle className="sr-only">Gallery image</DialogTitle>
           {lightbox && (
             <div className="relative flex items-center justify-center">
-              <img
+              <PulseImage
                 src={lightbox.images[lightbox.index]}
                 alt={`Gallery image ${lightbox.index + 1} of ${lightbox.images.length}`}
-                className="max-h-[85vh] w-full rounded-md object-contain"
+                wrapperClassName="min-h-[50vh] w-full overflow-hidden rounded-md"
+                className="max-h-[85vh] w-full object-contain"
               />
 
               <button
