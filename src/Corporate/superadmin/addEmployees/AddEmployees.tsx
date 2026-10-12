@@ -175,6 +175,7 @@ function SuperAdminAddEmployees() {
     try {
       const response = await fetch(`${BASE_URL}/superadmin/addBulkCorporateUsers`, {
         method: 'POST',
+        credentials: 'include', // the API checks the login cookie
         body: formData,
       });
 
