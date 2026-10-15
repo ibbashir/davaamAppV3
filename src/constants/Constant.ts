@@ -1,4 +1,5 @@
 import {
+  IconRadar,
   IconLocation,
   IconClockEdit,
   IconUserCheck,
@@ -84,6 +85,8 @@ export const SUPERADMIN_ALERT_SYSTEM = "/superadmin/alert-system";
 export const SUPERADMIN_ALERT_MACHINE_DETAIL =
   "/superadmin/alert-system/machine/:machineCode";
 export const SUPERADMIN_ASK_CHATBOT = "/superadmin/askChatbot";
+/** Lead Radar — tenders/projects from the daily cloud agent. Superadmin only. */
+export const SUPERADMIN_LEAD_RADAR = "/superadmin/lead-radar";
 /** Card user admin — davaam_cards. Superadmin only: it is the wallet table. */
 export const SUPERADMIN_CARD_USERS = "/superadmin/cardUsers";
 export const SUPERADMIN_TEAM_MEMBERS = "/superadmin/team-members";
@@ -317,6 +320,11 @@ export const SUPER_ADMIN_SIDEBAR_ROUTES = (activeRiderCount = 0) => {
           title: "Alert System",
           url: SUPERADMIN_ALERT_SYSTEM,
           icon: IconClipboardList,
+        },
+        {
+          title: "Lead Radar",
+          url: SUPERADMIN_LEAD_RADAR,
+          icon: IconRadar,
         },
       ],
     },
