@@ -118,6 +118,7 @@ import MssTeam from '@/screens/ess/MyTeam'
 import CorporateDashboard from '@/screens/corporate/dashboard/Dashboard'
 import CorporateMachines from '@/screens/corporate/machines/Machines'
 import CorporateMachineVisit from '@/screens/corporate/machines/MachineVisit'
+import CorporateMachineStats from '@/screens/corporate/MachineStats/machine_stats'
 import Reports from '@/screens/corporate/reports/reports'
 
 //404 not found
@@ -139,6 +140,7 @@ import {
   CASH_COLLECTIONS,
   COMPANY_INFO,
   COMPANY_MACHINE_VISIT,
+  COMPANY_SALES_REPORT,
   CORPORATE_CASH_COLLECTION,
   DELETE_EMPLOYEES,
   FINANCE_CASH_COLLECTIONS,
@@ -492,6 +494,7 @@ const Routing = () => {
           <Route path={MACHINE_DASHBOARD} element={<CorporateDashboard />} />
           <Route path={MACHINE_MACHINES} element={<CorporateMachines />} />
           <Route path={COMPANY_MACHINE_VISIT} element={<CorporateMachineVisit />} />
+          <Route path={COMPANY_SALES_REPORT} element={<CorporateMachineStats />} />
           <Route path={REPORT} element={<Reports />} />
           <Route path={USERS} element={<AllUsers />} />
           <Route path={ADD_EMPLOYEES} element={<MobilinkOnly><AddEmployees /></MobilinkOnly>} />

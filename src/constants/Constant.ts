@@ -204,6 +204,8 @@ export const OTHERS_DASHBOARD = "/others/dashboard";
 export const MACHINE_DASHBOARD = "/company/dashboard";
 export const MACHINE_MACHINES = "/company/machines";
 export const COMPANY_MACHINE_VISIT = "/company/machine-details/:id";
+export const COMPANY_SALES_REPORT = "/company/sales-report/:id?";
+export const COMPANY_SALES_REPORT_BASE = "/company/sales-report";
 export const REPORT = "/company/report";
 export const ADD_EMPLOYEES = "/company/add-employees";
 export const DELETE_EMPLOYEES = "/company/delete-employees";
@@ -642,6 +644,7 @@ export const MACHINES_SIDEBAR_ROUTES = (firstName: string) => {
   const routes = [
     { title: "Dashboard", url: MACHINE_DASHBOARD, icon: IconHome },
     { title: "Machines", url: MACHINE_MACHINES, icon: IconChartBar },
+    { title: "Sales Report", url: COMPANY_SALES_REPORT_BASE, icon: IconChartBar },
     { title: "Reports", url: REPORT, icon: IconFileDescription },
     { title: "Complaints", url: COMPANY_COMPLAINT, icon: IconFileDescription },
   ];
