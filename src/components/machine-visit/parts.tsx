@@ -1,7 +1,22 @@
 import { useState, type ReactNode } from "react";
 import { ResponsiveBar } from "@nivo/bar";
-import { Table as TableIcon, BarChart3 } from "lucide-react";
+import {
+  Table as TableIcon,
+  BarChart3,
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Card,
   CardContent,
@@ -210,5 +225,70 @@ export function UnavailableNote({ what }: { what: string }) {
       {what} needs the latest backend (machineRefills / machineTransactionSummary
       endpoints). Deploy the backend to enable it.
     </EmptyState>
+  );
+}
+
+/** Rows-per-page select plus first / previous / next / last buttons. */
+export function Pager({
+  id,
+  page,
+  totalPages,
+  perPage,
+  pageSizes,
+  onPageChange,
+  onPerPageChange,
+}: {
+  id: string;
+  page: number;
+  totalPages: number;
+  perPage: number;
+  pageSizes: number[];
+  onPageChange: (page: number) => void;
+  onPerPageChange: (perPage: number) => void;
+}) {
+  const last = Math.max(1, totalPages);
+  return (
+    <div className="flex flex-wrap items-center justify-between gap-4 px-2">
+      <div className="flex items-center gap-2">
+        <Label htmlFor={id} className="text-sm text-slate-600">
+          Rows per page
+        </Label>
+        <Select value={String(perPage)} onValueChange={(v) => onPerPageChange(Number(v))}>
+          <SelectTrigger size="sm" className="w-20" id={id}>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent side="top">
+            {pageSizes.map((size) => (
+              <SelectItem key={size} value={String(size)}>
+                {size}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+      <div className="flex items-center gap-4">
+        <span className="text-sm font-medium">
+          Page {page} of {last}
+        </span>
+        <div className="flex items-center gap-1">
+          <Button variant="outline" size="icon" className="size-8" onClick={() => onPageChange(1)} disabled={page <= 1}>
+            <span className="sr-only">First page</span>
+            <ChevronsLeft className="h-4 w-4" />
+          </Button>
+          <Button variant="outline" size="icon" className="size-8" onClick={() => onPageChange(Math.max(1, page - 1))} disabled={page <= 1}>
+            <span className="sr-only">Previous page</span>
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+          <Button variant="outline" size="icon" className="size-8" onClick={() => onPageChange(Math.min(last, page + 1))} disabled={page >= last}>
+            <span className="sr-only">Next page</span>
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+          <Button variant="outline" size="icon" className="size-8" onClick={() => onPageChange(last)} disabled={page >= last}>
+            <span className="sr-only">Last page</span>
+            <ChevronsRight className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
+    </div>
   );
 }

@@ -35,6 +35,11 @@ export function PeriodFilterBar({
 }) {
   const { period } = filter;
   const months = monthOptions();
+  const refillOptions =
+    refills && period.kind === "refill" &&
+    !refills.some((r) => r.refilled_at === period.refill.refilled_at)
+      ? [period.refill, ...refills]
+      : (refills ?? []);
   const setPeriod = (next: PeriodFilter["period"]) =>
     onChange({ ...filter, period: next });
 
@@ -78,7 +83,7 @@ export function PeriodFilterBar({
             <Select
               value={String(period.refill.refilled_at)}
               onValueChange={(v) => {
-                const refill = refills.find((r) => String(r.refilled_at) === v);
+                const refill = refillOptions.find((r) => String(r.refilled_at) === v);
                 if (refill) setPeriod({ kind: "refill", refill });
               }}
             >
@@ -86,10 +91,10 @@ export function PeriodFilterBar({
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {refills.map((r, i) => (
+                {refillOptions.map((r) => (
                   <SelectItem key={r.refilled_at} value={String(r.refilled_at)}>
                     {refillLabel(r.batch_number, r.refilled_at)}
-                    {i === 0 ? " (latest)" : ""}
+                    {r.ends_at === null ? " (latest)" : ""}
                   </SelectItem>
                 ))}
               </SelectContent>

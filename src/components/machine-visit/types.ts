@@ -54,11 +54,18 @@ export type Refill = {
   sold: { transactions: number; units: number; revenue: number };
 };
 
+/** One page of refill history, newest first. products is omitted with withStock: false. */
 export type RefillsResponse = {
   unit: StockUnit;
-  products: ProductStock[];
+  products?: ProductStock[];
+  latestRefill: Refill | null;
   refills: Refill[];
-  totalRefills: number;
+  total: number;
+  page: number;
+  perPage: number;
+  totalPages: number;
+  hasNextPage: boolean;
+  hasPreviousPage: boolean;
 };
 
 export type Transaction = {

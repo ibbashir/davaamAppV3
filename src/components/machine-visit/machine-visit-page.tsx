@@ -26,6 +26,9 @@ import type {
 
 type TabId = "stock" | "sales" | "transactions" | "insights" | "products";
 
+/** How many recent refills the "Since a refill" dropdown lists. */
+const REFILL_OPTIONS = 50;
+
 const isNotFound = (err: unknown) =>
   (err as { response?: { status?: number } })?.response?.status === 404;
 
@@ -86,9 +89,12 @@ export function MachineVisitPage({
     if (!machineCode) return;
     let cancelled = false;
     setStockLoading(true);
+    // Stock per product, the latest refill, and recent refills for the period
+    // filter. The refill history table pages through the rest on its own.
     postRequest<RefillsResponse>(`${apiBase}/machineRefills`, {
       machine_code: machineCode,
-      limit: 50,
+      page: 1,
+      perPage: REFILL_OPTIONS,
     })
       .then((res) => !cancelled && setRefillData(res))
       .catch(async (err) => {
@@ -145,7 +151,7 @@ export function MachineVisitPage({
     () => products.map((p) => ({ id: p.brand_id, name: p.name })),
     [products],
   );
-  const lastRefill = refills?.[0];
+  const lastRefill = refillData?.latestRefill ?? null;
 
   const viewRefillSales = (refill: Refill) => {
     setFilter({ period: { kind: "refill", refill }, brandId: "" });
@@ -229,8 +235,8 @@ export function MachineVisitPage({
               ) : (
                 <StockTab
                   products={products}
-                  refills={refills}
-                  totalRefills={refillData?.totalRefills ?? 0}
+                  latestRefill={lastRefill}
+                  history={refillsUnavailable ? null : { apiBase, machineCode }}
                   unit={unit}
                   onViewRefillSales={viewRefillSales}
                 />
