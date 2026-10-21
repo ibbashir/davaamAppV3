@@ -1,4 +1,6 @@
+import { useEffect, useState } from "react";
 import { AlertTriangle, ArrowRight, PackageCheck } from "lucide-react";
+import { postRequest } from "@/Apis/Api";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -27,8 +29,8 @@ import {
   formatRelative,
   isExpired,
 } from "./format";
-import { EmptyState, UnavailableNote } from "./parts";
-import type { ProductStock, Refill, StockUnit } from "./types";
+import { EmptyState, Pager, UnavailableNote } from "./parts";
+import type { ProductStock, Refill, RefillsResponse, StockUnit } from "./types";
 
 const LOW_STOCK_SHARE = 0.2;
 const MIN_DAYS_FOR_PACE = 0.5;
@@ -160,20 +162,167 @@ function ProductCard({ product, unit }: { product: ProductStock; unit: StockUnit
   );
 }
 
+const HISTORY_PAGE_SIZES = [10, 20, 50];
+
+/** Refill history, fetched one page at a time from the backend. */
+function RefillHistory({
+  apiBase,
+  machineCode,
+  unit,
+  onViewRefillSales,
+}: {
+  apiBase: string;
+  machineCode: string;
+  unit: StockUnit;
+  onViewRefillSales: (refill: Refill) => void;
+}) {
+  const [page, setPage] = useState(1);
+  const [perPage, setPerPage] = useState(HISTORY_PAGE_SIZES[0]);
+  const [data, setData] = useState<RefillsResponse | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [failed, setFailed] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    setLoading(true);
+    postRequest<RefillsResponse>(`${apiBase}/machineRefills`, {
+      machine_code: machineCode,
+      page,
+      perPage,
+      withStock: false,
+    })
+      .then((res) => {
+        if (cancelled) return;
+        setData(res);
+        setFailed(false);
+      })
+      .catch((err) => {
+        if (cancelled) return;
+        console.error("Error fetching refill history:", err);
+        setFailed(true);
+      })
+      .finally(() => !cancelled && setLoading(false));
+    return () => {
+      cancelled = true;
+    };
+  }, [apiBase, machineCode, page, perPage]);
+
+  const refills = data?.refills ?? [];
+  const total = data?.total ?? 0;
+  const first = (page - 1) * perPage + 1;
+
+  return (
+    <Card className="rounded-2xl shadow-sm">
+      <CardHeader>
+        <CardTitle className="text-lg text-slate-900">Refill history</CardTitle>
+        <CardDescription>
+          Each refill visit and what sold before the next one.
+          {refills.length > 0 &&
+            ` Showing ${formatNumber(first)}–${formatNumber(first + refills.length - 1)} of ${formatNumber(total)} refills.`}
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="p-0">
+        {!data ? (
+          <div className="py-8 text-center text-sm text-slate-500">
+            {failed ? "Couldn't load refill history." : "Loading refill history…"}
+          </div>
+        ) : total === 0 ? (
+          <div className="py-8 text-center text-sm text-slate-500">
+            No refills recorded yet.
+          </div>
+        ) : (
+          <div className={cn("transition-opacity", loading && "opacity-60")}>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="pl-6">Refill</TableHead>
+                  <TableHead>Stocked by</TableHead>
+                  <TableHead className="text-right">In machine after</TableHead>
+                  <TableHead>Lasted</TableHead>
+                  <TableHead className="text-right">Sales in this period</TableHead>
+                  <TableHead className="pr-6" />
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {refills.map((r) => (
+                  <TableRow key={r.refilled_at}>
+                    <TableCell className="pl-6 align-top">
+                      <div className="font-medium text-slate-900">
+                        {r.batch_number ? `#${r.batch_number}` : "—"} ·{" "}
+                        {formatDateTime(r.refilled_at)}
+                      </div>
+                      <div className="max-w-md whitespace-normal text-xs text-slate-500">
+                        {r.items
+                          .map((it) => `${it.name}: ${formatNumber(it.quantity)}`)
+                          .join(" · ")}
+                      </div>
+                    </TableCell>
+                    <TableCell className="align-top">{r.stocked_by || "—"}</TableCell>
+                    <TableCell className="text-right align-top tabular-nums">
+                      {formatQuantity(r.total_loaded, unit)}
+                    </TableCell>
+                    <TableCell className="align-top">
+                      {r.ends_at ? (
+                        formatDuration(r.refilled_at, r.ends_at)
+                      ) : (
+                        <Badge variant="outline" className="border-teal-300 text-teal-700">
+                          Current
+                        </Badge>
+                      )}
+                    </TableCell>
+                    <TableCell className="text-right align-top tabular-nums">
+                      <div className="font-medium text-slate-900">
+                        {formatNumber(r.sold.transactions)} sales
+                      </div>
+                      <div className="text-xs text-slate-500">
+                        {formatQuantity(r.sold.units, unit)} · {formatMoney(r.sold.revenue)}
+                      </div>
+                    </TableCell>
+                    <TableCell className="pr-6 text-right align-top">
+                      <Button variant="outline" size="sm" onClick={() => onViewRefillSales(r)}>
+                        View sales
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+            <div className="border-t py-3">
+              <Pager
+                id="refills-per-page"
+                page={page}
+                totalPages={data.totalPages}
+                perPage={perPage}
+                pageSizes={HISTORY_PAGE_SIZES}
+                onPageChange={setPage}
+                onPerPageChange={(size) => {
+                  setPerPage(size);
+                  setPage(1);
+                }}
+              />
+            </div>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
 export function StockTab({
   products,
-  refills,
-  totalRefills,
+  latestRefill,
+  history,
   unit,
   onViewRefillSales,
 }: {
   products: ProductStock[];
-  refills: Refill[] | null;
-  totalRefills: number;
+  latestRefill: Refill | null;
+  /** null while the refill endpoint is unavailable */
+  history: { apiBase: string; machineCode: string } | null;
   unit: StockUnit;
   onViewRefillSales: (refill: Refill) => void;
 }) {
-  const latest = refills?.[0];
+  const latest = latestRefill;
 
   return (
     <div className="space-y-6">
@@ -220,86 +369,15 @@ export function StockTab({
         </div>
       )}
 
-      {refills === null ? (
+      {history === null ? (
         <UnavailableNote what="Refill history" />
       ) : (
-        <Card className="rounded-2xl shadow-sm">
-          <CardHeader>
-            <CardTitle className="text-lg text-slate-900">Refill history</CardTitle>
-            <CardDescription>
-              Each refill visit and what sold before the next one.{" "}
-              {totalRefills > refills.length &&
-                `Showing the latest ${refills.length} of ${totalRefills} refills.`}
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="p-0">
-            {refills.length === 0 ? (
-              <div className="py-8 text-center text-sm text-slate-500">
-                No refills recorded yet.
-              </div>
-            ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="pl-6">Refill</TableHead>
-                    <TableHead>Stocked by</TableHead>
-                    <TableHead className="text-right">In machine after</TableHead>
-                    <TableHead>Lasted</TableHead>
-                    <TableHead className="text-right">Sales in this period</TableHead>
-                    <TableHead className="pr-6" />
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {refills.map((r) => (
-                    <TableRow key={r.refilled_at}>
-                      <TableCell className="pl-6 align-top">
-                        <div className="font-medium text-slate-900">
-                          {r.batch_number ? `#${r.batch_number}` : "—"} ·{" "}
-                          {formatDateTime(r.refilled_at)}
-                        </div>
-                        <div className="max-w-md whitespace-normal text-xs text-slate-500">
-                          {r.items
-                            .map((it) => `${it.name}: ${formatNumber(it.quantity)}`)
-                            .join(" · ")}
-                        </div>
-                      </TableCell>
-                      <TableCell className="align-top">{r.stocked_by || "—"}</TableCell>
-                      <TableCell className="text-right align-top tabular-nums">
-                        {formatQuantity(r.total_loaded, unit)}
-                      </TableCell>
-                      <TableCell className="align-top">
-                        {r.ends_at ? (
-                          formatDuration(r.refilled_at, r.ends_at)
-                        ) : (
-                          <Badge variant="outline" className="border-teal-300 text-teal-700">
-                            Current
-                          </Badge>
-                        )}
-                      </TableCell>
-                      <TableCell className="text-right align-top tabular-nums">
-                        <div className="font-medium text-slate-900">
-                          {formatNumber(r.sold.transactions)} sales
-                        </div>
-                        <div className="text-xs text-slate-500">
-                          {formatQuantity(r.sold.units, unit)} · {formatMoney(r.sold.revenue)}
-                        </div>
-                      </TableCell>
-                      <TableCell className="pr-6 text-right align-top">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => onViewRefillSales(r)}
-                        >
-                          View sales
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            )}
-          </CardContent>
-        </Card>
+        <RefillHistory
+          apiBase={history.apiBase}
+          machineCode={history.machineCode}
+          unit={unit}
+          onViewRefillSales={onViewRefillSales}
+        />
       )}
     </div>
   );

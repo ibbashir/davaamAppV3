@@ -1,10 +1,6 @@
 import { useEffect, useState } from "react";
 import {
   Banknote,
-  ChevronLeft,
-  ChevronRight,
-  ChevronsLeft,
-  ChevronsRight,
   Download,
   Receipt,
   ShoppingBag,
@@ -15,14 +11,6 @@ import { postRequest } from "@/Apis/Api";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import {
   Table,
   TableBody,
@@ -44,7 +32,7 @@ import {
   transactionTime,
 } from "./format";
 import { PeriodFilterBar } from "./period-filter";
-import { StatTile } from "./parts";
+import { Pager, StatTile } from "./parts";
 import type {
   PeriodFilter,
   Refill,
@@ -301,54 +289,18 @@ export function TransactionsTab({
       </Card>
 
       {total > 0 && (
-        <div className="flex flex-wrap items-center justify-between gap-4 px-2">
-          <div className="flex items-center gap-2">
-            <Label htmlFor="rows-per-page" className="text-sm text-slate-600">
-              Rows per page
-            </Label>
-            <Select
-              value={String(perPage)}
-              onValueChange={(v) => {
-                setPerPage(Number(v));
-                setPage(1);
-              }}
-            >
-              <SelectTrigger size="sm" className="w-20" id="rows-per-page">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent side="top">
-                {PAGE_SIZES.map((size) => (
-                  <SelectItem key={size} value={String(size)}>
-                    {size}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="flex items-center gap-4">
-            <span className="text-sm font-medium">
-              Page {page} of {totalPages}
-            </span>
-            <div className="flex items-center gap-1">
-              <Button variant="outline" size="icon" className="size-8" onClick={() => setPage(1)} disabled={page === 1}>
-                <span className="sr-only">First page</span>
-                <ChevronsLeft className="h-4 w-4" />
-              </Button>
-              <Button variant="outline" size="icon" className="size-8" onClick={() => setPage(Math.max(1, page - 1))} disabled={page === 1}>
-                <span className="sr-only">Previous page</span>
-                <ChevronLeft className="h-4 w-4" />
-              </Button>
-              <Button variant="outline" size="icon" className="size-8" onClick={() => setPage(Math.min(totalPages, page + 1))} disabled={page >= totalPages}>
-                <span className="sr-only">Next page</span>
-                <ChevronRight className="h-4 w-4" />
-              </Button>
-              <Button variant="outline" size="icon" className="size-8" onClick={() => setPage(totalPages)} disabled={page >= totalPages}>
-                <span className="sr-only">Last page</span>
-                <ChevronsRight className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
-        </div>
+        <Pager
+          id="transactions-per-page"
+          page={page}
+          totalPages={totalPages}
+          perPage={perPage}
+          pageSizes={PAGE_SIZES}
+          onPageChange={setPage}
+          onPerPageChange={(size) => {
+            setPerPage(size);
+            setPage(1);
+          }}
+        />
       )}
     </div>
   );
