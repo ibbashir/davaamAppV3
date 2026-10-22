@@ -44,7 +44,13 @@ const parseKey = (s: string) => {
   const [y, m, d] = s.split("-").map(Number)
   return new Date(y, (m || 1) - 1, d || 1)
 }
-const parseDate = (s: string) => new Date(String(s).replace(" ", "T"))
+// Keep the wall-clock time exactly as stored in the database: ignore any "Z"/offset
+// instead of letting the browser convert it to the viewer's timezone.
+const parseDate = (s: string) => {
+  const m = String(s).match(/(\d{4})-(\d{2})-(\d{2})(?:[T ](\d{2}):(\d{2})(?::(\d{2}))?)?/)
+  if (!m) return new Date(NaN)
+  return new Date(+m[1], +m[2] - 1, +m[3], +(m[4] ?? 0), +(m[5] ?? 0), +(m[6] ?? 0))
+}
 const fmt = (d: Date, year = false) =>
   d.toLocaleDateString("en-GB", { day: "numeric", month: "short", ...(year ? { year: "numeric" } : {}) })
 const fmtTime = (d: Date) =>
@@ -114,6 +120,7 @@ const MachineStats = () => {
   const [to, setTo] = useState(dayKey(new Date()))
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [hoverIdx, setHoverIdx] = useState<number | null>(null)
   const pickerRef = useRef<HTMLDivElement>(null)
   const pickerBtnRef = useRef<HTMLButtonElement>(null)
 
@@ -630,27 +637,47 @@ const MachineStats = () => {
                     className="flex h-[170px] items-end border-b border-[#EEF1EF] pb-1"
                     style={{ gap }}
                   >
-                    {chartDays.map((d) => {
+                    {chartDays.map((d, i) => {
                       const c = perDay.get(dayKey(d)) ?? 0
                       const isToday = dayKey(d) === todayKey
                       const h = Math.max(8, Math.round((c / maxDaily) * 120))
+                      const hovered = hoverIdx === i
+                      const align =
+                        i < chartDays.length * 0.2
+                          ? "left-0"
+                          : i > chartDays.length * 0.8
+                            ? "right-0"
+                            : "left-1/2 -translate-x-1/2"
                       return (
                         <div
                           key={dayKey(d)}
-                          className="flex h-full min-w-0 flex-1 flex-col items-center justify-end gap-1.5"
+                          onMouseEnter={() => setHoverIdx(i)}
+                          onMouseLeave={() => setHoverIdx(null)}
+                          className={`relative flex h-full min-w-0 flex-1 flex-col items-center justify-end gap-1.5 ${
+                            hovered ? "bg-[#F1F6F5]" : ""
+                          }`}
                         >
+                          {hovered && (
+                            <div
+                              role="tooltip"
+                              className={`pointer-events-none absolute top-0 z-10 whitespace-nowrap rounded-md bg-[#12211F] px-2.5 py-1.5 text-xs text-white shadow-lg ${align}`}
+                            >
+                              <div className="text-[#B7CFCA]">{fmt(d, true)}</div>
+                              <div className="font-bold">
+                                {c} pad{c === 1 ? "" : "s"} sold
+                              </div>
+                            </div>
+                          )}
                           <span className="min-h-4 text-[13px] font-bold" style={{ color: TEAL }}>
                             {c && range.days <= 31 ? c : ""}
                           </span>
                           {c ? (
                             <div
-                              title={`${fmt(d)}: ${c} sold`}
                               className={`w-full max-w-10 ${dense ? "rounded-sm" : "rounded-t-lg rounded-b-[3px]"}`}
                               style={{ height: h, background: TEAL }}
                             />
                           ) : (
                             <div
-                              title={`${fmt(d)}: 0 sold`}
                               className="h-[3px] w-full max-w-10 rounded-sm"
                               style={{ background: isToday ? "#B7CFCA" : "#E3E7E5" }}
                             />
