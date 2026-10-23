@@ -189,7 +189,7 @@ export function MachineVisitPage({
                   #{machineCode}
                 </Badge>
                 <Badge variant="outline" className="border-teal-200 bg-teal-50 text-teal-800">
-                  {isButterfly ? "Vending (pieces)" : "Dispensing (litres)"}
+                  {isButterfly ? "Sanitary" : "Dispensing (litres)"}
                 </Badge>
                 {machine.status && <Badge variant="outline">{machine.status}</Badge>}
               </div>
