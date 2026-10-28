@@ -4,6 +4,8 @@ import { ChevronDown, Download } from "lucide-react"
 import { postRequest } from "@/Apis/Api"
 import { useAuth } from "@/contexts/AuthContext"
 import { formatDate, formatUnixTimestamp } from "@/utils/formatters"
+import { Pager } from "@/components/machine-visit/parts"
+import type { TransactionPage } from "@/components/machine-visit/types"
 import type {
   ApiMachine,
   DispensingBrand,
@@ -121,6 +123,12 @@ const MachineStats = () => {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [hoverIdx, setHoverIdx] = useState<number | null>(null)
+  const [brandNames, setBrandNames] = useState<Record<string, string>>({})
+  const [txMachine, setTxMachine] = useState<string | null>(null)
+  const [txPage, setTxPage] = useState(1)
+  const [txPerPage, setTxPerPage] = useState(20)
+  const [txData, setTxData] = useState<TransactionPage | null>(null)
+  const [txLoading, setTxLoading] = useState(false)
   const pickerRef = useRef<HTMLDivElement>(null)
   const pickerBtnRef = useRef<HTMLButtonElement>(null)
 
@@ -164,6 +172,11 @@ const MachineStats = () => {
           .then((res) => {
             const name = (bid: number | string) =>
               res.brands?.find((b) => String(b.id) === String(bid))?.name ?? `Product ${bid}`
+            setBrandNames((prev) => {
+              const next = { ...prev }
+              res.brands?.forEach((b) => (next[`${code}:${b.id}`] = b.name))
+              return next
+            })
             return (res.transactions ?? []).map<Sale>((t, i) => ({
               key: `${code}-${t.id ?? i}`,
               machineCode: code,
@@ -314,6 +327,43 @@ const MachineStats = () => {
     rows.forEach((s) => map.set(s.product, (map.get(s.product) ?? 0) + s.qty))
     return [...map.entries()].sort((a, b) => b[1] - a[1])
   }, [rows])
+
+  // Paginated transactions for one machine (server-side paging)
+  const activeTxMachine =
+    txMachine && chosen.some((m) => String(m.machine_code) === txMachine)
+      ? txMachine
+      : chosen[0]
+        ? String(chosen[0].machine_code)
+        : null
+  const fromEpoch = Math.floor(range.start.getTime() / 1000)
+  const toEpoch = Math.floor(addDays(range.end, 1).getTime() / 1000) - 1
+
+  useEffect(() => {
+    if (!activeTxMachine) return
+    let cancelled = false
+    setTxLoading(true)
+    postRequest<TransactionPage>("/corporates/machineTransactionWithMachineCode", {
+      machine_code: activeTxMachine,
+      page: txPage,
+      perPage: txPerPage,
+      from: fromEpoch,
+      to: toEpoch,
+    })
+      .then((res) => !cancelled && setTxData(res))
+      .catch(() => !cancelled && setTxData({ transactions: [], total: 0, totalPages: 1 }))
+      .finally(() => !cancelled && setTxLoading(false))
+    return () => {
+      cancelled = true
+    }
+  }, [activeTxMachine, txPage, txPerPage, fromEpoch, toEpoch])
+
+  // A new machine or date range starts from the first page
+  useEffect(() => {
+    setTxPage(1)
+  }, [activeTxMachine, fromEpoch, toEpoch])
+
+  const txTotal = txData?.total ?? 0
+  const txRows = txData?.transactions ?? []
 
   const downloadCsv = () => {
     if (!rows.length) return
@@ -811,11 +861,25 @@ const MachineStats = () => {
                 <div>
                   <h2 className="text-[19px] font-bold">Transactions</h2>
                   <p className="mt-1 text-sm text-[#5E6B69]">
-                    {rows.length
-                      ? `${rows.length} ${rows.length === 1 ? "sale" : "sales"} · ${rangeLabel} · newest first`
+                    {txTotal
+                      ? `${txTotal} ${txTotal === 1 ? "sale" : "sales"} · ${rangeLabel} · newest first`
                       : rangeLabel}
                   </p>
                 </div>
+                {chosen.length > 1 && (
+                  <select
+                    aria-label="Machine"
+                    value={activeTxMachine ?? ""}
+                    onChange={(e) => setTxMachine(e.target.value)}
+                    className={`${fieldCls} cursor-pointer`}
+                  >
+                    {chosen.map((m) => (
+                      <option key={m.machine_code} value={String(m.machine_code)}>
+                        {m.machine_name}
+                      </option>
+                    ))}
+                  </select>
+                )}
                 <button
                   type="button"
                   onClick={downloadCsv}
@@ -828,8 +892,12 @@ const MachineStats = () => {
                 </button>
               </div>
 
-              {rows.length ? (
-                <div className="-mx-5 overflow-x-auto px-5 sm:-mx-[26px] sm:px-[26px]">
+              {txRows.length ? (
+                <div
+                  className={`-mx-5 overflow-x-auto px-5 transition-opacity sm:-mx-[26px] sm:px-[26px] ${
+                    txLoading ? "opacity-60" : ""
+                  }`}
+                >
                   <table className="w-full min-w-[680px] border-collapse text-[15px]">
                     <thead>
                       <tr>
@@ -846,34 +914,57 @@ const MachineStats = () => {
                       </tr>
                     </thead>
                     <tbody>
-                      {rows.map((s, i) => (
-                        <tr key={s.key}>
-                          <td className="w-11 border-b border-[#F0F2F1] px-2 py-3.5 text-[#5E6B69]">{i + 1}</td>
-                          <td className="border-b border-[#F0F2F1] px-2 py-3.5">
-                            <span className="block font-semibold">{fmt(s.date, true)}</span>
-                            <span className="text-[13px] text-[#5E6B69]">{fmtTime(s.date)}</span>
-                          </td>
-                          <td className="border-b border-[#F0F2F1] px-2 py-3.5 text-[#3F4D4B]">
-                            {shortName(s.machineCode)}
-                          </td>
-                          <td className="border-b border-[#F0F2F1] px-2 py-3.5 font-medium">
-                            {s.product}
-                            {s.qty > 1 ? ` ×${s.qty}` : ""}
-                          </td>
-                          <td className="border-b border-[#F0F2F1] px-2 py-3.5 text-[#3F4D4B]">At machine</td>
-                          <td className="border-b border-[#F0F2F1] px-2 py-3.5 text-right font-semibold">
-                            Rs {s.amt.toLocaleString()}
-                          </td>
-                        </tr>
-                      ))}
+                      {txRows.map((t, i) => {
+                        const d = t.epoch_time ? new Date(t.epoch_time * 1000) : parseDate(t.created_at)
+                        const qty = Number(t.quantity) || 1
+                        return (
+                          <tr key={t.id}>
+                            <td className="w-11 border-b border-[#F0F2F1] px-2 py-3.5 text-[#5E6B69]">
+                              {(txPage - 1) * txPerPage + i + 1}
+                            </td>
+                            <td className="border-b border-[#F0F2F1] px-2 py-3.5">
+                              <span className="block font-semibold">{fmt(d, true)}</span>
+                              <span className="text-[13px] text-[#5E6B69]">{fmtTime(d)}</span>
+                            </td>
+                            <td className="border-b border-[#F0F2F1] px-2 py-3.5 text-[#3F4D4B]">
+                              {shortName(String(t.machine_code ?? activeTxMachine))}
+                            </td>
+                            <td className="border-b border-[#F0F2F1] px-2 py-3.5 font-medium">
+                              {brandNames[`${activeTxMachine}:${t.brand_id}`] ?? `Product ${t.brand_id}`}
+                              {qty > 1 ? ` ×${qty}` : ""}
+                            </td>
+                            <td className="border-b border-[#F0F2F1] px-2 py-3.5 text-[#3F4D4B]">
+                              {t.payment_method || "At machine"}
+                            </td>
+                            <td className="border-b border-[#F0F2F1] px-2 py-3.5 text-right font-semibold">
+                              Rs {(Number(t.amount) || 0).toLocaleString()}
+                            </td>
+                          </tr>
+                        )
+                      })}
                     </tbody>
                   </table>
                 </div>
               ) : (
                 <Empty
                   solid
-                  title={loading ? "Loading transactions…" : "No transactions in these dates"}
-                  hint={loading ? "This can take a moment." : "Choose a longer range or more machines."}
+                  title={txLoading ? "Loading transactions…" : "No transactions in these dates"}
+                  hint={txLoading ? "This can take a moment." : "Choose a longer range or another machine."}
+                />
+              )}
+
+              {txTotal > 0 && (
+                <Pager
+                  id="stats-transactions-per-page"
+                  page={txPage}
+                  totalPages={Math.max(1, txData?.totalPages ?? 1)}
+                  perPage={txPerPage}
+                  pageSizes={[10, 20, 50, 100]}
+                  onPageChange={setTxPage}
+                  onPerPageChange={(size) => {
+                    setTxPerPage(size)
+                    setTxPage(1)
+                  }}
                 />
               )}
             </Panel>
