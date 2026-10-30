@@ -846,7 +846,7 @@ const SuperAdminCashCollectionPage: React.FC = () => {
                         Rs{" "}
                         {parseFloat(
                           rawApiResponse.summary.overall_cash_collected || "0",
-                        ).toLocaleString("en-IN", { minimumFractionDigits: 2 })}
+                        ).toLocaleString("en-PK", { minimumFractionDigits: 2 })}
                       </p>
                       <p className="text-xs text-teal-200 mt-2">
                         Across all machines
@@ -868,7 +868,7 @@ const SuperAdminCashCollectionPage: React.FC = () => {
                         {(
                           rawApiResponse.raw_data?.total_cash_transactions
                             ?.amount || 0
-                        ).toLocaleString("en-IN", { minimumFractionDigits: 2 })}
+                        ).toLocaleString("en-PK", { minimumFractionDigits: 2 })}
                       </p>
                       <p className="text-xs text-emerald-200 mt-2">
                         Cash transactions count
@@ -889,7 +889,7 @@ const SuperAdminCashCollectionPage: React.FC = () => {
                         {(
                           rawApiResponse.raw_data?.total_cash_transactions
                             ?.quantity || 0
-                        ).toLocaleString()}
+                        ).toLocaleString("en-PK")}
                       </p>
                       <p className="text-xs text-violet-200 mt-2">
                         Total quantity units
@@ -910,7 +910,7 @@ const SuperAdminCashCollectionPage: React.FC = () => {
                         Rs{" "}
                         {parseFloat(
                           rawApiResponse.summary.overall_cash_difference || "0",
-                        ).toLocaleString("en-IN", { minimumFractionDigits: 2 })}
+                        ).toLocaleString("en-PK", { minimumFractionDigits: 2 })}
                       </p>
                       <p className="text-xs text-amber-200 mt-2">
                         Variance amount
@@ -937,7 +937,7 @@ const SuperAdminCashCollectionPage: React.FC = () => {
                         {parseFloat(
                           rawApiResponse.summary.breakdown
                             ?.total_positive_difference || "0",
-                        ).toLocaleString("en-IN", { minimumFractionDigits: 2 })}
+                        ).toLocaleString("en-PK", { minimumFractionDigits: 2 })}
                       </p>
                     </div>
 
@@ -958,7 +958,7 @@ const SuperAdminCashCollectionPage: React.FC = () => {
                         {parseFloat(
                           rawApiResponse.summary.breakdown
                             ?.total_negative_difference || "0",
-                        ).toLocaleString("en-IN", { minimumFractionDigits: 2 })}
+                        ).toLocaleString("en-PK", { minimumFractionDigits: 2 })}
                       </p>
                     </div>
 
@@ -1295,7 +1295,7 @@ const SuperAdminCashCollectionPage: React.FC = () => {
                                           {parseFloat(
                                             machine?.cash_collections?.total ||
                                               "0",
-                                          ).toLocaleString("en-IN", {
+                                          ).toLocaleString("en-PK", {
                                             minimumFractionDigits: 2,
                                           })}
                                         </p>
@@ -1314,7 +1314,7 @@ const SuperAdminCashCollectionPage: React.FC = () => {
                                           {parseFloat(
                                             machine?.cash_transactions?.total ||
                                               "0",
-                                          ).toLocaleString("en-IN", {
+                                          ).toLocaleString("en-PK", {
                                             minimumFractionDigits: 2,
                                           })}
                                         </p>
@@ -1332,7 +1332,7 @@ const SuperAdminCashCollectionPage: React.FC = () => {
                                       >
                                         Rs{" "}
                                         {Math.abs(diffAmount).toLocaleString(
-                                          "en-IN",
+                                          "en-PK",
                                           { minimumFractionDigits: 2 },
                                         )}
                                       </span>
@@ -1462,7 +1462,7 @@ const SuperAdminCashCollectionPage: React.FC = () => {
                                       Rs{" "}
                                       {Number(
                                         tx?.cash_received || 0,
-                                      ).toLocaleString("en-IN")}
+                                      ).toLocaleString("en-PK")}
                                     </td>
                                     <td className="px-4 py-2 border-b text-gray-800">
                                       {tx?.created_at
