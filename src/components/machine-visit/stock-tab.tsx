@@ -251,15 +251,20 @@ function RefillHistory({
                         {r.batch_number ? `#${r.batch_number}` : "—"} ·{" "}
                         {formatDateTime(r.refilled_at)}
                       </div>
-                      <div className="max-w-md whitespace-normal text-xs text-slate-500">
-                        {r.items
-                          .map((it) => `${it.name}: ${formatNumber(it.quantity)}`)
-                          .join(" · ")}
-                      </div>
                     </TableCell>
                     <TableCell className="align-top">{r.stocked_by || "—"}</TableCell>
                     <TableCell className="text-right align-top tabular-nums">
-                      {formatQuantity(r.total_loaded, unit)}
+                      <div className="font-medium text-slate-900">
+                        {formatQuantity(r.total_loaded, unit)}
+                      </div>
+                      <dl className="mt-1 grid grid-cols-[auto_auto] justify-end gap-x-3 gap-y-0.5 text-xs">
+                        {r.items.map((it, i) => (
+                          <div key={`${it.brand_id}-${i}`} className="contents">
+                            <dt className="text-left text-slate-500">{it.name}</dt>
+                            <dd className="text-slate-700">{formatNumber(it.quantity)}</dd>
+                          </div>
+                        ))}
+                      </dl>
                     </TableCell>
                     <TableCell className="align-top">
                       {r.ends_at ? (
