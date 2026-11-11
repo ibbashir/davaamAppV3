@@ -22,14 +22,49 @@ import {
   Search,
   MapPin,
   ArrowUpRight,
+  ArrowUpDown,
+  ArrowUp,
+  ArrowDown,
 } from "lucide-react"
 import type { ApiMachine, MachinesResponse } from "./Types"
 import { SiteHeader } from "@/components/corporate/site-header"
 import { postRequest } from "@/Apis/Api"
 import { useAuth } from "@/contexts/AuthContext"
 import { formatUnixTimestamp } from "@/utils/formatters"
+import { nextMachineSort, type SortDirection } from "@/utils/machineSort"
 
 const FILTERS_KEY = "corporate-machines-filters"
+
+// This list comes back whole and is paged in the browser, so it sorts here too.
+type CorporateSortField = "machine_name" | "machine_location" | "status" | "lastActive"
+type CorporateSort = { field: CorporateSortField; direction: SortDirection }
+
+const SORT_FIELDS: CorporateSortField[] = ["machine_name", "machine_location", "status", "lastActive"]
+const UNSORTED: CorporateSort = { field: "machine_name", direction: "none" }
+const STATUS_RANK: Record<string, number> = { Active: 0, Pending: 1, Inactive: 2 }
+
+function restoreSort(saved: unknown): CorporateSort {
+  const s = saved as Partial<CorporateSort> | null | undefined
+  if (
+    s &&
+    SORT_FIELDS.includes(s.field as CorporateSortField) &&
+    (s.direction === "asc" || s.direction === "desc" || s.direction === "none")
+  ) {
+    return { field: s.field as CorporateSortField, direction: s.direction }
+  }
+  return UNSORTED
+}
+
+// Empty values go last whichever way the column is sorted.
+function compareNullsLast<T>(a: T | null, b: T | null, dir: number, cmp: (x: T, y: T) => number) {
+  if (a == null && b == null) return 0
+  if (a == null) return 1
+  if (b == null) return -1
+  return dir * cmp(a, b)
+}
+
+const compareText = (x: string, y: string) =>
+  x.localeCompare(y, undefined, { numeric: true, sensitivity: "base" })
 
 const CorporateMachines = () => {
   const navigate = useNavigate()
@@ -55,15 +90,21 @@ const CorporateMachines = () => {
   const [activeCategory, setActiveCategory] = useState<string>(
     savedFilters.activeCategory ?? "Butterfly"
   )
+  const [sortConfig, setSortConfig] = useState<CorporateSort>(() =>
+    restoreSort(savedFilters.sortConfig)
+  )
 
   // Persist filters so they survive navigating to a machine and back
   useEffect(() => {
     try {
-      sessionStorage.setItem(FILTERS_KEY, JSON.stringify({ searchTerm, activeCategory }))
+      sessionStorage.setItem(
+        FILTERS_KEY,
+        JSON.stringify({ searchTerm, activeCategory, sortConfig })
+      )
     } catch {
       /* ignore storage errors */
     }
-  }, [searchTerm, activeCategory])
+  }, [searchTerm, activeCategory, sortConfig])
   const [currentPage, setCurrentPage] = useState(1)
   const [machinesData, setMachinesData] = useState<{ [category: string]: ApiMachine[] } | null>(null)
   const [machineStockMap, setMachineStockMap] = useState<{ [code: string]: string }>({})
@@ -146,9 +187,51 @@ const CorporateMachines = () => {
     return matchesSearch && matchesCategory
   })
 
-  const totalPages = Math.ceil(filteredMachines.length / itemsPerPage)
+  const sortedMachines =
+    sortConfig.direction === "none"
+      ? filteredMachines
+      : [...filteredMachines].sort((a, b) => {
+          const dir = sortConfig.direction === "asc" ? 1 : -1
+          switch (sortConfig.field) {
+            case "lastActive":
+              return compareNullsLast(a.lastUpdated || null, b.lastUpdated || null, dir, (x, y) => x - y)
+            case "status":
+              return dir * ((STATUS_RANK[a.status] ?? 3) - (STATUS_RANK[b.status] ?? 3))
+            default:
+              return compareNullsLast(
+                a[sortConfig.field] || null,
+                b[sortConfig.field] || null,
+                dir,
+                compareText
+              )
+          }
+        })
+
+  const handleSort = (field: CorporateSortField) => {
+    setSortConfig((prev) => nextMachineSort(prev, field))
+    setCurrentPage(1)
+  }
+
+  const sortableHead = (field: CorporateSortField, label: string) => {
+    const active = sortConfig.field === field && sortConfig.direction !== "none"
+    const Icon = !active ? ArrowUpDown : sortConfig.direction === "asc" ? ArrowUp : ArrowDown
+    return (
+      <TableHead className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+        <button
+          type="button"
+          onClick={() => handleSort(field)}
+          className="inline-flex items-center gap-1 uppercase tracking-wide hover:text-gray-700"
+        >
+          {label}
+          <Icon className={`h-3 w-3 ${active ? "" : "opacity-40"}`} />
+        </button>
+      </TableHead>
+    )
+  }
+
+  const totalPages = Math.ceil(sortedMachines.length / itemsPerPage)
   const startIndex = (currentPage - 1) * itemsPerPage
-  const paginatedMachines = filteredMachines.slice(startIndex, startIndex + itemsPerPage)
+  const paginatedMachines = sortedMachines.slice(startIndex, startIndex + itemsPerPage)
 
   const showStatusColumn = user?.first_name !== "Butterfly"
 
@@ -225,20 +308,10 @@ const CorporateMachines = () => {
           <Table>
             <TableHeader>
               <TableRow className="bg-gray-50 hover:bg-gray-50">
-                <TableHead className="text-xs font-semibold uppercase tracking-wide text-gray-500">
-                  Machine
-                </TableHead>
-                <TableHead className="text-xs font-semibold uppercase tracking-wide text-gray-500">
-                  Location
-                </TableHead>
-                {showStatusColumn && (
-                  <TableHead className="text-xs font-semibold uppercase tracking-wide text-gray-500">
-                    Status
-                  </TableHead>
-                )}
-                <TableHead className="text-xs font-semibold uppercase tracking-wide text-gray-500">
-                  Last Active
-                </TableHead>
+                {sortableHead("machine_name", "Machine")}
+                {sortableHead("machine_location", "Location")}
+                {showStatusColumn && sortableHead("status", "Status")}
+                {sortableHead("lastActive", "Last Active")}
                 <TableHead className="text-right text-xs font-semibold uppercase tracking-wide text-gray-500">
                   Actions
                 </TableHead>

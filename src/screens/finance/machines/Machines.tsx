@@ -41,6 +41,13 @@ import {
 } from "@/utils/stockForecast";
 import { StockForecastBadge } from "@/components/ui/stock-forecast-badge";
 import { formatUnixTimestamp } from "@/utils/formatters";
+import {
+  machineSortParams,
+  nextMachineSort,
+  restoreMachineSort,
+  type MachineSortConfig,
+  type MachineSortField,
+} from "@/utils/machineSort";
 
 // ── Enriched machine type ─────────────────────────────────────────────────────
 type EnrichedMachine = ApiMachine & {
@@ -81,16 +88,7 @@ const subCategories = [
 
 type StatusFilter = "online" | "offline" | "idle" | null;
 type StockFilter = "low" | "full" | null;
-type SortField =
-  | "machine_code"
-  | "machine_name"
-  | "machine_type"
-  | "category"
-  | "lastActive"
-  | "stockStatus"
-  | "forecast"
-  | "status";
-type SortDirection = "asc" | "desc" | "none";
+type SortField = MachineSortField;
 
 type TableColumn =
   | { field: SortField; label: string; sortable: true }
@@ -98,12 +96,14 @@ type TableColumn =
 
 const TABLE_COLUMNS: TableColumn[] = [
   { field: "machine_code", label: "Machine ID", sortable: true },
-  { label: "Name" },
-  { label: "Current Stock" },
-  { label: "Variant" },
-  { label: "Stock" },
+  { field: "machine_name", label: "Name", sortable: true },
+  { field: "currentStock", label: "Current Stock", sortable: true },
+  // This column renders machine_type, so it sorts by machine_type.
+  { field: "machine_type", label: "Variant", sortable: true },
+  { field: "stockStatus", label: "Stock", sortable: true },
+  // Forecast is computed in the browser for the visible page only.
   { label: "Forecast" },
-  { label: "Status" },
+  { field: "status", label: "Status", sortable: true },
 ];
 
 const STATUS_FILTERS: { value: StatusFilter; label: string; dot: string }[] = [
@@ -262,6 +262,9 @@ const Machines = () => {
   const [stockFilter, setStockFilter] = useState<StockFilter>(
     savedFilters.stockFilter ?? null,
   );
+  const [sortConfig, setSortConfig] = useState<MachineSortConfig>(() =>
+    restoreMachineSort(savedFilters.sortConfig),
+  );
 
   // Persist filters so they survive navigating to a machine and back
   useEffect(() => {
@@ -273,12 +276,13 @@ const Machines = () => {
           activeCategory,
           statusFilter,
           stockFilter,
+          sortConfig,
         }),
       );
     } catch {
       /* ignore storage errors */
     }
-  }, [searchTerm, activeCategory, statusFilter, stockFilter]);
+  }, [searchTerm, activeCategory, statusFilter, stockFilter, sortConfig]);
   const [currentPage, setCurrentPage] = useState(1);
   const [serverTotalPages, setServerTotalPages] = useState(1);
   const [serverTotalItems, setServerTotalItems] = useState(0);
@@ -290,11 +294,6 @@ const Machines = () => {
   const [brandQuantities, setBrandQuantities] = useState<{ [brandId: string]: number }>({});
   const [forecastEnriching, setForecastEnriching] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
-
-  const [sortConfig, setSortConfig] = useState<{ field: SortField; direction: SortDirection }>({
-    field: "machine_code",
-    direction: "asc",
-  });
 
   // ── Debounce search ──────────────────────────────────────────────────────
   useEffect(() => {
@@ -309,9 +308,7 @@ const Machines = () => {
         page: String(page),
         limit: String(pageSize),
         category: activeCategory,
-        ...(sortConfig.field === "machine_code" && sortConfig.direction !== "none"
-          ? { sortOrder: sortConfig.direction }
-          : {}),
+        ...machineSortParams(sortConfig),
         ...(debouncedSearch ? { search: debouncedSearch } : {}),
         ...(statusFilter ? { status: statusFilter } : {}),
         ...(stockFilter ? { availableQuantity: stockFilter } : {}),
@@ -367,9 +364,9 @@ const Machines = () => {
     }
   };
 
-  // ── Fetch on filter / page-size change ──────────────────────────────────
+  // ── Fetch on filter / page-size / sort change ───────────────────────────
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  useEffect(() => { fetchMachines(1); }, [activeCategory, debouncedSearch, statusFilter, stockFilter, pageSize]);
+  useEffect(() => { fetchMachines(1); }, [activeCategory, debouncedSearch, statusFilter, stockFilter, pageSize, sortConfig]);
 
   const allMachines: EnrichedMachine[] = machinesData
     ? Object.entries(machinesData).flatMap(([category, machines]) =>
@@ -386,16 +383,10 @@ const Machines = () => {
       )
     : [];
 
-  const handleSort = (field: SortField) => {
-    const direction: SortDirection =
-      sortConfig.field === field
-        ? sortConfig.direction === "asc" ? "desc"
-          : sortConfig.direction === "desc" ? "none"
-          : "asc"
-        : "asc";
-    setSortConfig({ field, direction });
-    if (field === "machine_code") fetchMachines(currentPage);
-  };
+  // The fetch effect re-runs on sortConfig, so the server sorts and we land
+  // back on page 1.
+  const handleSort = (field: SortField) =>
+    setSortConfig((prev) => nextMachineSort(prev, field));
 
   const getSortIcon = (field: SortField) => {
     if (sortConfig.field !== field) return <ArrowUpDown className="h-3 w-3 ml-1 opacity-40" />;
@@ -404,22 +395,8 @@ const Machines = () => {
     return <ArrowUpDown className="h-3 w-3 ml-1 opacity-40" />;
   };
 
-  const sortedMachines = [...allMachines].sort((a, b) => {
-    if (sortConfig.direction === "none" || sortConfig.field === "machine_code") return 0;
-    const { field, direction } = sortConfig;
-    const mult = direction === "asc" ? 1 : -1;
-    if (field === "lastActive") {
-      return mult * (new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
-    }
-    if (field === "forecast") {
-      const aF = machineForecastMap[a.machine_code]?.daysRemaining ?? Infinity;
-      const bF = machineForecastMap[b.machine_code]?.daysRemaining ?? Infinity;
-      return mult * (aF - bF);
-    }
-    const aVal = String((a as Record<string, unknown>)[field] ?? "").toLowerCase();
-    const bVal = String((b as Record<string, unknown>)[field] ?? "").toLowerCase();
-    return mult * aVal.localeCompare(bVal);
-  });
+  // Rows arrive already sorted by the server (see machineSortParams).
+  const sortedMachines = allMachines;
 
   // ── Forecast enrichment ──────────────────────────────────────────────────
   const visibleCodesKey = sortedMachines.map((m) => m.machine_code).join(",");

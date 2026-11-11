@@ -37,6 +37,13 @@ import AddMachine from "@/screens/ops/machines/components/addMachines";
 import DeleteMachine from "@/screens/ops/machines/components/deleteMachine";
 import UpdateMachine from "@/screens/ops/machines/components/updateMachine";
 import { formatUnixTimestamp } from "@/utils/formatters";
+import {
+  machineSortParams,
+  nextMachineSort,
+  restoreMachineSort,
+  type MachineSortConfig,
+  type MachineSortField,
+} from "@/utils/machineSort";
 import moment from "moment-timezone";
 
 const PAGE_SIZE_OPTIONS = [5, 10, 25, 50];
@@ -69,16 +76,20 @@ const subCategories = [
 
 type StatusFilter = "online" | "offline" | "idle" | null;
 type StockFilter = "low" | "full" | null;
-type SortField =
-  | "machine_code"
-  | "machine_name"
-  | "machine_type"
-  | "category"
-  | "lastActive"
-  | "stockStatus"
-  | "forecast"
-  | "status";
-type SortDirection = "asc" | "desc" | "none";
+type SortField = MachineSortField;
+
+// Forecast is computed in the browser for the visible page only, and payment
+// methods are a list, so neither has a server-side order.
+const TABLE_COLUMNS: { field?: SortField; label: string }[] = [
+  { field: "machine_code", label: "Machine ID" },
+  { field: "machine_name", label: "Name" },
+  { field: "currentStock", label: "Current Stock" },
+  { label: "Payment Methods" },
+  { field: "stockStatus", label: "Stock" },
+  { label: "Forecast" },
+  { field: "lastActive", label: "Last Active" },
+  { field: "status", label: "Status" },
+];
 
 // ── Filter config with colors ─────────────────────────────────────────────────
 const STATUS_FILTERS: { value: StatusFilter; label: string; dot: string }[] = [
@@ -210,6 +221,9 @@ const Machines = () => {
   const [stockFilter, setStockFilter] = useState<StockFilter>(
     savedFilters.stockFilter ?? null,
   );
+  const [sortConfig, setSortConfig] = useState<MachineSortConfig>(() =>
+    restoreMachineSort(savedFilters.sortConfig),
+  );
 
   // Persist filters so they survive navigating to a machine and back
   useEffect(() => {
@@ -221,12 +235,13 @@ const Machines = () => {
           activeCategory,
           statusFilter,
           stockFilter,
+          sortConfig,
         }),
       );
     } catch {
       /* ignore storage errors */
     }
-  }, [searchTerm, activeCategory, statusFilter, stockFilter]);
+  }, [searchTerm, activeCategory, statusFilter, stockFilter, sortConfig]);
 
   const [open, setOpen] = useState(false);
   const [openDelete, setOpenDelete] = useState(false);
@@ -260,21 +275,13 @@ const Machines = () => {
   );
   const [loading, setLoading] = useState(true);
 
-  const [sortConfig, setSortConfig] = useState<{
-    field: SortField;
-    direction: SortDirection;
-  }>({
-    field: "machine_code",
-    direction: "asc",
-  });
-
   useEffect(() => {
     const t = setTimeout(() => setDebouncedSearch(searchTerm), 500);
     return () => clearTimeout(t);
   }, [searchTerm]);
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  useEffect(() => { fetchMachines(1); }, [activeCategory, debouncedSearch, statusFilter, stockFilter, pageSize]);
+  useEffect(() => { fetchMachines(1); }, [activeCategory, debouncedSearch, statusFilter, stockFilter, pageSize, sortConfig]);
 
   const fetchMachines = async (page: number) => {
     try {
@@ -283,10 +290,7 @@ const Machines = () => {
         page: String(page),
         limit: String(pageSize),
         category: activeCategory,
-        ...(sortConfig.field === "machine_code" &&
-        sortConfig.direction !== "none"
-          ? { sortOrder: sortConfig.direction }
-          : {}),
+        ...machineSortParams(sortConfig),
         ...(debouncedSearch ? { search: debouncedSearch } : {}),
         ...(statusFilter ? { status: statusFilter } : {}),
         ...(stockFilter ? { availableQuantity: stockFilter } : {}),
@@ -362,21 +366,10 @@ const Machines = () => {
       )
     : [];
 
-  const handleSort = (field: SortField) => {
-    const newConfig = {
-      field,
-      direction:
-        sortConfig.field === field
-          ? sortConfig.direction === "asc"
-            ? "desc"
-            : sortConfig.direction === "desc"
-              ? "none"
-              : "asc"
-          : "asc",
-    } satisfies { field: SortField; direction: SortDirection };
-    setSortConfig(newConfig);
-    if (field === "machine_code") fetchMachines(currentPage);
-  };
+  // The fetch effect re-runs on sortConfig, so the server sorts and we land
+  // back on page 1.
+  const handleSort = (field: SortField) =>
+    setSortConfig((prev) => nextMachineSort(prev, field));
 
   const getSortIcon = (field: SortField) => {
     if (sortConfig.field !== field)
@@ -388,26 +381,8 @@ const Machines = () => {
     return <ArrowUpDown className="h-3 w-3 ml-1 opacity-40" />;
   };
 
-  const sortedMachines = [...allMachines].sort((a, b) => {
-    if (sortConfig.direction === "none" || sortConfig.field === "machine_code")
-      return 0;
-    const { field, direction } = sortConfig;
-    const multiplier = direction === "asc" ? 1 : -1;
-    if (field === "lastActive") {
-      return (
-        multiplier *
-        (new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
-      );
-    }
-    if (field === "forecast") {
-      const aF = machineForecastMap[a.machine_code]?.daysRemaining ?? Infinity;
-      const bF = machineForecastMap[b.machine_code]?.daysRemaining ?? Infinity;
-      return multiplier * (aF - bF);
-    }
-    const aVal = a[field]?.toString().toLowerCase() || "";
-    const bVal = b[field]?.toString().toLowerCase() || "";
-    return multiplier * aVal.localeCompare(bVal);
-  });
+  // Rows arrive already sorted by the server (see machineSortParams).
+  const sortedMachines = allMachines;
 
   const visibleCodes = sortedMachines.map((m) => m.machine_code);
   useEffect(() => {
@@ -756,33 +731,14 @@ const Machines = () => {
               <table className="min-w-full text-sm overflow-hidden rounded-xl border border-gray-200">
                 <thead className="bg-teal-600 text-white">
                   <tr>
-                    {(
-                      [
-                        {
-                          field: "machine_code",
-                          label: "Machine ID",
-                          sortable: true,
-                        },
-                        { label: "Name" },
-                        { label: "Current Stock" },
-                        { label: "Payment Methods" },
-                        { label: "Stock" },
-                        { label: "Forecast" },
-                        { label: "Last Active" },
-                        { label: "Status" },
-                      ] as {
-                        field: SortField;
-                        label: string;
-                        sortable: boolean;
-                      }[]
-                    ).map(({ field, label, sortable }) => (
+                    {TABLE_COLUMNS.map(({ field, label }) => (
                       <th key={label} className="px-4 py-2 text-center whitespace-nowrap">
                         <div
-                          className={`flex items-center justify-center ${sortable ? "cursor-pointer select-none" : ""}`}
-                          onClick={() => sortable && field && handleSort(field)}
+                          className={`flex items-center justify-center ${field ? "cursor-pointer select-none" : ""}`}
+                          onClick={() => field && handleSort(field)}
                         >
                           {label}
-                          {sortable && field && getSortIcon(field)}
+                          {field && getSortIcon(field)}
                         </div>
                       </th>
                     ))}

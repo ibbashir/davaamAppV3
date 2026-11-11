@@ -79,7 +79,10 @@ interface ButterflyProduct {
   skin: string;
 }
 
+const MACHINE_CONFIGURATIONS = ["Ethernet", "Wifi", "GSM"] as const;
+
 type ComponentsState = {
+  machineConfiguration: (typeof MACHINE_CONFIGURATIONS)[number] | "";
   bodyType: "Old" | "New" | "";
   pcb: "Old" | "New" | "";
   connectivityModule: "Wifi" | "Ethernet" | "";
@@ -88,6 +91,7 @@ type ComponentsState = {
 };
 
 const initialComponentsState: ComponentsState = {
+  machineConfiguration: "",
   bodyType: "",
   pcb: "",
   connectivityModule: "",
@@ -217,6 +221,8 @@ export default function AddMachine({
 
   const validateComponents = () => {
     const errs: Partial<Record<keyof ComponentsState, string>> = {};
+    if (!components.machineConfiguration)
+      errs.machineConfiguration = "Required.";
     if (!components.bodyType) errs.bodyType = "Required.";
     if (!components.pcb) errs.pcb = "Required.";
     if (!components.cashAcceptor) errs.cashAcceptor = "Required.";
@@ -261,6 +267,7 @@ export default function AddMachine({
         category: data.category,
         payment_method: paymentMethods,
         components: {
+          machineConfiguration: components.machineConfiguration,
           bodyType: components.bodyType,
           pcb: components.pcb,
           connectivityModule: components.connectivityModule,
@@ -471,6 +478,26 @@ export default function AddMachine({
                   <SectionHeading>Components</SectionHeading>
 
                   <div className="space-y-3 rounded-xl border border-gray-100 bg-gray-50/60 p-4 dark:border-gray-700 dark:bg-gray-800/30">
+                    <div>
+                      <FieldLabel>Machine Configuration</FieldLabel>
+                      <SelectField
+                        value={components.machineConfiguration}
+                        onChange={(e) =>
+                          updateComponent("machineConfiguration", e.target.value)
+                        }
+                      >
+                        <option value="" disabled>
+                          Select configuration
+                        </option>
+                        {MACHINE_CONFIGURATIONS.map((option) => (
+                          <option key={option} value={option}>
+                            {option}
+                          </option>
+                        ))}
+                      </SelectField>
+                      <FieldError message={componentsErrors.machineConfiguration} />
+                    </div>
+
                     <div className="grid grid-cols-2 gap-3">
                       <SegmentedToggle
                         label="Body Type"
