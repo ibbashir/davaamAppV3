@@ -37,6 +37,7 @@ import AddMachine from "@/screens/ops/machines/components/addMachines";
 import DeleteMachine from "@/screens/ops/machines/components/deleteMachine";
 import UpdateMachine from "@/screens/ops/machines/components/updateMachine";
 import { formatUnixTimestamp } from "@/utils/formatters";
+import { machineStockFields, machineStockStatus } from "@/utils/machineStock";
 import {
   machineSortParams,
   nextMachineSort,
@@ -323,10 +324,8 @@ const Machines = () => {
       }
 
       for (const [code, quantities] of Object.entries(grouped)) {
-        const total = quantities.reduce((sum, q) => sum + q, 0);
-        if (total === 0) stockMap[code] = "Out of Stock";
-        else if (total < 2) stockMap[code] = "Low Stock";
-        else stockMap[code] = "In Stock";
+        // Judged per row: one empty row isn't "In Stock"
+        stockMap[code] = machineStockStatus(quantities);
       }
 
       const { forecasts: forecastMap, brandQuantities: bq } = buildForecastMap(
@@ -361,7 +360,9 @@ const Machines = () => {
                 ? "Active"
                 : "Pending",
           lastActive: formatUnixTimestamp(machine.lastUpdated ?? 0),
-          stockStatus: machineStockMap[machine.machine_code] || "Unknown",
+          ...machineStockFields(
+            machineRowsMap[machine.machine_code]?.map((r) => r.availableQuantity),
+          ),
         })),
       )
     : [];
@@ -437,19 +438,10 @@ const Machines = () => {
     );
   };
 
-  const getStockStatusBadge = (status: string) => {
-    const colorMap: Record<string, string> = {
-      "In Stock": "bg-green-100 text-green-800",
-      "Low Stock": "bg-yellow-100 text-yellow-800",
-      "Out of Stock": "bg-red-100 text-red-800",
-      Unknown: "bg-gray-100 text-gray-800",
-    };
-    return (
-      <Badge className={colorMap[status] || "bg-gray-100 text-gray-800"}>
-        {status}
-      </Badge>
-    );
-  };
+  // Label and colour come from machineStockFields (judged per row)
+  const getStockStatusBadge = (machine: { stockStatus: string; stockClass: string }) => (
+    <Badge className={machine.stockClass}>{machine.stockStatus}</Badge>
+  );
 
   // ── Derived: active filter count for badge ────────────────────────────────
   const activeFilterCount = [statusFilter, stockFilter, debouncedSearch].filter(
@@ -776,7 +768,7 @@ const Machines = () => {
                           <PaymentMethodBadges methods={machine.payment_methods} />
                         </td>
                         <td className="px-4 py-3">
-                          {getStockStatusBadge(machine.stockStatus)}
+                          {getStockStatusBadge(machine)}
                         </td>
                         <td className="px-4 py-3">
                           {forecastEnriching.has(machine.machine_code) ? (

@@ -42,6 +42,7 @@ import {
 } from "@/utils/stockForecast";
 import { StockForecastBadge } from "@/components/ui/stock-forecast-badge";
 import { formatUnixTimestamp } from "@/utils/formatters";
+import { machineStockFields, machineStockStatus } from "@/utils/machineStock";
 import {
   machineSortParams,
   nextMachineSort,
@@ -56,6 +57,7 @@ type EnrichedMachine = ApiMachine & {
   status: string;
   lastActive: string;
   stockStatus: string;
+  stockClass: string;
 };
 
 // ── Constants ─────────────────────────────────────────────────────────────────
@@ -128,13 +130,6 @@ const STATUS_COLORS: Record<string, string> = {
   Active: "bg-green-100 text-green-800",
   Inactive: "bg-red-100 text-red-800",
   Pending: "bg-yellow-100 text-yellow-800",
-};
-
-const STOCK_COLORS: Record<string, string> = {
-  "In Stock": "bg-green-100 text-green-800",
-  "Low Stock": "bg-yellow-100 text-yellow-800",
-  "Out of Stock": "bg-red-100 text-red-800",
-  Unknown: "bg-gray-100 text-gray-800",
 };
 
 const PAYMENT_METHOD_ICONS: Record<
@@ -277,7 +272,7 @@ function MobileMachineCard({
           <Package className="size-3 text-teal-600 shrink-0" />
           <Badge
             className={
-              STOCK_COLORS[machine.stockStatus] ?? "bg-gray-100 text-gray-800"
+              machine.stockClass
             }
           >
             {machine.stockStatus}
@@ -445,10 +440,8 @@ const Machines = () => {
       }
 
       for (const [code, quantities] of Object.entries(grouped)) {
-        const total = quantities.reduce((sum, q) => sum + q, 0);
-        if (total === 0) stockMap[code] = "Out of Stock";
-        else if (total < 2) stockMap[code] = "Low Stock";
-        else stockMap[code] = "In Stock";
+        // Judged per row: one empty row isn't "In Stock"
+        stockMap[code] = machineStockStatus(quantities);
       }
 
       const { forecasts: forecastMap, brandQuantities: bq } = buildForecastMap(
@@ -489,7 +482,9 @@ const Machines = () => {
                 ? "Active"
                 : "Pending",
           lastActive: formatUnixTimestamp(machine.lastUpdated),
-          stockStatus: machineStockMap[machine.machine_code] ?? "Unknown",
+          ...machineStockFields(
+            machineRowsMap[machine.machine_code]?.map((r) => r.availableQuantity),
+          ),
         })),
       )
     : [];
@@ -921,8 +916,7 @@ const Machines = () => {
                             <td className="px-4 py-3">
                               <Badge
                                 className={
-                                  STOCK_COLORS[machine.stockStatus] ??
-                                  "bg-gray-100 text-gray-800"
+                                  machine.stockClass
                                 }
                               >
                                 {machine.stockStatus}
