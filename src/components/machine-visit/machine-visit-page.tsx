@@ -1,11 +1,14 @@
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, MapPin } from "lucide-react";
+import { ArrowLeft, MapPin, OctagonAlert } from "lucide-react";
 import { postRequest } from "@/Apis/Api";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { summarizeAlerts, type ScopeState } from "./alerts";
+import { AlertsTab } from "./alerts-tab";
 import { formatDateTime, formatRelative, periodParams } from "./format";
+import { HealthTab } from "./health-tab";
 import { InsightsTab } from "./insights-tab";
 import { UnavailableNote } from "./parts";
 import { ProductsTab } from "./products-tab";
@@ -14,6 +17,7 @@ import { StockTab } from "./stock-tab";
 import { TransactionsTab } from "./transactions-tab";
 import type {
   Brand,
+  DiagAlertsResponse,
   LegacyFilling,
   PeriodFilter,
   ProductStock,
@@ -22,9 +26,8 @@ import type {
   StockUnit,
   TransactionSummary,
   VisitMachine,
+  VisitTab,
 } from "./types";
-
-type TabId = "stock" | "sales" | "transactions" | "insights" | "products";
 
 /** How many recent refills the "Since a refill" dropdown lists. */
 const REFILL_OPTIONS = 50;
@@ -54,6 +57,18 @@ const legacyProducts = (brands: Brand[], fillings: LegacyFilling[]): ProductStoc
     };
   });
 
+/** "Row 2 · Maxi(XL), failed to dispense a day ago", or for many: "rows 1, 2 and 4, the latest 3 hours ago" */
+const faultSummary = (open: ScopeState[]) => {
+  if (open.length <= 2) {
+    return open
+      .map((s) => `${s.name}, ${s.last!.label.toLowerCase()} ${formatRelative(s.last!.last_at)}`)
+      .join("; ");
+  }
+  const parts = open.map((s) => (s.row_num === null ? "the whole machine" : String(s.row_num)));
+  const latest = Math.max(...open.map((s) => s.last!.last_at));
+  return `rows ${parts.slice(0, -1).join(", ")} and ${parts[parts.length - 1]}, the latest ${formatRelative(latest)}`;
+};
+
 /**
  * Machine visit page shared by superadmin, admin, ops, fulfillment and
  * finance. Each role passes its own API prefix, header and back link.
@@ -74,7 +89,7 @@ export function MachineVisitPage({
   const machineCode = machine.machine_code;
   const isButterfly = machineCode.startsWith("3");
 
-  const [activeTab, setActiveTab] = useState<TabId>("stock");
+  const [activeTab, setActiveTab] = useState<VisitTab>("health");
   const [refillData, setRefillData] = useState<RefillsResponse | null>(null);
   const [refillsUnavailable, setRefillsUnavailable] = useState(false);
   const [legacy, setLegacy] = useState<ProductStock[] | null>(null);
@@ -84,6 +99,37 @@ export function MachineVisitPage({
   const [summary, setSummary] = useState<TransactionSummary | null>(null);
   const [summaryLoading, setSummaryLoading] = useState(false);
   const [summaryUnavailable, setSummaryUnavailable] = useState(false);
+
+  // Faults the machine reported itself; loaded up front for the header strip and tab badge
+  const [diagData, setDiagData] = useState<DiagAlertsResponse | null>(null);
+  const [diagState, setDiagState] = useState<"loading" | "ready" | "unavailable" | "failed">("loading");
+  const [diagReload, setDiagReload] = useState(0);
+
+  useEffect(() => {
+    if (!machineCode) return;
+    let cancelled = false;
+    setDiagState("loading");
+    postRequest<DiagAlertsResponse>(`${apiBase}/machineDiagAlerts`, { machine_code: machineCode })
+      .then((res) => {
+        if (cancelled) return;
+        setDiagData(res);
+        setDiagState("ready");
+      })
+      .catch((err) => {
+        if (cancelled) return;
+        if (isNotFound(err)) setDiagState("unavailable");
+        else {
+          console.error("Error fetching machine alerts:", err);
+          setDiagState("failed");
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [apiBase, machineCode, diagReload]);
+
+  const alertsSummary = useMemo(() => (diagData ? summarizeAlerts(diagData) : null), [diagData]);
+  const openFaults = alertsSummary?.open ?? [];
 
   useEffect(() => {
     if (!machineCode) return;
@@ -210,8 +256,44 @@ export function MachineVisitPage({
             )}
           </div>
 
-          <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as TabId)} className="w-full">
+          {openFaults.length > 0 && (
+            <div
+              role="status"
+              className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-red-200 bg-red-50 px-5 py-3 text-sm"
+            >
+              <p className="flex gap-2 text-red-800">
+                <OctagonAlert className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
+                <span>
+                  <span className="font-semibold">
+                    {openFaults.length === 1 ? "Machine fault: " : `${openFaults.length} machine faults: `}
+                  </span>
+                  {faultSummary(openFaults)}. No sale since to show {openFaults.length === 1 ? "it's" : "they're"} fixed.
+                </span>
+              </p>
+              {activeTab !== "alerts" && (
+                <Button size="sm" variant="outline" className="bg-white" onClick={() => setActiveTab("alerts")}>
+                  View alerts
+                </Button>
+              )}
+            </div>
+          )}
+
+          <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as VisitTab)} className="w-full">
             <TabsList className="mb-2 flex h-auto w-full justify-start gap-1 overflow-x-auto rounded-xl bg-white p-1 shadow-sm">
+              <TabsTrigger value="health" className="flex-none px-4 py-2 data-[state=active]:bg-teal-600 data-[state=active]:text-white">
+                🩺 Health check
+              </TabsTrigger>
+              <TabsTrigger value="alerts" className="flex-none px-4 py-2 data-[state=active]:bg-teal-600 data-[state=active]:text-white">
+                🚨 Alerts
+                {openFaults.length > 0 && (
+                  <span
+                    className="ml-1.5 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-red-600 px-1.5 text-xs font-semibold text-white"
+                    aria-label={`${openFaults.length} open`}
+                  >
+                    {openFaults.length}
+                  </span>
+                )}
+              </TabsTrigger>
               <TabsTrigger value="stock" className="flex-none px-4 py-2 data-[state=active]:bg-teal-600 data-[state=active]:text-white">
                 📦 Stock
               </TabsTrigger>
@@ -228,6 +310,28 @@ export function MachineVisitPage({
                 🏷 Products & prices
               </TabsTrigger>
             </TabsList>
+
+            <TabsContent value="health">
+              <HealthTab
+                apiBase={apiBase}
+                machineCode={machineCode}
+                products={products}
+                refills={refills}
+                unit={unit}
+                stockLoading={stockLoading}
+                onOpenTab={setActiveTab}
+              />
+            </TabsContent>
+
+            <TabsContent value="alerts">
+              <AlertsTab
+                data={diagData}
+                summary={alertsSummary}
+                state={diagState}
+                products={products}
+                onRefresh={() => setDiagReload((n) => n + 1)}
+              />
+            </TabsContent>
 
             <TabsContent value="stock">
               {stockLoading && products.length === 0 ? (

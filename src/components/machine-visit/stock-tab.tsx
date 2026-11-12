@@ -29,11 +29,11 @@ import {
   formatRelative,
   isExpired,
 } from "./format";
+import { stockRunway } from "./analysis";
 import { EmptyState, Pager, UnavailableNote } from "./parts";
 import type { ProductStock, Refill, RefillsResponse, StockUnit } from "./types";
 
 const LOW_STOCK_SHARE = 0.2;
-const MIN_DAYS_FOR_PACE = 0.5;
 
 function ExpiryBadge({ expiry }: { expiry: string | null }) {
   if (!expiry) return <span className="text-slate-400">—</span>;
@@ -55,16 +55,11 @@ function ExpiryBadge({ expiry }: { expiry: string | null }) {
 function ProductCard({ product, unit }: { product: ProductStock; unit: StockUnit }) {
   const { loaded, remaining, sold_since_refill: sold, last_refill_at } = product;
   const oversold = remaining !== null && remaining < 0;
-  const left = remaining === null ? null : Math.max(0, remaining);
+  // Shared with the Health check tab so both show the same runway
+  const { left, perDay, daysLeft } = stockRunway(product);
   const share = loaded && left !== null ? left / loaded : null;
   const low = share !== null && share <= LOW_STOCK_SHARE;
   const half = share !== null && share <= 0.5;
-
-  const daysSince = last_refill_at
-    ? Math.max(MIN_DAYS_FOR_PACE, (Date.now() / 1000 - last_refill_at) / 86400)
-    : null;
-  const perDay = daysSince && sold > 0 ? sold / daysSince : null;
-  const daysLeft = perDay && left !== null ? Math.floor(left / perDay) : null;
 
   return (
     <Card className={cn("rounded-2xl shadow-sm", low && "border-red-300")}>

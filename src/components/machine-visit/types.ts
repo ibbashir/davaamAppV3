@@ -1,3 +1,38 @@
+export type VisitTab =
+  | "health"
+  | "alerts"
+  | "stock"
+  | "sales"
+  | "transactions"
+  | "insights"
+  | "products";
+
+/** A fault the machine reported about itself (machine_diag_alerts). */
+export type DiagAlert = {
+  id: number;
+  alert_type: string;
+  info: string | null;
+  /** product row named by info, when info is a number */
+  row_num: number | null;
+  brand_id: number | null;
+  product_name: string | null;
+  epoch_time: number;
+  mac: string | null;
+  ip: string | null;
+  /** first sale from that row (or any row, for whole-machine faults) 10+ min later */
+  cleared_by_sale_at: number | null;
+};
+
+/** machineDiagAlerts response: alerts newest first. */
+export type DiagAlertsResponse = {
+  since: number;
+  days: number;
+  truncated: boolean;
+  device: { mac: string | null; ip: string | null; reported_at: number } | null;
+  rows: { row_num: number; brand_id: number; name: string }[];
+  alerts: DiagAlert[];
+};
+
 export type VisitMachine = {
   machine_code: string;
   machine_name?: string;
