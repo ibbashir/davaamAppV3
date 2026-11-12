@@ -36,6 +36,7 @@ import {
 } from "lucide-react";
 import { SiteHeader } from "@/components/superAdmin/site-header";
 import { useLocation, useNavigate } from "react-router-dom";
+import { useCanExport } from "@/utils/companyAccess";
 import { MACHINE_MACHINES } from "@/constants/Constant";
 import { postRequest } from "@/Apis/Api";
 import { ResponsiveBar } from "@nivo/bar";
@@ -64,6 +65,8 @@ export default function AdminMachineVisit() {
   const { state } = useLocation();
   const navigate = useNavigate();
   const machine = state?.machine;
+  // View-only companies (e.g. Butterfly) see transactions but can't export them
+  const exportAllowed = useCanExport();
 
   const [stockView, setStockView] = useState("batch");
   const [activeTab, setActiveTab] = useState("stock-levels");
@@ -557,14 +560,16 @@ export default function AdminMachineVisit() {
                   <h1 className="text-2xl font-bold text-emerald-700">
                     👥 User Transactions
                   </h1>
-                  <Button
-                    className="bg-teal-600 hover:bg-teal-700 text-white rounded-lg ml-4"
-                    onClick={exportToCSV}
-                    disabled={filteredTransactions.length === 0}
-                  >
-                    <Download className="w-4 h-4 mr-2" />
-                    Export CSV
-                  </Button>
+                  {exportAllowed && (
+                    <Button
+                      className="bg-teal-600 hover:bg-teal-700 text-white rounded-lg ml-4"
+                      onClick={exportToCSV}
+                      disabled={filteredTransactions.length === 0}
+                    >
+                      <Download className="w-4 h-4 mr-2" />
+                      Export CSV
+                    </Button>
+                  )}
                 </div>
 
                 {/* Month Filter */}

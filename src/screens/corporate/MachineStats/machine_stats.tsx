@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from "react"
 import { useParams } from "react-router-dom"
-import { ChevronDown, Download } from "lucide-react"
+import moment from "moment-timezone"
+import { ChevronDown, Download, Search } from "lucide-react"
 import { postRequest } from "@/Apis/Api"
 import { useAuth } from "@/contexts/AuthContext"
+import { canExportData } from "@/utils/companyAccess"
 import { formatDate, formatUnixTimestamp } from "@/utils/formatters"
 import { Pager } from "@/components/machine-visit/parts"
-import type { TransactionPage } from "@/components/machine-visit/types"
 import type {
   ApiMachine,
   DispensingBrand,
@@ -15,27 +16,38 @@ import type {
 
 type Mode = "7d" | "month" | "custom"
 type Slot = DispensingBrand | VendingBrand
-
-type RawTransaction = {
-  id?: number | string
-  brand_id: number | string
-  amount: number | string
-  quantity: number | string
-  created_at: string
-}
-type Brand = { id: number | string; name: string }
-type Sale = {
-  key: string
-  machineCode: string
-  date: Date
+type Totals = { transactions: number; units: number; revenue: number }
+type ReportTransaction = {
+  id: string
+  machine_code: string
   product: string
-  qty: number
-  amt: number
+  units: number
+  amount: number
+  payment: string
+  epoch_time: number
 }
+/** POST /corporates/salesReport: everything the page shows for one date range. */
+type SalesReport = {
+  unit: "pcs" | "L" | "mixed"
+  totals: Totals
+  lastSale: { machine_code: string; epoch_time: number } | null
+  series: (Totals & { key: string })[]
+  products: (Totals & { name: string })[]
+  machines: (Totals & { machine_code: string; last_at: number | null })[]
+  transactions: ReportTransaction[]
+  total: number
+  totalPages: number
+  truncated: boolean
+}
+type MachineSort = "sold" | "stock" | "name"
 
 const TEAL = "#0E6B62"
 const GOLD = "#A9802F"
 const MS_DAY = 86400000
+const TZ = "Asia/Karachi"
+const TOP_PRODUCTS = 6
+// Picking machines one by one shouldn't send a request per tick
+const SELECTION_SETTLE_MS = 400
 
 const startOfDay = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate())
 const addDays = (d: Date, n: number) => new Date(d.getFullYear(), d.getMonth(), d.getDate() + n)
@@ -46,21 +58,31 @@ const parseKey = (s: string) => {
   const [y, m, d] = s.split("-").map(Number)
   return new Date(y, (m || 1) - 1, d || 1)
 }
-// Keep the wall-clock time exactly as stored in the database: ignore any "Z"/offset
-// instead of letting the browser convert it to the viewer's timezone.
-const parseDate = (s: string) => {
-  const m = String(s).match(/(\d{4})-(\d{2})-(\d{2})(?:[T ](\d{2}):(\d{2})(?::(\d{2}))?)?/)
-  if (!m) return new Date(NaN)
-  return new Date(+m[1], +m[2] - 1, +m[3], +(m[4] ?? 0), +(m[5] ?? 0), +(m[6] ?? 0))
-}
 const fmt = (d: Date, year = false) =>
   d.toLocaleDateString("en-GB", { day: "numeric", month: "short", ...(year ? { year: "numeric" } : {}) })
-const fmtTime = (d: Date) =>
-  d.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true }).toLowerCase()
+// Sale times are shown in Pakistan time, wherever the viewer is
+const pktStart = (key: string) => moment.tz(key, "YYYY-MM-DD", TZ).unix()
+const fmtEpochDate = (epoch: number, year = false) =>
+  moment.unix(epoch).tz(TZ).format(year ? "D MMM YYYY" : "D MMM")
+const fmtEpochTime = (epoch: number) => moment.unix(epoch).tz(TZ).format("h:mm a")
 const WEEKDAY = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
 
 const isOnline = (m: ApiMachine) => m.statusCode === "g"
 const neverOnline = (m: ApiMachine) => !m.lastUpdated
+
+/** The selection, after it has stopped changing for a moment. The first one is used at once. */
+function useSettled(value: string, ms: number) {
+  const [settled, setSettled] = useState(value)
+  useEffect(() => {
+    if (!settled) {
+      setSettled(value)
+      return
+    }
+    const t = setTimeout(() => setSettled(value), ms)
+    return () => clearTimeout(t)
+  }, [value, ms, settled])
+  return settled
+}
 
 const Pill = ({ machine }: { machine: ApiMachine }) => {
   const online = isOnline(machine)
@@ -101,10 +123,15 @@ const Empty = ({ title, hint, solid = false }: { title: string; hint: string; so
   </div>
 )
 
+const thCls = "border-b border-[#E7EAE8] px-2 pb-3 text-[13px] font-semibold text-[#5E6B69]"
+const tdCls = "border-b border-[#F0F2F1] px-2 py-3.5"
+
 const MachineStats = () => {
   const { id: routeId } = useParams()
   const { state } = useAuth()
   const { user } = state
+  // View-only companies (e.g. Butterfly) see their sales but can't download them
+  const exportAllowed = canExportData(user)
 
   const machineCodes = useMemo(
     () => (Array.isArray(user?.machines) ? user.machines.map((m) => String(m.machine_code)) : []),
@@ -113,27 +140,38 @@ const MachineStats = () => {
 
   const [machines, setMachines] = useState<ApiMachine[]>([])
   const [slots, setSlots] = useState<Slot[]>([])
-  const [sales, setSales] = useState<Sale[]>([])
   const [selected, setSelected] = useState<Set<string> | null>(null)
   const [pickerOpen, setPickerOpen] = useState(false)
+  const [pickerSearch, setPickerSearch] = useState("")
   const [mode, setMode] = useState<Mode>("7d")
   const [month, setMonth] = useState(monthKey(new Date()))
   const [from, setFrom] = useState(dayKey(addDays(new Date(), -29)))
   const [to, setTo] = useState(dayKey(new Date()))
-  const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [hoverIdx, setHoverIdx] = useState<number | null>(null)
-  const [brandNames, setBrandNames] = useState<Record<string, string>>({})
-  const [txMachine, setTxMachine] = useState<string | null>(null)
+  const [report, setReport] = useState<SalesReport | null>(null)
+  const [reportLoading, setReportLoading] = useState(true)
+  const [exporting, setExporting] = useState(false)
   const [txPage, setTxPage] = useState(1)
   const [txPerPage, setTxPerPage] = useState(20)
-  const [txData, setTxData] = useState<TransactionPage | null>(null)
-  const [txLoading, setTxLoading] = useState(false)
+  const [mSearch, setMSearch] = useState("")
+  const [mSort, setMSort] = useState<MachineSort>("sold")
+  const [mPage, setMPage] = useState(1)
+  const [mPerPage, setMPerPage] = useState(10)
   const pickerRef = useRef<HTMLDivElement>(null)
   const pickerBtnRef = useRef<HTMLButtonElement>(null)
 
   const today = startOfDay(new Date())
   const todayKey = dayKey(today)
+
+  // Start with every machine (or the one in the URL) from the login, so sales
+  // load alongside stock instead of after it
+  useEffect(() => {
+    if (machineCodes.length === 0) return
+    setSelected(
+      (prev) => prev ?? new Set(routeId && machineCodes.includes(routeId) ? [routeId] : machineCodes)
+    )
+  }, [machineCodes, routeId])
 
   // Machines + live stock
   useEffect(() => {
@@ -143,64 +181,10 @@ const MachineStats = () => {
     })
       .then((res) => {
         const { machines: grouped, brands } = res.data
-        const list = Object.values(grouped).flat()
-        setMachines(list)
+        setMachines(Object.values(grouped).flat())
         setSlots([...brands.vending, ...brands.dispensing].sort((a, b) => a.row_num - b.row_num))
-        setSelected(
-          (prev) =>
-            prev ??
-            new Set(
-              routeId && list.some((m) => String(m.machine_code) === routeId)
-                ? [routeId]
-                : list.map((m) => String(m.machine_code))
-            )
-        )
       })
       .catch(() => setError("Could not load machine stock."))
-  }, [machineCodes, routeId])
-
-  // Sales history for every machine
-  useEffect(() => {
-    if (machineCodes.length === 0) return
-    setLoading(true)
-    Promise.all(
-      machineCodes.map((code) =>
-        postRequest<{ transactions?: RawTransaction[]; brands?: Brand[] }>(
-          "/corporates/machineDetailsWithMachineCode",
-          { machine_code: code }
-        )
-          .then((res) => {
-            const name = (bid: number | string) =>
-              res.brands?.find((b) => String(b.id) === String(bid))?.name ?? `Product ${bid}`
-            setBrandNames((prev) => {
-              const next = { ...prev }
-              res.brands?.forEach((b) => (next[`${code}:${b.id}`] = b.name))
-              return next
-            })
-            return (res.transactions ?? []).map<Sale>((t, i) => ({
-              key: `${code}-${t.id ?? i}`,
-              machineCode: code,
-              date: parseDate(t.created_at),
-              product: name(t.brand_id),
-              qty: Number(t.quantity) || 1,
-              amt: Number(t.amount) || 0,
-            }))
-          })
-          .catch(() => {
-            setError("Could not load sales for some machines.")
-            return [] as Sale[]
-          })
-      )
-    )
-      .then((all) =>
-        setSales(
-          all
-            .flat()
-            .filter((s) => !isNaN(s.date.getTime()))
-            .sort((a, b) => b.date.getTime() - a.date.getTime())
-        )
-      )
-      .finally(() => setLoading(false))
   }, [machineCodes])
 
   // Close picker on outside click / Escape
@@ -223,9 +207,10 @@ const MachineStats = () => {
     }
   }, [pickerOpen])
 
-  const sel = selected ?? new Set<string>()
-  const chosen = machines.filter((m) => sel.has(String(m.machine_code)))
-  const n = chosen.length
+  const sel = useMemo(() => selected ?? new Set<string>(), [selected])
+  const chosen = useMemo(() => machines.filter((m) => sel.has(String(m.machine_code))), [machines, sel])
+  // Count machines that exist; an account can list a code that isn't a machine any more
+  const n = machines.length ? chosen.length : sel.size
   const byCode = useMemo(() => new Map(machines.map((m) => [String(m.machine_code), m])), [machines])
   const shortName = (code: string) => byCode.get(code)?.machine_name ?? `Machine ${code}`
 
@@ -281,25 +266,66 @@ const MachineStats = () => {
   const sameYear = range.start.getFullYear() === range.end.getFullYear()
   const rangeLabel =
     range.days === 1 ? fmt(range.end, true) : `${fmt(range.start, !sameYear)} – ${fmt(range.end, true)}`
+  const fromEpoch = pktStart(dayKey(range.start))
+  const toEpoch = pktStart(dayKey(addDays(range.end, 1)))
 
-  const rows = useMemo(
-    () =>
-      sales.filter((s) => {
-        const d = startOfDay(s.date)
-        return sel.has(s.machineCode) && d >= range.start && d <= range.end
-      }),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [sales, selected, range]
-  )
-  const padsSold = rows.reduce((t, s) => t + s.qty, 0)
-  const lastSale = sales.find((s) => sel.has(s.machineCode))
+  // ── Sales report: one request for totals, chart, products and a page of sales
+  const selectionKey = useMemo(() => [...sel].sort().join(","), [sel])
+  const settledKey = useSettled(selectionKey, SELECTION_SETTLE_MS)
+  const settledCodes = useMemo(() => (settledKey ? settledKey.split(",") : []), [settledKey])
 
-  // Stock
-  const slotsFor = (code: string) => slots.filter((s) => String(s.machine_code) === code)
+  // A new selection or date range starts from the first page
+  useEffect(() => {
+    setTxPage(1)
+  }, [settledKey, fromEpoch, toEpoch])
+
+  useEffect(() => {
+    if (settledCodes.length === 0) {
+      setReport(null)
+      setReportLoading(false)
+      return
+    }
+    let cancelled = false
+    setReportLoading(true)
+    postRequest<SalesReport>("/corporates/salesReport", {
+      from: fromEpoch,
+      to: toEpoch,
+      machine_codes: settledCodes,
+      page: txPage,
+      perPage: txPerPage,
+    })
+      .then((res) => {
+        if (cancelled) return
+        setReport(res)
+        setError(null)
+      })
+      .catch(() => !cancelled && setError("Could not load sales."))
+      .finally(() => !cancelled && setReportLoading(false))
+    return () => {
+      cancelled = true
+    }
+  }, [settledCodes, fromEpoch, toEpoch, txPage, txPerPage])
+
+  const unitWord = report?.unit === "L" ? "litres" : report?.unit === "mixed" ? "units" : "pads"
+  const UnitWord = unitWord.charAt(0).toUpperCase() + unitWord.slice(1)
+  const soldTotal = report?.totals.units ?? 0
+  const lastSale = report?.lastSale ?? null
+
+  // ── Stock
+  const slotsByCode = useMemo(() => {
+    const map = new Map<string, Slot[]>()
+    for (const s of slots) {
+      const code = String(s.machine_code)
+      if (!map.has(code)) map.set(code, [])
+      map.get(code)!.push(s)
+    }
+    return map
+  }, [slots])
+  const slotsFor = (code: string) => slotsByCode.get(code) ?? []
   const slotCap = (s: Slot) => s.latestFilling?.quantity ?? s.availableQuantity
   const stocked = chosen.filter((m) => slotsFor(String(m.machine_code)).length > 0)
   const left = stocked.reduce(
-    (t, m) => t + slotsFor(String(m.machine_code)).reduce((a, s) => a + s.availableQuantity, 0),
+    (t, m) => t + slotsFor(String(m.machine_code)).reduce((a, s) => a + Math.max(0, s.availableQuantity), 0),
     0
   )
   const cap = stocked.reduce(
@@ -311,113 +337,137 @@ const MachineStats = () => {
 
   const online = chosen.filter(isOnline)
   const offline = chosen.filter((m) => !isOnline(m))
+  const neverConnected = offline.filter(neverOnline).length
+  const offlineText =
+    offline.length === 0
+      ? "All selected machines are online"
+      : offline.length <= 2
+        ? `${offline.map((m) => m.machine_name).join(" and ")} ${
+            offline.every(neverOnline) ? "not connected yet" : "offline"
+          }`
+        : `${offline.length} offline${neverConnected ? `, ${neverConnected} never connected` : ""}`
 
-  // Chart
-  const perDay = new Map<string, number>()
-  rows.forEach((s) => perDay.set(dayKey(s.date), (perDay.get(dayKey(s.date)) ?? 0) + s.qty))
+  // ── Chart
+  const perDay = useMemo(
+    () => new Map((report?.series ?? []).map((p) => [p.key, p.units])),
+    [report]
+  )
   const maxDaily = Math.max(1, ...perDay.values())
   const step = Math.max(1, Math.ceil(range.days / 7))
   const gap = range.days <= 7 ? 14 : range.days <= 31 ? 4 : range.days <= 62 ? 2 : 1
   const dense = range.days > 31
   const chartDays = Array.from({ length: range.days }, (_, i) => addDays(range.start, i))
 
-  // Popular
-  const popular = useMemo(() => {
-    const map = new Map<string, number>()
-    rows.forEach((s) => map.set(s.product, (map.get(s.product) ?? 0) + s.qty))
-    return [...map.entries()].sort((a, b) => b[1] - a[1])
-  }, [rows])
+  const popular = report?.products ?? []
 
-  // Paginated transactions for one machine (server-side paging)
-  const activeTxMachine =
-    txMachine && chosen.some((m) => String(m.machine_code) === txMachine)
-      ? txMachine
-      : chosen[0]
-        ? String(chosen[0].machine_code)
-        : null
-  const fromEpoch = Math.floor(range.start.getTime() / 1000)
-  const toEpoch = Math.floor(addDays(range.end, 1).getTime() / 1000) - 1
-
-  useEffect(() => {
-    if (!activeTxMachine) return
-    let cancelled = false
-    setTxLoading(true)
-    postRequest<TransactionPage>("/corporates/machineTransactionWithMachineCode", {
-      machine_code: activeTxMachine,
-      page: txPage,
-      perPage: txPerPage,
-      from: fromEpoch,
-      to: toEpoch,
-    })
-      .then((res) => !cancelled && setTxData(res))
-      .catch(() => !cancelled && setTxData({ transactions: [], total: 0, totalPages: 1 }))
-      .finally(() => !cancelled && setTxLoading(false))
-    return () => {
-      cancelled = true
+  // ── Machines table: search, sort and pages
+  const soldBy = useMemo(
+    () => new Map((report?.machines ?? []).map((m) => [m.machine_code, m])),
+    [report]
+  )
+  const machineRows = useMemo(() => {
+    const term = mSearch.trim().toLowerCase()
+    const lowest = (m: ApiMachine) => {
+      const s = slotsByCode.get(String(m.machine_code)) ?? []
+      return s.length ? Math.min(...s.map((x) => x.availableQuantity)) : Number.POSITIVE_INFINITY
     }
-  }, [activeTxMachine, txPage, txPerPage, fromEpoch, toEpoch])
-
-  // A new machine or date range starts from the first page
-  useEffect(() => {
-    setTxPage(1)
-  }, [activeTxMachine, fromEpoch, toEpoch])
-
-  const txTotal = txData?.total ?? 0
-  const txRows = txData?.transactions ?? []
-
-  const downloadCsv = () => {
-    if (!rows.length) return
-    const lines: (string | number)[][] = [
-      ["Date", "Time", "Machine", "Machine no.", "Product", "Quantity", "Paid by", "Amount (Rs)"],
-      ...rows.map((s) => [
-        fmt(s.date, true),
-        fmtTime(s.date),
-        shortName(s.machineCode),
-        s.machineCode,
-        s.product,
-        s.qty,
-        "At machine",
-        s.amt,
-      ]),
-    ]
-    const csv = lines
-      .map((r) =>
-        r
-          .map((v) => {
-            const t = String(v)
-            return /[",\n]/.test(t) ? `"${t.replace(/"/g, '""')}"` : t
-          })
-          .join(",")
+    const sold = (m: ApiMachine) => soldBy.get(String(m.machine_code))?.units ?? 0
+    const byName = (a: ApiMachine, b: ApiMachine) => a.machine_name.localeCompare(b.machine_name)
+    return chosen
+      .filter(
+        (m) =>
+          !term ||
+          m.machine_name.toLowerCase().includes(term) ||
+          String(m.machine_code).includes(term)
       )
-      .join("\r\n")
-    const url = URL.createObjectURL(new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8" }))
-    const a = document.createElement("a")
-    a.href = url
-    a.download = `davaam-sales-${dayKey(range.start)}-to-${dayKey(range.end)}.csv`
-    document.body.appendChild(a)
-    a.click()
-    a.remove()
-    setTimeout(() => URL.revokeObjectURL(url), 1000)
+      .sort((a, b) =>
+        mSort === "sold"
+          ? sold(b) - sold(a) || byName(a, b)
+          : mSort === "stock"
+            ? lowest(a) - lowest(b) || byName(a, b)
+            : byName(a, b)
+      )
+  }, [chosen, mSearch, mSort, slotsByCode, soldBy])
+  const mTotalPages = Math.max(1, Math.ceil(machineRows.length / mPerPage))
+  const shownMachines = machineRows.slice((mPage - 1) * mPerPage, mPage * mPerPage)
+
+  useEffect(() => {
+    setMPage(1)
+  }, [mSearch, mSort, selectionKey])
+
+  // ── Transactions (paged by the server)
+  const txTotal = report?.total ?? 0
+  const txRows = report?.transactions ?? []
+
+  const downloadCsv = async () => {
+    if (!exportAllowed || !txTotal || exporting) return
+    setExporting(true)
+    try {
+      const res = await postRequest<SalesReport>("/corporates/salesReport", {
+        from: fromEpoch,
+        to: toEpoch,
+        machine_codes: settledCodes,
+        export: true,
+      })
+      const lines: (string | number)[][] = [
+        ["Date", "Time", "Machine", "Machine no.", "Product", "Quantity", "Paid by", "Amount (Rs)"],
+        ...res.transactions.map((t) => [
+          fmtEpochDate(t.epoch_time, true),
+          fmtEpochTime(t.epoch_time),
+          shortName(t.machine_code),
+          t.machine_code,
+          t.product,
+          t.units,
+          t.payment,
+          t.amount,
+        ]),
+      ]
+      const csv = lines
+        .map((r) =>
+          r
+            .map((v) => {
+              const s = String(v)
+              return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s
+            })
+            .join(",")
+        )
+        .join("\r\n")
+      const url = URL.createObjectURL(new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8" }))
+      const a = document.createElement("a")
+      a.href = url
+      a.download = `davaam-sales-${dayKey(range.start)}-to-${dayKey(range.end)}.csv`
+      document.body.appendChild(a)
+      a.click()
+      a.remove()
+      setTimeout(() => URL.revokeObjectURL(url), 1000)
+    } catch {
+      setError("Could not download sales.")
+    } finally {
+      setExporting(false)
+    }
   }
 
   const company = [user?.first_name, user?.last_name].filter(Boolean).join(" ") || "Your company"
-  const first = chosen[0]
+  const total = machines.length || machineCodes.length
+  const onlyOne =
+    n === 1 ? (chosen[0]?.machine_name ?? byCode.get([...sel][0])?.machine_name ?? `Machine ${[...sel][0]}`) : ""
   const subtitle =
     n === 0
       ? `${company} · no machines selected`
-      : n === machines.length
+      : n === total
         ? `${company} · all ${n} machine${n === 1 ? "" : "s"}`
         : n === 1
-          ? `${company} · ${first.machine_name}`
-          : `${company} · ${n} of ${machines.length} machines`
+          ? `${company} · ${onlyOne}`
+          : `${company} · ${n} of ${total} machines`
   const pickerValue =
-    n === machines.length && n > 0
-      ? `All machines (${n})`
-      : n === 0
-        ? "Choose machines"
-        : n === 1
-          ? first.machine_name
-          : `${n} machines`
+    n === total && n > 0 ? `All machines (${n})` : n === 0 ? "Choose machines" : n === 1 ? onlyOne : `${n} machines`
+
+  const pickerTerm = pickerSearch.trim().toLowerCase()
+  const pickerList = pickerTerm
+    ? machines.filter(
+        (m) => m.machine_name.toLowerCase().includes(pickerTerm) || String(m.machine_code).includes(pickerTerm)
+      )
+    : machines
 
   const segBtn = (m: Mode, label: string) => (
     <button
@@ -437,10 +487,10 @@ const MachineStats = () => {
 
   return (
     <div className="min-h-screen bg-[#F7F7F4] text-[#12211F] [font-variant-numeric:tabular-nums]">
-      <main className="mx-auto flex flex-col gap-7 px-4 pb-16 pt-8 sm:px-6 sm:pt-9">
+      <main className="mx-auto flex max-w-[1120px] flex-col gap-7 px-4 pb-16 pt-8 sm:px-6 sm:pt-9">
         {/* Header + machine picker */}
         <section className="flex flex-wrap items-end justify-between gap-5">
-          <div>
+          <div className="min-w-0">
             <h1 className="text-[28px] font-bold leading-[1.15] tracking-[-0.02em] sm:text-[34px]">
               Sales summary
             </h1>
@@ -457,7 +507,7 @@ const MachineStats = () => {
               onClick={() => setPickerOpen((o) => !o)}
               className="flex min-h-12 items-center justify-between gap-3 rounded-xl border border-[#DCE1DF] bg-white px-4 text-left text-[15px] font-semibold"
             >
-              <span>{pickerValue}</span>
+              <span className="truncate">{pickerValue}</span>
               <ChevronDown
                 className={`h-[18px] w-[18px] shrink-0 text-[#5E6B69] transition-transform ${
                   pickerOpen ? "rotate-180" : ""
@@ -467,12 +517,28 @@ const MachineStats = () => {
 
             {pickerOpen && (
               <div className="absolute left-0 top-[calc(100%+8px)] z-20 w-full rounded-2xl border border-[#E1E6E3] bg-white p-2 shadow-[0_16px_40px_rgba(18,33,31,0.16)] sm:left-auto sm:right-0 sm:w-[380px]">
+                {machines.length > 8 && (
+                  <div className="relative px-1.5 pt-1.5">
+                    <Search className="pointer-events-none absolute left-4 top-1/2 mt-[3px] h-4 w-4 -translate-y-1/2 text-[#5E6B69]" />
+                    <input
+                      type="search"
+                      value={pickerSearch}
+                      onChange={(e) => setPickerSearch(e.target.value)}
+                      placeholder="Search machines"
+                      aria-label="Search machines"
+                      className={`${fieldCls} w-full pl-9`}
+                    />
+                  </div>
+                )}
                 <fieldset className="m-0 border-0 p-0">
                   <legend className="px-3 pb-1.5 pt-2.5 text-[13px] font-semibold text-[#5E6B69]">
                     Show sales for
                   </legend>
-                  <div className="flex max-h-[60vh] flex-col gap-0.5 overflow-y-auto">
-                    {machines.map((m) => {
+                  <div className="flex max-h-[50vh] flex-col gap-0.5 overflow-y-auto">
+                    {pickerList.length === 0 && (
+                      <p className="px-3 py-4 text-sm text-[#5E6B69]">No machine matches “{pickerSearch}”.</p>
+                    )}
+                    {pickerList.map((m) => {
                       const code = String(m.machine_code)
                       const on = sel.has(code)
                       return (
@@ -511,9 +577,15 @@ const MachineStats = () => {
                       type="button"
                       className="min-h-10 rounded-[10px] px-3 text-sm font-semibold"
                       style={{ color: TEAL }}
-                      onClick={() => setSelected(new Set(machines.map((m) => String(m.machine_code))))}
+                      onClick={() =>
+                        setSelected((prev) => {
+                          const next = new Set(pickerTerm ? (prev ?? []) : [])
+                          pickerList.forEach((m) => next.add(String(m.machine_code)))
+                          return next
+                        })
+                      }
                     >
-                      Select all
+                      {pickerTerm ? `Select these ${pickerList.length}` : "Select all"}
                     </button>
                     <button
                       type="button"
@@ -544,11 +616,11 @@ const MachineStats = () => {
 
         {n === 0 ? (
           <section className="flex flex-col items-center justify-center gap-1.5 rounded-[20px] border border-dashed border-[#DCE1DF] bg-white px-6 py-12 text-center">
-            <b className="text-[17px]">{machines.length ? "No machine selected" : "Loading machines…"}</b>
+            <b className="text-[17px]">{machineCodes.length ? "No machine selected" : "No machines on this account"}</b>
             <span className="text-[15px] text-[#5E6B69]">
-              {machines.length
+              {machineCodes.length
                 ? "Choose at least one machine from the Machines menu to see its sales."
-                : "Fetching your machines."}
+                : "Machines assigned to your company will appear here."}
             </span>
           </section>
         ) : (
@@ -620,70 +692,70 @@ const MachineStats = () => {
             {/* Summary cards */}
             <section aria-label="Summary" className="grid gap-4 [grid-template-columns:repeat(auto-fit,minmax(240px,1fr))]">
               <div className="flex flex-col gap-2 rounded-[20px] border border-[#0E6B62] bg-[#0E6B62] px-[26px] py-6 text-white">
-                <span className="text-sm font-semibold text-[#CFE8E3]">Pads sold</span>
+                <span className="text-sm font-semibold text-[#CFE8E3]">{UnitWord} sold</span>
                 <span className="text-[38px] font-bold leading-[1.05] tracking-[-0.03em] sm:text-[44px]">
-                  {loading ? "–" : padsSold}
+                  {report ? soldTotal.toLocaleString() : "–"}
                 </span>
                 <span className="text-sm text-[#CFE8E3]">
-                  {lastSale
-                    ? `Last sale ${fmt(lastSale.date)} at ${fmtTime(lastSale.date)}`
-                    : loading
-                      ? "Loading sales…"
-                      : "No sales yet on these machines"}
+                  {report
+                    ? `Rs ${report.totals.revenue.toLocaleString()} · ${
+                        lastSale
+                          ? `last sale ${fmtEpochDate(lastSale.epoch_time)} at ${fmtEpochTime(lastSale.epoch_time)}`
+                          : "no sales yet on these machines"
+                      }`
+                    : "Loading sales…"}
                 </span>
               </div>
 
               <div className="flex flex-col gap-2 rounded-[20px] border border-[#E7EAE8] bg-white px-[26px] py-6">
-                <span className="text-sm font-semibold text-[#5E6B69]">Pads left in machines</span>
+                <span className="text-sm font-semibold text-[#5E6B69]">{UnitWord} left in machines</span>
                 <span className="text-[38px] font-bold leading-[1.05] tracking-[-0.03em] sm:text-[44px]">
-                  {stocked.length ? left : "—"}{" "}
+                  {stocked.length ? left.toLocaleString() : "—"}{" "}
                   {stocked.length > 0 && (
-                    <span className="text-xl font-semibold tracking-normal text-[#5E6B69]">of {cap}</span>
+                    <span className="text-xl font-semibold tracking-normal text-[#5E6B69]">
+                      of {cap.toLocaleString()}
+                    </span>
                   )}
                 </span>
                 <span className="text-sm text-[#5E6B69]">
-                  {!stocked.length
-                    ? "No stock loaded on these machines"
-                    : stocked.length === 1
-                      ? `${stocked[0].machine_name}${
-                          lastRefill(String(stocked[0].machine_code))
-                            ? ` · refilled ${fmt(new Date(lastRefill(String(stocked[0].machine_code)) * 1000))}`
-                            : ""
-                        }`
-                      : `Across ${stocked.length} machines`}
+                  {!machines.length
+                    ? "Loading stock…"
+                    : !stocked.length
+                      ? "No stock loaded on these machines"
+                      : stocked.length === 1
+                        ? `${stocked[0].machine_name}${
+                            lastRefill(String(stocked[0].machine_code))
+                              ? ` · refilled ${fmt(new Date(lastRefill(String(stocked[0].machine_code)) * 1000))}`
+                              : ""
+                          }`
+                        : `Across ${stocked.length} machines`}
                 </span>
               </div>
 
               <div className="flex flex-col gap-2 rounded-[20px] border border-[#E7EAE8] bg-white px-[26px] py-6">
                 <span className="text-sm font-semibold text-[#5E6B69]">Machines online</span>
                 <span className="text-[38px] font-bold leading-[1.05] tracking-[-0.03em] sm:text-[44px]">
-                  {online.length}{" "}
+                  {machines.length ? online.length : "–"}{" "}
                   <span className="text-xl font-semibold tracking-normal text-[#5E6B69]">of {n}</span>
                 </span>
-                <span className="text-sm text-[#5E6B69]">
-                  {offline.length
-                    ? `${offline.map((m) => m.machine_name).join(", ")} ${
-                        offline.every(neverOnline) ? "not connected yet" : "offline"
-                      }`
-                    : "All selected machines are online"}
-                </span>
+                <span className="text-sm text-[#5E6B69]">{machines.length ? offlineText : "Loading machines…"}</span>
               </div>
             </section>
 
             {/* Chart + popular */}
-            <section className="flex flex-wrap items-stretch gap-5">
+            <section className={`flex flex-wrap items-start gap-5 transition-opacity ${reportLoading ? "opacity-60" : ""}`}>
               <Panel className="flex-[3_1_480px]">
                 <div>
-                  <h2 className="text-[19px] font-bold">Pads sold each day</h2>
+                  <h2 className="text-[19px] font-bold">{UnitWord} sold each day</h2>
                   <p className="mt-1 text-sm text-[#5E6B69]">
                     {rangeLabel}
-                    {rows.length ? "" : " · no sales in these dates"}
+                    {report && !report.totals.transactions ? " · no sales in these dates" : ""}
                   </p>
                 </div>
                 <div>
                   <div
                     role="img"
-                    aria-label={`${padsSold} pads sold between ${rangeLabel}`}
+                    aria-label={`${soldTotal} ${unitWord} sold between ${rangeLabel}`}
                     className="flex h-[170px] items-end border-b border-[#EEF1EF] pb-1"
                     style={{ gap }}
                   >
@@ -714,7 +786,7 @@ const MachineStats = () => {
                             >
                               <div className="text-[#B7CFCA]">{fmt(d, true)}</div>
                               <div className="font-bold">
-                                {c} pad{c === 1 ? "" : "s"} sold
+                                {c} {unitWord} sold
                               </div>
                             </div>
                           )}
@@ -768,91 +840,154 @@ const MachineStats = () => {
                 </div>
                 {popular.length ? (
                   <div className="flex flex-col gap-[18px]">
-                    {popular.map(([name, count]) => (
-                      <div key={name}>
+                    {popular.slice(0, TOP_PRODUCTS).map((p) => (
+                      <div key={p.name}>
                         <div className="mb-2 flex justify-between gap-3 text-[15px]">
-                          <b className="font-semibold">{name}</b>
-                          <span className="whitespace-nowrap text-[#5E6B69]">{count} sold</span>
+                          <b className="min-w-0 truncate font-semibold">{p.name}</b>
+                          <span className="whitespace-nowrap text-[#5E6B69]">{p.units.toLocaleString()} sold</span>
                         </div>
-                        <Track pct={Math.round((count / popular[0][1]) * 100)} color={GOLD} />
+                        <Track pct={Math.round((p.units / popular[0].units) * 100)} color={GOLD} />
                       </div>
                     ))}
+                    {popular.length > TOP_PRODUCTS && (
+                      <span className="text-sm text-[#5E6B69]">
+                        and {popular.length - TOP_PRODUCTS} more product{popular.length - TOP_PRODUCTS === 1 ? "" : "s"}
+                      </span>
+                    )}
                   </div>
                 ) : (
-                  <Empty title="No sales in these dates" hint="Try a longer date range." />
+                  <Empty
+                    title={report ? "No sales in these dates" : "Loading…"}
+                    hint={report ? "Try a longer date range." : "Fetching sales."}
+                  />
                 )}
               </Panel>
             </section>
 
             {/* Machines & stock */}
-            <Panel>
-              <div>
-                <h2 className="text-[19px] font-bold">Machines &amp; stock</h2>
-                <p className="mt-1 text-sm text-[#5E6B69]">Live from each selected machine</p>
+            <Panel className="!gap-[18px]">
+              <div className="flex flex-wrap items-end justify-between gap-3">
+                <div>
+                  <h2 className="text-[19px] font-bold">Machines &amp; stock</h2>
+                  <p className="mt-1 text-sm text-[#5E6B69]">
+                    Live stock per slot, with each machine's sales in {rangeLabel}
+                  </p>
+                </div>
+                <div className="flex w-full flex-wrap gap-2.5 sm:w-auto">
+                  <div className="relative min-w-0 flex-1 sm:w-56 sm:flex-none">
+                    <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#5E6B69]" />
+                    <input
+                      type="search"
+                      value={mSearch}
+                      onChange={(e) => setMSearch(e.target.value)}
+                      placeholder="Search machines"
+                      aria-label="Search machines"
+                      className={`${fieldCls} w-full pl-9`}
+                    />
+                  </div>
+                  <select
+                    aria-label="Sort machines"
+                    value={mSort}
+                    onChange={(e) => setMSort(e.target.value as MachineSort)}
+                    className={`${fieldCls} cursor-pointer`}
+                  >
+                    <option value="sold">Most sold</option>
+                    <option value="stock">Lowest stock</option>
+                    <option value="name">Name</option>
+                  </select>
+                </div>
               </div>
-              <div className="flex flex-col gap-[22px]">
-                {chosen.map((m) => {
-                  const code = String(m.machine_code)
-                  const ms = slotsFor(code)
-                  return (
-                    <div key={code} className="flex flex-col gap-3 border-t border-[#EEF1EF] pt-[18px]">
-                      <div className="flex flex-wrap items-center justify-between gap-2.5">
-                        <span className="flex flex-wrap items-center gap-2.5 text-base font-bold">
-                          {m.machine_name} <Pill machine={m} />
-                        </span>
-                        <span className="flex flex-wrap gap-4 text-[13px] text-[#5E6B69]">
-                          <span>
-                            Last online:{" "}
-                            <b className="font-semibold text-[#3F4D4B]">
-                              {neverOnline(m) ? "Not yet online" : formatUnixTimestamp(m.lastUpdated as number)}
-                            </b>
-                          </span>
-                          <span>
-                            Installed:{" "}
-                            <b className="font-semibold text-[#3F4D4B]">
-                              {m.created_at ? formatDate(m.created_at * 1000) : "N/A"}
-                            </b>
-                          </span>
-                        </span>
-                      </div>
-                      {ms.length ? (
-                        <div className="grid gap-3.5 [grid-template-columns:repeat(auto-fit,minmax(200px,1fr))]">
-                          {ms.map((s) => {
-                            const c = slotCap(s)
-                            const pct = c ? Math.min(100, Math.round((s.availableQuantity / c) * 100)) : 0
-                            return (
-                              <div
-                                key={`${code}-${s.row_num}-${s.id}`}
-                                className="flex flex-col gap-2.5 rounded-2xl bg-[#F7F9F8] px-5 py-[18px]"
-                              >
-                                <span className="text-sm font-semibold text-[#5E6B69]">Slot {s.row_num}</span>
-                                <span className="text-[30px] font-bold leading-none tracking-[-0.02em]">
-                                  {s.availableQuantity}{" "}
-                                  <small className="text-[15px] font-medium tracking-normal text-[#5E6B69]">
-                                    of {c} left
-                                  </small>
-                                </span>
-                                <div className="overflow-hidden rounded-full bg-[#E3E9E6]" style={{ height: 8 }}>
-                                  <div
-                                    className="h-full rounded-full"
-                                    style={{ width: `${pct}%`, background: pct < 25 ? "#C0392B" : TEAL }}
-                                  />
+
+              {!machines.length ? (
+                <Empty solid title="Loading machines…" hint="Reading live stock from each machine." />
+              ) : shownMachines.length === 0 ? (
+                <Empty solid title={`No machine matches “${mSearch}”`} hint="Try another name or number." />
+              ) : (
+                <div className="-mx-5 overflow-x-auto px-5 sm:-mx-[26px] sm:px-[26px]">
+                  <table className="w-full min-w-[760px] border-collapse text-[15px]">
+                    <thead>
+                      <tr>
+                        <th className={`${thCls} text-left`}>Machine</th>
+                        <th className={`${thCls} text-left`}>Status</th>
+                        <th className={`${thCls} text-right`}>Sold</th>
+                        <th className={`${thCls} text-left`}>Stock per slot</th>
+                        <th className={`${thCls} text-left`}>Last online</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {shownMachines.map((m) => {
+                        const code = String(m.machine_code)
+                        const ms = slotsFor(code)
+                        const sold = soldBy.get(code)
+                        return (
+                          <tr key={code}>
+                            <td className={tdCls}>
+                              <span className="block font-semibold">{m.machine_name}</span>
+                              <span className="text-[13px] text-[#5E6B69]">
+                                #{code}
+                                {m.created_at ? ` · installed ${formatDate(m.created_at * 1000)}` : ""}
+                              </span>
+                            </td>
+                            <td className={tdCls}>
+                              <Pill machine={m} />
+                            </td>
+                            <td className={`${tdCls} text-right font-semibold`}>
+                              {report ? (sold?.units ?? 0).toLocaleString() : "–"}
+                            </td>
+                            <td className={tdCls}>
+                              {ms.length ? (
+                                <div className="flex gap-1.5 whitespace-nowrap">
+                                  {ms.map((s) => {
+                                    const c = slotCap(s)
+                                    const qty = s.availableQuantity
+                                    const tone =
+                                      qty <= 0
+                                        ? "bg-[#FDECEA] text-[#B42318]"
+                                        : c && qty / c < 0.25
+                                          ? "bg-[#FDF1DC] text-[#8A5300]"
+                                          : "bg-[#F1F4F3] text-[#3F4D4B]"
+                                    return (
+                                      <span
+                                        key={`${code}-${s.row_num}-${s.id}`}
+                                        title={`Slot ${s.row_num}: ${Math.max(0, qty)} of ${c} left`}
+                                        className={`inline-flex items-baseline gap-1 rounded-md px-2 py-1 text-[13px] ${tone}`}
+                                      >
+                                        <span className="opacity-70">S{s.row_num}</span>
+                                        <b className="font-semibold">{Math.max(0, qty)}</b>
+                                        <span className="opacity-60">/{c}</span>
+                                      </span>
+                                    )
+                                  })}
                                 </div>
-                              </div>
-                            )
-                          })}
-                        </div>
-                      ) : (
-                        <div className="rounded-[14px] border border-dashed border-[#DCE1DF] px-[18px] py-4 text-sm text-[#5E6B69]">
-                          {isOnline(m)
-                            ? "Online, but no stock has been loaded yet."
-                            : "Not connected yet, so stock can’t be read."}
-                        </div>
-                      )}
-                    </div>
-                  )
-                })}
-              </div>
+                              ) : (
+                                <span className="text-sm text-[#5E6B69]">No stock loaded</span>
+                              )}
+                            </td>
+                            <td className={`${tdCls} whitespace-nowrap text-sm text-[#3F4D4B]`}>
+                              {neverOnline(m) ? "Not yet online" : formatUnixTimestamp(m.lastUpdated as number)}
+                            </td>
+                          </tr>
+                        )
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+
+              {machineRows.length > 10 && (
+                <Pager
+                  id="stats-machines-per-page"
+                  page={mPage}
+                  totalPages={mTotalPages}
+                  perPage={mPerPage}
+                  pageSizes={[10, 20, 50]}
+                  onPageChange={setMPage}
+                  onPerPageChange={(size) => {
+                    setMPerPage(size)
+                    setMPage(1)
+                  }}
+                />
+              )}
             </Panel>
 
             {/* Transactions */}
@@ -862,94 +997,65 @@ const MachineStats = () => {
                   <h2 className="text-[19px] font-bold">Transactions</h2>
                   <p className="mt-1 text-sm text-[#5E6B69]">
                     {txTotal
-                      ? `${txTotal} ${txTotal === 1 ? "sale" : "sales"} · ${rangeLabel} · newest first`
+                      ? `${txTotal.toLocaleString()} ${txTotal === 1 ? "sale" : "sales"} · ${rangeLabel} · newest first`
                       : rangeLabel}
                   </p>
                 </div>
-                {chosen.length > 1 && (
-                  <select
-                    aria-label="Machine"
-                    value={activeTxMachine ?? ""}
-                    onChange={(e) => setTxMachine(e.target.value)}
-                    className={`${fieldCls} cursor-pointer`}
+                {exportAllowed && (
+                  <button
+                    type="button"
+                    onClick={downloadCsv}
+                    disabled={!txTotal || exporting}
+                    className="inline-flex min-h-12 items-center gap-2 rounded-xl px-[22px] text-[15px] font-semibold text-white hover:opacity-90 disabled:cursor-not-allowed disabled:!bg-[#E3E7E5] disabled:!text-[#5E6B69]"
+                    style={{ background: TEAL }}
                   >
-                    {chosen.map((m) => (
-                      <option key={m.machine_code} value={String(m.machine_code)}>
-                        {m.machine_name}
-                      </option>
-                    ))}
-                  </select>
+                    <Download className="h-[18px] w-[18px]" />
+                    {exporting ? "Preparing…" : "Download"}
+                  </button>
                 )}
-                <button
-                  type="button"
-                  onClick={downloadCsv}
-                  disabled={!rows.length}
-                  className="inline-flex min-h-12 items-center gap-2 rounded-xl px-[22px] text-[15px] font-semibold text-white hover:opacity-90 disabled:cursor-not-allowed disabled:!bg-[#E3E7E5] disabled:!text-[#5E6B69]"
-                  style={{ background: TEAL }}
-                >
-                  <Download className="h-[18px] w-[18px]" />
-                  Download
-                </button>
               </div>
 
               {txRows.length ? (
                 <div
                   className={`-mx-5 overflow-x-auto px-5 transition-opacity sm:-mx-[26px] sm:px-[26px] ${
-                    txLoading ? "opacity-60" : ""
+                    reportLoading ? "opacity-60" : ""
                   }`}
                 >
                   <table className="w-full min-w-[680px] border-collapse text-[15px]">
                     <thead>
                       <tr>
                         {["#", "Date & time", "Machine", "Product", "Paid by", "Amount"].map((h) => (
-                          <th
-                            key={h}
-                            className={`border-b border-[#E7EAE8] px-2 pb-3 text-[13px] font-semibold text-[#5E6B69] ${
-                              h === "Amount" ? "text-right" : "text-left"
-                            }`}
-                          >
+                          <th key={h} className={`${thCls} ${h === "Amount" ? "text-right" : "text-left"}`}>
                             {h}
                           </th>
                         ))}
                       </tr>
                     </thead>
                     <tbody>
-                      {txRows.map((t, i) => {
-                        const d = t.epoch_time ? new Date(t.epoch_time * 1000) : parseDate(t.created_at)
-                        const qty = Number(t.quantity) || 1
-                        return (
-                          <tr key={t.id}>
-                            <td className="w-11 border-b border-[#F0F2F1] px-2 py-3.5 text-[#5E6B69]">
-                              {(txPage - 1) * txPerPage + i + 1}
-                            </td>
-                            <td className="border-b border-[#F0F2F1] px-2 py-3.5">
-                              <span className="block font-semibold">{fmt(d, true)}</span>
-                              <span className="text-[13px] text-[#5E6B69]">{fmtTime(d)}</span>
-                            </td>
-                            <td className="border-b border-[#F0F2F1] px-2 py-3.5 text-[#3F4D4B]">
-                              {shortName(String(t.machine_code ?? activeTxMachine))}
-                            </td>
-                            <td className="border-b border-[#F0F2F1] px-2 py-3.5 font-medium">
-                              {brandNames[`${activeTxMachine}:${t.brand_id}`] ?? `Product ${t.brand_id}`}
-                              {qty > 1 ? ` ×${qty}` : ""}
-                            </td>
-                            <td className="border-b border-[#F0F2F1] px-2 py-3.5 text-[#3F4D4B]">
-                              {t.payment_method || "At machine"}
-                            </td>
-                            <td className="border-b border-[#F0F2F1] px-2 py-3.5 text-right font-semibold">
-                              Rs {(Number(t.amount) || 0).toLocaleString()}
-                            </td>
-                          </tr>
-                        )
-                      })}
+                      {txRows.map((t, i) => (
+                        <tr key={t.id}>
+                          <td className={`${tdCls} w-11 text-[#5E6B69]`}>{(txPage - 1) * txPerPage + i + 1}</td>
+                          <td className={tdCls}>
+                            <span className="block font-semibold">{fmtEpochDate(t.epoch_time, true)}</span>
+                            <span className="text-[13px] text-[#5E6B69]">{fmtEpochTime(t.epoch_time)}</span>
+                          </td>
+                          <td className={`${tdCls} text-[#3F4D4B]`}>{shortName(t.machine_code)}</td>
+                          <td className={`${tdCls} font-medium`}>
+                            {t.product}
+                            {t.units > 1 ? ` ×${t.units}` : ""}
+                          </td>
+                          <td className={`${tdCls} text-[#3F4D4B]`}>{t.payment}</td>
+                          <td className={`${tdCls} text-right font-semibold`}>Rs {t.amount.toLocaleString()}</td>
+                        </tr>
+                      ))}
                     </tbody>
                   </table>
                 </div>
               ) : (
                 <Empty
                   solid
-                  title={txLoading ? "Loading transactions…" : "No transactions in these dates"}
-                  hint={txLoading ? "This can take a moment." : "Choose a longer range or another machine."}
+                  title={reportLoading ? "Loading transactions…" : "No transactions in these dates"}
+                  hint={reportLoading ? "This can take a moment." : "Choose a longer range or other machines."}
                 />
               )}
 
@@ -957,7 +1063,7 @@ const MachineStats = () => {
                 <Pager
                   id="stats-transactions-per-page"
                   page={txPage}
-                  totalPages={Math.max(1, txData?.totalPages ?? 1)}
+                  totalPages={Math.max(1, report?.totalPages ?? 1)}
                   perPage={txPerPage}
                   pageSizes={[10, 20, 50, 100]}
                   onPageChange={setTxPage}

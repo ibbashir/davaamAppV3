@@ -1,6 +1,7 @@
 import { useState, useMemo } from "react";
 import { postRequest } from "@/Apis/Api";
 import { useAuth } from "@/contexts/AuthContext";
+import { canExportData } from "@/utils/companyAccess";
 import * as XLSX from "xlsx";
 import { SiteHeader } from "@/components/corporate/site-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -47,6 +48,8 @@ type FilterMode = "month" | "range";
 export default function Report() {
   const { state } = useAuth();
   const { user } = state;
+  // View-only companies (e.g. Butterfly) see the report but can't export it
+  const exportAllowed = canExportData(user);
 
   const machineCodes = useMemo(
     () =>
@@ -134,6 +137,7 @@ export default function Report() {
   };
 
   const exportToExcel = () => {
+    if (!exportAllowed) return;
     if (!data.cashTransactions && !data.onlineTransactions) {
       alert("No data to export");
       return;
@@ -214,7 +218,7 @@ export default function Report() {
           <p className="text-muted-foreground text-sm">
             Generate cash and online transaction reports by month or a custom date range
           </p>
-          {data.overalltotal !== undefined && data.overalltotal > 0 && (
+          {exportAllowed && data.overalltotal !== undefined && data.overalltotal > 0 && (
             <Button
               onClick={exportToExcel}
               className="bg-green-600 hover:bg-green-700"

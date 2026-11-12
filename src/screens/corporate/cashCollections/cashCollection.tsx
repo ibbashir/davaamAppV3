@@ -2,6 +2,7 @@ import { SiteHeader } from "@/components/corporate/site-header";
 import React, { useState, useEffect } from "react";
 import CashCollectionTable from "./components/cashCollectionTable";
 import { getRequest, postRequest } from "@/Apis/Api";
+import { useCanExport } from "@/utils/companyAccess";
 import {
   TrendingUp,
   TrendingDown,
@@ -142,6 +143,8 @@ interface MonthlyReportResponse {
 }
 
 const CorporateCashCollectionPage: React.FC = () => {
+  // View-only companies (e.g. Butterfly) see collections but can't export them
+  const exportAllowed = useCanExport();
   const [activeTab, setActiveTab] = useState("reports");
   const [data, setData] = useState<CashCollection[]>([]);
   const [loading, setLoading] = useState(true);
@@ -613,7 +616,7 @@ const CorporateCashCollectionPage: React.FC = () => {
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
               <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
-                <DollarSign className="text-green-600" size={32} />
+                <DollarSign className="text-teal-600" size={32} />
                 Cash Collections
               </h1>
               <p className="mt-1 text-gray-600">
@@ -633,14 +636,16 @@ const CorporateCashCollectionPage: React.FC = () => {
                 Refresh
               </button>
 
-              <button
-                onClick={() => handleExport(data)}
-                disabled={loading || data.length === 0}
-                className="inline-flex items-center gap-2 px-4 py-2.5 bg-teal-600 text-white rounded-lg hover:bg-teal-700 shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <Download className="h-4 w-4" />
-                Export All
-              </button>
+              {exportAllowed && (
+                <button
+                  onClick={() => handleExport(data)}
+                  disabled={loading || data.length === 0}
+                  className="inline-flex items-center gap-2 px-4 py-2.5 bg-teal-600 text-white rounded-lg hover:bg-teal-700 shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <Download className="h-4 w-4" />
+                  Export All
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -682,7 +687,7 @@ const CorporateCashCollectionPage: React.FC = () => {
             loading={loading}
             error={error}
             onRefresh={fetchData}
-            onExport={handleExport}
+            onExport={exportAllowed ? handleExport : undefined}
           />
         )}
 
@@ -789,14 +794,16 @@ const CorporateCashCollectionPage: React.FC = () => {
                     {reportLoading ? "Generating..." : "Generate Report"}
                   </button>
 
-                  <button
-                    onClick={handleExportReport}
-                    disabled={!monthlyReport || reportLoading}
-                    className="px-4 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 disabled:opacity-50 flex items-center gap-2 transition-colors"
-                  >
-                    <Download className="h-4 w-4" />
-                    Export Report
-                  </button>
+                  {exportAllowed && (
+                    <button
+                      onClick={handleExportReport}
+                      disabled={!monthlyReport || reportLoading}
+                      className="px-4 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 disabled:opacity-50 flex items-center gap-2 transition-colors"
+                    >
+                      <Download className="h-4 w-4" />
+                      Export Report
+                    </button>
+                  )}
                 </div>
               </div>
             </div>
@@ -837,7 +844,7 @@ const CorporateCashCollectionPage: React.FC = () => {
                 <>
                   {/* Summary Stats */}
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                    {/* Total Collection — Deep teal */}
+                    {/* Total Collection */}
                     <div className="bg-gradient-to-br from-teal-600 to-teal-800 rounded-xl p-6 shadow-lg">
                       <div className="flex items-center justify-between mb-3">
                         <p className="text-sm text-teal-100 font-medium">
@@ -858,13 +865,13 @@ const CorporateCashCollectionPage: React.FC = () => {
                       </p>
                     </div>
 
-                    {/* Cash Transactions — Deep Emerald */}
-                    <div className="bg-gradient-to-br from-emerald-500 to-emerald-700 rounded-xl p-6 shadow-lg">
+                    {/* Cash Transactions */}
+                    <div className="bg-gradient-to-br from-teal-700 to-teal-900 rounded-xl p-6 shadow-lg">
                       <div className="flex items-center justify-between mb-3">
-                        <p className="text-sm text-emerald-100 font-medium">
+                        <p className="text-sm text-teal-100 font-medium">
                           Cash Transactions Recorded
                         </p>
-                        <div className="bg-emerald-400/40 p-2 rounded-lg">
+                        <div className="bg-teal-500/40 p-2 rounded-lg">
                           <ArrowUpDown className="h-5 w-5 text-white" />
                         </div>
                       </div>
@@ -875,18 +882,18 @@ const CorporateCashCollectionPage: React.FC = () => {
                             ?.amount || 0
                         ).toLocaleString("en-PK", { minimumFractionDigits: 2 })}
                       </p>
-                      <p className="text-xs text-emerald-200 mt-2">
+                      <p className="text-xs text-teal-200 mt-2">
                         Cash Transactions Recorded on Davaam Dashboard
                       </p>
                     </div>
 
-                    {/* Quantity Dispensed — Deep Violet */}
-                    <div className="bg-gradient-to-br from-violet-500 to-violet-800 rounded-xl p-6 shadow-lg">
+                    {/* Quantity Dispensed */}
+                    <div className="bg-gradient-to-br from-teal-500 to-teal-700 rounded-xl p-6 shadow-lg">
                       <div className="flex items-center justify-between mb-3">
-                        <p className="text-sm text-violet-100 font-medium">
+                        <p className="text-sm text-teal-100 font-medium">
                           Quantity Dispensed
                         </p>
-                        <div className="bg-violet-400/40 p-2 rounded-lg">
+                        <div className="bg-teal-400/40 p-2 rounded-lg">
                           <Boxes className="h-5 w-5 text-white" />
                         </div>
                       </div>
@@ -896,18 +903,18 @@ const CorporateCashCollectionPage: React.FC = () => {
                             ?.quantity || 0
                         ).toLocaleString("en-PK")}
                       </p>
-                      <p className="text-xs text-violet-200 mt-2">
+                      <p className="text-xs text-teal-200 mt-2">
                         Total quantity units
                       </p>
                     </div>
 
-                    {/* Cash Difference — Deep Amber */}
-                    {/* <div className="bg-gradient-to-br from-amber-500 to-orange-600 rounded-xl p-6 shadow-lg">
+                    {/* Cash Difference */}
+                    {/* <div className="bg-gradient-to-br from-teal-600 to-teal-800 rounded-xl p-6 shadow-lg">
                       <div className="flex items-center justify-between mb-3">
-                        <p className="text-sm text-amber-100 font-medium">
+                        <p className="text-sm text-teal-100 font-medium">
                           Cash Difference
                         </p>
-                        <div className="bg-amber-400/40 p-2 rounded-lg">
+                        <div className="bg-teal-500/40 p-2 rounded-lg">
                           <PieChartIcon className="h-5 w-5 text-white" />
                         </div>
                       </div>
@@ -917,7 +924,7 @@ const CorporateCashCollectionPage: React.FC = () => {
                           rawApiResponse.summary.overall_cash_difference || "0",
                         ).toLocaleString("en-PK", { minimumFractionDigits: 2 })}
                       </p>
-                      <p className="text-xs text-amber-200 mt-2">
+                      <p className="text-xs text-teal-200 mt-2">
                         Variance amount
                       </p>
                     </div> */}
@@ -925,19 +932,19 @@ const CorporateCashCollectionPage: React.FC = () => {
 
                   {/* Breakdown Summary Cards */}
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
-                    {/* Positive Difference — Green */}
-                    <div className="bg-gradient-to-br from-green-500 to-green-700 rounded-xl p-4 shadow-md">
+                    {/* Positive Difference */}
+                    <div className="bg-white border border-teal-100 rounded-xl p-4 shadow-sm">
                       <div className="flex items-center justify-between mb-3">
-                        <h3 className="font-semibold text-white text-sm">
+                        <h3 className="font-semibold text-gray-700 text-sm">
                           Positive Difference
                         </h3>
-                        <TrendingUp className="h-5 w-5 text-green-200" />
+                        <TrendingUp className="h-5 w-5 text-teal-600" />
                       </div>
-                      <p className="text-3xl font-bold text-white">
+                      <p className="text-3xl font-bold text-teal-800">
                         {rawApiResponse.summary.breakdown
                           ?.machines_with_positive_difference || 0}
                       </p>
-                      <p className="text-xs text-green-200 mt-2">
+                      <p className="text-xs text-gray-500 mt-2">
                         Rs{" "}
                         {parseFloat(
                           rawApiResponse.summary.breakdown
@@ -946,19 +953,19 @@ const CorporateCashCollectionPage: React.FC = () => {
                       </p>
                     </div>
 
-                    {/* Negative Difference — Red */}
-                    <div className="bg-gradient-to-br from-red-500 to-rose-700 rounded-xl p-4 shadow-md">
+                    {/* Negative Difference */}
+                    <div className="bg-white border border-teal-100 rounded-xl p-4 shadow-sm">
                       <div className="flex items-center justify-between mb-3">
-                        <h3 className="font-semibold text-white text-sm">
+                        <h3 className="font-semibold text-gray-700 text-sm">
                           Negative Difference
                         </h3>
-                        <TrendingDown className="h-5 w-5 text-red-200" />
+                        <TrendingDown className="h-5 w-5 text-teal-600" />
                       </div>
-                      <p className="text-3xl font-bold text-white">
+                      <p className="text-3xl font-bold text-teal-800">
                         {rawApiResponse.summary.breakdown
                           ?.machines_with_negative_difference || 0}
                       </p>
-                      <p className="text-xs text-red-200 mt-2">
+                      <p className="text-xs text-gray-500 mt-2">
                         Rs{" "}
                         {parseFloat(
                           rawApiResponse.summary.breakdown
@@ -967,69 +974,69 @@ const CorporateCashCollectionPage: React.FC = () => {
                       </p>
                     </div>
 
-                    {/* Exact Match — Cyan */}
-                    <div className="bg-gradient-to-br from-cyan-500 to-cyan-700 rounded-xl p-4 shadow-md">
+                    {/* Exact Match */}
+                    <div className="bg-white border border-teal-100 rounded-xl p-4 shadow-sm">
                       <div className="flex items-center justify-between mb-3">
-                        <h3 className="font-semibold text-white text-sm">
+                        <h3 className="font-semibold text-gray-700 text-sm">
                           Exact Match
                         </h3>
-                        <BadgeCheck className="h-5 w-5 text-cyan-200" />
+                        <BadgeCheck className="h-5 w-5 text-teal-600" />
                       </div>
-                      <p className="text-3xl font-bold text-white">
+                      <p className="text-3xl font-bold text-teal-800">
                         {rawApiResponse.summary.breakdown
                           ?.machines_with_exact_match || 0}
                       </p>
-                      <p className="text-xs text-cyan-200 mt-2">
+                      <p className="text-xs text-gray-500 mt-2">
                         Balanced machines
                       </p>
                     </div>
 
-                    {/* Total Cash Machines — Indigo */}
-                    <div className="bg-gradient-to-br from-indigo-500 to-indigo-700 rounded-xl p-4 shadow-md">
+                    {/* Total Cash Machines */}
+                    <div className="bg-white border border-teal-100 rounded-xl p-4 shadow-sm">
                       <div className="flex items-center justify-between mb-3">
-                        <h3 className="font-semibold text-white text-sm">
+                        <h3 className="font-semibold text-gray-700 text-sm">
                           Total Cash Machines
                         </h3>
-                        <Server className="h-5 w-5 text-indigo-200" />
+                        <Server className="h-5 w-5 text-teal-600" />
                       </div>
-                      <p className="text-3xl font-bold text-white">
+                      <p className="text-3xl font-bold text-teal-800">
                         {rawApiResponse.summary.total_cash_machines || 0}
                       </p>
-                      <p className="text-xs text-indigo-200 mt-2">
+                      <p className="text-xs text-gray-500 mt-2">
                         Active cash machines
                       </p>
                     </div>
 
-                    {/* Collection Machines — Teal */}
-                    <div className="bg-gradient-to-br from-teal-500 to-teal-700 rounded-xl p-4 shadow-md">
+                    {/* Collection Machines */}
+                    <div className="bg-white border border-teal-100 rounded-xl p-4 shadow-sm">
                       <div className="flex items-center justify-between mb-3">
-                        <h3 className="font-semibold text-white text-sm">
+                        <h3 className="font-semibold text-gray-700 text-sm">
                           Collection Machines
                         </h3>
-                        <LayoutGrid className="h-5 w-5 text-teal-200" />
+                        <LayoutGrid className="h-5 w-5 text-teal-600" />
                       </div>
-                      <p className="text-3xl font-bold text-white">
+                      <p className="text-3xl font-bold text-teal-800">
                         {rawApiResponse.detailed_breakdown?.all_machines
                           ?.length || 0}
                       </p>
-                      <p className="text-xs text-teal-200 mt-2">
+                      <p className="text-xs text-gray-500 mt-2">
                         Machines with collections
                       </p>
                     </div>
 
-                    {/* No Collection — Slate */}
-                    <div className="bg-gradient-to-br from-slate-500 to-slate-700 rounded-xl p-4 shadow-md">
+                    {/* No Collection */}
+                    <div className="bg-white border border-teal-100 rounded-xl p-4 shadow-sm">
                       <div className="flex items-center justify-between mb-3">
-                        <h3 className="font-semibold text-white text-sm">
+                        <h3 className="font-semibold text-gray-700 text-sm">
                           No Collection
                         </h3>
-                        <CircleSlash className="h-5 w-5 text-slate-300" />
+                        <CircleSlash className="h-5 w-5 text-teal-600" />
                       </div>
-                      <p className="text-3xl font-bold text-white">
+                      <p className="text-3xl font-bold text-teal-800">
                         {rawApiResponse.summary.machines_with_no_collection ||
                           0}
                       </p>
-                      <p className="text-xs text-slate-300 mt-2">
+                      <p className="text-xs text-gray-500 mt-2">
                         Cash machines uncollected
                       </p>
                     </div>

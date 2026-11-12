@@ -3,6 +3,7 @@
 import React, { useEffect, useState, useCallback, useRef } from "react";
 import { SiteHeader } from "@/components/corporate/site-header";
 import { postRequest, getRequest } from "@/Apis/Api";
+import { useCanExport } from "@/utils/companyAccess";
 import {
   ResponsiveContainer,
   AreaChart,
@@ -612,6 +613,8 @@ const Top5Table = ({ title, data, accent, isMobile }: any) => {
 
 // ─── Main Component ────────────────────────────────────────────────────────────
 export function CompanyUserAnalysis() {
+  // View-only companies (e.g. Butterfly) see the analysis but can't export it
+  const exportAllowed = useCanExport();
   const currentYear = new Date().getFullYear();
 
   const [year,             setYear]             = useState<number | null>(currentYear);
@@ -872,10 +875,12 @@ export function CompanyUserAnalysis() {
           </div>
 
           {/* Export */}
-          <button onClick={downloadData} style={{ display: "flex", alignItems: "center", gap: 6, padding: isMobile ? "6px 10px" : "6px 14px", borderRadius: 8, border: "1px solid #E2E8F0", background: "#F8FAFC", cursor: "pointer", fontSize: 12, fontWeight: 600, color: "#64748B" }}>
-            <DownloadIcon style={{ width: 13, height: 13 }} />
-            {!isMobile && "Export"}
-          </button>
+          {exportAllowed && (
+            <button onClick={downloadData} style={{ display: "flex", alignItems: "center", gap: 6, padding: isMobile ? "6px 10px" : "6px 14px", borderRadius: 8, border: "1px solid #E2E8F0", background: "#F8FAFC", cursor: "pointer", fontSize: 12, fontWeight: 600, color: "#64748B" }}>
+              <DownloadIcon style={{ width: 13, height: 13 }} />
+              {!isMobile && "Export"}
+            </button>
+          )}
         </div>
 
         {/* Active machine pills */}
