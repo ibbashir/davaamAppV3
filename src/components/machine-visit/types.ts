@@ -10,10 +10,19 @@ export type VisitTab =
 /** A fault the machine reported about itself (machine_diag_alerts). */
 export type DiagAlert = {
   id: number;
+  /** "error" from current firmware; older units sent the fault name here */
   alert_type: string;
+  /**
+   * Which fault it is, read from info: jam, dispense_fail, overdispense,
+   * arduino_fail, w5500_fail, or error for anything else. Missing from a
+   * backend that predates it.
+   */
+  kind?: string;
   info: string | null;
-  /** product row named by info, when info is a number */
+  /** product row named by info: "3", or the row in an overdispense's "2:3" */
   row_num: number | null;
+  /** items dispensed for one request, for an overdispense */
+  count?: number | null;
   brand_id: number | null;
   product_name: string | null;
   epoch_time: number;
@@ -23,6 +32,9 @@ export type DiagAlert = {
   cleared_by_sale_at: number | null;
 };
 
+/** Customers' good/bad ratings after a purchase. Not faults, so counted apart. */
+export type DiagFeedback = { good: number; bad: number; last_at: number | null };
+
 /** machineDiagAlerts response: alerts newest first. */
 export type DiagAlertsResponse = {
   since: number;
@@ -30,6 +42,8 @@ export type DiagAlertsResponse = {
   truncated: boolean;
   device: { mac: string | null; ip: string | null; reported_at: number } | null;
   rows: { row_num: number; brand_id: number; name: string }[];
+  /** missing from a backend that predates it */
+  feedback?: DiagFeedback;
   alerts: DiagAlert[];
 };
 

@@ -5,6 +5,8 @@ import {
   OctagonAlert,
   RefreshCw,
   RotateCcw,
+  ThumbsDown,
+  ThumbsUp,
   TriangleAlert,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -25,10 +27,10 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
-import { scopeName, type AlertsSummary, type Episode, type ScopeState } from "./alerts";
+import { isMachineDown, scopeName, type AlertsSummary, type Episode, type ScopeState } from "./alerts";
 import { formatDateTime, formatDuration, formatNumber, formatRelative } from "./format";
 import { EmptyState, Pager, UnavailableNote } from "./parts";
-import type { DiagAlertsResponse, ProductStock } from "./types";
+import type { DiagAlertsResponse, DiagFeedback, ProductStock } from "./types";
 
 const STATUS: Record<
   AlertsSummary["status"],
@@ -54,6 +56,13 @@ const plural = (n: number, one: string, many = `${one}s`) => `${formatNumber(n)}
 function statusText(summary: AlertsSummary, days: number) {
   const { status, open, recentAlerts, lastAt } = summary;
   if (status === "fault") {
+    const down = open.find((s) => s.last && isMachineDown(s.last.kind));
+    if (down) {
+      return {
+        title: "Machine is down",
+        text: `${down.last!.label}: the machine reported it can't run at all, and there's been no sale since to show it's back.`,
+      };
+    }
     return {
       title: `${plural(open.length, open.length === 1 && open[0].row_num === null ? "fault" : "row")} ${open.length === 1 ? "needs" : "need"} checking`,
       text: "The machine reported a fault, and there's been no sale from that row since to show it dispenses again.",
@@ -73,7 +82,7 @@ function statusText(summary: AlertsSummary, days: number) {
   }
   return {
     title: "No faults reported",
-    text: `This machine hasn't reported a jam, failed dispense or error in the last ${days} days. Only machines on the newer firmware report these.`,
+    text: `This machine hasn't reported a jam, a failed or extra dispense, or a hardware fault in the last ${days} days. Only machines on the newer firmware report these.`,
   };
 }
 
@@ -203,9 +212,44 @@ function History({ episodes }: { episodes: Episode[] }) {
   );
 }
 
+/** Customers' ratings after a purchase. Shown apart from faults: a rating isn't one. */
+function Feedback({ feedback, days }: { feedback: DiagFeedback; days: number }) {
+  const total = feedback.good + feedback.bad;
+  return (
+    <Card className="rounded-2xl shadow-sm">
+      <CardHeader>
+        <CardTitle className="text-lg text-slate-900">Customer feedback</CardTitle>
+        <CardDescription>
+          Ratings customers gave on the keypad after a purchase, last {days} days. These aren't faults and
+          don't count towards the alerts above.
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="flex flex-wrap items-center gap-x-8 gap-y-3 text-sm">
+        <div className="flex items-center gap-2">
+          <ThumbsUp className="h-5 w-5 text-teal-600" aria-hidden />
+          <span className="text-2xl font-semibold tabular-nums text-slate-900">{formatNumber(feedback.good)}</span>
+          <span className="text-slate-600">good</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <ThumbsDown className="h-5 w-5 text-red-600" aria-hidden />
+          <span className="text-2xl font-semibold tabular-nums text-slate-900">{formatNumber(feedback.bad)}</span>
+          <span className="text-slate-600">bad</span>
+        </div>
+        <div className="text-slate-600">
+          <span className="font-medium text-slate-900">{Math.round((feedback.good / total) * 100)}% good</span> of{" "}
+          {plural(total, "rating")}
+          {feedback.last_at !== null && (
+            <span title={formatDateTime(feedback.last_at)}> · latest {formatRelative(feedback.last_at)}</span>
+          )}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
 /**
- * Faults the machine reported about itself (jam, failed dispense, error) and
- * what state each row is in now.
+ * Faults the machine reported about itself (jam, failed or extra dispense,
+ * hardware fault) and what state each row is in now, plus customer ratings.
  */
 export function AlertsTab({
   data,
@@ -287,11 +331,11 @@ export function AlertsTab({
         </div>
       )}
 
-      {summary.byType.length > 0 && (
+      {summary.byKind.length > 0 && (
         <div className="flex flex-wrap items-center gap-2 text-sm">
           <span className="text-slate-500">Last {data.days} days:</span>
-          {summary.byType.map((t) => (
-            <Badge key={t.type} variant="outline" className="bg-white text-slate-700">
+          {summary.byKind.map((t) => (
+            <Badge key={t.kind} variant="outline" className="bg-white text-slate-700">
               <TriangleAlert className="text-amber-600" /> {t.label} · {formatNumber(t.count)}
             </Badge>
           ))}
@@ -300,6 +344,10 @@ export function AlertsTab({
       )}
 
       {summary.episodes.length > 0 && <History episodes={summary.episodes} />}
+
+      {data.feedback && data.feedback.good + data.feedback.bad > 0 && (
+        <Feedback feedback={data.feedback} days={data.days} />
+      )}
     </div>
   );
 }

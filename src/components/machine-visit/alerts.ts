@@ -1,6 +1,7 @@
 /**
  * Reads the faults a machine reported about itself (machine_diag_alerts) into
- * a current state per product row. Machines never report a fault clearing, so
+ * a current state per product row. Customer ratings arrive through the same
+ * machine call but are not faults and never count here. Machines never report a fault clearing, so
  * a fault counts as cleared once that row sells again (the backend finds that
  * sale); until then it stays open.
  */
@@ -11,27 +12,45 @@ import type { DiagAlert, DiagAlertsResponse } from "./types";
 const EPISODE_GAP_SECONDS = 15 * 60;
 const RECENT_SECONDS = 7 * 24 * 60 * 60;
 
-const TYPE_LABELS: Record<string, string> = {
+const KIND_LABELS: Record<string, string> = {
   jam: "Jam",
   dispense_fail: "Failed to dispense",
+  overdispense: "Dispensed too many",
+  arduino_fail: "Controller not responding",
+  w5500_fail: "Network chip not responding",
   error: "Error",
 };
 
-/** "Jam", "Failed to dispense", "Coin stuck" for a type the firmware adds later */
-export const alertTypeLabel = (type: string) =>
-  TYPE_LABELS[type] ??
-  type
+/** Faults that stop the whole machine, not one row. */
+const MACHINE_DOWN_KINDS = new Set(["arduino_fail", "w5500_fail"]);
+export const isMachineDown = (kind: string) => MACHINE_DOWN_KINDS.has(kind);
+
+/**
+ * The fault an alert is. The machine sends type "error" for every fault and
+ * says which one in info, so the backend reads it out as `kind`; a backend
+ * without it leaves only the type to go on.
+ */
+export const alertKind = (a: Pick<DiagAlert, "kind" | "alert_type">) => a.kind ?? a.alert_type;
+
+/** "Jam", "Failed to dispense", "Coin stuck" for a kind this page doesn't know */
+export const alertKindLabel = (kind: string) =>
+  KIND_LABELS[kind] ??
+  kind
     .replace(/[_-]+/g, " ")
     .trim()
     .replace(/^./, (c) => c.toUpperCase());
 
-/** Extra text the machine sent that isn't a row number, e.g. "JAM" */
-export const alertDetail = (a: Pick<DiagAlert, "info" | "row_num">) =>
-  a.row_num === null && a.info ? a.info : null;
+/** What the label doesn't already say: an overdispense's count, or an unknown error's text. */
+export const alertDetail = (a: Pick<DiagAlert, "kind" | "alert_type" | "info" | "row_num" | "count">) => {
+  const kind = alertKind(a);
+  if (kind === "overdispense") return a.count ? `${a.count} for one request` : null;
+  if (kind in KIND_LABELS && kind !== "error") return null;
+  return a.row_num === null && a.info ? a.info : null;
+};
 
 export type Episode = {
   key: string;
-  type: string;
+  kind: string;
   label: string;
   detail: string | null;
   row_num: number | null;
@@ -59,7 +78,7 @@ export type AlertsSummary = {
   open: ScopeState[];
   scopes: ScopeState[];
   episodes: Episode[];
-  byType: { type: string; label: string; count: number }[];
+  byKind: { kind: string; label: string; count: number }[];
   lastAt: number | null;
   recentAlerts: number;
 };
@@ -76,7 +95,8 @@ export function groupEpisodes(alerts: DiagAlert[]): Episode[] {
   const open = new Map<string, Episode>();
   const episodes: Episode[] = [];
   for (const a of ascending) {
-    const key = `${scopeOf(a)}|${a.alert_type}|${alertDetail(a) ?? ""}`;
+    const kind = alertKind(a);
+    const key = `${scopeOf(a)}|${kind}|${alertDetail(a) ?? ""}`;
     const current = open.get(key);
     if (current && a.epoch_time - current.last_at <= EPISODE_GAP_SECONDS) {
       current.last_at = a.epoch_time;
@@ -88,8 +108,8 @@ export function groupEpisodes(alerts: DiagAlert[]): Episode[] {
     }
     const episode: Episode = {
       key: `${key}|${a.id}`,
-      type: a.alert_type,
-      label: alertTypeLabel(a.alert_type),
+      kind,
+      label: alertKindLabel(kind),
       detail: alertDetail(a),
       row_num: a.row_num,
       product_name: a.product_name,
@@ -107,7 +127,9 @@ export function groupEpisodes(alerts: DiagAlert[]): Episode[] {
 }
 
 export function summarizeAlerts(data: DiagAlertsResponse, now = Date.now() / 1000): AlertsSummary {
-  const episodes = groupEpisodes(data.alerts);
+  // Ratings are never faults; a backend that predates them sends them in the list
+  const alerts = data.alerts.filter((a) => a.alert_type !== "feedback");
+  const episodes = groupEpisodes(alerts);
   const recentCutoff = now - RECENT_SECONDS;
 
   // Every product row gets a card, faulty or not; rows or a whole-machine
@@ -124,7 +146,7 @@ export function summarizeAlerts(data: DiagAlertsResponse, now = Date.now() / 100
       recentAlerts: 0,
     });
   }
-  for (const a of data.alerts) {
+  for (const a of alerts) {
     const key = scopeOf(a);
     if (!scopes.has(key)) {
       scopes.set(key, {
@@ -151,26 +173,26 @@ export function summarizeAlerts(data: DiagAlertsResponse, now = Date.now() / 100
     (a, b) => (a.row_num ?? Number.MAX_SAFE_INTEGER) - (b.row_num ?? Number.MAX_SAFE_INTEGER),
   );
   const open = list.filter((s) => s.state === "open");
-  const recentAlerts = data.alerts.filter((a) => a.epoch_time >= recentCutoff).length;
+  const recentAlerts = alerts.filter((a) => a.epoch_time >= recentCutoff).length;
 
   const counts = new Map<string, number>();
-  for (const a of data.alerts) counts.set(a.alert_type, (counts.get(a.alert_type) ?? 0) + 1);
+  for (const a of alerts) counts.set(alertKind(a), (counts.get(alertKind(a)) ?? 0) + 1);
 
   return {
     status: open.length
       ? "fault"
       : recentAlerts
         ? "recovered"
-        : data.alerts.length
+        : alerts.length
           ? "clear"
           : "none",
     open,
     scopes: list,
     episodes,
-    byType: [...counts.entries()]
-      .map(([type, count]) => ({ type, label: alertTypeLabel(type), count }))
+    byKind: [...counts.entries()]
+      .map(([kind, count]) => ({ kind, label: alertKindLabel(kind), count }))
       .sort((a, b) => b.count - a.count),
-    lastAt: data.alerts[0]?.epoch_time ?? null,
+    lastAt: alerts[0]?.epoch_time ?? null,
     recentAlerts,
   };
 }
